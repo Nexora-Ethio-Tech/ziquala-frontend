@@ -1,15 +1,16 @@
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 
-export type UserRole = 'super-admin' | 'school-admin' | 'vice-principal' | 'teacher' | 'student' | 'parent' | 'finance-clerk' | 'librarian' | 'clinic-admin' | 'driver' | 'auditor';
+export type UserRole = 'super-admin' | 'academic-manager' | 'school-admin' | 'vice-principal' | 'teacher' | 'student' | 'parent' | 'librarian';
+export type LegacyExcludedRole = 'finance-clerk' | 'clinic-admin' | 'driver' | 'auditor';
+export type SessionRole = UserRole | LegacyExcludedRole;
 
 export interface User {
   id: string;
   name: string;
   email: string;
-  role: UserRole;
+  role: SessionRole;
   digitalId?: string;
-  isBranchAuditor?: boolean;
 }
 
 interface Branch {
@@ -24,25 +25,22 @@ export interface MultilingualText {
   english: string;
 }
 
-const normalizeUserRole = (role?: string): UserRole | null => {
+const normalizeUserRole = (role?: string): SessionRole | null => {
   if (!role) return null;
-  return role.toString().toLowerCase().replace(/[_\s]+/g, '-') as UserRole;
+  return role.toString().toLowerCase().replace(/[_\s]+/g, '-') as SessionRole;
 };
 
 const getDashboardRoute = (role?: string) => {
   const normalizedRole = normalizeUserRole(role);
   switch (normalizedRole) {
     case 'super-admin': return '/dashboard/super-admin';
+    case 'academic-manager': return '/dashboard/academic-manager';
     case 'school-admin': return '/dashboard/school-admin';
     case 'teacher': return '/dashboard/teacher';
     case 'student': return '/dashboard/student';
     case 'parent': return '/dashboard/parent';
-    case 'finance-clerk': return '/dashboard/finance';
     case 'vice-principal': return '/dashboard/vice-principal';
-    case 'driver': return '/dashboard/driver';
     case 'librarian': return '/dashboard/librarian';
-    case 'clinic-admin': return '/dashboard/clinic-admin';
-    case 'auditor': return '/auditor-dashboard';
     default: return '/';
   }
 };
@@ -50,7 +48,7 @@ const getDashboardRoute = (role?: string) => {
 interface UserContextType {
   user: User | null;
   setUser: (user: User | null) => void;
-  role: UserRole | null;
+  role: SessionRole | null;
   selectedBranch: Branch | null;
   setSelectedBranch: (branch: Branch | null) => void;
   branches: Branch[];
@@ -69,13 +67,23 @@ interface UserContextType {
 }
 
 const mockBranches: Branch[] = [
-  { id: '1', name: 'Main Branch', location: 'Addis Ababa' },
-  { id: '2', name: 'Bole Branch', location: 'Bole, AA' },
-  { id: '3', name: 'Megenagna Branch', location: 'Megenagna, AA' },
-  { id: '4', name: 'Adama Branch', location: 'Adama' },
+  { id: '1', name: 'Bishoftu Campus', location: 'Bishoftu, Kebele 03' },
 ];
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
+
+const demoModeEnabled = import.meta.env.DEV || import.meta.env.VITE_ENABLE_DEMO_AUTH === 'true';
+export const DEMO_ACCOUNTS: ReadonlyArray<{ id: string; name: string; role: UserRole; password: string }> = [
+  { id: 'ZA-SUPER', name: 'Super Admin', role: 'super-admin', password: 'demo123' },
+  { id: 'ZA-ACADEMIC', name: 'Academic Manager', role: 'academic-manager', password: 'demo123' },
+  { id: 'ZA-SCHOOL', name: 'School Admin', role: 'school-admin', password: 'demo123' },
+  { id: 'ZA-VP', name: 'Vice Principal', role: 'vice-principal', password: 'demo123' },
+  { id: 'ZA-TEACHER', name: 'Teacher', role: 'teacher', password: 'demo123' },
+  { id: 'ZA-LIBRARY', name: 'Librarian', role: 'librarian', password: 'demo123' },
+  { id: 'ZA-PARENT', name: 'Parent', role: 'parent', password: 'demo123' },
+  { id: 'ZA-STUDENT', name: 'Student', role: 'student', password: 'demo123' },
+];
+const demoAccounts = Object.fromEntries(DEMO_ACCOUNTS.map((account) => [account.id, account])) as Record<string, (typeof DEMO_ACCOUNTS)[number]>;
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
   // ─── SECURITY FIX ──────────────────────────────────────────────────────────
@@ -87,46 +95,46 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [branches, setBranches] = useState<Branch[]>(mockBranches); // Start with mock, fetch real
   const [gradesLocked, setGradesLocked] = useState(false);
   const [registrationOpen, setRegistrationOpen] = useState(() => {
-    return localStorage.getItem('registration_open') !== 'false';
+    return localStorage.getItem('ziquala_registration_open') !== 'false';
   });
 
   const [schoolName, setSchoolName] = useState<MultilingualText>(() => {
-    const saved = localStorage.getItem('school_name');
+    const saved = localStorage.getItem('ziquala_school_name');
     if (saved) {
       try {
         return JSON.parse(saved);
       } catch (e) {
         return {
-          oromic: 'Mana Barumsaa Abdii Adaamaa',
-          amharic: 'አብዲ አዳማ ትምህርት ቤት',
-          english: 'Abdi Adama School'
+          oromic: 'Mana Barnoota Zuqaalaa Aabboo',
+          amharic: 'የዝቋላ አቦ ገዳም አፀደ ህፃናትና አንደኛ ደረጃ ት/ቤት',
+          english: 'Ziquala Abo School'
         };
       }
     }
     return {
-      oromic: 'Mana Barumsaa Abdii Adaamaa',
-      amharic: 'አብዲ አዳማ ትምህርት ቤት',
-      english: 'Abdi Adama School'
+      oromic: 'Mana Barnoota Zuqaalaa Aabboo',
+      amharic: 'የዝቋላ አቦ ገዳም አፀደ ህፃናትና አንደኛ ደረጃ ት/ቤት',
+      english: 'Ziquala Abo School'
     };
   });
 
   const [schoolMotto, setSchoolMotto] = useState<MultilingualText>(() => {
-    const saved = localStorage.getItem('school_motto');
+    const saved = localStorage.getItem('ziquala_school_motto');
     if (saved) {
       try {
         return JSON.parse(saved);
       } catch (e) {
         return {
-          oromic: 'ijooleen kessaan ijolee kenyaa',
-          amharic: 'ልጆቻቹ ልጆቻችን ናቸዉ',
-          english: 'Your children are our children'
+          oromic: 'Beekumsa ammayyaa, ogummaa hafuuraa fi lammummaa itti gaafatamummaa qabu.',
+          amharic: 'ዘመናዊ ዕውቀት፣ መንፈሳዊ ጥበብ እና ኃላፊነት የተሞላ ዜግነት።',
+          english: 'Modern knowledge, spiritual wisdom, and responsible citizenship.'
         };
       }
     }
     return {
-      oromic: 'ijooleen kessaan ijolee kenyaa',
-      amharic: 'ልጆቻቹ ልጆቻችን ናቸዉ',
-      english: 'Your children are our children'
+      oromic: 'Beekumsa ammayyaa, ogummaa hafuuraa fi lammummaa itti gaafatamummaa qabu.',
+      amharic: 'ዘመናዊ ዕውቀት፣ መንፈሳዊ ጥበብ እና ኃላፊነት የተሞላ ዜግነት።',
+      english: 'Modern knowledge, spiritual wisdom, and responsible citizenship.'
     };
   });
 
@@ -181,10 +189,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             }));
             setBranches(apiBranches);
           }
-        } else if (user.role === 'auditor') {
+        } else if (user.role === 'academic-manager') {
           const { default: api } = await import('../services/api');
-          // Auditor: Fetch all branches using auditor endpoint
-          const res = await api.get('/auditor/branches');
+          const res = await api.get('/academic-manager/branches');
           if (res.data.success && Array.isArray(res.data.data)) {
             const apiBranches = res.data.data.map((b: any) => ({
               id: b.id,
@@ -213,12 +220,24 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   // No token → no user. Invalid token → user cleared.
   useEffect(() => {
     const verifyToken = async () => {
-      const token = localStorage.getItem('abdi_adama_token');
+      const token = localStorage.getItem('ziquala_token');
       console.log('[VerifyToken] Token exists:', !!token);
 
       if (!token) {
+        if (demoModeEnabled) {
+          try {
+            const savedDemoUser = localStorage.getItem('ziquala_demo_user');
+            if (savedDemoUser) {
+              setUser(JSON.parse(savedDemoUser));
+              setLoading(false);
+              return;
+            }
+          } catch {
+            localStorage.removeItem('ziquala_demo_user');
+          }
+        }
         // No token at all — clear any stale user data and stop loading
-        localStorage.removeItem('abdi_adama_user');
+        localStorage.removeItem('ziquala_user');
         setUser(null);
         setLoading(false);
         return;
@@ -232,7 +251,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
         if (res.data.success) {
           const rawUser = res.data.data;
-          const normalizedRole = normalizeUserRole(rawUser.role) || (rawUser.role as UserRole);
+          const normalizedRole = normalizeUserRole(rawUser.role) || (rawUser.role as SessionRole);
           console.log('[VerifyToken] Got user from /auth/me:', { role: rawUser.role, normalizedRole, email: rawUser.email });
 
           const user = {
@@ -247,21 +266,21 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
           };
           console.log('[VerifyToken] Setting user with role:', user.role);
           setUser(user);
-          localStorage.setItem('abdi_adama_user', JSON.stringify(user));
+          localStorage.setItem('ziquala_user', JSON.stringify(user));
         } else {
           console.warn('[VerifyToken] /auth/me returned success: false', res.data);
-          localStorage.removeItem('abdi_adama_user');
-          localStorage.removeItem('abdi_adama_token');
-          localStorage.removeItem('abdi_adama_refresh_token');
+          localStorage.removeItem('ziquala_user');
+          localStorage.removeItem('ziquala_token');
+          localStorage.removeItem('ziquala_refresh_token');
           setUser(null);
         }
       } catch (err) {
         console.error('[VerifyToken] Error:', err instanceof Error ? err.message : err,
           err instanceof Error && (err as any).response?.data ? (err as any).response.data : '');
         // Token expired or invalid — force logout
-        localStorage.removeItem('abdi_adama_user');
-        localStorage.removeItem('abdi_adama_token');
-        localStorage.removeItem('abdi_adama_refresh_token');
+        localStorage.removeItem('ziquala_user');
+        localStorage.removeItem('ziquala_token');
+        localStorage.removeItem('ziquala_refresh_token');
         setUser(null);
       } finally {
         console.log('[VerifyToken] Done, setting loading: false');
@@ -274,9 +293,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   // Persist user to localStorage when it changes (for display only, never trusted)
   useEffect(() => {
     if (user) {
-      localStorage.setItem('abdi_adama_user', JSON.stringify(user));
+      localStorage.setItem('ziquala_user', JSON.stringify(user));
     } else {
-      localStorage.removeItem('abdi_adama_user');
+      localStorage.removeItem('ziquala_user');
       // DO NOT clear tokens here, as user starts as null on app initialization
       // and clearing them here prevents verifyToken from working on page reload/refresh.
       // Token clearing is handled explicitly during logout or verification failure.
@@ -284,21 +303,37 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   }, [user]);
 
   useEffect(() => {
-    localStorage.setItem('school_name', JSON.stringify(schoolName));
+    localStorage.setItem('ziquala_school_name', JSON.stringify(schoolName));
   }, [schoolName]);
 
   useEffect(() => {
-    localStorage.setItem('school_motto', JSON.stringify(schoolMotto));
+    localStorage.setItem('ziquala_school_motto', JSON.stringify(schoolMotto));
   }, [schoolMotto]);
 
   useEffect(() => {
-    localStorage.setItem('registration_open', registrationOpen.toString());
+    localStorage.setItem('ziquala_registration_open', registrationOpen.toString());
   }, [registrationOpen]);
 
   const role = user?.role || null;
 
 
   const login = async (credentials: { digitalIdOrEmail: string; password?: string; otp?: string }): Promise<{ success: boolean; redirect?: string; error?: string }> => {
+    const demoId = credentials.digitalIdOrEmail.trim().toUpperCase();
+    const demoAccount = demoAccounts[demoId];
+    if (demoModeEnabled && demoAccount && credentials.password === demoAccount.password) {
+      const demoUser: User = {
+        id: `demo-${demoAccount.role}`,
+        name: `Ziquala Demo ${demoAccount.name}`,
+        email: `${demoAccount.role}@demo.ziquala.local`,
+        role: demoAccount.role,
+        digitalId: demoId,
+      };
+      localStorage.setItem('ziquala_demo_user', JSON.stringify(demoUser));
+      localStorage.setItem('ziquala_user', JSON.stringify(demoUser));
+      setUser(demoUser);
+      return { success: true, redirect: getDashboardRoute(demoUser.role) };
+    }
+
     try {
       const { default: api } = await import('../services/api');
       const res = await api.post('/auth/login', {
@@ -308,7 +343,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
       if (res.data.success) {
         const rawUser = res.data.data.user;
-        const normalizedRole = normalizeUserRole(rawUser.role) || (rawUser.role as UserRole);
+        const normalizedRole = normalizeUserRole(rawUser.role) || (rawUser.role as SessionRole);
         console.log('[Login] Backend returned user:', { role: rawUser.role, normalizedRole, email: rawUser.email });
 
         const user = {
@@ -323,9 +358,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         };
 
         // Store tokens BEFORE updating user state
-        localStorage.setItem('abdi_adama_token', res.data.data.accessToken);
-        localStorage.setItem('abdi_adama_refresh_token', res.data.data.refreshToken);
-        localStorage.setItem('abdi_adama_user', JSON.stringify(user));
+        localStorage.setItem('ziquala_token', res.data.data.accessToken);
+        localStorage.setItem('ziquala_refresh_token', res.data.data.refreshToken);
+        localStorage.setItem('ziquala_user', JSON.stringify(user));
 
         console.log('[Login] Tokens stored, setting user state...');
         setUser(user);
@@ -347,7 +382,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const logout = async () => {
     try {
       console.log("START");
-      const token = localStorage.getItem('abdi_adama_token');
+      const token = localStorage.getItem('ziquala_token');
       if (token) {
         const { default: api } = await import('../services/api');
         await api.post('/auth/logout');
@@ -357,9 +392,10 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setUser(null);
       setSelectedBranch(null);
-      localStorage.removeItem('abdi_adama_user');
-      localStorage.removeItem('abdi_adama_token');
-      localStorage.removeItem('abdi_adama_refresh_token');
+      localStorage.removeItem('ziquala_user');
+      localStorage.removeItem('ziquala_token');
+      localStorage.removeItem('ziquala_refresh_token');
+      localStorage.removeItem('ziquala_demo_user');
       window.location.href = '/';
     }
   };

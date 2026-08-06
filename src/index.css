@@ -3,9 +3,9 @@
 @tailwind utilities;
 
 :root {
-  --primary: #2c6399;
-  --secondary: #c86a79;
-  --accent: #4db3e3;
+  --primary: #075b42;
+  --secondary: #d6a31b;
+  --accent: #4f8f62;
   --app-radius: 1rem;
   --app-spacing: 1.5rem;
   --app-font-size: 1rem;
@@ -43,7 +43,7 @@
   --app-font-size: 1rem;
   --app-shadow: none;
   --app-font-weight: 400;
-  --primary: #2c6399;
+  --primary: #075b42;
 }
 
 @layer base {
@@ -51,8 +51,8 @@
     @apply bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-500;
     font-size: var(--app-font-size);
     font-weight: var(--app-font-weight);
-    background-image: radial-gradient(at 0% 0%, rgba(0, 118, 186, 0.03) 0px, transparent 50%),
-                      radial-gradient(at 100% 100%, rgba(193, 98, 102, 0.03) 0px, transparent 50%);
+    background-image: radial-gradient(at 0% 0%, rgba(7, 91, 66, 0.05) 0px, transparent 50%),
+                      radial-gradient(at 100% 100%, rgba(214, 163, 27, 0.05) 0px, transparent 50%);
   }
 
   .shadow-sm, .shadow, .shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl {

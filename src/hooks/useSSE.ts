@@ -13,7 +13,7 @@ export const useSSE = () => {
   const sseRef = useRef<EventSource | null>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('abdi_adama_token');
+    const token = localStorage.getItem('ziquala_token');
     if (!token) {
       console.warn('No auth token found; SSE not connected');
       return;
@@ -156,4 +156,3 @@ export const useSSE = () => {
 
   return { sseConnected: !!sseRef.current };
 };
-

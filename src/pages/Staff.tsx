@@ -32,10 +32,7 @@ export const Staff = () => {
 
   const staffTabs = [
     { label: 'Teachers', path: 'teachers' },
-    { label: 'Finance Staff', path: 'finance' },
-    { label: 'Librarian Staff', path: 'librarian' },
-    { label: 'Driver Staff', path: 'driver' },
-    { label: 'Clinic Admin Staff', path: 'clinic-admin' }
+    { label: 'Librarian Staff', path: 'librarian' }
   ];
 
   useEffect(() => {
@@ -58,7 +55,7 @@ export const Staff = () => {
     }
   }, [currentUserRole, selectedBranchId]);
 
-  if (currentUserRole !== 'super-admin' && currentUserRole !== 'school-admin') {
+  if (currentUserRole !== 'super-admin' && currentUserRole !== 'academic-manager' && currentUserRole !== 'school-admin') {
     return (
       <div className="p-8 text-center text-rose-500">
         <ShieldAlert className="mx-auto mb-4" size={48} />
@@ -79,7 +76,7 @@ export const Staff = () => {
             </div>
             <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Staff Management</h1>
             <p className="text-slate-500 dark:text-slate-400 mt-3 text-sm md:text-base leading-6">
-              Select a branch first to view and manage staff for that branch. The staff tab stays hidden until a branch is active, just like finance.
+              Select a branch first to view and manage the academic and library staff assigned to it.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <button
@@ -102,17 +99,17 @@ export const Staff = () => {
     );
   }
 
-  if (currentUserRole === 'school-admin') {
+  if (currentUserRole === 'school-admin' || currentUserRole === 'academic-manager') {
     return (
       <div className="space-y-6 pb-12">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Staff Management</h1>
-            <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">Manage teachers, finance personnel, librarians, drivers, and clinic admins from one unified view.</p>
+            <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">Manage the teaching and library teams from one academic workspace.</p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {staffTabs.map((tab) => (
             <NavLink
               key={tab.path}
@@ -162,11 +159,11 @@ export const Staff = () => {
 
       // 🔐 SECURITY: Super Admin can ONLY see users they create:
       // - Super Admins (system-level)
-      // - Auditors (system-level)
+      // - Academic Managers (system-level academic oversight)
       // - School Admins (created by Super Admin, assigned to branches)
       // - Vice Principals (created by Super Admin)
-      // School Admin creates: Teachers, Students, Finance Clerks, Drivers, Parents
-      const SUPER_ADMIN_MANAGEABLE_ROLES = ['super-admin', 'auditor', 'school-admin', 'vice-principal'];
+      // School Admin creates and manages branch-level academic users.
+      const SUPER_ADMIN_MANAGEABLE_ROLES = ['super-admin', 'academic-manager', 'school-admin', 'vice-principal'];
 
       const transformed = (response.data || [])
         .filter((u: any) => SUPER_ADMIN_MANAGEABLE_ROLES.includes(u.role))
@@ -310,9 +307,7 @@ export const Staff = () => {
       const data: any = {
         name: formattedName,
         email: createForm.email,
-        ...(createForm.role !== 'auditor' && {
-          branchId: currentUserRole === 'super-admin' && selectedBranchId ? selectedBranchId : createForm.branchId
-        })
+        branchId: currentUserRole === 'super-admin' && selectedBranchId ? selectedBranchId : createForm.branchId
       };
 
       console.log('📤 Sending data:', data);
@@ -323,8 +318,8 @@ export const Staff = () => {
         response = await userService.createSchoolAdmin(data);
       } else if (createForm.role === 'vice-principal') {
         response = await userService.createVicePrincipal(data);
-      } else if (createForm.role === 'auditor') {
-        response = await userService.createAuditor(data);
+      } else if (createForm.role === 'academic-manager') {
+        response = await userService.createAcademicManager(data);
       }
 
       console.log('✅ User created:', response);
@@ -522,15 +517,15 @@ export const Staff = () => {
                     setCreateForm({
                       ...createForm,
                       role: newRole,
-                      branchId: newRole === 'auditor' ? '' : createForm.branchId
+                      branchId: createForm.branchId
                     });
                   }}
                   className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 >
                   <option value="school-admin">School Admin</option>
+                  <option value="academic-manager">Academic Manager</option>
                   <option value="vice-principal">Vice Principal</option>
-                  <option value="auditor">Auditor</option>
                 </select>
               </div>
 
@@ -571,8 +566,7 @@ export const Staff = () => {
                 />
               </div>
 
-              {createForm.role !== 'auditor' && (
-                <div>
+              <div>
                   <label htmlFor="branch-select" className="text-xs font-bold text-slate-500 uppercase">Branch</label>
                   {currentUserRole === 'super-admin' && selectedBranchId ? (
                     <div className="w-full mt-1 px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold text-slate-700 dark:text-slate-200">
@@ -593,8 +587,7 @@ export const Staff = () => {
                       ))}
                     </select>
                   )}
-                </div>
-              )}
+              </div>
 
               <div className="pt-4 flex gap-3">
                 <button

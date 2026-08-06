@@ -259,7 +259,7 @@ export default function NavBar({ scrolled }: { scrolled: boolean }) {
     <select
       aria-label="Select language"
       value={i18n.language}
-      onChange={e => { i18n.changeLanguage(e.target.value); localStorage.setItem("abdi_adama_language", e.target.value); }}
+      onChange={e => { i18n.changeLanguage(e.target.value); localStorage.setItem("ziquala_language", e.target.value); }}
       className={`bg-transparent text-xs font-bold text-slate-500 dark:text-slate-400 outline-none cursor-pointer hover:text-school-primary ${className ?? ""}`}
     >
       <option value="en">EN</option>

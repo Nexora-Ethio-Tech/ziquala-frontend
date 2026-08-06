@@ -65,7 +65,7 @@ export const Clinic = () => {
 
   // Fetch students with search and pagination support
   const fetchStudents = async (searchTerm: string = '', page: number = 1) => {
-    const token = localStorage.getItem('abdi_adama_token');
+    const token = localStorage.getItem('ziquala_token');
     try {
       const limit = 20;
       const params = new URLSearchParams();
@@ -101,7 +101,7 @@ export const Clinic = () => {
 
   // Fetch visit history with branch filtering
   const fetchVisitHistory = async () => {
-    const token = localStorage.getItem('abdi_adama_token');
+    const token = localStorage.getItem('ziquala_token');
     try {
       const params = new URLSearchParams();
       params.append('limit', '100');
@@ -128,7 +128,7 @@ export const Clinic = () => {
 
   // Fetch medicines inventory (non-critical - don't show error)
   const fetchMedicines = async () => {
-    const token = localStorage.getItem('abdi_adama_token');
+    const token = localStorage.getItem('ziquala_token');
     try {
       const res = await fetch(`${API_URL}/api/clinic/medicine`, {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -164,7 +164,7 @@ export const Clinic = () => {
   };
 
   const fetchInbox = async () => {
-    const token = localStorage.getItem('abdi_adama_token');
+    const token = localStorage.getItem('ziquala_token');
     try {
       const res = await fetch(`${API_URL}/api/clinic/chat`, {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -181,7 +181,7 @@ export const Clinic = () => {
   const fetchConversation = async (childId: string) => {
     setChatLoading(true);
     setMessages([]);
-    const token = localStorage.getItem('abdi_adama_token');
+    const token = localStorage.getItem('ziquala_token');
     try {
       const res = await fetch(`${API_URL}/api/clinic/chat?childId=${encodeURIComponent(childId)}`, {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -207,7 +207,7 @@ export const Clinic = () => {
 
   const sendMessage = async () => {
     if (!selectedStudent || !messageText.trim()) return;
-    const token = localStorage.getItem('abdi_adama_token');
+    const token = localStorage.getItem('ziquala_token');
     try {
       const res = await fetch(`${API_URL}/api/clinic/chat`, {
         method: 'POST',
@@ -253,7 +253,7 @@ export const Clinic = () => {
   const handleLogVisit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedStudent) return;
-    const token = localStorage.getItem('abdi_adama_token');
+    const token = localStorage.getItem('ziquala_token');
     try {
       const res = await fetch(`${API_URL}/api/clinic/visits`, {
         method: 'POST',

@@ -209,7 +209,7 @@ const payrollService = {
   },
 
   exportPayrollUrl: (id: string, format: 'csv' | 'html'): string => {
-    const token = localStorage.getItem('abdi_adama_token');
+    const token = localStorage.getItem('ziquala_token');
     return `${api.defaults.baseURL}/payroll/export/${id}?format=${format}&token=${token}`;
   },
 

@@ -44,7 +44,7 @@ export default function Navbar() {
         {/* LOGO & BRAND */}
         <Link to="/" className="flex items-center gap-3 md:gap-4 select-none cursor-pointer">
           <img
-            src="https://abdi-adama.vercel.app/assets/images/logo-fTBWQkNS.jpg"
+            src="/school.png"
             className="h-10 w-10 md:h-12 md:w-12 rounded-full transition-all duration-300 border border-zinc-200 dark:border-white/10"
             alt="Abdi Adama Logo"
           />
@@ -138,7 +138,7 @@ export default function Navbar() {
             <div className="flex justify-between items-center pb-8 border-b border-zinc-200 dark:border-white/5">
               <div className="flex items-center gap-3">
                 <img
-                  src="https://abdi-adama.vercel.app/assets/images/logo-fTBWQkNS.jpg"
+                  src="/school.png"
                   className="h-10 w-10 rounded-full"
                   alt="Logo"
                 />

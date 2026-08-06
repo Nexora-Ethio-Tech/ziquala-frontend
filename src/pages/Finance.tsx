@@ -14,7 +14,7 @@ import { API_HOST_URL } from '../config/api';
 
 const API = API_HOST_URL || '';
 
-const getToken = () => localStorage.getItem('abdi_adama_token') || '';
+const getToken = () => localStorage.getItem('ziquala_token') || '';
 
 const authHeaders = () => ({
   'Content-Type': 'application/json',

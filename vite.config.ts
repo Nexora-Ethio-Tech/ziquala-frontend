@@ -10,9 +10,17 @@ const __dirname = path.dirname(__filename);
 export default defineConfig(({ mode }) => {
     // Load environment variables (Vite prefixes env vars with VITE_)
     const env = loadEnv(mode, process.cwd(), '');
-    // Prefer an explicit proxy target for dev; fall back to a valid local backend URL if VITE_API_URL is relative
-    const API_PROXY_TARGET = env.VITE_API_PROXY ||
-        (env.VITE_API_URL && env.VITE_API_URL.startsWith('https') ? env.VITE_API_URL : 'https://abdi-adama.com');
+    // A Ziquala backend proxy must be explicitly configured for this project.
+    const apiProxy = env.VITE_API_PROXY
+        ? {
+            '/api': {
+                target: env.VITE_API_PROXY,
+                changeOrigin: true,
+                secure: false,
+                rewrite: (requestPath: string) => requestPath
+            }
+        }
+        : undefined;
 
     return {
         plugins: [react()],
@@ -65,14 +73,7 @@ export default defineConfig(({ mode }) => {
             port: 5173,
             host: true,
             strictPort: false,
-            proxy: {
-                '/api': {
-                    target: API_PROXY_TARGET,
-                    changeOrigin: true,
-                    secure: false,
-                    rewrite: (path) => path // Keep /api prefix
-                }
-            }
+            proxy: apiProxy
         },
 
         // Preview server configuration

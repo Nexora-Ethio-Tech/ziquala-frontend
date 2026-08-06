@@ -285,7 +285,7 @@ const getInitialGradingConfigs = () => {
   };
 
   if (typeof window !== 'undefined') {
-    const saved = localStorage.getItem('abdi_adama_grading_configs');
+    const saved = localStorage.getItem('ziquala_grading_configs');
     if (saved) {
       try {
         return JSON.parse(saved);

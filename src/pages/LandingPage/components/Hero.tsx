@@ -102,7 +102,7 @@ export default function Hero() {
           <div className="absolute inset-0 rounded-3xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 shadow-2xl">
             <motion.img
               style={{ y: yImage, scale: 1.1 }} // Scale 1.1 allows room for parallax movement without showing edges
-              src="https://www.abdiadama.com/assets/images/SchoolBuildingtwo.jpg"
+              src="/school.png"
               className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 ease-out hover:scale-105"
               alt="High School Campus"
             />

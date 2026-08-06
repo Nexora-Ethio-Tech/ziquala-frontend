@@ -27,7 +27,7 @@ export default function FinalCTA() {
         {/* LEFT IMAGE SIDE */}
         <div className="relative h-full w-full hidden md:block">
           <img
-            src="https://www.abdiadama.com/assets/images/secondary.jpg"
+            src="/school.png"
             alt="Graduation"
             className="w-full h-full object-cover grayscale"
           />

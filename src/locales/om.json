@@ -66,7 +66,7 @@
     "founder": {
       "subtitle": "Dhaala Ciminaa",
       "title": "Ergaa Hundeessitoota Irraa",
-      "quote": "\"Manni Barumsaa Abdii Adaamaa bara 1998 E.C. (2005/2006 G.C.) keessa kan hundeeffame yoo ta'u, mul'anni isaas iddoo ijoolleen itti of argu, deeggaramuu fi dandeettii isaanii guutuu akka baasan itti jajjabeeffaman uumuu ture. Egeree ijoollee keenyaa ijaaruuf, har'a sanyii lallabbii facaasuu qabna.\"",
+      "quote": "\"Manni Barnoota Zuqaalaa Aabboo beekumsa, naamusa, amantii fi itti-gaafatamummaa barattoota keessatti guddisuuf hojjeta.\"",
       "name": "Obbo Girmaa Lammii",
       "role": "Hundeessaa fi Abbaa Qabeenyaa",
       "vision": "Mul'anni keenya barataa hunda onnee isaaniitiin akka yaadanii, itti gaafatamummaan akka hojjetanii fi sodaa malee akka abjootan kakaasuu dha. Barumsa qulqullina idil-addunyaa qabu utuma kenninuu, aadaa, eenyummaa fi duudhaa Itoophiyaa boonsinaan ni kabajna."
@@ -80,7 +80,7 @@
       "introVideo": "Viidiyoo Seensaa",
       "introTitle": "Iddoo barumsi",
       "introHighlight": "ciminaa waliin walargu!",
-      "introDesc1": "Mana Barumsaa Abdii Adaamaatti, sammuu dargaggootaa guddisuu fi barataan hundi dandeettii isaa guutuu akka ga'u gargaaruuf kutanneerra. Barsiisonni keenya muuxannoo qaban barumsa qulqullina qabu duudhaalee namoota itti gaafatamummaa fi ofitti amanamummaa qaban bocan waliin walqabsiisuun naannoo deeggarsaa fi hirmaachisaa ta'e ni uumu.",
+      "introDesc1": "Mana Barnoota Zuqaalaa Aabbootti barataan hundi dandeettii isaa akka guddisu barnoota qulqullina qabu duudhaalee cimaa waliin ni kennina.",
       "introDesc2": "Barnootaan, aartii ykn ispoortiin, barattoonni keenya dandeettii isaanii akka qoratanii fi dandeettii milkaa'ina egereef isaan qopheessu akka guddifatan ni jajjabeeffamu.",
       "watchFull": "Dhiyeessa Guutuu Daawwadhu",
       "schoolTourTitle": "DAAWACHAA MANA BARUMSAA",
@@ -118,7 +118,7 @@
     "cta": {
       "title": "Qophiidhaa kan",
       "highlight": "fuuldura gaarii",
-      "desc": "Maatiiwwan kumaatamaan lakkaa'aman kanneen barnoota qulqullina qabu, ammayyaa fi naamusarratti hundaa'eef Mana Barumsaa Abdi Adaamaa filatanitti dabalamaa.",
+      "desc": "Barnoota ammayyaa fi duudhaa irratti hundaa'eef hawaasa Mana Barnoota Zuqaalaa Aabboo waliin ta'aa.",
       "startAdmission": "Galmee Toora Intarneetii Jalqabaa",
       "parentLogin": "Seensa Maatii"
     },
@@ -128,8 +128,8 @@
       "connect": "Nuun Wal Quunnamaa",
       "staffAccess": "Seensa Hojjettootaa",
       "staffPortal": "Poortaalii Hojjettootaa Beekamaa",
-      "rights": "© 2026 MANA BARUMSAA ABDI ADAAMAA • ADAAMAA ITTI HOJJETAME",
-      "founded": "Bara 1998 E.C. kan hundeeffame, Manni Barumsaa Abdi Adaamaa lammiilee dandeettii qabanii fi biyya jaallatan horachuuf mana barumsaa Itoophiyaa keessatti adda duree ta'edha.",
+      "rights": "© 2026 MANA BARNOOTA ZUQAALAA AABBOO • BISHOOFTUU",
+      "founded": "Manni Barnoota Zuqaalaa Aabboo waldaa Mana Amantaa Zuqaalaa Aabbootiin kan bulu yoo ta'u, lammiilee dandeettii fi itti-gaafatamummaa qaban guddisuuf hojjeta.",
       "links": {
         "about": "Waa'ee Keenya",
         "admissions": "Galmee",
@@ -141,7 +141,7 @@
     "valuesSubtitle": "Bu'uuroota Keenya",
     "stayInformed": "Odeeffannoo Argadhaa",
     "readMore": "Dabalataan Dubbisi",
-    "communitySubtitle": "Jireenya Abdi Adaamaatti",
+    "communitySubtitle": "Jireenya Mana Barnoota Zuqaalaa Aabbootti",
     "communityTitle": "Hawaasa Keenya Mil'adhaa",
     "yearsLeadership": "Waggoota Geggeessummaa Barnootaa",
     "nurturingMinds": "Bara 2005 (1998 E.C.) irraa eegalee sammuuwwan ifoo ta'an of-eeggannoo fi kaayyoon horachuu.",
@@ -149,7 +149,7 @@
       "pillars": {
         "subtitle": "Wanti Nu Adda Taasisu",
         "title": "Utubaawwan Cimina Keenyaa Arfan",
-        "desc": "Mana Barumsaa Abdi Adaamaatti, nuti hin barsiisnu qofa; ni jijjiirra. Falaasamni barnoota keenyaa adda ta'e utubaawwan ijoo afran irratti ijaarame.",
+        "desc": "Manni Barnoota Zuqaalaa Aabboo barnoota, naamusa, discipline fi itti-gaafatamummaa hawaasaa walitti fida.",
         "items": [
           {
             "title": "Amanamummaa",
@@ -174,7 +174,7 @@
         "title": "Kaayyoo Keenya",
         "desc": "Muuxannoo barumsaa jaarraa 21ffaa sadarkaa duraa ta'e, cimina barnootaa fi kaayyoo naamusaa walmadaalchisuun hawaasa keenya humneessuu. Interpariinaroota, kalaqtoota fi hayyoota Itoophiyaa boruu guddisuuf ni hojjenna — kalaqaan, uumuu fi amanamummaan akka gaggeessan isaan qopheessina.",
         "missionSubtitle": "Ergaa Keenya",
-        "missionDesc": "Itoophiyaa keessatti ibsaa cimina barnootaa taanee dhaabbachuu. Manni Barumsaa Abdi Adaamaa dhaabbata barumsa irratti xiyyeeffate, kan aadaa, duudhaa fi aadaa Itoophiyaa keessatti hundee cimaa qabatee barnoota sadarkaa addunyaa kan ulaagaa biyyaalessaa caalu kennu dha.",
+        "missionDesc": "Beekumsa ammayyaa ogummaa hafuuraa fi naamusa cimaa waliin walqabsiisuun barnoota qulqullina qabu kennuu.",
         "features": [
           {
             "label": "Cimina Barnootaa",
@@ -195,7 +195,7 @@
         ]
       },
       "community": {
-        "subtitle": "Hawaasa Abdi Adaamaa",
+        "subtitle": "Hawaasa Zuqaalaa Aabboo",
         "title": "Duudhaalee Keenya",
         "desc": "Ciminni keenya ummata keenya — sirna ikoo jiraataa fi kaayyoodhaan gaggeeffamu kan barattoonni, warrii fi barsiisonni itti tokkooman.",
         "quote": "\"Tokkummaadhaan — akka barattoota, warra fi barsiisotaatti — nuti mana barumsaa qofa hin ijaarru; egeree Itoophiyaa ni ijaarra.\"",
@@ -326,7 +326,7 @@
       "team": {
         "subtitle": "Gaggeessummaa",
         "title": "Garee Keenya",
-        "desc": "Gaggeessitoota kutatoo networkii Mana Barumsaa Abdi Adaamaa duuba jiran.",
+        "desc": "Gaggeessitoota Mana Barnoota Zuqaalaa Aabboo tajaajilan.",
         "members": [
           {
             "name": "Obbo Girmaa Lammii",
@@ -352,7 +352,7 @@
       }
     },
     "admissionClosed": "Galmeen Cufameera",
-    "studentQuote": "\"Manni Barumsaa Abdi Adaamaa dandeettii koo guutuu akkan hubadhu carraa naaf kenneera.\"",
+    "studentQuote": "\"Manni Barnoota Zuqaalaa Aabboo barataan hundi dandeettii isaa akka guddisu ni gargaara.\"",
     "studentAuthor": "— Firdoos Muusaa, Qabxii Olaanaa Kan Fide"
   },
   "login": {

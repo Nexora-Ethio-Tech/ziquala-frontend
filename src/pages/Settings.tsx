@@ -108,7 +108,7 @@ export const Settings = () => {
   const [staffPayoutEdited, setStaffPayoutEdited] = useState(false);
   // Lock target editing after 4th of each Gregorian month
   const isTargetSettingLocked = (() => { const d = new Date().getDate(); return d > 4; })();
-  const [smtpSettings, setSmtpSettings] = useState({ smtp_host: 'smtp.gmail.com', smtp_port: '587', smtp_user: 'abdiadamaschooloffice@gmail.com', smtp_from: 'abdiadamaschooloffice@gmail.com' });
+  const [smtpSettings, setSmtpSettings] = useState({ smtp_host: 'smtp.gmail.com', smtp_port: '587', smtp_user: '', smtp_from: '' });
   const [smtpPass, setSmtpPass] = useState('gdgg eify uzec fhox');
   const [smtpTestEmail, setSmtpTestEmail] = useState('');
   const [smtpSaving, setSmtpSaving] = useState(false);
@@ -433,10 +433,10 @@ export const Settings = () => {
           const reconstructed = groupConfigsIntoSystems(dbConfigs || {});
           setGradingSystems(reconstructed);
           // Sync localStorage so future sessions start with the real published state
-          localStorage.setItem('abdi_adama_grading_systems', JSON.stringify(reconstructed));
+          localStorage.setItem('ziquala_grading_systems', JSON.stringify(reconstructed));
         })
         .catch(() => {
-          const stored = localStorage.getItem('abdi_adama_grading_systems');
+          const stored = localStorage.getItem('ziquala_grading_systems');
           if (stored) {
             try {
               const parsed = JSON.parse(stored);
@@ -592,7 +592,7 @@ export const Settings = () => {
   };
 
   const handleSaveDraftSystems = (updatedSystems: GradingSystem[]) => {
-    localStorage.setItem('abdi_adama_grading_systems', JSON.stringify(updatedSystems));
+    localStorage.setItem('ziquala_grading_systems', JSON.stringify(updatedSystems));
     setSuccessMessage('Grading systems saved locally as draft. Click Publish on any card to update teachers.');
     setTimeout(() => setSuccessMessage(''), 5000);
   };
@@ -649,7 +649,7 @@ export const Settings = () => {
       s.id === systemId ? { ...s, published: failedGrades.length === 0 } : s
     );
     setGradingSystems(updated);
-    localStorage.setItem('abdi_adama_grading_systems', JSON.stringify(updated));
+    localStorage.setItem('ziquala_grading_systems', JSON.stringify(updated));
 
     if (failedGrades.length === 0) {
       setSuccessMessage(`Grading system "${system.name}" successfully published for Grade(s): ${system.grades.join(', ')}!`);
@@ -664,7 +664,7 @@ export const Settings = () => {
     if (window.confirm('Are you sure you want to delete this grading system? This will not undo database changes until you re-publish other systems for the impacted grades.')) {
       const updated = gradingSystems.filter((s) => s.id !== systemId);
       setGradingSystems(updated);
-      localStorage.setItem('abdi_adama_grading_systems', JSON.stringify(updated));
+      localStorage.setItem('ziquala_grading_systems', JSON.stringify(updated));
       setSuccessMessage('Grading system deleted from drafts.');
       setTimeout(() => setSuccessMessage(''), 3000);
     }
@@ -688,7 +688,7 @@ export const Settings = () => {
     };
     const updated = [...gradingSystems, newSystem];
     setGradingSystems(updated);
-    localStorage.setItem('abdi_adama_grading_systems', JSON.stringify(updated));
+    localStorage.setItem('ziquala_grading_systems', JSON.stringify(updated));
 
     // Reset draft form
     setDraftName('');

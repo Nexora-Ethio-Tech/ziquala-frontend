@@ -12,13 +12,13 @@ import {
   registerUser,
   toggleRegistration
 } from '../services/schoolAdminService';
-import { branchService } from '../services/branchService';
 import api from '../services/api';
 import { EthiopianDatePicker } from './EthiopianDatePicker';
 import { ethiopianToGregorianIso, gregorianToEthiopian, formatEthiopianDateOnly } from '../utils/ethiopianCalendar';
+import { ziqualaBranches } from '../data/ziqualaContent';
 
 type RegistrationTab = 'new' | 'existing';
-type PipelineFilter = 'pending' | 'exam-pending' | 'awaiting-finance' | 'completed';
+type PipelineFilter = 'pending' | 'exam-pending' | 'awaiting-enrollment' | 'completed';
 type AppStatus = 'pending' | 'declined' | 'approved' | 'awaiting-payment' | 'payment-confirmed' | 'exam-pending';
 
 interface PendingApp {
@@ -74,7 +74,7 @@ const mapApiApplicationToPendingApp = (app: any): PendingApp => ({
   notes: app.notes || '',
   transcriptFileName: app.transcript_file_name || '',
   transcriptFileSize: app.transcript_file_size != null ? Number(app.transcript_file_size) : null,
-  removalReason: app.finance_removal_reason || null,
+  removalReason: app.return_reason || app.removal_reason || null,
 });
 
 interface StudentRegistrationProps {
@@ -189,13 +189,13 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { role, user, registrationOpen, setRegistrationOpen } = useUser();
-  const isFinance = role === 'finance-clerk' || role === 'super-admin';
+  const isAcademicAdmin = role === 'super-admin' || role === 'academic-manager' || role === 'school-admin';
   const formRef = useRef<HTMLFormElement>(null);
   // Track if showing the active application error (NOT permanently blocking all submissions)
   const [activeApplicationError, setActiveApplicationError] = useState<string | null>(null);
 
   const [activeTab, setActiveTab] = useState<RegistrationTab>('new');
-  const [pipelineFilter, setPipelineFilter] = useState<PipelineFilter>(isFinance ? 'awaiting-finance' : 'pending');
+  const [pipelineFilter, setPipelineFilter] = useState<PipelineFilter>('pending');
   const [registrationStep, setRegistrationStep] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStudent, setSelectedStudent] = useState<any>(null);
@@ -214,19 +214,12 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
   const [selectedAcademicYear, setSelectedAcademicYear] = useState('2024/2025');
   const [selectedSemester, setSelectedSemester] = useState('Semester 2');
   const [emailToast, setEmailToast] = useState<string | null>(null);
-  const [showFeeModal, setShowFeeModal] = useState(false);
-  const [selectedAppForFee, setSelectedAppForFee] = useState<PendingApp | null>(null);
-  const [customFees, setCustomFees] = useState({
-    monthly_fee: 4500,
-    bus_fee: 1500,
-    penalty_fee: 0,
-    fee_status: 'standard' as 'standard' | 'reduced',
-    fee_notes: ''
-  });
   const [showGradeModal, setShowGradeModal] = useState(false);
   const [selectedAppForGrade, setSelectedAppForGrade] = useState<string | null>(null);
   const [selectedGrade, setSelectedGrade] = useState<string | null>(null);
-  const [branchesList, setBranchesList] = useState<{ id: string; name: string }[]>([]);
+  const [branchesList] = useState<{ id: string; name: string }[]>(() =>
+    ziqualaBranches.map(({ id, name }) => ({ id, name })),
+  );
   const [selectedBranchName, setSelectedBranchName] = useState('');
   const [expandedAppIds, setExpandedAppIds] = useState<Record<string, boolean>>({});
 
@@ -243,21 +236,6 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
       setTimeout(() => setSubmitError(null), 5000);
     }
   };
-
-  // Fetch branches on component mount
-  useEffect(() => {
-    const fetchBranches = async () => {
-      try {
-        const response = await branchService.getAllBranchesGuest();
-        if (response.success && Array.isArray(response.data)) {
-          setBranchesList(response.data);
-        }
-      } catch (err) {
-        console.error('Failed to fetch branches list:', err);
-      }
-    };
-    fetchBranches();
-  }, []);
 
   // Automatically select branch for logged in School Admin / Super Admin
   useEffect(() => {
@@ -638,7 +616,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
     }
   };
 
-  const handleExamPassToFinance = (appId: string) => {
+  const handleExamPass = (appId: string) => {
     const app = pendingApps.find(a => a.id === appId);
     setSelectedAppForGrade(appId);
     setSelectedGrade(app?.lastGrade || gradeOptions[0]);
@@ -669,8 +647,8 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
 
       const app = pendingApps.find(a => a.id === selectedAppForGrade);
       setPendingApps(prev => prev.map(a => a.id === selectedAppForGrade ? { ...a, status: 'awaiting-payment' as AppStatus, lastGrade: selectedGrade } : a));
-      setSuccessMessage(`${app?.name} forwarded to finance for Grade ${selectedGrade}.`);
-      if (app) showPhoneNotice(app.phone, `Forwarded to finance for Grade ${selectedGrade} — notify by phone when ready`);
+      setSuccessMessage(`${app?.name} is ready for final enrollment in Grade ${selectedGrade}.`);
+      if (app) showPhoneNotice(app.phone, `Grade ${selectedGrade} assigned — final enrollment is ready`);
 
       setShowGradeModal(false);
       setSelectedAppForGrade(null);
@@ -685,7 +663,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
 
 
 
-  const handlePaymentResult = async (appId: string, paid: boolean, fees?: typeof customFees) => {
+  const handlePaymentResult = async (appId: string, paid: boolean) => {
     try {
       const app = pendingApps.find(a => a.id === appId);
       if (paid) {
@@ -700,16 +678,14 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
         }
         await updateApplicationStatus(appId, { status: 'payment-confirmed' });
         setPendingApps(prev => prev.map(a => a.id === appId ? { ...a, status: 'payment-confirmed' as AppStatus } : a));
-        setSuccessMessage(`${app?.name} marked as Passed (Paid)! Enrolled successfully.`);
-        if (app) showPhoneNotice(app.phone, 'Payment confirmed — officially enrolled');
+        setSuccessMessage(`${app?.name} enrolled successfully.`);
+        if (app) showPhoneNotice(app.phone, 'Application approved — officially enrolled');
       } else {
         await updateApplicationStatus(appId, { status: 'declined' });
         setPendingApps(prev => prev.map(a => a.id === appId ? { ...a, status: 'declined' as AppStatus } : a));
-        setSuccessMessage(`${app?.name} marked as Failed (Unpaid)!`);
-        if (app) showPhoneNotice(app.phone, 'Payment not received — application closed');
+        setSuccessMessage(`${app?.name} application closed.`);
+        if (app) showPhoneNotice(app.phone, 'Application closed by school administration');
       }
-      setShowFeeModal(false);
-      setSelectedAppForFee(null);
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err: any) {
       console.error(err);
@@ -721,16 +697,16 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
   const filteredPipelineApps = pendingApps.filter(app => {
     if (pipelineFilter === 'pending') return app.status === 'pending';
     if (pipelineFilter === 'exam-pending') return app.status === 'exam-pending';
-    if (pipelineFilter === 'awaiting-finance') return app.status === 'awaiting-payment';
-    if (pipelineFilter === 'completed') return ['declined', 'registered'].includes(app.status);
+    if (pipelineFilter === 'awaiting-enrollment') return app.status === 'awaiting-payment';
+    if (pipelineFilter === 'completed') return ['declined', 'registered', 'payment-confirmed'].includes(app.status);
     return false;
   });
 
   const pipelineCounts = {
     pending: pendingApps.filter(a => a.status === 'pending').length,
     'exam-pending': pendingApps.filter(a => a.status === 'exam-pending').length,
-    'awaiting-finance': pendingApps.filter(a => a.status === 'awaiting-payment').length,
-    completed: pendingApps.filter(a => ['declined', 'registered'].includes(a.status)).length,
+    'awaiting-enrollment': pendingApps.filter(a => a.status === 'awaiting-payment').length,
+    completed: pendingApps.filter(a => ['declined', 'registered', 'payment-confirmed'].includes(a.status)).length,
   };
 
   return (
@@ -765,7 +741,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
           >
             {t('registration.newAdmissions')}
           </button>
-          {(!isFinance ? false : true) && (
+          {isAcademicAdmin && (
             <button
               onClick={() => setActiveTab('existing')}
               className={`px-8 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'existing'
@@ -783,7 +759,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
         isAdminView ? (
           <div className="space-y-5">
             {/* Registration Window Toggle */}
-            {!isFinance && (
+            {isAcademicAdmin && (
               <div
                 onClick={() => handleToggleRegistration(!registrationOpen)}
                 title={registrationOpen ? 'Click to close registration' : 'Click to open registration'}
@@ -815,9 +791,9 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
               {([
                 { key: 'pending' as PipelineFilter, label: 'Pending', color: 'blue' },
                 { key: 'exam-pending' as PipelineFilter, label: 'Pass After Exam', color: 'amber' },
-                { key: 'awaiting-finance' as PipelineFilter, label: 'Awaiting Finance', color: 'purple' },
+                { key: 'awaiting-enrollment' as PipelineFilter, label: 'Awaiting Enrollment', color: 'purple' },
                 { key: 'completed' as PipelineFilter, label: 'Completed', color: 'slate' },
-              ]).filter(tab => !isFinance || tab.key === 'awaiting-finance' || tab.key === 'completed').map(tab => (
+              ]).map(tab => (
                 <button
                   key={tab.key}
                   onClick={() => setPipelineFilter(tab.key)}
@@ -948,22 +924,11 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                           <>
                             <span className="text-[10px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-400 flex items-center gap-1.5 mr-2"><Clock size={14} /> Awaiting Entrance Exam</span>
                             <button onClick={(e) => { e.stopPropagation(); handleDecline(app.id); }} className="px-5 py-2.5 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all"><X size={16} /> Decline</button>
-                            <button onClick={(e) => { e.stopPropagation(); handleExamPassToFinance(app.id); }} className="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all shadow-lg shadow-purple-500/20 active:scale-95"><Check size={16} /> Move to Finance</button>
+                            <button onClick={(e) => { e.stopPropagation(); handleExamPass(app.id); }} className="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all shadow-lg shadow-purple-500/20 active:scale-95"><Check size={16} /> Assign Grade</button>
                           </>
                         )}
                         {app.status === 'awaiting-payment' && (
-                          isFinance ? (
-                            <>
-                              <button onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedAppForFee(app);
-                                setShowFeeModal(true);
-                              }} className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all shadow-lg shadow-emerald-500/20 active:scale-95"><Check size={16} /> Pass (Paid)</button>
-                              <button onClick={(e) => { e.stopPropagation(); handlePaymentResult(app.id, false); }} className="px-6 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all shadow-lg shadow-rose-500/20 active:scale-95"><X size={16} /> Fail (Unpaid)</button>
-                            </>
-                          ) : (
-                            <span className="text-xs font-bold text-purple-600 flex items-center gap-1.5"><MapPin size={14} /> Waiting for finance clerk to confirm payment</span>
-                          )
+                          <button onClick={(e) => { e.stopPropagation(); handlePaymentResult(app.id, true); }} className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all shadow-lg shadow-emerald-500/20 active:scale-95"><Check size={16} /> Complete Enrollment</button>
                         )}
                         {app.status === 'declined' && (
                           <span className="text-xs font-bold text-rose-500">Application closed</span>
@@ -1085,7 +1050,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                   </div>
                 </div>
 
-                {/* Clinic Required Fields */}
+                {/* Optional student wellbeing details */}
                 <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
                   <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 mb-4">
                     <HeartPulse size={16} />
@@ -1443,7 +1408,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                       <h4 className="font-bold text-sm uppercase">Verification Check</h4>
                     </div>
                     <p className="text-sm text-amber-800 dark:text-amber-200">
-                      Before promoting <strong>{selectedStudent.name}</strong>, ensure all outstanding fees from the previous academic year are cleared and the student has passed the minimum academic requirements.
+                      Before promoting <strong>{selectedStudent.name}</strong>, confirm that the student has completed the current academic requirements.
                     </p>
                     {selectedStudent.id !== '1' && (
                       <div className="p-3 bg-white dark:bg-slate-900 rounded-lg border border-amber-200 text-xs font-bold text-rose-600 flex items-center gap-2">
@@ -1551,7 +1516,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                         </div>
                         <div className="text-right">
                           <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Verified Academic History</p>
-                          <p className="text-[10px] font-black text-slate-700 dark:text-slate-300">ABDI ADAMA SMART SCHOOL</p>
+                          <p className="text-[10px] font-black text-slate-700 dark:text-slate-300">ZIQUALA ABO SCHOOL</p>
                         </div>
                       </div>
                     </div>
@@ -1623,7 +1588,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
             <div className="p-8 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
               <h3 className="text-xl font-black text-slate-800 dark:text-white tracking-tight">Assign Grade</h3>
               <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">
-                Select the grade this student will enroll in, then forward to finance for payment.
+                Select the grade in which this student will be enrolled.
               </p>
             </div>
             <div className="p-8 space-y-6">
@@ -1662,88 +1627,13 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                 disabled={!selectedGrade}
                 className="bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 shadow-xl shadow-blue-500/20 active:scale-95"
               >
-                Forward to Finance
+                Continue Enrollment
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {showFeeModal && selectedAppForFee && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] w-full max-w-lg overflow-hidden shadow-2xl border border-slate-100 dark:border-slate-800 animate-in zoom-in-95 duration-200">
-            <div className="p-8 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
-              <h3 className="text-xl font-black text-slate-800 dark:text-white tracking-tight">Configure Student Fees</h3>
-              <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">Enrollment Finalization — {selectedAppForFee.name}</p>
-            </div>
-            <div className="p-8 space-y-6">
-              <div className="grid grid-cols-2 gap-6">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Monthly Tuition (ETB)</label>
-                  <input
-                    type="number"
-                    title="Monthly tuition in ETB"
-                    aria-label="Monthly tuition in ETB"
-                    placeholder="Enter monthly tuition"
-                    value={customFees.monthly_fee}
-                    onChange={(e) => setCustomFees({ ...customFees, monthly_fee: Number(e.target.value) })}
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-4 focus:ring-blue-500/10"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Transport Fee (ETB)</label>
-                  <input
-                    type="number"
-                    title="Transport fee in ETB"
-                    aria-label="Transport fee in ETB"
-                    placeholder="Enter transport fee"
-                    value={customFees.bus_fee}
-                    onChange={(e) => setCustomFees({ ...customFees, bus_fee: Number(e.target.value) })}
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-4 focus:ring-blue-500/10"
-                  />
-                </div>
-              </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Fee Status</label>
-                <select
-                  title="Fee status"
-                  aria-label="Fee status"
-                  value={customFees.fee_status}
-                  onChange={(e) => setCustomFees({ ...customFees, fee_status: e.target.value as any })}
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none"
-                >
-                  <option value="standard">Standard Fee</option>
-                  <option value="reduced">Reduced / Special Fee</option>
-                </select>
-              </div>
-              {customFees.fee_status === 'reduced' && (
-                <div className="space-y-1 animate-in fade-in slide-in-from-top-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Reason for Reduction</label>
-                  <textarea
-                    value={customFees.fee_notes}
-                    onChange={(e) => setCustomFees({ ...customFees, fee_notes: e.target.value })}
-                    placeholder="Explain why this student has a reduced fee..."
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none min-h-[100px] resize-none"
-                  />
-                  <div className="flex items-center gap-2 p-3 bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-800/30 rounded-xl mt-2">
-                    <AlertCircle size={14} className="text-amber-600" />
-                    <p className="text-[10px] text-amber-700 font-medium">Reduced fees will be marked for Auditor approval.</p>
-                  </div>
-                </div>
-              )}
-            </div>
-            <div className="p-8 bg-slate-50/50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
-              <button onClick={() => setShowFeeModal(false)} className="px-6 py-3 text-xs font-black uppercase tracking-widest text-slate-500 hover:text-slate-700">Cancel</button>
-              <button
-                onClick={() => handlePaymentResult(selectedAppForFee.id, true, customFees)}
-                className="bg-emerald-600 text-white px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-emerald-700 shadow-xl shadow-emerald-500/20 active:scale-95"
-              >
-                Confirm & Enroll
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

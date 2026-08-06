@@ -7,9 +7,9 @@ export const authService = {
     const response = await api.post(API_ENDPOINTS.LOGIN, { email, password });
     const { accessToken, refreshToken, user } = response.data.data;
     
-    localStorage.setItem('abdi_adama_token', accessToken);
-    localStorage.setItem('abdi_adama_refresh_token', refreshToken);
-    localStorage.setItem('abdi_adama_user', JSON.stringify(user));
+    localStorage.setItem('ziquala_token', accessToken);
+    localStorage.setItem('ziquala_refresh_token', refreshToken);
+    localStorage.setItem('ziquala_user', JSON.stringify(user));
     
     return response.data;
   },
@@ -19,9 +19,9 @@ export const authService = {
     try {
       await api.post(API_ENDPOINTS.LOGOUT);
     } finally {
-      localStorage.removeItem('abdi_adama_token');
-      localStorage.removeItem('abdi_adama_refresh_token');
-      localStorage.removeItem('abdi_adama_user');
+      localStorage.removeItem('ziquala_token');
+      localStorage.removeItem('ziquala_refresh_token');
+      localStorage.removeItem('ziquala_user');
     }
   },
 
@@ -42,12 +42,12 @@ export const authService = {
 
   // Get stored user
   getStoredUser: () => {
-    const user = localStorage.getItem('abdi_adama_user');
+    const user = localStorage.getItem('ziquala_user');
     return user ? JSON.parse(user) : null;
   },
 
   // Check if authenticated
   isAuthenticated: () => {
-    return !!localStorage.getItem('abdi_adama_token');
+    return !!localStorage.getItem('ziquala_token');
   },
 };

@@ -9,7 +9,7 @@ const api = axios.create({
 // Request interceptor - Add auth token
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('abdi_adama_token');
+    const token = localStorage.getItem('ziquala_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -35,21 +35,21 @@ api.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const refreshToken = localStorage.getItem('abdi_adama_refresh_token');
+        const refreshToken = localStorage.getItem('ziquala_refresh_token');
         const response = await axios.post(`${API_BASE_URL}/auth/refresh-token`, {
           refreshToken,
         });
 
         const { accessToken } = response.data.data;
-        localStorage.setItem('abdi_adama_token', accessToken);
+        localStorage.setItem('ziquala_token', accessToken);
 
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return api(originalRequest);
       } catch (refreshError) {
         // Refresh failed — clear session and redirect to login
-        localStorage.removeItem('abdi_adama_token');
-        localStorage.removeItem('abdi_adama_refresh_token');
-        localStorage.removeItem('abdi_adama_user');
+        localStorage.removeItem('ziquala_token');
+        localStorage.removeItem('ziquala_refresh_token');
+        localStorage.removeItem('ziquala_user');
         window.location.href = '/login';
         return Promise.reject(refreshError);
       }

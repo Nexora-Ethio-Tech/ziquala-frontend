@@ -79,7 +79,7 @@ export default function About() {
                                     <p className="text-lg font-bold leading-tight">{t('landing.nurturingMinds')}</p>
                                 </div>
                                 <div className="h-64 rounded-3xl overflow-hidden shadow-2xl border-none border-white dark:border-slate-800 group">
-                                    <img src="https://www.abdiadama.com/assets/images/choose-us-image-01.png" alt="Campus Life" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                                    <img src="/school.png" alt="Campus Life" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                                 </div>
                             </div>
                         </motion.div>

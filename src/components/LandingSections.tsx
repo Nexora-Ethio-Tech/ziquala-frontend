@@ -213,7 +213,7 @@ export const SchoolLifeSection = ({ id }: { id?: string }) => {
               {/* Image 1 */}
               <div className="rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white dark:border-slate-800 h-[500px] group">
                 <img
-                  src="https://www.abdiadama.com/assets/images/uniformlast.jpg"
+                  src="/school.png"
                   alt="School Uniform - Option 1"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                 />
@@ -222,7 +222,7 @@ export const SchoolLifeSection = ({ id }: { id?: string }) => {
               {/* Image 2 */}
               <div className="rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white dark:border-slate-800 h-[450px] group">
                 <img
-                  src="https://www.abdiadama.com/assets/images/secondary.jpg"
+                  src="/school.png"
                   alt="School Uniform - Option 2"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                 />

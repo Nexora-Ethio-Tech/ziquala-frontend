@@ -106,7 +106,7 @@ export const Teachers = () => {
     dob: '',
     previousSchool: '',
     experienceYears: '',
-    role: 'teacher' as 'teacher' | 'finance-clerk' | 'librarian' | 'clinic-admin' | 'driver'
+    role: 'teacher' as 'teacher' | 'librarian'
   });
   const [phoneError, setPhoneError] = useState('');
   const [emergencyPhoneError, setEmergencyPhoneError] = useState('');
@@ -504,7 +504,7 @@ export const Teachers = () => {
         </head>
         <body>
           <div class="header">
-            <div class="school">Abdi Adama School IMS</div>
+            <div class="school">Ziquala Abo School Portal</div>
             <div class="title">Staff Login Credentials</div>
           </div>
           <div class="field">
@@ -1032,10 +1032,7 @@ export const Teachers = () => {
                   className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="teacher">Teacher</option>
-                  <option value="finance-clerk">Finance Clerk</option>
                   <option value="librarian">Librarian</option>
-                  <option value="clinic-admin">Clinic Admin</option>
-                  <option value="driver">Driver</option>
                 </select>
               </div>
 

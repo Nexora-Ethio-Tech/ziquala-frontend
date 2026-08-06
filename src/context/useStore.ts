@@ -242,7 +242,7 @@ export const useStore = create<AppState>()(persist((set, get) => ({
     notices: state.notices.filter(n => n.id !== id)
   })),
 }), {
-  name: 'abdi-adama-front-store',
+  name: 'ziquala-front-store',
   partialize: (state) => ({
     selectedBranchId: state.selectedBranchId,
     absenceQueue: state.absenceQueue,

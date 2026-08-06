@@ -85,7 +85,7 @@ export default function FounderMessage() {
 
       አቶ ግርማ ለሚ
       መስራች እና ባለቤት`,
-      image: "https://abdi-adama.vercel.app/assets/images/founder-BD1qGtJ1.jpg",
+      image: "/school.png",
     },
     {
       id: 2,
@@ -95,7 +95,7 @@ export default function FounderMessage() {
       text: `As one of the founders, I share a deep belief that education has the power to transform lives and shape better communities In our country.
 We founded this school to offer a strong foundation rooted in values, discipline, and creativity.
 Our vision is to inspire each student to think boldly, act responsibly, and dream fearlessly. we thank every parent, teacher, and student who has joined us on this journey — together, we continue building a brighter future for our community.`,
-      image: "https://www.abdiadama.com/assets/images/FOUNDERTWO.jpg",
+      image: "/school.png",
     },
     {
       id: 3,
@@ -103,7 +103,7 @@ Our vision is to inspire each student to think boldly, act responsibly, and drea
       role: "Director of Directors",
       quote: "Welcome to Abdi Adama School! | Gara Mana Barumsaa Abdi Adaamaa Baga Nagayaan Dhuftan! | እንኳን ደህና መጣችሁ፡፡",
       text: `It is my pleasure to welcome you to abdi adama school, where every student is guided with care, respect, and high expectations. our mission is to create a safe and supportive learning atmosphere where each child can develop academically, socially, and emotionally. we work closely with families and our dedicated team of teachers to ensure that students receive the best opportunities to explore their potential. thank you for choosing to be part of our school community. together, we look forward to shaping strong minds, positive values, and bright futures.`,
-      image: "https://www.abdiadama.com/assets/images/DIRECTOR.jpg",
+      image: "/school.png",
     }
   ];
 

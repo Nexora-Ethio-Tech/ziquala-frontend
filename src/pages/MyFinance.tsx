@@ -264,7 +264,7 @@ export const MyFinance = () => {
                               {/* School Name & Branding */}
                               <div className="flex justify-between items-start border-b border-slate-100 dark:border-slate-800 pb-4">
                                 <div>
-                                  <h4 className="text-sm font-black text-slate-900 dark:text-white tracking-widest uppercase">ABDI ADAMA SCHOOL IMS</h4>
+                                  <h4 className="text-sm font-black text-slate-900 dark:text-white tracking-widest uppercase">ZIQUALA ABO SCHOOL IMS</h4>
                                   <span className="text-[9px] text-slate-400 font-bold uppercase">Official Monthly Salary Slip &bull; {slip.month} {slip.year}</span>
                                 </div>
                                 <button

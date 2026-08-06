@@ -44,9 +44,9 @@ export const TranscriptTemplate = ({ studentData }: TranscriptTemplateProps) => 
     <div className="transcript-page w-full max-w-[95vw] sm:max-w-[148mm] mx-auto p-6 bg-white text-gray-900 border-2 border-double border-gray-300 shadow-2xl print:shadow-none print:border-0 print:p-4 print:w-[210mm] print:h-[297mm] print:m-0 print:overflow-hidden">
       {/* Header Section */}
       <div className="flex flex-col items-center mb-8 border-b-4 border-blue-900 pb-6">
-        <img src={logo} alt="Abdi Adama School Logo" className="w-32 h-32 mb-4 object-contain" />
-        <h1 className="text-3xl font-extrabold text-blue-900 tracking-wider text-center">MANA BARUMSAA ABDII ADAAMAA</h1>
-        <h2 className="text-xl font-semibold text-gray-700 text-center">ABDI ADAMA SCHOOL</h2>
+        <img src={logo} alt="Ziquala Abo School logo" className="w-32 h-32 mb-4 object-contain" />
+        <h1 className="text-3xl font-extrabold text-blue-900 tracking-wider text-center">MANA BARNOOTA ZUQAALAA AABBOO</h1>
+        <h2 className="text-xl font-semibold text-gray-700 text-center">ZIQUALA ABO SCHOOL</h2>
         <p className="mt-2 text-sm italic font-medium text-center">"Excellence in Education & Integrity"</p>
       </div>
 

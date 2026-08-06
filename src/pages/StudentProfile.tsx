@@ -613,7 +613,7 @@ export const StudentProfile = () => {
                     AA
                   </div>
                   <div>
-                    <h2 className="text-2xl font-black text-slate-900 tracking-tight">ABDI-ADAMA SMART-SCHOOL</h2>
+                    <h2 className="text-2xl font-black text-slate-900 tracking-tight">ZIQUALA ABO SCHOOL</h2>
                     <p className="text-sm text-slate-500 font-bold uppercase tracking-widest">Official Academic Record</p>
                   </div>
                 </div>

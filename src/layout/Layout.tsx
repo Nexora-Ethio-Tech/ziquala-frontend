@@ -6,7 +6,6 @@ import { Chatbot } from '../components/Chatbot';
 import { ShootingStars } from '../components/Effects';
 import { useUser } from '../context/UserContext';
 import { useState } from 'react';
-import { useSSE } from '../hooks/useSSE';
 
 export const Layout = () => {
   const location = useLocation();
@@ -14,10 +13,6 @@ export const Layout = () => {
 
   const displaySchoolName = schoolName.english;
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
-  // Global SSE connection: receives real-time logistics notices, deletions,
-  // and driver alerts for ALL authenticated roles (students, parents, admins).
-  useSSE();
 
   const shouldShowStars = role === 'student' || role === 'parent' || !user;
 
@@ -27,7 +22,6 @@ export const Layout = () => {
         case '/': return 'Student Dashboard';
         case '/courses': return 'Grades & Courses';
         case '/attendance': return 'Academic History';
-        case '/finance': return 'Fee Payments';
         default: return 'Student Portal';
       }
     }
@@ -38,7 +32,6 @@ export const Layout = () => {
         case 'dashboard': return 'Family Dashboard';
         case 'grades': return 'Grades & Courses';
         case 'history': return 'Academic History';
-        case 'clinic': return 'Clinic Support';
         case 'communication-book': return 'Communication Book';
         default: return 'Parent Portal';
       }
@@ -49,7 +42,6 @@ export const Layout = () => {
         case '/': return 'Network Overview';
         case '/branches': return 'Branch Management';
         case '/analytics': return 'Global Analytics';
-        case '/finance': return 'Group Financials';
         default: return 'Super Admin Console';
       }
     }
@@ -63,21 +55,13 @@ export const Layout = () => {
       }
     }
 
-    if (role === 'auditor') {
-      switch (path) {
-        case '/auditor-dashboard': return 'Dashboard';
-        case '/finance': return 'Finance';
-        case '/special-students': return 'Special Students';
-        default: return 'Auditor Console';
-      }
-    }
+    if (role === 'academic-manager') return 'Academic Management';
 
     switch (path) {
       case '/': return 'Dashboard Overview';
       case '/students': return 'Student Information System';
       case '/teachers': return 'Teacher Workstation';
       case '/attendance': return 'Attendance Tracking';
-      case '/finance': return 'Financial Auditing';
       case '/settings': return 'System Settings';
       default: return `${displaySchoolName} IMS`;
     }

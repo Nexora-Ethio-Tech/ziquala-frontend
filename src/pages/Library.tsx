@@ -66,7 +66,7 @@ export const Library = () => {
 
   const fetchData = async () => {
     setLoading(true);
-    const token = localStorage.getItem('abdi_adama_token');
+    const token = localStorage.getItem('ziquala_token');
     try {
       const [booksRes, loansRes, availableRes] = await Promise.all([
         fetch(`${API_URL}/api/library/books`, { headers: { 'Authorization': `Bearer ${token}` } }),
@@ -98,7 +98,7 @@ export const Library = () => {
 
   const handleAddBook = async (e: React.FormEvent) => {
     e.preventDefault();
-    const token = localStorage.getItem('abdi_adama_token');
+    const token = localStorage.getItem('ziquala_token');
     try {
       const res = await fetch(`${API_URL}/api/library/add-book`, {
         method: 'POST',
@@ -134,7 +134,7 @@ export const Library = () => {
       return;
     }
 
-    const token = localStorage.getItem('abdi_adama_token');
+    const token = localStorage.getItem('ziquala_token');
     const endpoint = issueData.borrower_type === 'teacher'
       ? `${API_URL}/api/library/validate-teacher/${encodeURIComponent(issueData.borrower_id.trim())}`
       : `${API_URL}/api/library/validate-student/${encodeURIComponent(issueData.borrower_id.trim())}`;
@@ -171,7 +171,7 @@ export const Library = () => {
       return;
     }
 
-    const token = localStorage.getItem('abdi_adama_token');
+    const token = localStorage.getItem('ziquala_token');
     try {
       const res = await fetch(`${API_URL}/api/library/issue`, {
         method: 'POST',
@@ -203,7 +203,7 @@ export const Library = () => {
   };
 
   const handleReturnBook = async (loanId: string) => {
-    const token = localStorage.getItem('abdi_adama_token');
+    const token = localStorage.getItem('ziquala_token');
     try {
       const res = await fetch(`${API_URL}/api/library/return/${loanId}`, {
         method: 'POST',

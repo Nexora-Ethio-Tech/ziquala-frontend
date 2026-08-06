@@ -11,39 +11,39 @@ const items: SchoolItem[] = [
   {
     title: "School Overview",
     images: [
-      "https://www.abdiadama.com/assets/images/schoolBuilding.jpg",
-      "https://www.abdiadama.com/assets/images/SchoolBuildingtwo.jpg",
+      "/school.png",
+      "/school.png",
     ],
     text: "Abdi Adama School, founded in 1998 E.C. (2005 G.C.), is one of the leading schools in Adama. The school is known for providing a strong educational foundation and additionally, it places great focus on Afaan Oromo language and culture. Unlike many other schools, we make sure our students learn, speak, and value Afaan Oromo with confidence and pride.\n\nOver the years, our school has expanded and now operates two additional branches — one located within Adama city, and another in a nearby town. This growth reflects the trust our community places in us and our commitment to providing quality education to more families.",
   },
   {
     title: "Our Team",
     images: [
-      "https://www.abdiadama.com/assets/images/ourteamtwo.jpg",
-      "https://www.abdiadama.com/assets/images/ourteamthree.jpg",
+      "/school.png",
+      "/school.png",
     ],
     text: "Our teachers, administrators, and staff are dedicated, patient, and trained to support students of all learning levels. We believe that learning is more effective when students feel understood and encouraged, so our team works closely with each student to help them grow academically, socially, and personally.",
   },
   {
     title: "Our Transport",
     images: [
-      "https://www.abdiadama.com/assets/images/transport.jpg",
+      "/school.png",
     ],
     text: "We provide safe and reliable school transportation services across different areas of Adama. Our buses are regularly inspected, and each route is guided by trained staff to ensure students travel comfortably and safely every day.",
   },
   {
     title: "Uniform",
     images: [
-      "https://www.abdiadama.com/assets/images/uniformlast.jpg",
-      "https://www.abdiadama.com/assets/images/secondary.jpg",
+      "/school.png",
+      "/school.png",
     ],
     text: "Our uniform represents discipline, neatness, and unity. We encourage students to wear their uniforms properly and proudly, as it reflects their identity as members of Abdi Adama School.",
   },
   {
     title: "Extra-Curricular Activities",
     images: [
-      "https://www.abdiadama.com/assets/images/extra.jpg",
-      "https://www.abdiadama.com/assets/images/highschooll.jpg",
+      "/school.png",
+      "/school.png",
       "/team.jpg",
     ],
     text: "At Abdi Adama School, education goes beyond the classroom. We encourage students to explore their interests, develop confidence, and learn teamwork through a variety of extra-curricular activities. We also believe deeply in community responsibility, organizing initiatives to provide meals and supplies to those in need, teaching students values of generosity and empathy.\n\nWe offer: Sports clubs (football, basketball, volleyball, athletics), Arts, Music, Dance & Theatre, Science & Innovation, Cultural Heritage & Language, and Debate & Public Speaking.",
@@ -51,22 +51,22 @@ const items: SchoolItem[] = [
   {
     title: "Our Curriculum",
     images: [
-      "https://www.abdiadama.com/assets/images/curriculum.jpg",
-      "https://www.abdiadama.com/assets/images/curriculumtwo.jpg",
+      "/school.png",
+      "/school.png",
     ],
     text: "Our curriculum is designed to build strong academic foundations while encouraging curiosity and creativity. We focus on core subjects such as Mathematics, English, Science, Amharic, ICT, and Social Studies, while also teaching problem-solving and communication skills.\n\nLearning is interactive — students explore through hands-on activities, discussions, digital tools, and real-life applications. Every student receives guidance and support to progress at their own pace.",
   },
   {
     title: "Our Secondary School",
     images: [
-      "https://www.abdiadama.com/assets/images/highschool.jpg",
+      "/school.png",
     ],
     text: "Our secondary school prepares students for higher learning, future careers, and personal growth. Learners develop critical thinking, leadership, teamwork, and self-discipline while strengthening their academic performance in all major subjects.\n\nWe guide students in choosing future paths — whether university studies, skilled professions, entrepreneurship, or innovation. Our goal is to help students become confident, respectful, and purpose-driven young adults.",
   },
   {
     title: "Our Promise to Parents",
     images: [
-      "https://www.abdiadama.com/assets/images/promise.jpg",
+      "/school.png",
     ],
     text: "At Abdi Adama school, we understand that you are placing great trust in us when you choose our school for your child. We promise to provide a safe, respectful, and encouraging environment where every student is guided to grow academically, emotionally, socially, and morally. We believe in open communication and partnership with parents, because we know that education is most effective when school and family work together. We are committed to nurturing confidence, curiosity, discipline, and strong values in every student, while ensuring that each child is seen, heard, and supported every step of the way. your child's success is our shared goal, and we will always work with dedication and integrity to help them reach their full potential.",
   },

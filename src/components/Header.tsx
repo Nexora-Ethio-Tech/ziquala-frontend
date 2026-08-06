@@ -2,8 +2,6 @@
 import {
   Bell, Search, User, LogOut, Moon, Sun, Menu,
   Calendar as CalendarIcon, X, ChevronDown, Lock,
-  CreditCard, BarChart3, BookOpen, GraduationCap, Users, Truck,
-  Stethoscope, LayoutDashboard, Shield, Building
 } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import { useStore } from '../context/useStore';
@@ -25,20 +23,6 @@ interface HeaderProps {
 }
 
 
-const PORTAL_ROLES = [
-  { r: 'finance-clerk', label: 'Finance Clerk', icon: <CreditCard size={16} /> },
-  { r: 'auditor', label: 'Auditor Panel', icon: <BarChart3 size={16} /> },
-  { r: 'teacher', label: 'Teacher Portal', icon: <BookOpen size={16} /> },
-  { r: 'student', label: 'Student Portal', icon: <GraduationCap size={16} /> },
-  { r: 'parent', label: 'Parent Portal', icon: <Users size={16} /> },
-  { r: 'driver', label: 'Driver Portal', icon: <Truck size={16} /> },
-  { r: 'clinic-admin', label: 'Clinic Portal', icon: <Stethoscope size={16} /> },
-  { r: 'vice-principal', label: 'Vice Principal', icon: <LayoutDashboard size={16} /> },
-  { r: 'librarian', label: 'Librarian', icon: <BookOpen size={16} /> },
-  { r: 'super-admin', label: 'Super Admin', icon: <Shield size={16} /> },
-  { r: 'school-admin', label: 'School Admin', icon: <Building size={16} /> },
-];
-
 export const Header = ({ title, onMenuClick }: HeaderProps) => {
   const { user, logout, selectedBranch, role } = useUser();
   const { isExamLockedDown } = useStore();
@@ -50,7 +34,7 @@ export const Header = ({ title, onMenuClick }: HeaderProps) => {
 
   const handleLanguageChange = (lng: string) => {
     i18n.changeLanguage(lng);
-    localStorage.setItem('abdi_adama_language', lng);
+    localStorage.setItem('ziquala_language', lng);
   };
 
   const handleLogout = () => {

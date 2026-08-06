@@ -32,18 +32,6 @@ export const dashboardService = {
     return response.data;
   },
 
-  // Finance Clerk Dashboard
-  getFinanceClerkDashboard: async () => {
-    const response = await api.get('/finance-clerk/dashboard');
-    return response.data;
-  },
-
-  // Auditor Dashboard
-  getAuditorDashboard: async () => {
-    const response = await api.get('/auditor/dashboard');
-    return response.data;
-  },
-
   // Events (Calendar) — role-aware
   getEvents: async (role: string, branchId?: string | null): Promise<any[]> => {
     if (role === 'super-admin') {

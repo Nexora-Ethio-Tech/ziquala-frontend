@@ -87,7 +87,7 @@ export const Dashboard = () => {
       const response = await userService.getAllUsers({ status: 'Pending' });
       const list = response.data || response || [];
       const filtered = list.filter((u: any) => 
-        ['auditor', 'school-admin', 'vice-principal'].includes(u.role)
+        ['academic-manager', 'school-admin', 'vice-principal'].includes(u.role)
       );
       setPendingUsersList(filtered);
     } catch (err: any) {
@@ -159,7 +159,7 @@ export const Dashboard = () => {
               time: n.created_at || new Date().toISOString(),
               category: (n.category || 'Academic') as any,
               audience: n.audience === 'all'
-                ? ['super-admin','school-admin','vice-principal','teacher','student','parent','driver','clinic-admin','finance-clerk','librarian','auditor']
+                ? ['super-admin','academic-manager','school-admin','vice-principal','teacher','student','parent','librarian']
                 : String(n.audience || 'all').split(',').map((r: string) => r.trim()),
             }));
             _setNotices(mapped);
@@ -316,12 +316,8 @@ export const Dashboard = () => {
           students: report.totalStudents,
           teachers: report.totalTeachers,
           attendance: report.attendanceRate?.toFixed(1),
-          finance: report.yearlyTarget > 0
-            ? `${report.financialHealthPct?.toFixed(0)}% of target`
-            : 'No target set',
-          financialHealthPct: report.financialHealthPct ?? 100,
-          isHighRisk: report.isHighRisk ?? false,
-          risk: report.isHighRisk ? 'High Risk' : 'Normal'
+          isHighRisk: Number(report.attendanceRate || 0) < 80,
+          risk: Number(report.attendanceRate || 0) < 80 ? 'Needs Attention' : 'Normal'
         };
       })
       .filter((branch): branch is NonNullable<typeof branch> => Boolean(branch)); // Remove null entries
@@ -451,21 +447,20 @@ export const Dashboard = () => {
                 <span className="text-[10px] font-black uppercase tracking-widest text-blue-600 bg-blue-50 px-2 py-1 rounded-full">{t('dashboard.aggregateOnly')}</span>
               </div>
               <div className="overflow-x-auto">
-                <table className="w-full text-left min-w-[780px]">
+                <table className="w-full text-left min-w-[680px]">
                   <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-800">
                     <tr>
                       <th className="px-6 py-4 text-xs font-black text-slate-500 uppercase tracking-wider">{t('dashboard.branch')}</th>
                       <th className="px-6 py-4 text-xs font-black text-slate-500 uppercase tracking-wider text-center">{t('dashboard.students')}</th>
                       <th className="px-6 py-4 text-xs font-black text-slate-500 uppercase tracking-wider text-center">{t('dashboard.teachers')}</th>
                       <th className="px-6 py-4 text-xs font-black text-slate-500 uppercase tracking-wider text-center">{t('dashboard.attendance')}</th>
-                      <th className="px-6 py-4 text-xs font-black text-slate-500 uppercase tracking-wider text-center">{t('dashboard.finance')}</th>
                       <th className="px-6 py-4 text-xs font-black text-slate-500 uppercase tracking-wider text-right">{t('dashboard.status')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                     {branchReportLoading ? (
                       <tr>
-                        <td colSpan={6} className="px-6 py-8 text-center">
+                        <td colSpan={5} className="px-6 py-8 text-center">
                           <div className="flex flex-col items-center gap-2">
                             <div className="w-12 h-12 border-4 border-blue-600/30 border-t-blue-600 rounded-full animate-spin" />
                             <p className="text-sm text-slate-500 mt-2">Loading branch reports...</p>
@@ -474,7 +469,7 @@ export const Dashboard = () => {
                       </tr>
                     ) : branchHealth.length === 0 ? (
                       <tr>
-                        <td colSpan={6} className="px-6 py-8 text-center">
+                        <td colSpan={5} className="px-6 py-8 text-center">
                           <div className="text-sm text-slate-500">No branch reports are available yet. Please refresh or check your branch report configuration.</div>
                         </td>
                       </tr>
@@ -492,7 +487,6 @@ export const Dashboard = () => {
                         <td className="px-6 py-4 text-center font-bold text-slate-700 dark:text-slate-200">{branch?.students ?? 0}</td>
                         <td className="px-6 py-4 text-center font-bold text-slate-700 dark:text-slate-200">{branch?.teachers ?? 0}</td>
                         <td className="px-6 py-4 text-center font-bold text-emerald-600">{branch?.attendance ?? 0}%</td>
-                        <td className="px-6 py-4 text-center font-bold text-slate-700 dark:text-slate-200">{branch?.finance ?? 0}</td>
                         <td className="px-6 py-4 text-right">
                           <button
                             onClick={() => {
@@ -519,7 +513,7 @@ export const Dashboard = () => {
                 <div className="p-6 border-b border-amber-100 dark:border-amber-800/30 flex items-center justify-between bg-amber-50/50 dark:bg-amber-950/10">
                   <div>
                     <h3 className="text-lg font-bold text-amber-800 dark:text-amber-300">⚠️ Branches Needing Attention</h3>
-                    <p className="text-sm text-amber-600 dark:text-amber-400">Branches collecting less than 70% of their yearly financial target.</p>
+                    <p className="text-sm text-amber-600 dark:text-amber-400">Branches with attendance below the academic follow-up threshold.</p>
                   </div>
                   <span className="text-xs font-black uppercase tracking-widest text-amber-700 bg-amber-100 dark:bg-amber-900/40 px-3 py-1 rounded-full">
                     {branchesNeedingAttention} branch{branchesNeedingAttention !== 1 ? 'es' : ''}
@@ -539,8 +533,8 @@ export const Dashboard = () => {
                       </div>
                       <div className="flex items-center gap-4">
                         <div className="text-right hidden sm:block">
-                          <p className="text-xs text-slate-400">Financial Health</p>
-                          <p className="font-black text-rose-600">{branch.financialHealthPct?.toFixed(0) ?? '0'}% of target</p>
+                          <p className="text-xs text-slate-400">Attendance</p>
+                          <p className="font-black text-rose-600">{branch.attendance ?? '0'}%</p>
                         </div>
                         <button
                           onClick={() => { setSelectedBranchId(branch.id); setSelectedBranch(branch); }}
@@ -569,7 +563,7 @@ export const Dashboard = () => {
                     </div>
                     <div>
                       <h3 className="font-bold text-slate-800 dark:text-slate-100 text-lg">Pending Approvals</h3>
-                      <p className="text-xs text-slate-500">Auditors, School Admins, and Vice Principals waiting for activation.</p>
+                      <p className="text-xs text-slate-500">Academic Managers, School Admins, and Vice Principals waiting for activation.</p>
                     </div>
                   </div>
                   <button
@@ -604,7 +598,7 @@ export const Dashboard = () => {
                         <CheckCircle size={32} />
                       </div>
                       <h4 className="font-bold text-slate-800 dark:text-slate-100 text-lg">All caught up!</h4>
-                      <p className="text-sm text-slate-500 mt-1 max-w-sm mx-auto">No pending accounts of type Auditor, School Admin, or Vice Principal require approval at this time.</p>
+                      <p className="text-sm text-slate-500 mt-1 max-w-sm mx-auto">No pending Academic Manager, School Admin, or Vice Principal accounts require approval at this time.</p>
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -920,10 +914,7 @@ export const Dashboard = () => {
             <div key={notice.id} className="p-4 md:p-6 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${notice.category === 'Logistics' ? 'bg-amber-100 text-amber-700' :
-                      notice.category === 'Finance' ? 'bg-emerald-100 text-emerald-700' :
-                        'bg-blue-100 text-blue-700'
-                    }`}>
+                  <span className="rounded bg-blue-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-blue-700">
                     {notice.category}
                   </span>
                   <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${notice.priority === 'High' ? 'bg-rose-100 text-rose-700' : 'bg-slate-100 text-slate-500'
@@ -971,9 +962,6 @@ export const Dashboard = () => {
               <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
                 {notice.content}
               </p>
-              {notice.category === 'Logistics' && (notice as any).driverName && (
-                <p className="text-[10px] font-bold text-amber-600 mt-2">Posted by: {(notice as any).driverName}</p>
-              )}
               {isAdmin && notice.audience && notice.audience.length > 0 && (
                 <div className="mt-3 pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center gap-1.5 flex-wrap">
                   <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Audience:</span>
@@ -1143,10 +1131,9 @@ export const Dashboard = () => {
 
               // Map UI audience selection to role arrays
               const audienceRoleMap: Record<string, string[]> = {
-                all: ['super-admin', 'school-admin', 'vice-principal', 'teacher', 'student', 'parent', 'driver', 'clinic-admin', 'finance-clerk', 'librarian', 'auditor'],
+                all: ['super-admin', 'academic-manager', 'school-admin', 'vice-principal', 'teacher', 'student', 'parent', 'librarian'],
                 teacher: ['teacher', 'school-admin', 'super-admin'],
-                driver: ['driver', 'school-admin', 'super-admin'],
-                'clinic-admin': ['clinic-admin', 'school-admin', 'super-admin'],
+                academic: ['academic-manager', 'school-admin', 'vice-principal', 'teacher', 'super-admin'],
                 'parent-student': ['parent', 'student', 'school-admin', 'super-admin'],
               };
               const audienceRoles = audienceRoleMap[selectedAudience] || audienceRoleMap.all;
@@ -1201,8 +1188,8 @@ export const Dashboard = () => {
                     className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                   >
                     <option value="Academic">Academic</option>
-                    <option value="Logistics">Logistics</option>
-                    <option value="Finance">Finance</option>
+                    <option value="General">General</option>
+                    <option value="Event">Event</option>
                   </select>
                 </div>
                 <div className="space-y-1">
@@ -1228,8 +1215,7 @@ export const Dashboard = () => {
                   {[
                     { value: 'all', label: '🌐 All Users', desc: 'Everyone receives this notice' },
                     { value: 'teacher', label: '👨‍🏫 Teachers Only', desc: 'Only teachers see this' },
-                    { value: 'driver', label: '🚌 Drivers Only', desc: 'Only drivers see this' },
-                    { value: 'clinic-admin', label: '🏥 Clinic Staff Only', desc: 'Only clinic staff see this' },
+                    { value: 'academic', label: '📚 Academic Team', desc: 'Academic managers, administrators, and teachers' },
                     { value: 'parent-student', label: '👨‍👩‍👧 Parents & Students', desc: 'Parents and students see this' },
                   ].map(opt => (
                     <button

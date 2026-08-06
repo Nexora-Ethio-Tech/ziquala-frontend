@@ -216,7 +216,7 @@ export const getSchedules = async (): Promise<Schedule[]> => {
 // Applications
 export const createPendingApplication = async (data: any) => {
   // Authenticated application submission for admin users
-  const token = localStorage.getItem('abdi_adama_token');
+  const token = localStorage.getItem('ziquala_token');
   try {
     const response = await axios.post(`${API_BASE_URL}/school-admin/applications`, data, {
       headers: {

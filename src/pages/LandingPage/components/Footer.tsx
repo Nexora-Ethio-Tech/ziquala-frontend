@@ -12,7 +12,7 @@ export default function Footer() {
                     <div className="flex items-center gap-4">
                         {/* School Logo */}
                         <img
-                            src="https://abdi-adama.vercel.app/assets/images/logo-fTBWQkNS.jpg"
+                            src="/school.png"
                             className="rounded-full h-16 w-16 border border-zinc-200 dark:border-white/10"
                             alt="Abdi Adama Logo"
                         />
@@ -59,7 +59,7 @@ export default function Footer() {
                         <div className="grid grid-cols-2 gap-4 font-sans text-base text-zinc-600 dark:text-zinc-300">
                             {/* Telegram */}
                             <a
-                                href="https://t.me/abdiadamaschool"
+                                href="https://t.me/gebreabo"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="flex items-center gap-2.5 hover:text-zinc-900 dark:hover:text-white transition-colors group"
@@ -70,7 +70,7 @@ export default function Footer() {
 
                             {/* YouTube */}
                             <a
-                                href="https://www.youtube.com/@AbdiadamaSchool-s1c"
+                                href="https://youtube.com/@ziqualaabomedia"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="flex items-center gap-2.5 hover:text-zinc-900 dark:hover:text-white transition-colors group"
@@ -81,7 +81,7 @@ export default function Footer() {
 
                             {/* Instagram */}
                             <a
-                                href="https://www.instagram.com/abdi_adama_school/"
+                                href="https://www.facebook.com/profile.php?id=61587078541651"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="flex items-center gap-2.5 hover:text-zinc-900 dark:hover:text-white transition-colors group"
@@ -92,7 +92,7 @@ export default function Footer() {
 
                             {/* TikTok */}
                             <a
-                                href="https://www.tiktok.com/@abdiadama1"
+                                href="https://www.tiktok.com/@ziquala.abo.media"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="flex items-center gap-2.5 hover:text-zinc-900 dark:hover:text-white transition-colors group"

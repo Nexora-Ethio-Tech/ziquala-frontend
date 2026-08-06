@@ -182,7 +182,7 @@ export const ClinicAdminStaff = () => {
         </head>
         <body>
           <div class="header">
-            <div class="school">Abdi Adama School IMS</div>
+            <div class="school">Ziquala Abo School IMS</div>
             <div class="title">Clinic Admin Login Credentials</div>
           </div>
           <div class="field">

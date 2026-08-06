@@ -227,7 +227,7 @@ const translations: Record<Language, TranslationSchema> = {
         {
           title: "Learner-Centered",
           desc: "Our curriculum is designed to build strong academic foundations while encouraging curiosity and creativity. We focus on core subjects such as Mathematics, English, Science, Amharic, ICT, and Social Studies.",
-          img: "https://www.abdiadama.com/assets/images/curriculum.jpg",
+          img: "/school.png",
         },
       ],
       label: "Program",
@@ -247,19 +247,19 @@ const translations: Record<Language, TranslationSchema> = {
           name: "Firdos Musa",
           achievement: "Top Scorer - National Exams",
           message: "Hard work, patience, and prayer have guided my journey. I thank Abdi Adama School for giving me the chance to discover my potential and grow into someone who believes in possibilities.",
-          img: "https://www.abdiadama.com/assets/images/firdosmusa.jpg",
+          img: "/school.png",
         },
         {
           name: "Fuad Abdella",
           achievement: "Excellence in Sciences",
           message: "Hard work and faith brought me here. I'm proud to represent Abdi Adama School and thankful for my teachers' constant support throughout these years.",
-          img: "https://www.abdiadama.com/assets/images/fuadabdelafinal.jpg",
+          img: "/school.png",
         },
         {
           name: "Saron Leulseged",
           achievement: "Outstanding Leadership",
           message: "I thank my family for believing in me and Abdi Adama School for shaping that belief into achievement. With their support, I have learned that dreams come true through learning and discipline.",
-          img: "https://www.abdiadama.com/assets/images/saronlulsagadd.jpg",
+          img: "/school.png",
         },
       ],
       classOf: "Class of 2025",
@@ -285,19 +285,19 @@ const translations: Record<Language, TranslationSchema> = {
           name: "Mr. GIRMA LEMI",
           role: "Co-Founder & Owner",
           message: "welcome to abdi adama school, a place built from our shared belief that every child deserves an environment where learning feels inspiring, meaningful, and joyful. when we founded abdi adama school, our dream was to create a place where children feel seen, supported, and encouraged to discover their full potential. we wanted a school that goes beyond textbooks — a place where curiosity is welcomed, kindness is practiced, and learning feels alive. seeing our students grow in confidence and character has been our greatest achievement, and we remain committed to nurturing every child with care and purpose.",
-          img: "https://abdi-adama.vercel.app/assets/images/founder-BD1qGtJ1.jpg",
+          img: "/school.png",
         },
         aberash: {
           name: "Ms. ABERASH ESHETU",
           role: "Co-Founder & Owner",
           message: "As one of the founders, I share a deep belief that education has the power to transform lives and shape better communities In our country. We founded this school to offer a strong foundation rooted in values, discipline, and creativity. Our vision is to inspire each student to think boldly, act responsibly, and dream fearlessly. we thank every parent, teacher, and student who has joined us on this journey — together, we continue building a brighter future for our community.",
-          img: "https://www.abdiadama.com/assets/images/secondary.jpg",
+          img: "/school.png",
         },
         yodit: {
           name: "Ms. YODIT YOHANNES",
           role: "School Director",
           message: "It is my pleasure to welcome you to abdi adama school, where every student is guided with care, respect, and high expectations. our mission is to create a safe and supportive learning atmosphere where each child can develop academically, socially, and emotionally. we work closely with families and our dedicated team of teachers to ensure that students receive the best opportunities to explore their potential. thank you for choosing to be part of our school community. together, we look forward to shaping strong minds, positive values, and bright futures.",
-          img: "https://www.abdiadama.com/assets/images/firdosmusa.jpg",
+          img: "/school.png",
         },
       },
       difference: {
@@ -435,7 +435,7 @@ const translations: Record<Language, TranslationSchema> = {
         {
           title: "ተማሪ-ተኮር ትምህርት",
           desc: "ሥርዓተ-ትምህርታችን ጠንካራ አካዳሚክ መሠረት ለመገንባት እና የማወቅ ጉጉትን ለማነሳሳት የተነደፈ ነው። እንደ ሂሳብ፣ እንግሊዝኛ፣ ሳይንስ፣ አማርኛ፣ አይሲቲ እና ማኅበራዊ ጥናቶች ባሉ ዋና ዋና ትምህርቶች ላይ እናተኩራለን።",
-          img: "https://www.abdiadama.com/assets/images/curriculum.jpg",
+          img: "/school.png",
         },
       ],
       label: "ፕሮግራም",
@@ -455,19 +455,19 @@ const translations: Record<Language, TranslationSchema> = {
           name: "ፊርዶስ ሙሳ",
           achievement: "ከፍተኛ ውጤት አስመዝጋቢ - ብሔራዊ ፈተና",
           message: "ጠንካራ ሥራ፣ ትዕግሥት እና ጸሎት መንገዴን መርተውታል። አቅሜን እንዳውቅና በምኞቶቼ እንዳምን ዕድል ስለሰጠኝ የአብዲ አዳማ ትምህርት ቤትን አመሰግናለሁ።",
-          img: "https://www.abdiadama.com/assets/images/firdosmusa.jpg",
+          img: "/school.png",
         },
         {
           name: "ፉአድ አብደላ",
           achievement: "በሳይንስ ትምህርቶች የላቀ ውጤት",
           message: "ትጋትና እምነት እዚህ አድርሰውኛል። አብዲ አዳማ ትምህርት ቤትን በመወከሌ ኩራት ይሰማኛል፣ ለመምህራኖቼም ላደረጉልኝ ተከታታይ ድጋፍ አመሰግናለሁ።",
-          img: "https://www.abdiadama.com/assets/images/fuadabdelafinal.jpg",
+          img: "/school.png",
         },
         {
           name: "ሳሮን ሌውልሰገድ",
           achievement: "የላቀ የአመራር ብቃት",
           message: "በእኔ ስላመኑ ቤተሰቦቼን እና ያንን እምነት ወደ ስኬት ለቀየረው አብዲ አዳማ ትምህርት ቤት ምስጋናዬ የላቀ ነው። በትምህርት እና በሥነ-ምግባር ህልሞች እውን እንደሚሆኑ ተምሬያለሁ።",
-          img: "https://www.abdiadama.com/assets/images/saronlulsagadd.jpg",
+          img: "/school.png",
         },
       ],
       classOf: "የ2024 ምሩቃን",
@@ -493,19 +493,19 @@ const translations: Record<Language, TranslationSchema> = {
           name: "አቶ ግርማ ለሚ",
           role: "ተባባሪ መሥራች እና ባለቤት",
           message: "እያንዳንዱ ልጅ መማር አነቃቂ፣ ትርጉም ያለው እና አስደሳች ወደሆነበት አካባቢ መምጣት ይገባዋል ከሚለው የጋራ እምነታችን ወደተገነባው የአብዲ አዳማ ትምህርት ቤት እንኳን በደህና መጡ። የአብዲ አዳማ ትምህርት ቤትን ስንመሠርት ህልማችን ልጆች የሚታዩበት፣ የሚደገፉበት እና ሙሉ አቅማቸውን እንዲያወጡ የሚበረታቱበትን ቦታ መፍጠር ነበር። ከመማሪያ መጽሐፍት በላይ የሚሄድ ትምህርት ቤት ፈልገን ነበር — የማወቅ ጉጉት የሚቀበልበት፣ ደግነት የሚተገበርበት እና መማር ሕያው የሚሆንበት። ተማሪዎቻችን በራስ መተማመን እና ባህሪ ሲያድጉ ማየት ትልቁ ስኬታችን ነው፣ እናም እያንዳንዱን ልጅ በጥንቃቄ እና በዓላማ ለማሳደግ ቁርጠኞች ነን።",
-          img: "https://abdi-adama.vercel.app/assets/images/founder-BD1qGtJ1.jpg",
+          img: "/school.png",
         },
         aberash: {
           name: "ወ/ሮ አበራሽ እሸቱ",
           role: "ተባባሪ መሥራች እና ባለቤት",
           message: "እንደ አንዱ መሥራች፣ ትምህርት በሀገራችን ህይወትን የመለወጥ እና የተሻሉ ማህበረሰቦችን የመቅረጽ ኃይል አለው የሚል ጥልቅ እምነት አለኝ። ይህንን ትምህርት ቤት የመሠረትነው በእሴቶች፣ በዲሲፕሊን እና በፈጠራ ላይ የተመሠረተ ጠንካራ መሠረት ለመስጠት ነው። ራእያችን እያንዳንዱ ተማሪ ደፋር እንዲያስብ፣ በኃላፊነት ስሜት እንዲሠራ እና ያለ ፍርሃት እንዲያልም ማነሳሳት ነው። በዚህ ጉዞ ላይ አብረውን ለተቀላቀሉ ለእያንዳንዱ ወላጅ፣ መምህር እና ተማሪ እናመሰግናለን — አብረን፣ ለማህበረሰባችን ብሩህ የወደፊት ሁኔታ መገንባታችንን እንቀጥላለን።",
-          img: "https://www.abdiadama.com/assets/images/secondary.jpg",
+          img: "/school.png",
         },
         yodit: {
           name: "ወ/ሮ ዮዲት ዮሐንስ",
           role: "የትምህርት ቤቱ ዳይሬክተር",
           message: "እያንዳንዱ ተማሪ በትጋት፣ በአክብሮት እና በከፍተኛ ጥበቃ በሚመራበት በአብዲ አዳማ ትምህርት ቤት እንኳን በደህና መጡ ለማለት ደስ ይለኛል። ዓላማችን እያንዳንዱ ልጅ በአካዳሚክ፣ በማህበራዊ እና በስሜታዊነት እንዲያድግ ደህንነቱ የተጠበቀ እና ድጋፍ ሰጪ የትምህርት ሁኔታ መፍጠር ነው። ተማሪዎች አቅማቸውን ለመመርመር የተሻሉ እድሎችን እንዲያገኙ ከቤተሰቦች እና ከወሰኑ መምህራኖቻችን ጋር በቅርበት እንሰራለን። የማህበረሰባችን አካል ለመሆን ስለመረጡ እናመሰግናለን። አብረን፣ ጠንካራ አእምሮዎችን፣ አወንታዊ እሴቶችን እና ብሩህ የወደፊት ህይወትን ለመቅረጽ እንጠብቃለን።",
-          img: "https://www.abdiadama.com/assets/images/firdosmusa.jpg",
+          img: "/school.png",
         },
       },
       difference: {
@@ -643,7 +643,7 @@ const translations: Record<Language, TranslationSchema> = {
         {
           title: "Barataa irratti kan xiyyeeffate",
           desc: "Sirni barnoota keenya hundeewwan barnootaa cimaa ijaaruu fi fedhii beekumsaa kakaasuuf kan qophaaye. Nutis barnoota ijoo kan akka Herrega, Ingiliffa, Saayinsii, Amaariffa, ICT fi Qorannoo Hawaasaa irratti xiyyeeffanna.",
-          img: "https://www.abdiadama.com/assets/images/curriculum.jpg",
+          img: "/school.png",
         },
       ],
       label: "Sagantaa",
@@ -663,19 +663,19 @@ const translations: Record<Language, TranslationSchema> = {
           name: "Fiirdoos Musaa",
           achievement: "Qabxii Olaanaa - Qormaata Biyyoolessaa",
           message: "Hojiin cimaan, obsi fi kadhannaan daandii koo qajeelchaniiru. Dandeettii koo akkan baradhuu fi abjiiwwan koo akkan dhugoomsu carraa naaf kennuusaatiif Mana Barumsaa Abdi Adamaa nan galateeffadha.",
-          img: "https://www.abdiadama.com/assets/images/firdosmusa.jpg",
+          img: "/school.png",
         },
         {
           name: "Fuaad Abdayilaa",
           achievement: "Saayinsii Keessatti Olaantummaa",
           message: "Hojiin cimaa fi amantiin as na gahan. Mana Barumsaa Abdi Adamaa bakka bu'uu kootiif nan boona, barsiisota kootiifis deeggarsa walitti aanaa naaf taasisaniif nan galateeffadha.",
-          img: "https://www.abdiadama.com/assets/images/fuadabdelafinal.jpg",
+          img: "/school.png",
         },
         {
           name: "Saaroon Liyulsegad",
           achievement: "Geggeessummaa Adda Ta'e",
           message: "Maatii koo kan natti amananiif fi Mana Barumsaa Abdi Adamaa kan amantii sana gara milkaa'inaatti jijjiire nan galateeffadha. Barnoota fi naamusaan abjiiwwan dhugoomuu akka danda'an baradheera.",
-          img: "https://www.abdiadama.com/assets/images/saronlulsagadd.jpg",
+          img: "/school.png",
         },
       ],
       classOf: "Eebbifamtoota Bara 2024",
@@ -701,19 +701,19 @@ const translations: Record<Language, TranslationSchema> = {
           name: "Obbo GIRMAA LAMMII",
           role: "Hundeessaa & Abbaa Qabeenyaa",
           message: "Baga gara mana barumsaa Abdi Adamaatti nagaan dhuftan, bakka barachuu fi bilchina daa'imman keenyaa itti dhugoomsuuf hundeeffame. Yeroo mana barumsaa kana hundessinu, hawwiin keenya daa'imman kan itti mul'atan, deeggaraman fi dandeettii isaanii guutuu kan itti gabbifatan uumuufi. Mana barumsaa kitaaba qofa irra darbe — bakka beekumsi itti simatamu, gaarummaan itti baratamuu fi barachuun lubbuu itti horatu uumuuf yaadnee. Barattoonni keenya amantii fi naamusa qabaniin yommuu guddatan arguun milkii keenya isa guddaadha, nutis tokkoon tokkoon isaanii kunuunsuuf kutannoo qabna.",
-          img: "https://abdi-adama.vercel.app/assets/images/founder-BD1qGtJ1.jpg",
+          img: "/school.png",
         },
         aberash: {
           name: "Addee ABERASH ESHETUU",
           role: "Hundeessituu & Haadha Qabeenyaa",
           message: "Akka hundeessitoota keessaa tokkootti, barnoonni jireenya jijjiiruu fi hawaasa gaarii ijaaruuf dandeettii guddaa qaba jedheen amana. Mana barumsaa kana kan hundessine hundee cimaa naamusa, seeraa fi kalaqa irratti hundaa'e kennuufi. Mul'anni keenya barataan hundi sodaa malee akka abjootu fi ga'umsaan akka hojjetu kakaasuudha. Galatoomaa maatii, barsiisota fi barattoota sochii kana keessatti nu waliin hirmaachaa jirtan — waliin ta'uun gara fuulduraa ifaa ijaaruu keenya ni itti fufna.",
-          img: "https://www.abdiadama.com/assets/images/secondary.jpg",
+          img: "/school.png",
         },
         yodit: {
           name: "Addee YODIT YOHANNIS",
           role: "Daarektara Mana Barumsaa",
           message: "Gara mana barumsaa Abdi Adamaatti isan simachuu kootiif gammachuu guddaatu natti dhaga'ama, bakka tokkoon tokkoon barataa kunuunsa, kabajaa fi eeggannoo olaanaadhaan itti qajeelfamu. Kaayyoon keenya haala barachuu nageenya qabu uumuudhaan barataan hundi gama barnootaa, hawaasummaa fi miiraatiin akka guddatu gochuudha. Barattoonni carraa gaarii akka argataniif maatii fi barsiisota keenya waliin dhiyoon hojjenna. Galatoomaa miseensa hawaasa keenyaa ta'uu keessaniif. Waliin ta'uun gara fuulduraa ifaa ijaaruuf hawwiidhaan eegganna.",
-          img: "https://www.abdiadama.com/assets/images/firdosmusa.jpg",
+          img: "/school.png",
         },
       },
       difference: {
@@ -812,7 +812,7 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [language, setLanguageState] = useState<Language>(() => {
-    const saved = localStorage.getItem("abdi_adama_lang");
+    const saved = localStorage.getItem("ziquala_lang");
     if (saved === "en" || saved === "am" || saved === "or") {
       return saved as Language;
     }
@@ -821,7 +821,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);
-    localStorage.setItem("abdi_adama_lang", lang);
+    localStorage.setItem("ziquala_lang", lang);
     document.documentElement.lang = lang;
   };
 

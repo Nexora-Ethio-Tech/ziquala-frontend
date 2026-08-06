@@ -9,7 +9,7 @@ export const Chatbot = () => {
   const [isMinimized, setIsMinimized] = useState(false);
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([
-    { role: 'assistant', content: 'Hello! I am the Abdi-Adama Smart Assistant. I can help you with school policies, schedules, and academic reports. How can I assist you today?' }
+    { role: 'assistant', content: 'Hello! I am the Ziquala Abo School Assistant. I can help you with school policies, schedules, and academic reports. How can I assist you today?' }
   ]);
   const [isLoading, setIsLoading] = useState(false);
   const [position, setPosition] = useState<{ x: number; y: number } | null>(null);
@@ -19,7 +19,7 @@ export const Chatbot = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const saved = localStorage.getItem('abdi_adama_chatbot_position');
+    const saved = localStorage.getItem('ziquala_chatbot_position');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -34,7 +34,7 @@ export const Chatbot = () => {
 
   useEffect(() => {
     if (position) {
-      localStorage.setItem('abdi_adama_chatbot_position', JSON.stringify(position));
+      localStorage.setItem('ziquala_chatbot_position', JSON.stringify(position));
     }
   }, [position]);
 
@@ -149,7 +149,7 @@ export const Chatbot = () => {
               <MessageSquare size={20} />
             </div>
             <div>
-              <p className="font-bold text-sm">Abdi-Adama Smart Assistant</p>
+              <p className="font-bold text-sm">Ziquala Abo School Assistant</p>
               <div className="flex items-center gap-1">
                 <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
                 <p className="text-[10px] text-blue-100">Semantic Search Active</p>

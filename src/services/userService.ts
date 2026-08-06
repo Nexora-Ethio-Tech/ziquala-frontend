@@ -14,9 +14,9 @@ export const userService = {
     return response.data;
   },
 
-  // Create Auditor
-  createAuditor: async (data: { name: string; email: string; branchId?: string }) => {
-    const response = await api.post(API_ENDPOINTS.CREATE_AUDITOR, data);
+  // Future backend endpoint for the Ziquala academic oversight role.
+  createAcademicManager: async (data: { name: string; email: string; branchId: string }) => {
+    const response = await api.post('/super-admin/academic-managers', data);
     return response.data;
   },
 
@@ -47,7 +47,7 @@ export const userService = {
 
   // Delete user
   deleteUser: async (userId: string) => {
-    const userJson = localStorage.getItem('abdi_adama_user');
+    const userJson = localStorage.getItem('ziquala_user');
     const role = userJson ? JSON.parse(userJson).role : null;
     const isSchoolAdmin = role === 'school-admin';
     const endpoint = isSchoolAdmin

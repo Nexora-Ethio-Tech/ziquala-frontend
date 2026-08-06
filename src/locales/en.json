@@ -66,7 +66,7 @@
     "founder": {
       "subtitle": "A Legacy of Excellence",
       "title": "Message from the Founders",
-      "quote": "\"Abdi Adama School was established in 1998 E.C. (2005/2006 G.C.) with a dream to create a place where children feel seen, supported, and encouraged to discover their full potential. To build the future of our children, we must plant the seeds of excellence today.\"",
+      "quote": "\"Ziquala Abo School nurtures knowledge, discipline, faith, and responsible citizenship in every learner.\"",
       "name": "Ato Girma Lemi",
       "role": "Founder & Owner",
       "vision": "Our vision is to inspire each student to think boldly, act responsibly, and dream fearlessly. We proudly honor Ethiopian culture, identity, and tradition while delivering international quality education."
@@ -80,7 +80,7 @@
       "introVideo": "Introductory Video",
       "introTitle": "A place where learning meets",
       "introHighlight": "excellence!",
-      "introDesc1": "At Abdi Adama School, we are committed to nurturing young minds and helping every student reach their full potential. Our experienced teachers provide a supportive and engaging environment, combining quality education with values that shape responsible and confident individuals.",
+      "introDesc1": "At Ziquala Abo School, we are committed to nurturing young minds and helping every student reach their full potential through quality education and strong values.",
       "introDesc2": "Whether in academics, arts, or sports, our students are encouraged to explore their talents and develop skills that prepare them for future success.",
       "watchFull": "Watch Full Presentation",
       "schoolTourTitle": "SCHOOL TOUR",
@@ -118,7 +118,7 @@
     "cta": {
       "title": "Ready to shape your",
       "highlight": "bright future?",
-      "desc": "Join thousands of families who trust Abdi Adama School for a high-quality, modern, and value-based education.",
+      "desc": "Join the Ziquala Abo School community for modern, value-based education.",
       "startAdmission": "Start Online Admission",
       "parentLogin": "Parent Login"
     },
@@ -128,8 +128,8 @@
       "connect": "Connect",
       "staffAccess": "Staff Access",
       "staffPortal": "Official Staff Portal",
-      "rights": "© 2026 ABDI ADAMA SCHOOL • MADE IN ADAMA",
-      "founded": "Founded in 2005, Abdi Adama School is a premier educational institution in Ethiopia dedicated to producing competent and patriotic citizens.",
+      "rights": "© 2026 ZIQUALA ABO SCHOOL • BISHOFTU",
+      "founded": "Ziquala Abo School is owned by the Ziquala Abo Monastery association and is dedicated to developing capable and responsible citizens.",
       "links": {
         "/": "Home",
         "/about": "About Us",
@@ -141,7 +141,7 @@
     "valuesSubtitle": "Our Foundations",
     "stayInformed": "Stay Informed",
     "readMore": "Read More",
-    "communitySubtitle": "Life at Abdi Adama",
+    "communitySubtitle": "Life at Ziquala Abo School",
     "communityTitle": "Experience Our Community",
     "yearsLeadership": "Years of Academic Leadership",
     "nurturingMinds": "Nurturing bright minds with care and purpose since 2005.",
@@ -149,7 +149,7 @@
       "pillars": {
         "subtitle": "What Sets Us Apart",
         "title": "The Four Pillars of Our Excellence",
-        "desc": "At Abdi Adama School, we don't just teach; we transform. Our distinct educational philosophy is built upon four core pillars.",
+        "desc": "Ziquala Abo School combines academic learning, character formation, discipline, and community responsibility.",
         "items": [
           {
             "title": "Integrity",
@@ -173,7 +173,7 @@
         "subtitle": "Our Vision",
         "desc": "To empower our community through a premier 21st-century learning experience that balances academic rigor with ethical purpose. We strive to cultivate Ethiopia's future entrepreneurs, inventors, and scholars — equipping them to lead with innovation, creativity, and integrity.",
         "missionSubtitle": "Our Mission",
-        "missionDesc": "To stand as a beacon of educational excellence in Ethiopia. Abdi Adama School is a dedicated, learning-centered institution providing world-class education that exceeds national standards while remaining deeply rooted in the rich culture, values, and traditions of Ethiopia.",
+        "missionDesc": "To provide equitable, high-quality education that connects modern knowledge with spiritual wisdom and strong ethical values.",
         "features": [
           {
             "label": "Academic Excellence",
@@ -194,7 +194,7 @@
         ]
       },
       "community": {
-        "subtitle": "The Abdi Adama Community",
+        "subtitle": "The Ziquala Abo Community",
         "title": "Our Values",
         "desc": "Our strength is our people — a vibrant, purpose-driven ecosystem where students, parents, and educators unite.",
         "quote": "\"Together — as students, parents, and teachers — we don't just build a school; we build the future of Ethiopia.\"",
@@ -325,7 +325,7 @@
       "team": {
         "subtitle": "Leadership",
         "title": "Our Team",
-        "desc": "The dedicated leaders behind the Abdi Adama School network.",
+        "desc": "The dedicated leaders serving Ziquala Abo School.",
         "members": [
           {
             "name": "Ato Girma Lemi",
@@ -351,7 +351,7 @@
       }
     },
     "admissionClosed": "Admission Closed",
-    "studentQuote": "\"Abdi Adama School gave me the chance to discover my potential.\"",
+    "studentQuote": "\"Ziquala Abo School helps every learner discover and develop their potential.\"",
     "studentAuthor": "— Firdos Musa, Top Scorer"
   },
   "login": {

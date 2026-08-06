@@ -35,7 +35,7 @@ export default function ChatbotManagement() {
     const [messages, setMessages] = useState<Message[]>(([
         {
             role: "assistant",
-            content: "Hello 👋 I am the Abdi-Adama Smart Assistant.",
+            content: "Hello 👋 I am the Ziquala Abo School Assistant.",
         },
     ]));
 
@@ -161,7 +161,7 @@ export default function ChatbotManagement() {
 
                             <div>
                                 <h1 className="font-bold text-xl">
-                                    Abdi-Adama Assistant
+                                    Ziquala Abo School Assistant
                                 </h1>
 
                                 <div className="flex items-center gap-2 mt-1">

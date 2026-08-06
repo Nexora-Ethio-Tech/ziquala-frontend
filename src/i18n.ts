@@ -17,7 +17,7 @@ const resources = {
   }
 };
 
-const savedLanguage = localStorage.getItem('abdi_adama_language') || 'en';
+const savedLanguage = localStorage.getItem('ziquala_language') || 'en';
 
 i18n
   .use(initReactI18next)

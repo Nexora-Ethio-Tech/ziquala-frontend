@@ -1,10 +1,9 @@
 
 import { useState, useEffect } from 'react';
-import { useUser } from '../context/UserContext';
+import { DEMO_ACCOUNTS, useUser } from '../context/UserContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { LogIn, Fingerprint, Lock, AlertCircle, Key, CheckCircle, Send, ArrowRight, ShieldCheck, Eye, EyeOff } from 'lucide-react';
+import { LogIn, Fingerprint, Lock, AlertCircle, Key, CheckCircle, Send, ArrowRight, ShieldCheck, Eye, EyeOff, BookOpen } from 'lucide-react';
 import { ShootingStars } from '../components/Effects';
-import logo from '../assets/logo.jpg';
 
 export const Login = () => {
   const { login, user } = useUser();
@@ -82,16 +81,16 @@ export const Login = () => {
       <ShootingStars />
 
       <div className="w-full max-w-md relative z-10">
-        {/* Logo */}
+          {/* School identity */}
         <div className="text-center mb-8">
           <div className="flex justify-center mb-6">
-            <div className="p-2 bg-white dark:bg-slate-900 rounded-3xl shadow-xl floating">
-              <img src={logo} alt="Abdi Adama School" className="w-24 h-24 rounded-2xl object-cover" />
+            <div className="grid h-24 w-24 place-items-center rounded-3xl bg-school-primary text-white shadow-xl shadow-school-primary/20 floating">
+              <BookOpen size={44} aria-hidden="true" />
             </div>
           </div>
           <h1 className="text-3xl font-black text-slate-900 dark:text-white">Welcome Back</h1>
           <p className="text-slate-500 dark:text-slate-400 mt-2 text-sm">
-            {loginMode === 'otp' ? 'Sign in with your Fayda ID (FAN) + OTP' : 'Access the Abdi Adama School Ecosystem'}
+            {loginMode === 'otp' ? 'Sign in with your Fayda ID (FAN) + OTP' : 'Access the Ziquala Abo School Portal'}
           </p>
         </div>
 
@@ -244,11 +243,30 @@ export const Login = () => {
           <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800 text-center">
             <p className="text-slate-500 dark:text-slate-400 text-sm">
               New student?{' '}
-              <Link to="/" className="text-school-primary font-bold hover:underline">
+              <Link to="/register" className="text-school-primary font-bold hover:underline">
                 Apply for Admission
               </Link>
             </p>
           </div>
+          {import.meta.env.DEV && (
+            <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-left text-xs text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-200">
+              <p className="font-black uppercase tracking-wider">Frontend demo access</p>
+              <p className="mt-1 text-[11px] opacity-80">Choose any approved role. All use password <code className="font-black">demo123</code>.</p>
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                {DEMO_ACCOUNTS.map((account) => (
+                  <button
+                    key={account.id}
+                    type="button"
+                    onClick={() => { setDigitalIdOrEmail(account.id); setPassword(account.password); setError(''); }}
+                    className="rounded-lg border border-amber-200 bg-white/70 px-2.5 py-2 text-left transition hover:border-amber-500 hover:bg-white dark:border-amber-900/60 dark:bg-slate-900/50"
+                  >
+                    <span className="block font-black">{account.name}</span>
+                    <code className="mt-0.5 block text-[9px] font-bold opacity-70">{account.id}</code>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="mt-6 text-center">

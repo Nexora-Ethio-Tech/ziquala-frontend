@@ -40,7 +40,6 @@ export const API_ENDPOINTS = {
   // Super Admin
   CREATE_SCHOOL_ADMIN: '/super-admin/create-school-admin',
   CREATE_VICE_PRINCIPAL: '/super-admin/create-vice-principal',
-  CREATE_AUDITOR: '/super-admin/create-auditor',
   GET_ALL_USERS: '/super-admin/users',
   GET_USER: (id: string) => `/super-admin/users/${id}`,
   UPDATE_USER: (id: string) => `/super-admin/users/${id}`,

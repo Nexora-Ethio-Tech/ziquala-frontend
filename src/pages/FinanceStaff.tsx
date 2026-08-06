@@ -185,7 +185,7 @@ export const FinanceStaff = () => {
         </head>
         <body>
           <div class="header">
-            <div class="school">Abdi Adama School IMS</div>
+            <div class="school">Ziquala Abo School IMS</div>
             <div class="title">Finance Clerk Login Credentials</div>
           </div>
           <div class="field">

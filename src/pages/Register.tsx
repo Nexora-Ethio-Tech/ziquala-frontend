@@ -1,8 +1,7 @@
 
 import { Link } from 'react-router-dom';
-import { ChevronLeft } from 'lucide-react';
+import { BookOpen, ChevronLeft } from 'lucide-react';
 import { StudentRegistration } from '../components/StudentRegistration';
-import logo from '../assets/logo.jpg';
 import { ShootingStars } from '../components/Effects';
 import { useUser } from '../context/UserContext';
 
@@ -25,8 +24,8 @@ export const Register = () => {
           </Link>
 
           <div className="flex items-center gap-4">
-            <div className="relative p-1 bg-white dark:bg-slate-900 rounded-2xl shadow-lg">
-              <img src={logo} alt="School Logo" className="w-12 h-12 rounded-xl object-cover" />
+            <div className="grid h-14 w-14 place-items-center rounded-2xl bg-school-primary text-white shadow-lg shadow-school-primary/20">
+              <BookOpen size={25} aria-hidden="true" />
             </div>
             <div>
               <h1 className="text-2xl font-black text-slate-900 dark:text-white">Admission Portal</h1>

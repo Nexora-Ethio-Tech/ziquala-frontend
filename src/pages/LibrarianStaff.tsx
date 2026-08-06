@@ -182,7 +182,7 @@ export const LibrarianStaff = () => {
         </head>
         <body>
           <div class="header">
-            <div class="school">Abdi Adama School IMS</div>
+            <div class="school">Ziquala Abo School Portal</div>
             <div class="title">Librarian Login Credentials</div>
           </div>
           <div class="field">
