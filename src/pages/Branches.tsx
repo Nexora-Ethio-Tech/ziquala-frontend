@@ -1,5 +1,6 @@
 import { Building2, MapPin, Users, GraduationCap, ChevronRight, Plus, ArrowLeft, X, Check, Loader2, AlertCircle, Edit, Trash2, Upload } from 'lucide-react';
 import { useUser } from '../context/UserContext';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Breadcrumbs } from '../components/Breadcrumbs';
 import { useStore } from '../context/useStore';
@@ -7,6 +8,7 @@ import { useState, useEffect } from 'react';
 import { branchService, type Branch } from '../services/branchService';
 
 export const Branches = () => {
+  const { t } = useTranslation();
   const { branches: mockBranches, setSelectedBranch } = useUser();
   const { selectedBranchId, setSelectedBranchId } = useStore();
   const navigate = useNavigate();
@@ -209,10 +211,10 @@ export const Branches = () => {
       </div>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl md:text-2xl font-bold text-slate-800 dark:text-white">School Branches</h2>
+          <h2 className="text-xl md:text-2xl font-bold text-slate-800 dark:text-white">{t('branches.title', 'School Branches')}</h2>
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            Manage and monitor all school locations from one place.
-            {error && <span className="text-amber-600 ml-2">⚠️ Using cached data</span>}
+            {t('branches.subtitle', 'Manage and monitor all school locations from one place.')}
+            {error && <span className="text-amber-600 ml-2">⚠️ {t('branches.cachedData', 'Using cached data')}</span>}
           </p>
         </div>
         <button
@@ -220,7 +222,7 @@ export const Branches = () => {
           className="flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm md:text-base"
         >
           <Plus size={20} />
-          <span>Add New Branch</span>
+          <span>{t('branches.addNewBranch', 'Add New Branch')}</span>
         </button>
       </div>
 
@@ -253,7 +255,7 @@ export const Branches = () => {
                     </button>
                   </div>
                   <span className={`text-xs font-bold px-2 py-1 rounded-full uppercase ${selectedBranchId === branch.id ? 'bg-blue-600 text-white' : 'bg-emerald-50 text-emerald-600'}`}>
-                    {selectedBranchId === branch.id ? 'Selected' : 'Active'}
+                    {selectedBranchId === branch.id ? t('branches.selected', 'Selected') : t('branches.active', 'Active')}
                   </span>
                 </div>
               </div>
@@ -268,7 +270,7 @@ export const Branches = () => {
                 onClick={() => handleEnterBranch(branch)}
                 className="w-full flex items-center justify-center gap-2 bg-slate-900 dark:bg-blue-600 text-white py-3 rounded-xl hover:bg-slate-800 dark:hover:bg-blue-700 transition-colors font-bold shadow-lg shadow-slate-200/50 dark:shadow-none"
               >
-                Enter Branch View
+                {t('branches.enterBranchView', 'Enter Branch View')}
                 <ChevronRight size={18} />
               </button>
             </div>
@@ -284,7 +286,7 @@ export const Branches = () => {
                 <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
                   <Building2 size={20} />
                 </div>
-                <h3 className="font-bold text-slate-800 dark:text-slate-100">Add New Branch</h3>
+                <h3 className="font-bold text-slate-800 dark:text-slate-100">{t('branches.addModalTitle', 'Add New Branch')}</h3>
               </div>
               <button onClick={() => setShowAddModal(false)} title="Close add branch modal" aria-label="Close add branch modal" className="text-slate-400 hover:text-slate-600">
                 <X size={20} />
@@ -294,7 +296,7 @@ export const Branches = () => {
             <form className="p-6 space-y-4" onSubmit={handleCreateBranch}>
               {/* Added Image Upload Field */}
               <div>
-                <label className="text-xs font-bold text-slate-500 uppercase">Branch Image (Max 5MB)</label>
+                <label className="text-xs font-bold text-slate-500 uppercase">{t('branches.imageUploadLabel', 'Branch Image (Max 5MB)')}</label>
                 <div className="mt-1 flex items-center gap-4">
                   {branchForm.logoUrl && (
                     <img
@@ -315,7 +317,7 @@ export const Branches = () => {
               </div>
 
               <div>
-                <label className="text-xs font-bold text-slate-500 uppercase">Branch Name</label>
+                <label className="text-xs font-bold text-slate-500 uppercase">{t('branches.nameLabel', 'Branch Name')}</label>
                 <input
                   type="text"
                   value={branchForm.name}
@@ -327,7 +329,7 @@ export const Branches = () => {
               </div>
 
               <div>
-                <label className="text-xs font-bold text-slate-500 uppercase">Branch Code</label>
+                <label className="text-xs font-bold text-slate-500 uppercase">{t('branches.codeLabel', 'Branch Code')}</label>
                 <input
                   type="text"
                   value={branchForm.code}
@@ -339,7 +341,7 @@ export const Branches = () => {
               </div>
 
               <div>
-                <label className="text-xs font-bold text-slate-500 uppercase">Phone</label>
+                <label className="text-xs font-bold text-slate-500 uppercase">{t('branches.phoneLabel', 'Phone')}</label>
                 <input
                   type="tel"
                   value={branchForm.phone}
@@ -351,7 +353,7 @@ export const Branches = () => {
               </div>
 
               <div>
-                <label className="text-xs font-bold text-slate-500 uppercase">Email</label>
+                <label className="text-xs font-bold text-slate-500 uppercase">{t('branches.emailLabel', 'Email')}</label>
                 <input
                   type="email"
                   value={branchForm.email}
@@ -363,7 +365,7 @@ export const Branches = () => {
               </div>
 
               <div>
-                <label className="text-xs font-bold text-slate-500 uppercase">Address</label>
+                <label className="text-xs font-bold text-slate-500 uppercase">{t('branches.addressLabel', 'Address')}</label>
                 <input
                   type="text"
                   value={branchForm.address}
@@ -389,7 +391,7 @@ export const Branches = () => {
                   disabled={creating}
                 >
                   {creating ? <Loader2 className="animate-spin" size={18} /> : <Check size={18} />}
-                  <span>{creating ? 'Creating...' : 'Create Branch'}</span>
+                  <span>{creating ? t('branches.creating', 'Creating...') : t('branches.createBranch', 'Create Branch')}</span>
                 </button>
               </div>
             </form>
@@ -406,7 +408,7 @@ export const Branches = () => {
                 <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
                   <Edit size={20} />
                 </div>
-                <h3 className="font-bold text-slate-800 dark:text-slate-100">Edit Branch</h3>
+                <h3 className="font-bold text-slate-800 dark:text-slate-100">{t('branches.editModalTitle', 'Edit Branch')}</h3>
               </div>
               <button onClick={() => setShowEditModal(false)} title="Close edit branch modal" aria-label="Close edit branch modal" className="text-slate-400 hover:text-slate-600">
                 <X size={20} />
@@ -485,7 +487,7 @@ export const Branches = () => {
                   disabled={updating}
                 >
                   {updating ? <Loader2 className="animate-spin" size={18} /> : <Check size={18} />}
-                  <span>{updating ? 'Updating...' : 'Update Branch'}</span>
+                  <span>{updating ? t('branches.updating', 'Updating...') : t('branches.updateBranch', 'Update Branch')}</span>
                 </button>
               </div>
             </form>
@@ -497,7 +499,7 @@ export const Branches = () => {
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 w-full max-w-lg">
             <div className="p-6 border-b border-slate-100 dark:border-slate-800">
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white">Delete Branch</h3>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('branches.deleteModalTitle', 'Delete Branch')}</h3>
               <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
                 Are you sure you want to delete <span className="font-semibold text-slate-900 dark:text-white">{deletingBranchName}</span>? This action cannot be undone.
               </p>
@@ -522,7 +524,7 @@ export const Branches = () => {
                   className="flex-1 px-4 py-3 bg-rose-600 text-white rounded-2xl hover:bg-rose-700 transition disabled:opacity-50"
                   disabled={deleting}
                 >
-                  {deleting ? 'Deleting...' : 'Delete Branch'}
+                  {deleting ? t('branches.deleting', 'Deleting...') : t('branches.deleteBranch', 'Delete Branch')}
                 </button>
               </div>
             </div>
