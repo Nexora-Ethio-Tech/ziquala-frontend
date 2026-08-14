@@ -854,7 +854,7 @@ export const Attendance = () => {
                       <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-[2rem] flex items-center justify-center text-slate-300 mx-auto">
                         <Clock size={32} />
                       </div>
-                      <p className="text-sm font-bold text-slate-500">Run analysis to find best fits</p>
+                      <p className="text-sm font-bold text-slate-500">{t("attendance.runAnalysis")}</p>
                     </div>
                   )}
                 </div>
@@ -870,7 +870,7 @@ export const Attendance = () => {
             <div>
               <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">{t("attendance.oversight","Attendance Oversight")}</h2>
               <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 max-w-2xl">
-                Select a view to begin. Student mode gives you grade-level roll call, while staff mode shows biometric sign-in/out tracking for teachers.
+                {t("attendance.oversightSubtitle")}
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
@@ -882,7 +882,7 @@ export const Attendance = () => {
                   : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800'
                   }`}
               >
-                Student Attendance
+                {t("attendance.studentTab")}
               </button>
               <button
                 type="button"
@@ -892,7 +892,7 @@ export const Attendance = () => {
                   : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800'
                   }`}
               >
-                Staff Attendance
+                {t("attendance.staffTab")}
               </button>
             </div>
           </div>
@@ -923,7 +923,7 @@ export const Attendance = () => {
           </div>
           <div className="flex gap-2">
             <button type="button" className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 px-4 py-2 rounded-lg font-bold text-sm">
-              Attendance Reports
+              {t("attendance.attendanceReports", "Attendance Reports")}
             </button>
             <button
               type="button"
@@ -943,7 +943,7 @@ export const Attendance = () => {
                 }
               }}
               className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-bold text-sm shadow-lg shadow-blue-100 dark:shadow-none">
-              Save Today's Records
+              {t("attendance.saveTodayRecords", "Save Today's Records")}
             </button>
           </div>
         </div>
@@ -961,7 +961,7 @@ export const Attendance = () => {
                   onChange={(e) => setSelectedGrade(e.target.value)}
                   className="appearance-none pl-4 pr-10 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500 transition-all w-40"
                 >
-                  <option value="">-- Select Grade --</option>
+                  <option value="">-- {t("attendance.selectGradeOption", "Select Grade")} --</option>
                   {gradeStats.map((grade, idx) => (
                     <option key={idx} value={grade.grade}>{grade.grade}</option>
                   ))}
@@ -998,14 +998,14 @@ export const Attendance = () => {
                 onClick={() => markAll('present')}
                 className="text-[10px] font-bold text-emerald-600 border border-emerald-100 bg-emerald-50 px-3 py-1.5 rounded-lg hover:bg-emerald-100 transition-colors uppercase tracking-wider"
               >
-                Mark All Present
+                {t("attendance.markAllPresent", "Mark All Present")}
               </button>
               <button
                 type="button"
                 onClick={() => markAll('absent')}
                 className="text-[10px] font-bold text-rose-600 border border-rose-100 bg-rose-50 px-3 py-1.5 rounded-lg hover:bg-rose-100 transition-colors uppercase tracking-wider"
               >
-                Mark All Absent
+                {t("attendance.markAllAbsent", "Mark All Absent")}
               </button>
             </div>
           )}
@@ -1017,7 +1017,7 @@ export const Attendance = () => {
         <div className="bg-white dark:bg-slate-900 p-4 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-end gap-4">
           <div className="flex-1 w-full sm:w-auto">
             <label htmlFor="studentExportStartDate" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-              Export From
+              {t("attendance.exportFrom", "Export From")}
             </label>
             <EthiopianDatePicker
               id="studentExportStartDate"
@@ -1030,7 +1030,7 @@ export const Attendance = () => {
 
           <div className="flex-1 w-full sm:w-auto">
             <label htmlFor="studentExportEndDate" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-              Export To
+              {t("attendance.exportTo", "Export To")}
             </label>
             <EthiopianDatePicker
               id="studentExportEndDate"
@@ -1065,7 +1065,7 @@ export const Attendance = () => {
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                   </svg>
-                  Export Student CSV
+                  {t("attendance.exportStudentCsv", "Export Student CSV")}
                 </>
               )}
             </button>
@@ -1204,12 +1204,12 @@ export const Attendance = () => {
               </div>
               <div className="h-10 w-px bg-slate-100 dark:bg-slate-800 hidden md:block" />
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-500 uppercase">Total Staff</label>
-                <p className="text-sm font-bold text-slate-800 dark:text-slate-100">{staffAttendance.length} Members</p>
+                <label className="text-[10px] font-bold text-slate-500 uppercase">{t("attendance.totalStaff")}</label>
+                <p className="text-sm font-bold text-slate-800 dark:text-slate-100">{staffAttendance.length} {t("attendance.members")}</p>
               </div>
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-500 uppercase">Present</label>
-                <p className="text-sm font-bold text-emerald-600">{staffSummary.present} Staff</p>
+                <label className="text-[10px] font-bold text-slate-500 uppercase">{t("attendance.presentStaff")}</label>
+                <p className="text-sm font-bold text-emerald-600">{staffSummary.present} {t("attendance.staffLabel")}</p>
               </div>
             </div>
             {isAdmin && (
@@ -1223,7 +1223,7 @@ export const Attendance = () => {
                 {staffSaving ? (
                   <><Loader2 size={14} className="animate-spin" /> Saving...</>
                 ) : (
-                  <><Check size={14} /> Save Attendance Records</>
+                  <><Check size={14} /> {t("attendance.saveAttendanceRecords")}</>
                 )}
               </button>
             )}
@@ -1232,7 +1232,7 @@ export const Attendance = () => {
           <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-6 flex flex-col sm:flex-row items-end gap-4">
             <div className="flex-1 w-full sm:w-auto">
               <label htmlFor="exportStartDate" className="block text-sm font-medium text-gray-700 mb-1">
-                Start Date
+                {t("attendance.startDate")}
               </label>
               <EthiopianDatePicker
                 id="exportStartDate"
@@ -1245,7 +1245,7 @@ export const Attendance = () => {
 
             <div className="flex-1 w-full sm:w-auto">
               <label htmlFor="exportEndDate" className="block text-sm font-medium text-gray-700 mb-1">
-                End Date
+                {t("attendance.endDate")}
               </label>
               <EthiopianDatePicker
                 id="exportEndDate"
@@ -1279,7 +1279,7 @@ export const Attendance = () => {
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                     </svg>
-                    Export CSV
+                    {t("attendance.exportCsv")}
                   </>
                 )}
               </button>
@@ -1287,37 +1287,37 @@ export const Attendance = () => {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="rounded-3xl p-6 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Teachers Present</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">{t("attendance.teachersPresent")}</p>
               <p className="mt-3 text-3xl font-black text-slate-900 dark:text-slate-100">{staffSummary.present}</p>
             </div>
             <div className="rounded-3xl p-6 bg-white dark:bg-slate-900 border border-amber-100 dark:border-amber-900/30">
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-500 dark:text-amber-400">Late Present</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-500 dark:text-amber-400">{t("attendance.latePresent")}</p>
               <p className="mt-3 text-3xl font-black text-amber-600 dark:text-amber-400">{staffSummary.late}</p>
-              <p className="mt-1.5 text-[10px] font-bold text-amber-400 dark:text-amber-500/70 uppercase tracking-wider">Arrived Late Today</p>
+              <p className="mt-1.5 text-[10px] font-bold text-amber-400 dark:text-amber-500/70 uppercase tracking-wider">{t("attendance.arrivedLateToday")}</p>
             </div>
             <div className="rounded-3xl p-6 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Teachers Absent</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">{t("attendance.teachersAbsent")}</p>
               <p className="mt-3 text-3xl font-black text-slate-900 dark:text-slate-100">{staffSummary.absent}</p>
             </div>
             <div className="rounded-3xl p-6 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Pending Sign-In</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">{t("attendance.pendingSignIn")}</p>
               <p className="mt-3 text-3xl font-black text-slate-900 dark:text-slate-100">{staffSummary.pendingSignIn}</p>
             </div>
           </div>
 
           <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-100 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100">Staff Biometric Attendance</h3>
+              <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100">{t("attendance.staffBiometricTitle")}</h3>
               <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                {formatEthDateStr(selectedDate)} — Filter staff by today’s presence and biometric status.
+                {formatEthDateStr(selectedDate)} — {t("attendance.staffBiometricSubtitle")}
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
               {[
-                { value: 'all', label: 'All' },
-                { value: 'present', label: 'Present' },
-                { value: 'absent', label: 'Absent' },
-                { value: 'pending', label: 'Pending Sign-In' },
+                { value: 'all', label: t("attendance.filterAll") },
+                { value: 'present', label: t("attendance.filterPresent") },
+                { value: 'absent', label: t("attendance.filterAbsent") },
+                { value: 'pending', label: t("attendance.filterPending") },
               ].map((filter) => (
                 <button
                   key={filter.value}
@@ -1341,12 +1341,12 @@ export const Attendance = () => {
                   <tr>
                     <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">{t("attendance.colStaff","Staff Member")}</th>
                     <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center">ZK ID</th>
-                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center">Status</th>
-                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center">Arrival</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center">{t("attendance.colStatus", "Status")}</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center">{t("attendance.colArrival", "Arrival")}</th>
                     <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center">{t("attendance.colLunchOut","Lunch Out")}</th>
                     <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center">{t("attendance.colLunchIn","Lunch In")}</th>
-                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center">Departure</th>
-                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right">Verification & Actions</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center">{t("attendance.colDeparture", "Departure")}</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right">{t("attendance.colVerification", "Verification & Actions")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">

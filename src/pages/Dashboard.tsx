@@ -991,20 +991,20 @@ export const Dashboard = () => {
                 className="text-lg font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-2 hover:opacity-70 transition-opacity"
               >
                 <ShieldAlert size={20} className="text-rose-600" />
-                Priority Watchlist
+                {t('dashboard.priorityWatchlist')}
                 <div className={`transition-transform duration-300 ${watchlistExpanded ? 'rotate-90' : ''}`}>
                   <ArrowRight size={18} className="text-slate-400" />
                 </div>
               </button>
               <Link to="/analytics" className="text-xs font-bold text-blue-600 hover:underline uppercase tracking-widest">
-                Full Report
+                {t('dashboard.fullReport')}
               </Link>
             </div>
             {watchlistExpanded && (
               <div className="space-y-4 animate-in slide-in-from-top-2 duration-300">
                 {atRiskStudents.length === 0 ? (
                   <div className="text-center py-8">
-                    <p className="text-sm text-slate-500">No at-risk students at this time</p>
+                    <p className="text-sm text-slate-500">{t('dashboard.noAtRiskStudents')}</p>
                   </div>
                 ) : (
                   atRiskStudents.slice(0, 4).map((student) => (

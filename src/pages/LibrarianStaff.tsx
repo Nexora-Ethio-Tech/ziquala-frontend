@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { UserPlus, X, Check, ArrowLeft, MoreVertical, CheckCircle, XCircle, Trash2, Printer, Clock, Edit2, Loader2, FileText, Download, Upload } from 'lucide-react';
 import PhoneInput from '../components/PhoneInput';
 import { formatEthiopianLabel } from '../utils/ethiopianCalendar';
@@ -10,6 +11,7 @@ import { StaffProfileModal } from '../components/StaffProfileModal';
 import api from '../services/api';
 
 export const LibrarianStaff = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { role } = useUser();
   const isAdmin = role === 'school-admin' || role === 'super-admin';
@@ -325,10 +327,10 @@ export const LibrarianStaff = () => {
           </button>
           <div>
             <h1 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white">
-              Librarian Staff Management
+              {t("librarian.managementTitle", "Librarian Staff Management")}
             </h1>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-              Approve, manage, or delete librarian accounts
+              {t("librarian.managementSubtitle", "Approve, manage, or delete librarian accounts")}
             </p>
           </div>
         </div>
@@ -359,8 +361,8 @@ export const LibrarianStaff = () => {
         ) : librarianStaff.length === 0 ? (
           <div className="flex items-center justify-center p-8 text-center">
             <div>
-              <div className="text-slate-500 text-sm font-medium">No librarian staff found</div>
-              <p className="text-slate-400 text-xs mt-1">Create your first librarian account to get started</p>
+              <div className="text-slate-500 text-sm font-medium">{t("librarian.noStaffFound", "No librarian staff found")}</div>
+              <p className="text-slate-400 text-xs mt-1">{t("librarian.createFirstAccount", "Create your first librarian account to get started")}</p>
             </div>
           </div>
         ) : (
@@ -368,11 +370,11 @@ export const LibrarianStaff = () => {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50">
-                  <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">Name</th>
-                  <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">Email</th>
-                  <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">Digital ID</th>
-                  <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">Status</th>
-                  <th className="px-6 py-3 text-center text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">Actions</th>
+                  <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">{t("teachers.colTeacher", "Name")}</th>
+                  <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">{t("teachers.colEmail", "Email")}</th>
+                  <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">{t("teachers.colDigitalId", "Digital ID")}</th>
+                  <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">{t("teachers.colStatus", "Status")}</th>
+                  <th className="px-6 py-3 text-center text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">{t("teachers.colActions", "Actions")}</th>
                 </tr>
               </thead>
               <tbody>

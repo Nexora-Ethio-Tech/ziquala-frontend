@@ -268,13 +268,13 @@ export const Classes = () => {
         className="flex items-center gap-1 text-blue-600 hover:underline text-xs font-bold uppercase tracking-widest"
       >
         <ArrowLeft size={14} />
-        Back
+        {t('classes.back')}
       </button>
 
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Class Management</h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">Create and manage classes in your branch</p>
+          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{t('classes.title')}</h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">{t('classes.subtitle')}</p>
         </div>
 
         <button
@@ -282,7 +282,7 @@ export const Classes = () => {
           className="px-4 py-2 bg-blue-600 text-white rounded-lg flex items-center gap-2 hover:bg-blue-700 text-sm font-bold"
         >
           <Plus size={18} />
-          Create Class
+          {t('classes.createClass')}
         </button>
       </div>
 

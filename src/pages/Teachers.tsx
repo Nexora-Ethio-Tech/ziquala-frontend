@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { UserPlus, X, Check, ArrowLeft, MoreVertical, CheckCircle, XCircle, Trash2, Printer, Eye, Edit2, Loader2, FileText, Download, Upload } from 'lucide-react';
 import PhoneInput from '../components/PhoneInput';
 import { useState, useEffect, useRef } from 'react';
@@ -75,6 +76,7 @@ const MultiSelectDropdown = ({
 };
 
 export const Teachers = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { role } = useUser();
   const isAdmin = role === 'school-admin' || role === 'super-admin';
@@ -654,8 +656,8 @@ export const Teachers = () => {
 
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Teachers</h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">Manage teaching staff and assignments</p>
+          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{t("teachers.title", "Teachers")}</h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">{t("teachers.subtitle", "Manage teaching staff and assignments")}</p>
         </div>
 
         {isAdmin && (
@@ -704,18 +706,18 @@ export const Teachers = () => {
             <table className="w-full text-left">
               <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
                 <tr>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Teacher</th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Email</th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Digital ID</th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Status</th>
-                  {isAdmin && <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Actions</th>}
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("teachers.colTeacher", "Teacher")}</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("teachers.colEmail", "Email")}</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("teachers.colDigitalId", "Digital ID")}</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("teachers.colStatus", "Status")}</th>
+                  {isAdmin && <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("teachers.colActions", "Actions")}</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {teachers.length === 0 ? (
                   <tr>
                     <td colSpan={isAdmin ? 5 : 4} className="px-6 py-12 text-center text-slate-500">
-                      No teachers found. Register your first teacher.
+                      {t("teachers.noTeachersFound", "No teachers found. Register your first teacher.")}
                     </td>
                   </tr>
                 ) : (

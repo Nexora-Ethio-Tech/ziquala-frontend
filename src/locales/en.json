@@ -51,7 +51,8 @@
     "gradeEntry": "Grade Entry",
     "familyDashboard": "Family Dashboard",
     "communicationBook": "Communication Book",
-    "newsEvents": "News & Events"
+    "newsEvents": "News & Events",
+    "librarian": "Librarian Staff"
   },
   "schoolAdmin": {
     "welcomeBack": "Welcome back,",
@@ -109,7 +110,8 @@
     "updating": "Updating...",
     "creating": "Creating...",
     "updateClass": "Update Class",
-    "noClasses": "No classes found. Create your first class!"
+    "noClasses": "No classes found.",
+    "back": "Back"
   },
   "subjects": {
     "title": "Subject Management",
@@ -556,7 +558,8 @@
     "snapshotSub": "A clean, high-level view of all branches and network health.",
     "branchesMonitored": "{{count}} branches monitored",
     "teacherAttendance": "Teacher Attendance",
-    "studentAttendance": "Student Attendance"
+    "studentAttendance": "Student Attendance",
+    "noAtRiskStudents": "No at-risk students at this time"
   },
   "registration": {
     "title": "Student Registration",
@@ -749,11 +752,12 @@
     "statusInactive": "Inactive",
     "statusSuspended": "Suspended",
     "statusGraduated": "Graduated",
-    "manageAdmissions": "Manage new student admission requests"
+    "manageAdmissions": "Manage new student admission requests",
+    "back": "Back"
   },
   "staff": {
     "title": "Staff Management",
-    "subtitle": "Manage teachers, librarians, and administrative staff",
+    "subtitle": "Manage the teaching and library teams from one academic workspace.",
     "addStaff": "Add Staff Member",
     "searchPlaceholder": "Search staff...",
     "allRoles": "All Roles",
@@ -789,7 +793,9 @@
     "pending": "Pending",
     "approved": "Approved",
     "revoked": "Revoked",
-    "allStatus": "All Status"
+    "allStatus": "All Status",
+    "selectCategory": "Select a staff category to continue.",
+    "back": "Back"
   },
   "attendance": {
     "title": "Attendance Tracking",
@@ -810,7 +816,7 @@
     "late": "Late",
     "excused": "Excused",
     "oversight": "Attendance Oversight",
-    "selectGradeSection": "Select Grade/Section",
+    "selectGradeSection": "Select Grade / Section",
     "attendanceDateLabel": "Attendance Date (Ethiopian)",
     "totalStudentsLabel": "Total Students",
     "viewDate": "View Date (Ethiopian Calendar)",
@@ -843,7 +849,33 @@
     "colPresentToday": "Present Today",
     "colAttendanceRate": "Attendance Rate",
     "colStudentIdentity": "Student Identity",
-    "colLast30Days": "Last 30 Days"
+    "colLast30Days": "Last 30 Days",
+    "oversightSubtitle": "Select a view to begin. Student mode gives you grade-level roll call, while staff mode shows biometric sign-in/out tracking for teachers.",
+    "totalStaff": "Total Staff",
+    "members": "Members",
+    "presentStaff": "Present",
+    "staffLabel": "Staff",
+    "saveAttendanceRecords": "Save Attendance Records",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "exportCsv": "Export CSV",
+    "teachersPresent": "Teachers Present",
+    "latePresent": "Late Present",
+    "arrivedLateToday": "Arrived Late Today",
+    "teachersAbsent": "Teachers Absent",
+    "pendingSignIn": "Pending Sign-In",
+    "staffBiometricTitle": "Staff Biometric Attendance",
+    "staffBiometricSubtitle": "Filter staff by today's presence and biometric status.",
+    "filterAll": "All",
+    "filterPresent": "Present",
+    "filterAbsent": "Absent",
+    "filterPending": "Pending Sign-In",
+    "colArrival": "Arrival",
+    "colDeparture": "Departure",
+    "colVerification": "Verification & Actions",
+    "back": "Back",
+    "selectGradeOption": "Select Grade",
+    "exportStudentCsv": "Export Student CSV"
   },
   "schedule": {
     "title": "Schedule Architect",
@@ -960,5 +992,24 @@
     "healthy": "Healthy",
     "attention": "Attention",
     "critical": "Critical"
+  },
+  "teachers": {
+    "title": "Teachers",
+    "subtitle": "Manage teaching staff and assignments",
+    "registerTeacher": "Register Teacher",
+    "colTeacher": "Teacher",
+    "colEmail": "Email",
+    "colDigitalId": "Digital ID",
+    "colStatus": "Status",
+    "colActions": "Actions",
+    "noTeachersFound": "No teachers found. Register your first teacher."
+  },
+  "librarian": {
+    "title": "Librarian Staff",
+    "managementTitle": "Librarian Staff Management",
+    "managementSubtitle": "Approve, manage, or delete librarian accounts",
+    "addLibrarian": "Add Librarian",
+    "noStaffFound": "No librarian staff found",
+    "createFirstAccount": "Create your first librarian account to get started"
   }
 }

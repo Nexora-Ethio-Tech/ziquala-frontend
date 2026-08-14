@@ -520,7 +520,7 @@ export const Students = () => {
         className="flex items-center gap-1 text-blue-600 hover:underline text-xs font-bold uppercase tracking-widest"
       >
         <ArrowLeft size={14} />
-        Back
+        {t('students.back')}
       </button>
 
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -539,7 +539,7 @@ export const Students = () => {
                   : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800'
                   }`}
               >
-                Students
+                {t('students.title')}
               </button>
               <button
                 type="button"
@@ -549,7 +549,7 @@ export const Students = () => {
                   : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800'
                   }`}
               >
-                Pending Applications
+                {t('students.pendingApplications')}
               </button>
               <button
                 type="button"
@@ -563,7 +563,7 @@ export const Students = () => {
                 className={`bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-bold shadow-lg shadow-blue-200 dark:shadow-none ${activeView === 'add' ? 'ring-2 ring-blue-300 dark:ring-blue-700' : ''} ${!registrationOpen ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 <UserPlus size={18} />
-                Add Student
+                {t('students.addStudent')}
               </button>
             </>
           )}
@@ -573,7 +573,7 @@ export const Students = () => {
             className="px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg flex items-center gap-2 text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-800"
           >
             <Download size={18} />
-            Export
+            {t('students.export')}
           </button>
         </div>
       </div>

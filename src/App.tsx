@@ -1,4 +1,4 @@
-
+import { useTranslation } from 'react-i18next';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Layout } from './layout/Layout';
 import { LandingPage } from './pages/LandingPage';
@@ -8,6 +8,15 @@ import { useUser, type UserRole } from './context/UserContext';
 import { Suspense, lazy, type ReactNode } from 'react';
 import ScrollToTop from './components/ScrollToTop';
 import { Chatbot } from './components/Chatbot';
+
+const StaffCategoryPlaceholder = () => {
+  const { t } = useTranslation();
+  return (
+    <div className="p-12 text-center">
+      <p className="text-slate-500">{t('staff.selectCategory')}</p>
+    </div>
+  );
+};
 //import LandingPage from './pages/LandingPage/LandingPage';
 
 const Dashboard = lazy(() => import('./pages/Dashboard').then((m) => ({ default: m.Dashboard })));
@@ -168,17 +177,32 @@ function App() {
                   <Analytics />
                 </ProtectedRoute>
               } />
+              <Route path="dashboard/school-admin" element={<ProtectedRoute allowedRoles={['school-admin']}><Dashboard /></ProtectedRoute>} />
+              <Route path="dashboard/teacher" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherPortal /></ProtectedRoute>} />
+              <Route path="dashboard/student" element={<ProtectedRoute allowedRoles={['student']}><StudentPortal /></ProtectedRoute>} />
+              <Route path="dashboard/parent" element={<ProtectedRoute allowedRoles={['parent']}><ParentPortal /></ProtectedRoute>} />
+              <Route path="dashboard/vice-principal" element={<ProtectedRoute allowedRoles={['vice-principal']}><VicePrincipalDashboard /></ProtectedRoute>} />
+              <Route path="dashboard/librarian" element={<ProtectedRoute allowedRoles={['librarian']}><Library /></ProtectedRoute>} />
+
+              {/* Role specific routes */}
+              <Route path="branches" element={
+                <ProtectedRoute allowedRoles={['super-admin', 'academic-manager']}>
+                  <Branches />
+                </ProtectedRoute>
+              } />
+
+              <Route path="analytics" element={
+                <ProtectedRoute allowedRoles={['super-admin', 'academic-manager']}>
+                  <Analytics />
+                </ProtectedRoute>
+              } />
 
               <Route path="staff/*" element={
                 <ProtectedRoute allowedRoles={['super-admin', 'academic-manager', 'school-admin']}>
                   <Staff />
                 </ProtectedRoute>
               }>
-                <Route index element={
-                  <div className="p-12 text-center">
-                    <p className="text-slate-500">Select a staff category to continue.</p>
-                  </div>
-                } />
+                <Route index element={<StaffCategoryPlaceholder />} />
                 <Route path="teachers" element={<Teachers />} />
                 <Route path="librarian" element={<LibrarianStaff />} />
               </Route>
