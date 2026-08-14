@@ -654,7 +654,7 @@ export const Teachers = () => {
         Back
       </button>
 
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{t("teachers.title", "Teachers")}</h1>
           <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">{t("teachers.subtitle", "Manage teaching staff and assignments")}</p>
@@ -663,7 +663,7 @@ export const Teachers = () => {
         {isAdmin && (
           <button
             onClick={() => setShowAddModal(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-all text-sm font-bold shadow-lg shadow-blue-200 dark:shadow-none"
+            className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all text-sm font-bold shadow-lg shadow-blue-200 dark:shadow-none"
           >
             <UserPlus size={20} />
             Register Teacher
@@ -701,109 +701,211 @@ export const Teachers = () => {
       )}
 
       {activeTab === 'teachers' ? (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
-                <tr>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("teachers.colTeacher", "Teacher")}</th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("teachers.colEmail", "Email")}</th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("teachers.colDigitalId", "Digital ID")}</th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("teachers.colStatus", "Status")}</th>
-                  {isAdmin && <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("teachers.colActions", "Actions")}</th>}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {teachers.length === 0 ? (
-                  <tr>
-                    <td colSpan={isAdmin ? 5 : 4} className="px-6 py-12 text-center text-slate-500">
-                      {t("teachers.noTeachersFound", "No teachers found. Register your first teacher.")}
-                    </td>
-                  </tr>
-                ) : (
-                  teachers.map((teacher) => (
-                    <tr key={teacher.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30">
-                      <td className="px-6 py-4">
-                        <button type="button" onClick={() => setSelectedStaff(teacher)} className="flex items-center gap-3 text-left">
-                          <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 text-purple-600 rounded-xl flex items-center justify-center font-bold">
-                            {teacher.name?.split(' ').map((n: string) => n[0]).join('') || 'T'}
-                          </div>
-                          <span className="font-bold text-slate-800 dark:text-white">{teacher.name}</span>
+        <div className="space-y-4">
+          {/* Mobile Card View */}
+          <div className="grid grid-cols-1 gap-4 md:hidden">
+            {teachers.length === 0 ? (
+              <div className="bg-white dark:bg-slate-900 rounded-2xl p-8 text-center text-slate-500 border border-slate-100 dark:border-slate-800 shadow-sm">
+                {t("teachers.noTeachersFound", "No teachers found. Register your first teacher.")}
+              </div>
+            ) : (
+              teachers.map((teacher) => (
+                <div
+                  key={teacher.id}
+                  className="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-100 dark:border-slate-800 shadow-md space-y-3"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedStaff(teacher)}
+                      className="flex items-center gap-3 text-left min-w-0"
+                    >
+                      <div className="w-10 h-10 shrink-0 bg-purple-100 dark:bg-purple-900/30 text-purple-600 rounded-xl flex items-center justify-center font-bold">
+                        {teacher.name?.split(' ').map((n: string) => n[0]).join('') || 'T'}
+                      </div>
+                      <div className="truncate">
+                        <h4 className="font-bold text-slate-800 dark:text-white truncate">{teacher.name}</h4>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{teacher.email}</p>
+                      </div>
+                    </button>
+                    <div className="shrink-0">
+                      {isAdmin && teacher.status !== 'Pending' ? (
+                        <button
+                          type="button"
+                          onClick={() => setConfirmAction({ show: true, action: teacher.status === 'Approved' ? 'revoke' : 'approve', teacher })}
+                          className={`px-2.5 py-1 rounded-lg text-xs font-bold uppercase transition-colors ${teacher.status === 'Approved' ? 'bg-green-100 text-green-700 border border-green-200 hover:bg-green-200' : 'bg-red-100 text-red-700 border border-red-200 hover:bg-red-200'}`}
+                        >
+                          {teacher.status}
                         </button>
+                      ) : (
+                        <span className={`px-2.5 py-1 rounded-lg text-xs font-bold uppercase ${teacher.status === 'Approved' ? 'bg-green-100 text-green-700' : teacher.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>
+                          {teacher.status}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2">
+                      <span className="text-slate-400 uppercase font-semibold">{t("teachers.colDigitalId", "Digital ID")}:</span>
+                      <span className="font-mono text-slate-600 dark:text-slate-300 font-bold">{teacher.digitalId}</span>
+                      {teacher.zkDeviceId && (
+                        <span className="px-1.5 py-0.5 bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 rounded text-[10px] font-bold">
+                          ZK: {teacher.zkDeviceId}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {isAdmin && (
+                    <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2 flex-wrap">
+                      {teacher.status === 'Pending' && (
+                        <button
+                          onClick={() => setConfirmAction({ show: true, action: 'approve', teacher })}
+                          className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 transition-all"
+                        >
+                          <CheckCircle size={14} />
+                          Approve
+                        </button>
+                      )}
+                      <button
+                        onClick={async () => {
+                          setPromotionTarget(teacher);
+                          setPromotionForm(getPromotionFormFromProfile(teacher.staffProfile?.promotion));
+                          await fetchSubjects(teacher.branchId);
+                          await fetchClasses(teacher.branchId);
+                          setShowPromoteModal(true);
+                        }}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all ${isTeacherPromoted(teacher) ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-indigo-600 hover:bg-indigo-700 text-white'}`}
+                      >
+                        {isTeacherPromoted(teacher) ? 'Promoted' : 'Promote'}
+                      </button>
+                      <button
+                        onClick={() => openEditModal(teacher)}
+                        className="p-2 text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                        title="Edit User"
+                      >
+                        <Edit2 size={16} />
+                      </button>
+                      <button
+                        onClick={() => setConfirmAction({ show: true, action: 'delete', teacher })}
+                        className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors"
+                        title="Delete User"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Desktop Table View */}
+          <div className="hidden md:block bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
+                  <tr>
+                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("teachers.colTeacher", "Teacher")}</th>
+                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("teachers.colEmail", "Email")}</th>
+                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("teachers.colDigitalId", "Digital ID")}</th>
+                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("teachers.colStatus", "Status")}</th>
+                    {isAdmin && <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("teachers.colActions", "Actions")}</th>}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {teachers.length === 0 ? (
+                    <tr>
+                      <td colSpan={isAdmin ? 5 : 4} className="px-6 py-12 text-center text-slate-500">
+                        {t("teachers.noTeachersFound", "No teachers found. Register your first teacher.")}
                       </td>
-                      <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">{teacher.email}</td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <p className="text-sm font-mono text-slate-600 dark:text-slate-400">{teacher.digitalId}</p>
-                          {teacher.zkDeviceId && (
-                            <span className="px-1.5 py-0.5 bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 rounded text-[10px] font-bold tracking-wider">
-                              ZK: {teacher.zkDeviceId}
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        {isAdmin && teacher.status !== 'Pending' ? (
-                          <button
-                            type="button"
-                            onClick={() => setConfirmAction({ show: true, action: teacher.status === 'Approved' ? 'revoke' : 'approve', teacher })}
-                            className={`px-2 py-1 rounded text-xs font-bold uppercase transition-colors ${teacher.status === 'Approved' ? 'bg-green-100 text-green-700 border border-green-200 hover:bg-green-200' : 'bg-red-100 text-red-700 border border-red-200 hover:bg-red-200'}`}
-                          >
-                            {teacher.status}
+                    </tr>
+                  ) : (
+                    teachers.map((teacher) => (
+                      <tr key={teacher.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30">
+                        <td className="px-6 py-4">
+                          <button type="button" onClick={() => setSelectedStaff(teacher)} className="flex items-center gap-3 text-left">
+                            <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 text-purple-600 rounded-xl flex items-center justify-center font-bold">
+                              {teacher.name?.split(' ').map((n: string) => n[0]).join('') || 'T'}
+                            </div>
+                            <span className="font-bold text-slate-800 dark:text-white">{teacher.name}</span>
                           </button>
-                        ) : (
-                          <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${teacher.status === 'Approved' ? 'bg-green-100 text-green-700' : teacher.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>
-                            {teacher.status}
-                          </span>
-                        )}
                         </td>
-                      {isAdmin && (
+                        <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">{teacher.email}</td>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2">
-                            {teacher.status === 'Pending' ? (
-                              <button
-                                onClick={() => setConfirmAction({ show: true, action: 'approve', teacher })}
-                                className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 transition-all"
-                              >
-                                <CheckCircle size={14} />
-                                Approve
-                              </button>
-                            ) : null}
-                            <button
-                              onClick={async () => {
-                                setPromotionTarget(teacher);
-                                setPromotionForm(getPromotionFormFromProfile(teacher.staffProfile?.promotion));
-                                await fetchSubjects(teacher.branchId);
-                                await fetchClasses(teacher.branchId);
-                                setShowPromoteModal(true);
-                              }}
-                              className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all ${isTeacherPromoted(teacher) ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-indigo-600 hover:bg-indigo-700 text-white'}`}
-                              title={isTeacherPromoted(teacher) ? 'Edit promotion' : 'Promote'}
-                            >
-                              {isTeacherPromoted(teacher) ? 'Promoted' : 'Promote'}
-                            </button>
-                            <button
-                              onClick={() => openEditModal(teacher)}
-                              className="p-1.5 text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-950/30 rounded-lg transition-colors"
-                              title="Edit User"
-                            >
-                              <Edit2 size={16} />
-                            </button>
-                            <button
-                              onClick={() => setConfirmAction({ show: true, action: 'delete', teacher })}
-                              className="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors"
-                              title="Delete User"
-                            >
-                              <Trash2 size={16} />
-                            </button>
+                            <p className="text-sm font-mono text-slate-600 dark:text-slate-400">{teacher.digitalId}</p>
+                            {teacher.zkDeviceId && (
+                              <span className="px-1.5 py-0.5 bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 rounded text-[10px] font-bold tracking-wider">
+                                ZK: {teacher.zkDeviceId}
+                              </span>
+                            )}
                           </div>
                         </td>
-                      )}
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                        <td className="px-6 py-4">
+                          {isAdmin && teacher.status !== 'Pending' ? (
+                            <button
+                              type="button"
+                              onClick={() => setConfirmAction({ show: true, action: teacher.status === 'Approved' ? 'revoke' : 'approve', teacher })}
+                              className={`px-2 py-1 rounded text-xs font-bold uppercase transition-colors ${teacher.status === 'Approved' ? 'bg-green-100 text-green-700 border border-green-200 hover:bg-green-200' : 'bg-red-100 text-red-700 border border-red-200 hover:bg-red-200'}`}
+                            >
+                              {teacher.status}
+                            </button>
+                          ) : (
+                            <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${teacher.status === 'Approved' ? 'bg-green-100 text-green-700' : teacher.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>
+                              {teacher.status}
+                            </span>
+                          )}
+                        </td>
+                        {isAdmin && (
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-2">
+                              {teacher.status === 'Pending' ? (
+                                <button
+                                  onClick={() => setConfirmAction({ show: true, action: 'approve', teacher })}
+                                  className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 transition-all"
+                                >
+                                  <CheckCircle size={14} />
+                                  Approve
+                                </button>
+                              ) : null}
+                              <button
+                                onClick={async () => {
+                                  setPromotionTarget(teacher);
+                                  setPromotionForm(getPromotionFormFromProfile(teacher.staffProfile?.promotion));
+                                  await fetchSubjects(teacher.branchId);
+                                  await fetchClasses(teacher.branchId);
+                                  setShowPromoteModal(true);
+                                }}
+                                className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all ${isTeacherPromoted(teacher) ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-indigo-600 hover:bg-indigo-700 text-white'}`}
+                                title={isTeacherPromoted(teacher) ? 'Edit promotion' : 'Promote'}
+                              >
+                                {isTeacherPromoted(teacher) ? 'Promoted' : 'Promote'}
+                              </button>
+                              <button
+                                onClick={() => openEditModal(teacher)}
+                                className="p-1.5 text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-950/30 rounded-lg transition-colors"
+                                title="Edit User"
+                              >
+                                <Edit2 size={16} />
+                              </button>
+                              <button
+                                onClick={() => setConfirmAction({ show: true, action: 'delete', teacher })}
+                                className="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors"
+                                title="Delete User"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+                          </td>
+                        )}
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       ) : (

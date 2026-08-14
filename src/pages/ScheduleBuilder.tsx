@@ -512,8 +512,8 @@ export const ScheduleBuilder = () => {
         {/* Main Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b dark:border-slate-800 pb-6">
           <div>
-            <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Schedule Architect</h2>
-            <p className="text-slate-500 dark:text-slate-400 text-sm mt-1 uppercase font-bold tracking-widest">Ethiopian High School Standards</p>
+            <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{t("schedule.architectTitle", "Schedule Architect")}</h2>
+            <p className="text-slate-500 dark:text-slate-400 text-sm mt-1 uppercase font-bold tracking-widest">{t("schedule.standards", "Ethiopian High School Standards")}</p>
           </div>
           <button
             onClick={handleGenerate}
@@ -523,12 +523,12 @@ export const ScheduleBuilder = () => {
             {isGenerating ? (
               <>
                 <Loader2 size={18} className="animate-spin" />
-                Generating...
+                {t("schedule.generating", "Generating...")}
               </>
             ) : (
               <>
                 <Zap size={18} />
-                Generate Timetable
+                {t("schedule.generateTimetable", "Generate Timetable")}
               </>
             )}
           </button>
@@ -648,8 +648,8 @@ export const ScheduleBuilder = () => {
                 <Settings2 size={22} />
               </div>
               <div>
-                <h3 className="text-lg font-black text-slate-800 dark:text-white">1. Core Parameters</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-0.5">School capacity, teaching hours, and period definitions</p>
+                <h3 className="text-lg font-black text-slate-800 dark:text-white">{t("schedule.coreParameters", "1. Core Parameters")}</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-0.5">{t("schedule.coreParametersDesc", "School capacity, teaching hours, and period definitions")}</p>
               </div>
             </div>
             <ChevronDown
@@ -667,10 +667,10 @@ export const ScheduleBuilder = () => {
               <div className="p-6 bg-blue-50/50 dark:bg-blue-900/10 rounded-2xl border border-blue-100/50 dark:border-blue-900/30 space-y-4">
                 <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-black text-xs uppercase tracking-widest">
                   <LayoutGrid size={16} />
-                  <span>School Capacity</span>
+                  <span>{t("schedule.schoolCapacity", "School Capacity")}</span>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase">Total Classes / Sections</label>
+                  <label className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase">{t("schedule.totalClasses", "Total Classes / Sections")}</label>
                   <input
                     type="number"
                     className="w-full p-4 bg-white dark:bg-slate-800 border-2 border-blue-100 dark:border-blue-950 rounded-2xl text-xl font-black outline-none focus:ring-4 focus:ring-blue-500/20 dark:text-white"
@@ -685,7 +685,7 @@ export const ScheduleBuilder = () => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 font-black text-xs uppercase tracking-widest">
                     <Clock size={16} />
-                    <span>School Day Parameters</span>
+                    <span>{t("schedule.schoolDayParameters", "School Day Parameters")}</span>
                   </div>
                   <button
                     onClick={handleSaveConfig}
@@ -693,12 +693,12 @@ export const ScheduleBuilder = () => {
                     className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-4 py-2 rounded-xl font-bold text-xs uppercase transition-all"
                   >
                     {savingConfig ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-                    Save Config
+                    {t("schedule.saveConfig", "Save Config")}
                   </button>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="space-y-1">
-                    <label className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase">Start Time</label>
+                    <label className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase">{t("schedule.startTime", "Start Time")}</label>
                     <input
                       type="time"
                       className="w-full p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold outline-none dark:text-white focus:ring-2 focus:ring-blue-500"
@@ -707,7 +707,7 @@ export const ScheduleBuilder = () => {
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase">End Time</label>
+                    <label className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase">{t("schedule.endTime", "End Time")}</label>
                     <input
                       type="time"
                       className="w-full p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold outline-none dark:text-white focus:ring-2 focus:ring-blue-500"
@@ -717,7 +717,7 @@ export const ScheduleBuilder = () => {
                   </div>
                   {/* Periods selector dropdown (single input control) */}
                   <div className="space-y-1 col-span-2">
-                    <label className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase">Periods per Day</label>
+                    <label className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase">{t("schedule.periodsPerDay", "Periods per Day")}</label>
                     <select
                       value={periodsPerDay}
                       onChange={(e) => setPeriodsPerDay(parseInt(e.target.value))}
@@ -745,13 +745,13 @@ export const ScheduleBuilder = () => {
                 <Users size={22} />
               </div>
               <div>
-                <h3 className="text-lg font-black text-slate-800 dark:text-white">2. Teacher Constraints</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-0.5">Individual weekly unavailability and session blocking</p>
+                <h3 className="text-lg font-black text-slate-800 dark:text-white">{t("schedule.teacherConstraints", "2. Teacher Constraints")}</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-0.5">{t("schedule.teacherConstraintsDesc", "Individual weekly unavailability and session blocking")}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <span className="text-xs font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full">
-                {loadingTeachers ? '...' : `${teachers.length} teachers`}
+                {loadingTeachers ? '...' : t('schedule.teachersCount', { count: teachers.length, defaultValue: `${teachers.length} teachers` })}
               </span>
               <ChevronDown
                 size={20}
@@ -765,12 +765,12 @@ export const ScheduleBuilder = () => {
               }`}
           >
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b dark:border-slate-800 mb-6">
-              <h4 className="text-xl font-bold text-slate-850 dark:text-white">Select Teacher & Block Slots</h4>
+              <h4 className="text-xl font-bold text-slate-850 dark:text-white">{t("schedule.selectTeacherBlockSlots", "Select Teacher & Block Slots")}</h4>
               <div className="relative w-full md:w-72">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                 <input
                   type="text"
-                  placeholder="Search teacher..."
+                  placeholder={t("schedule.searchTeacher", "Search teacher...")}
                   className="w-full pl-12 pr-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-blue-500 dark:text-white shadow-sm"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -828,7 +828,7 @@ export const ScheduleBuilder = () => {
                         </div>
                         <div>
                           <h4 className="font-black text-lg text-slate-800 dark:text-white">{selectedTeacher.name}</h4>
-                          <p className="text-[10px] font-bold text-slate-450 uppercase tracking-widest">Weekly Session Blocking</p>
+                          <p className="text-[10px] font-bold text-slate-450 uppercase tracking-widest">{t("schedule.weeklySessionBlocking", "Weekly Session Blocking")}</p>
                         </div>
                       </div>
                       <button
@@ -837,7 +837,7 @@ export const ScheduleBuilder = () => {
                         className="flex items-center gap-2 bg-emerald-600 text-white px-5 py-2 rounded-xl font-bold text-xs uppercase hover:bg-emerald-700 transition-all disabled:bg-emerald-400"
                       >
                         {savingConstraints ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-                        Save Constraints
+                        {t("schedule.saveConstraints", "Save Constraints")}
                       </button>
                     </div>
 
@@ -881,8 +881,8 @@ export const ScheduleBuilder = () => {
                 ) : (
                   <div className="h-full min-h-[300px] flex flex-col items-center justify-center border-2 border-dashed border-rose-200/50 dark:border-rose-900/20 rounded-2xl p-12 text-center bg-white/30 dark:bg-slate-900/30">
                     <Users className="text-rose-200 dark:text-rose-900/20 mb-4" size={54} />
-                    <h4 className="text-lg font-black text-slate-400">No Teacher Selected</h4>
-                    <p className="text-sm text-slate-400 max-w-xs mt-2 font-medium">Choose a teacher from the list to configure their weekly unavailability sessions.</p>
+                    <h4 className="text-lg font-black text-slate-400">{t("schedule.noTeacherSelected", "No Teacher Selected")}</h4>
+                    <p className="text-sm text-slate-400 max-w-xs mt-2 font-medium">{t("schedule.noTeacherSelectedDesc", "Choose a teacher from the list to configure their weekly unavailability sessions.")}</p>
                   </div>
                 )}
               </div>
@@ -901,8 +901,8 @@ export const ScheduleBuilder = () => {
                 <BookOpen size={22} />
               </div>
               <div>
-                <h3 className="text-lg font-black text-slate-800 dark:text-white">3. Pedagogical Rules</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-0.5">Consecutive period limits and subject distribution</p>
+                <h3 className="text-lg font-black text-slate-800 dark:text-white">{t("schedule.pedagogicalRules", "3. Pedagogical Rules")}</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-0.5">{t("schedule.pedagogicalRulesDesc", "Consecutive period limits and subject distribution")}</p>
               </div>
             </div>
             <ChevronDown
@@ -920,13 +920,13 @@ export const ScheduleBuilder = () => {
               <div className="p-6 bg-amber-50/20 dark:bg-amber-900/5 rounded-2xl border border-amber-100/50 dark:border-amber-900/20 space-y-6">
                 <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 font-black text-xs uppercase tracking-widest">
                   <Settings2 size={16} />
-                  <span>Pedagogical Logic</span>
+                  <span>{t("schedule.pedagogicalLogic", "Pedagogical Logic")}</span>
                 </div>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-xl border border-amber-100/40 dark:border-amber-900/10 shadow-sm">
                     <div>
-                      <p className="font-bold text-slate-800 dark:text-white text-sm">Max Consecutive Periods</p>
-                      <p className="text-[9px] text-slate-450 font-bold uppercase">Prevents teacher fatigue</p>
+                      <p className="font-bold text-slate-800 dark:text-white text-sm">{t("schedule.maxConsecutivePeriods", "Max Consecutive Periods")}</p>
+                      <p className="text-[9px] text-slate-450 font-bold uppercase">{t("schedule.preventsTeacherFatigue", "Prevents teacher fatigue")}</p>
                     </div>
                     <input
                       type="number"
@@ -939,8 +939,8 @@ export const ScheduleBuilder = () => {
                   </div>
                   <div className="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-xl border border-amber-100/40 dark:border-amber-900/10 shadow-sm">
                     <div>
-                      <p className="font-bold text-slate-800 dark:text-white text-sm">Subject Distribution</p>
-                      <p className="text-[9px] text-slate-450 font-bold uppercase">Even spread across week</p>
+                      <p className="font-bold text-slate-800 dark:text-white text-sm">{t("schedule.subjectDistribution", "Subject Distribution")}</p>
+                      <p className="text-[9px] text-slate-450 font-bold uppercase">{t("schedule.evenSpreadAcrossWeek", "Even spread across week")}</p>
                     </div>
                     <button
                       onClick={() => setDistributeSubjects(!distributeSubjects)}
@@ -969,8 +969,8 @@ export const ScheduleBuilder = () => {
                 <BookOpen size={22} />
               </div>
               <div>
-                <h3 className="text-lg font-black text-slate-800 dark:text-white">4. Timetable Structure</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-0.5">Define class & teacher assignments and session frequencies</p>
+                <h3 className="text-lg font-black text-slate-800 dark:text-white">{t("schedule.timetableStructure", "4. Timetable Structure")}</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-0.5">{t("schedule.timetableStructureDesc", "Define class & teacher assignments and session frequencies")}</p>
               </div>
             </div>
             <ChevronDown

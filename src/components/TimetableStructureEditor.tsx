@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect } from 'react';
 import { createBranchClass } from '../services/schoolAdminService';
 
@@ -106,6 +107,7 @@ const buildGradeMap = (classes: ClassRecord[], rows: StructureRow[]): Record<str
 };
 
 export const TimetableStructureEditor: React.FC<Props> = ({ classes, teachers, initialRows = [], onSave, onClassCreated }) => {
+  const { t } = useTranslation();
   const [gradeMap, setGradeMap] = useState<Record<string, GradeState>>({});
   const [saving, setSaving] = useState(false);
   const [newGradeInput, setNewGradeInput] = useState('');
@@ -423,9 +425,9 @@ export const TimetableStructureEditor: React.FC<Props> = ({ classes, teachers, i
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h4 className="text-sm font-black">Timetable Structure Editor</h4>
-          <p className="text-xs text-slate-500">Create grades, add courses, select sections and assign teachers.</p>
-          <p className="text-xs text-slate-400 mt-1">Teachers available: <span className="font-bold text-slate-700">{teachers.length}</span></p>
+          <h4 className="text-sm font-black">{t("schedule.structureEditorTitle", "Timetable Structure Editor")}</h4>
+          <p className="text-xs text-slate-500">{t("schedule.structureEditorDesc", "Create grades, add courses, select sections and assign teachers.")}</p>
+          <p className="text-xs text-slate-400 mt-1">{t("schedule.teachersAvailable", "Teachers available:")} <span className="font-bold text-slate-700">{teachers.length}</span></p>
         </div>
         <div className="flex items-center gap-2">
           <select
@@ -433,18 +435,18 @@ export const TimetableStructureEditor: React.FC<Props> = ({ classes, teachers, i
             onChange={(e) => setNewGradeInput(e.target.value)}
             className="px-3 py-1.5 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm w-40"
           >
-            <option value="">Select Grade</option>
+            <option value="">{t("schedule.selectGrade", "Select Grade")}</option>
             {['KG 1', 'KG 2', 'KG 3', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'].map(g => (
               <option key={g} value={g.startsWith('KG') ? g : `Grade ${g}`}>{g.startsWith('KG') ? g : `Grade ${g}`}</option>
             ))}
           </select>
-          <button onClick={() => addGrade(newGradeInput)} className="px-3 py-1.5 bg-indigo-600 text-white rounded-md text-sm font-bold">Add Grade</button>
+          <button onClick={() => addGrade(newGradeInput)} className="px-3 py-1.5 bg-indigo-600 text-white rounded-md text-sm font-bold">{t("schedule.addGrade", "Add Grade")}</button>
         </div>
       </div>
 
       <div ref={containerRef} className="space-y-4 max-h-[520px] overflow-y-auto pr-2 pb-4">
         {Object.keys(gradeMap).length === 0 && (
-          <div className="p-6 border border-dashed rounded-lg text-center">No grades detected. Add a grade to begin.</div>
+          <div className="p-6 border border-dashed rounded-lg text-center">{t("schedule.noGradesDetected", "No grades detected. Add a grade to begin.")}</div>
         )}
 
         {Object.entries(gradeMap).map(([gradeKey, g]) => (
