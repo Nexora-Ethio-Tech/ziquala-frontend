@@ -270,13 +270,6 @@
   }
 }
 
-/* Amharic Dedicated Large Font Sizing Rules (Amharic Only) */
-html[lang="am"],
-html[data-lang="am"],
-[data-lang="am"] {
-  font-size: 1.12rem;
-}
-
 html[lang="am"] body,
 html[data-lang="am"] body {
   letter-spacing: 0.015em;
