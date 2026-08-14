@@ -720,8 +720,8 @@ export const Settings = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">System Settings</h2>
-        <p className="text-slate-500 dark:text-slate-400 text-sm">Manage your school preferences and system configuration.</p>
+        <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">{t('settings.title')}</h2>
+        <p className="text-slate-500 dark:text-slate-400 text-sm">{t('settings.subtitle')}</p>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-5">
@@ -736,7 +736,7 @@ export const Settings = () => {
                 }`}
             >
               <tab.icon size={18} />
-              <span className="whitespace-nowrap">{tab.id}</span>
+              <span className="whitespace-nowrap">{t(`settings.tabs.${tab.id.startsWith('Grading') ? 'Grading' : tab.id}`, tab.id)}</span>
             </button>
           ))}
         </div>
@@ -744,14 +744,14 @@ export const Settings = () => {
         <div className="flex-1 bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-200/40 dark:shadow-none overflow-hidden transition-all duration-500 flex flex-col min-h-[520px] max-h-[calc(100vh-4rem)]">
           <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/30">
             <h3 className="text-xl font-black text-slate-800 dark:text-white uppercase tracking-tight">
-              {superAdminSubTabs ? getSubTabLabel(activeTab, activeSubTab) : activeTab}
+              {superAdminSubTabs ? t(`settings.subtabs.${activeSubTab}`, getSubTabLabel(activeTab, activeSubTab)) : t(`settings.tabs.${activeTab.startsWith('Grading') ? 'Grading' : activeTab}`, activeTab)}
               <span className="text-slate-400 font-bold text-sm normal-case tracking-normal ml-2">
-                {superAdminSubTabs ? `· ${activeTab}` : ' Configuration'}
+                {superAdminSubTabs ? `· ${t(`settings.tabs.${activeTab.startsWith('Grading') ? 'Grading' : activeTab}`, activeTab)}` : t('settings.configuration')}
               </span>
             </h3>
             <button className="text-blue-600 dark:text-blue-400 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest hover:underline bg-blue-50 dark:bg-blue-900/20 px-4 py-2 rounded-xl">
               <HelpCircle size={16} />
-              <span>Need help?</span>
+              <span>{t('settings.needHelp')}</span>
             </button>
           </div>
 
@@ -773,10 +773,10 @@ export const Settings = () => {
                   {showSubSection('branding') && (
                     <div className="grid grid-cols-1 gap-6">
                       <div className="space-y-4">
-                        <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">School Name (Official)</h4>
+                        <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">{t('settings.schoolNameLabel')}</h4>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div className="space-y-1">
-                            <label htmlFor="school-name-oromic" className="text-[9px] font-bold text-slate-400 uppercase">Oromic</label>
+                            <label htmlFor="school-name-oromic" className="text-[9px] font-bold text-slate-400 uppercase">{t('settings.languages.oromic')}</label>
                             <input
                               id="school-name-oromic"
                               type="text"
@@ -787,7 +787,7 @@ export const Settings = () => {
                             />
                           </div>
                           <div className="space-y-1">
-                            <label htmlFor="school-name-amharic" className="text-[9px] font-bold text-slate-400 uppercase">Amharic</label>
+                            <label htmlFor="school-name-amharic" className="text-[9px] font-bold text-slate-400 uppercase">{t('settings.languages.amharic')}</label>
                             <input
                               id="school-name-amharic"
                               type="text"
@@ -798,7 +798,7 @@ export const Settings = () => {
                             />
                           </div>
                           <div className="space-y-1">
-                            <label htmlFor="school-name-english" className="text-[9px] font-bold text-slate-400 uppercase">English</label>
+                            <label htmlFor="school-name-english" className="text-[9px] font-bold text-slate-400 uppercase">{t('settings.languages.english')}</label>
                             <input
                               id="school-name-english"
                               type="text"
@@ -812,10 +812,10 @@ export const Settings = () => {
                       </div>
 
                       <div className="space-y-4 pt-4 border-t border-slate-50 dark:border-slate-800/50">
-                        <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">School Motto</h4>
+                        <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">{t('settings.schoolMottoLabel')}</h4>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div className="space-y-1">
-                            <label htmlFor="school-motto-oromic" className="text-[9px] font-bold text-slate-400 uppercase">Oromic</label>
+                            <label htmlFor="school-motto-oromic" className="text-[9px] font-bold text-slate-400 uppercase">{t('settings.languages.oromic')}</label>
                             <input
                               id="school-motto-oromic"
                               type="text"
@@ -829,7 +829,7 @@ export const Settings = () => {
                             />
                           </div>
                           <div className="space-y-1">
-                            <label htmlFor="school-motto-amharic" className="text-[9px] font-bold text-slate-400 uppercase">Amharic</label>
+                            <label htmlFor="school-motto-amharic" className="text-[9px] font-bold text-slate-400 uppercase">{t('settings.languages.amharic')}</label>
                             <input
                               id="school-motto-amharic"
                               type="text"
@@ -843,7 +843,7 @@ export const Settings = () => {
                             />
                           </div>
                           <div className="space-y-1">
-                            <label htmlFor="school-motto-english" className="text-[9px] font-bold text-slate-400 uppercase">English</label>
+                            <label htmlFor="school-motto-english" className="text-[9px] font-bold text-slate-400 uppercase">{t('settings.languages.english')}</label>
                             <input
                               id="school-motto-english"
                               type="text"

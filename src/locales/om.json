@@ -889,24 +889,29 @@
     "noInventoryFound": "Galmeen meeshaa tokkollee hin argamne."
   },
   "settings": {
-    "title": "Sirna Sirreessaa",
-    "subtitle": "Filannoowwan appikaliishinii, cufiinsaa qabxii fi filannoowwan sirnaa sirreessi",
-    "generalSettings": "Sirreessaa Waliigalaa",
-    "appearance": "Bifa & Teemaa",
-    "gradeLocking": "Cufiinsa Qabxii Galchuu",
-    "locked": "Cufameera",
-    "unlocked": "Banamameera",
-    "saveSettings": "Sirreessaa Olkaa'i",
-    "saving": "Olkaayaa Jira...",
-    "currentPassword": "Jecha Darbii Ammaa",
-    "newPassword": "Jecha Darbii Haaraa",
-    "confirmPassword": "Jecha Darbii Mirkaneessi",
-    "schoolName": "Maqaa Mana Barumsaa",
-    "schoolLogo": "URL Mallattoo Mana Barumsaa",
-    "primaryColor": "Halluu Duraa",
-    "contactInfo": "Odeeffannoo Quunnamtii",
-    "smtpConfig": "Qindaa'ina SMTP",
-    "saveChanges": "Jijjiirama Kaa'i"
+    "title": "Sajoo Sirnaa",
+    "subtitle": "Filannoowwan mana barumsaa fi qindaa'ina sirna keessanii bulchaa.",
+    "needHelp": "Gargaarsi isin barbaachisaa?",
+    "schoolNameLabel": "Maqaa Mana Barumsaa (Ofishala)",
+    "schoolMottoLabel": "Faaruu/Dhaadannoo Mana Barumsaa",
+    "configuration": "Qindaa'ina",
+    "languages": {
+      "oromic": "Afaan Oromoo",
+      "amharic": "Amharic",
+      "english": "English"
+    },
+    "tabs": {
+      "General": "Waliigala",
+      "Security": "Nageenya",
+      "Grading": "Sirna Qabxii",
+      "Appearance": "Bifa"
+    },
+    "subtabs": {
+      "branding": "Branding",
+      "contact": "Quunnamtii",
+      "password": "Jecha Icchitii",
+      "smtp": "Imeelii / SMTP"
+    }
   },
   "common": {
     "back": "Deebi'i"

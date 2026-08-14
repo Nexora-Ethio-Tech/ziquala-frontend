@@ -888,24 +888,29 @@
     "noInventoryFound": "ምንም የንብረት መዝገብ አልተገኘም።"
   },
   "settings": {
-    "title": "የስርዓት ማስተካከያዎች",
-    "subtitle": "የመተግበሪያ ምርጫዎችን፣ የውጤት መቆለፊያዎችን እና የስርዓት አማራጮችን ያስካክሉ",
-    "generalSettings": "አጠቃላይ ማስተካከያዎች",
-    "appearance": "ገጽታ እና ጭብጥ",
-    "gradeLocking": "የውጤት ማስገቢያ መቆለፊያ",
-    "locked": "ተቆልፏል",
-    "unlocked": "ተከፍቷል",
-    "saveSettings": "ቅንብሮች አስቀምጥ",
-    "saving": "በማስቀመጥ ላይ...",
-    "currentPassword": "የአሁን የይለፍ ቃል",
-    "newPassword": "አዲስ የይለፍ ቃል",
-    "confirmPassword": "የይለፍ ቃል አረጋግጥ",
-    "schoolName": "የትምህርት ቤት ስም",
-    "schoolLogo": "የትምህርት ቤት አርማ",
-    "primaryColor": "ዋና ቀለም",
-    "contactInfo": "የመገናኛ መረጃ",
-    "smtpConfig": "SMTP ቅንብር",
-    "saveChanges": "ለውጦችን አስቀምጥ"
+    "title": "የስርዓት ቅንብሮች",
+    "subtitle": "የትምህርት ቤት ምርጫዎችዎን እና የስርዓት ውቅርዎን ያስተዳድሩ።",
+    "needHelp": "እርዳታ ይፈልጋሉ?",
+    "schoolNameLabel": "የትምህርት ቤት ስም (ይፋዊ)",
+    "schoolMottoLabel": "የትምህርት ቤት መፈክር",
+    "configuration": "ማዋቀሪያ",
+    "languages": {
+      "oromic": "ኦሮሚኛ",
+      "amharic": "አማርኛ",
+      "english": "እንግሊዝኛ"
+    },
+    "tabs": {
+      "General": "አጠቃላይ",
+      "Security": "ደህንነት",
+      "Grading": "የደረጃ አሰጣጥ ስርዓት",
+      "Appearance": "ገጽታ"
+    },
+    "subtabs": {
+      "branding": "ማህተም (ብራንዲንግ)",
+      "contact": "አድራሻ",
+      "password": "የይለፍ ቃል",
+      "smtp": "ኢሜይል / SMTP"
+    }
   },
   "common": {
     "back": "ተመለስ"

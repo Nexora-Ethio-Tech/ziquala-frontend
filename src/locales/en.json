@@ -889,23 +889,28 @@
   },
   "settings": {
     "title": "System Settings",
-    "subtitle": "Configure application preferences, grade insertion locks, and system options",
-    "generalSettings": "General Settings",
-    "appearance": "Appearance & Theme",
-    "gradeLocking": "Grade Insertion Lock",
-    "locked": "Locked",
-    "unlocked": "Unlocked",
-    "saveSettings": "Save Settings",
-    "saving": "Saving...",
-    "currentPassword": "Current Password",
-    "newPassword": "New Password",
-    "confirmPassword": "Confirm Password",
-    "schoolName": "School Name",
-    "schoolLogo": "School Logo URL",
-    "primaryColor": "Primary Color",
-    "contactInfo": "Contact Information",
-    "smtpConfig": "SMTP Configuration",
-    "saveChanges": "Save Changes"
+    "subtitle": "Manage your school preferences and system configuration.",
+    "needHelp": "Need help?",
+    "schoolNameLabel": "School Name (Official)",
+    "schoolMottoLabel": "School Motto",
+    "configuration": "Configuration",
+    "languages": {
+      "oromic": "Oromic",
+      "amharic": "Amharic",
+      "english": "English"
+    },
+    "tabs": {
+      "General": "General",
+      "Security": "Security",
+      "Grading": "Grading System",
+      "Appearance": "Appearance"
+    },
+    "subtabs": {
+      "branding": "Branding",
+      "contact": "Contact",
+      "password": "Password",
+      "smtp": "Email / SMTP"
+    }
   },
   "common": {
     "back": "Back"
