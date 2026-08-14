@@ -525,8 +525,8 @@ export const Students = () => {
 
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Students</h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">Manage student records and class assignments</p>
+          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{t("students.title","Students")}</h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">{t("students.subtitle","Manage student records and class assignments")}</p>
         </div>
         <div className="flex gap-3 flex-wrap">
           {isSchoolAdmin && (
@@ -584,7 +584,7 @@ export const Students = () => {
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
-            placeholder="Search students..."
+            placeholder={t("students.searchPlaceholder","Search students...")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-9 pr-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
@@ -611,7 +611,7 @@ export const Students = () => {
           onChange={(e) => setFilterSection(e.target.value)}
           className="w-full sm:w-auto px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
         >
-          <option value="">All Sections</option>
+          <option value="">{t("students.allSections","All Sections")}</option>
           {[1, 2, 3, 4, 5, 6].map((section) => (
             <option key={section} value={String(section)}>Section {section}</option>
           ))}
@@ -622,7 +622,7 @@ export const Students = () => {
           onChange={(e) => setFilterStatus(e.target.value)}
           className="w-full sm:w-auto px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
         >
-          <option value="">All Status</option>
+          <option value="">{t("students.allStatus","All Status")}</option>
           <option value="Active">Active</option>
           <option value="Inactive">Inactive</option>
           <option value="Suspended">Suspended</option>
@@ -650,8 +650,8 @@ export const Students = () => {
         <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 p-6 md:p-8">
           <div className="flex items-center justify-between mb-6 pb-6 border-b border-slate-100 dark:border-slate-800">
             <div>
-              <h2 className="text-lg font-black text-slate-900 dark:text-white">Pending Applications</h2>
-              <p className="text-sm font-medium text-slate-500 mt-1">Manage new student admission requests</p>
+              <h2 className="text-lg font-black text-slate-900 dark:text-white">{t("students.pendingApplications","Pending Applications")}</h2>
+              <p className="text-sm font-medium text-slate-500 mt-1">{t("students.manageAdmissions","Manage new student admission requests")}</p>
             </div>
           
           </div>
@@ -723,13 +723,13 @@ export const Students = () => {
                         aria-label="Select all students"
                       />
                     </th>
-                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Student</th>
+                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("students.colStudent","Student")}</th>
                     <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("students.colDigitalId", "Digital ID")}</th>
                     {canViewStudentRecord && (
-                      <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Student Record</th>
+                      <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("students.colRecord","Student Record")}</th>
                     )}
-                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Section</th>
-                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Grade</th>
+                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("students.colSection","Section")}</th>
+                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("students.colGrade","Grade")}</th>
                     <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("students.colStatus", "Status")}</th>
                     <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("students.colActions", "Actions")}</th>
                   </tr>

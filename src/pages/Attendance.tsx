@@ -751,7 +751,7 @@ export const Attendance = () => {
                   <UserCheck size={28} />
                 </div>
                 <div>
-                  <h3 className="text-xl font-black uppercase tracking-tight text-blue-900 dark:text-blue-100">Staff Shortage Command Center</h3>
+                  <h3 className="text-xl font-black uppercase tracking-tight text-blue-900 dark:text-blue-100">{t("attendance.staffCommandCenter","Staff Shortage Command Center")}</h3>
                   <p className="text-sm font-bold text-blue-600/70 dark:text-blue-400/70 mt-1 flex items-center gap-2">
                     <span className="flex items-center gap-1.5 px-2.5 py-1 bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 rounded-full text-[10px] font-black uppercase tracking-widest">
                       {staffAttendance.filter(t => t.status === 'Absent').length} ABSENT STAFF
@@ -770,7 +770,7 @@ export const Attendance = () => {
                 className="flex items-center gap-2 px-6 py-3 bg-slate-900 dark:bg-blue-600 hover:bg-black dark:hover:bg-blue-700 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-lg hover:scale-105 active:scale-95 disabled:opacity-50"
               >
                 {isProxyAnalysisRunning ? <Loader2 size={16} className="animate-spin" /> : <Users size={16} />}
-                {isProxyAnalysisRunning ? 'Analyzing...' : 'Auto-Match Proxies'}
+                {isProxyAnalysisRunning ? t('attendance.analyzing','Analyzing...') : t('attendance.autoMatchProxies','Auto-Match Proxies')}
               </button>
             </div>
           </div>
@@ -780,8 +780,8 @@ export const Attendance = () => {
               {/* Absent Teachers List */}
               <div className="space-y-6">
                 <div className="flex items-center justify-between px-2">
-                  <h4 className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">Currently Missing</h4>
-                  <span className="text-[10px] font-bold text-rose-500 dark:text-rose-400">Action Required</span>
+                  <h4 className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">{t("attendance.currentlyMissing","Currently Missing")}</h4>
+                  <span className="text-[10px] font-bold text-rose-500 dark:text-rose-400">{t("attendance.actionRequired","Action Required")}</span>
                 </div>
                 <div className="grid grid-cols-1 gap-3">
                   {staffAttendance.filter(t => t.status === 'Absent').map((teacher) => (
@@ -816,8 +816,8 @@ export const Attendance = () => {
               {/* Proxy Suggestions Panel */}
               <div className="space-y-6">
                 <div className="flex items-center justify-between px-2">
-                  <h4 className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">Proxy Recommendations</h4>
-                  <span className="text-[10px] font-bold text-emerald-500">Live Availability</span>
+                  <h4 className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">{t("attendance.proxyRecommendations","Proxy Recommendations")}</h4>
+                  <span className="text-[10px] font-bold text-emerald-500">{t("attendance.liveAvailability","Live Availability")}</span>
                 </div>
 
                 <div className="min-h-[300px] flex flex-col items-center justify-center border-2 border-dashed border-slate-100 dark:border-slate-800 rounded-[2.5rem] p-8 text-center bg-slate-50/50 dark:bg-slate-900/20">
@@ -868,7 +868,7 @@ export const Attendance = () => {
         <div className="space-y-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Attendance Oversight</h2>
+              <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">{t("attendance.oversight","Attendance Oversight")}</h2>
               <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 max-w-2xl">
                 Select a view to begin. Student mode gives you grade-level roll call, while staff mode shows biometric sign-in/out tracking for teachers.
               </p>
@@ -903,11 +903,11 @@ export const Attendance = () => {
               <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">Tap a mode above to load student or staff attendance details.</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="rounded-3xl p-6 bg-slate-50 dark:bg-slate-800/60">
-                  <h3 className="font-bold text-slate-800 dark:text-slate-100">Student Attendance</h3>
+                  <h3 className="font-bold text-slate-800 dark:text-slate-100">{t("attendance.studentTab","Student Attendance")}</h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">Review grade section attendance and save today’s roll.</p>
                 </div>
                 <div className="rounded-3xl p-6 bg-slate-50 dark:bg-slate-800/60">
-                  <h3 className="font-bold text-slate-800 dark:text-slate-100">Staff Attendance</h3>
+                  <h3 className="font-bold text-slate-800 dark:text-slate-100">{t("attendance.staffTab","Staff Attendance")}</h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">Monitor teacher biometric sign-in/out and attendance status.</p>
                 </div>
               </div>
@@ -919,7 +919,7 @@ export const Attendance = () => {
       {!isVP && attendanceMode === 'student' && (
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Student Attendance</h2>
+            <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">{t("attendance.studentTab","Student Attendance")}</h2>
           </div>
           <div className="flex gap-2">
             <button type="button" className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 px-4 py-2 rounded-lg font-bold text-sm">
@@ -953,7 +953,7 @@ export const Attendance = () => {
         <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-100 dark:border-slate-800 flex flex-wrap gap-4 items-center justify-between transition-colors duration-300">
           <div className="flex items-center gap-4">
             <div className="space-y-1">
-              <label htmlFor="gradeSection" className="text-[10px] font-bold text-slate-500 uppercase">Select Grade/Section</label>
+              <label htmlFor="gradeSection" className="text-[10px] font-bold text-slate-500 uppercase">{t("attendance.selectGradeSection","Select Grade/Section")}</label>
               <div className="relative">
                 <select
                   id="gradeSection"
@@ -972,7 +972,7 @@ export const Attendance = () => {
             <div className="h-10 w-px bg-slate-100 dark:bg-slate-800 hidden md:block" />
             <div className="h-10 w-px bg-slate-100 dark:bg-slate-800 hidden md:block" />
             <div className="space-y-1">
-              <label htmlFor="attendanceDate" className="text-[10px] font-bold text-slate-500 uppercase cursor-pointer">Attendance Date (Ethiopian)</label>
+              <label htmlFor="attendanceDate" className="text-[10px] font-bold text-slate-500 uppercase cursor-pointer">{t("attendance.attendanceDateLabel","Attendance Date (Ethiopian)")}</label>
               <div className="flex flex-col gap-1 w-52">
                 <EthiopianDatePicker
                   id="attendanceDate"
@@ -986,7 +986,7 @@ export const Attendance = () => {
             </div>
             <div className="h-10 w-px bg-slate-100 dark:bg-slate-800 hidden md:block" />
             <div className="space-y-1">
-              <label className="text-[10px] font-bold text-slate-500 uppercase">Total Students</label>
+              <label className="text-[10px] font-bold text-slate-500 uppercase">{t("attendance.totalStudentsLabel","Total Students")}</label>
               <p className="text-sm font-bold text-slate-800 dark:text-slate-100">{students.length} Enrolled</p>
             </div>
           </div>
@@ -1080,10 +1080,10 @@ export const Attendance = () => {
               <table className="w-full text-left">
                 <thead className="bg-slate-50/50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
                   <tr>
-                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Grade/Section</th>
-                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center">Enrollment</th>
-                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center">Present Today</th>
-                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right">Attendance Rate</th>
+                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">{t("attendance.colGradeSection","Grade/Section")}</th>
+                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center">{t("attendance.colEnrollment","Enrollment")}</th>
+                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center">{t("attendance.colPresentToday","Present Today")}</th>
+                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right">{t("attendance.colAttendanceRate","Attendance Rate")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
@@ -1116,9 +1116,9 @@ export const Attendance = () => {
               <table className="w-full text-left">
                 <thead className="bg-slate-50/50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
                   <tr>
-                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Student Identity</th>
+                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">{t("attendance.colStudentIdentity","Student Identity")}</th>
                     <th className="px-6 py-5 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center">{t("attendance.colStatus", "Status")}</th>
-                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right">Last 30 Days</th>
+                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right">{t("attendance.colLast30Days","Last 30 Days")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
@@ -1191,7 +1191,7 @@ export const Attendance = () => {
           <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-100 dark:border-slate-800 flex flex-wrap gap-4 items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="space-y-1">
-                <label htmlFor="staffAttendanceDate" className="text-[10px] font-bold text-slate-500 uppercase">View Date (Ethiopian Calendar)</label>
+                <label htmlFor="staffAttendanceDate" className="text-[10px] font-bold text-slate-500 uppercase">{t("attendance.viewDate","View Date (Ethiopian Calendar)")}</label>
                 <div className="flex flex-col gap-1 w-52">
                   <EthiopianDatePicker
                     value={selectedDate}
@@ -1339,12 +1339,12 @@ export const Attendance = () => {
               <table className="w-full text-left">
                 <thead className="bg-slate-50/50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
                   <tr>
-                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Staff Member</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">{t("attendance.colStaff","Staff Member")}</th>
                     <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center">ZK ID</th>
                     <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center">Status</th>
                     <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center">Arrival</th>
-                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center">Lunch Out</th>
-                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center">Lunch In</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center">{t("attendance.colLunchOut","Lunch Out")}</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center">{t("attendance.colLunchIn","Lunch In")}</th>
                     <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center">Departure</th>
                     <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right">Verification & Actions</th>
                   </tr>

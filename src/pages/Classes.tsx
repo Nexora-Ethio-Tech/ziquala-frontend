@@ -303,7 +303,7 @@ export const Classes = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {classes.length === 0 ? (
             <div className="col-span-full text-center py-12 text-slate-500">
-              No classes found. Create your first class!
+              {t("classes.noClasses","No classes found.")} Create your first class!
             </div>
           ) : (
             classes.map((classItem) => (
@@ -385,7 +385,7 @@ export const Classes = () => {
 
             <form className="p-6 space-y-4" onSubmit={handleCreateClass}>
               <div>
-                <label className="text-xs font-bold text-slate-500 uppercase">Grade</label>
+                <label className="text-xs font-bold text-slate-500 uppercase">{t("classes.grade","Grade")}</label>
                 <select
                   value={createForm.grade}
                   onChange={(e) => setCreateForm({ ...createForm, grade: e.target.value })}
@@ -400,7 +400,7 @@ export const Classes = () => {
               </div>
 
               <div>
-                <label className="text-xs font-bold text-slate-500 uppercase">Section</label>
+                <label className="text-xs font-bold text-slate-500 uppercase">{t("classes.section","Section")}</label>
                 <input
                   type="number"
                   min="1"
@@ -413,7 +413,7 @@ export const Classes = () => {
               </div>
 
               <div>
-                <label className="text-xs font-bold text-slate-500 uppercase">Capacity</label>
+                <label className="text-xs font-bold text-slate-500 uppercase">{t("classes.capacity","Capacity")}</label>
                 <input
                   type="number"
                   value={createForm.capacity}
@@ -439,7 +439,7 @@ export const Classes = () => {
                   disabled={creating}
                 >
                   {creating ? <Loader2 className="animate-spin" size={18} /> : <Check size={18} />}
-                  <span>{creating ? 'Creating...' : 'Create Class'}</span>
+                  <span>{creating ? t('classes.creating','Creating...') : t('classes.createClass','Create Class')}</span>
                 </button>
               </div>
             </form>
@@ -517,7 +517,7 @@ export const Classes = () => {
                   disabled={updating}
                 >
                   {updating ? <Loader2 className="animate-spin" size={18} /> : <Check size={18} />}
-                  <span>{updating ? 'Updating...' : 'Update Class'}</span>
+                  <span>{updating ? t('classes.updating','Updating...') : t('classes.updateClass','Update Class')}</span>
                 </button>
               </div>
             </form>
@@ -554,7 +554,7 @@ export const Classes = () => {
               )}
 
               <div>
-                <label className="text-xs font-bold text-slate-500 uppercase">Select Teacher</label>
+                <label className="text-xs font-bold text-slate-500 uppercase">{t("classes.selectTeacher","Select Teacher")}</label>
                 <select
                   title="Select a teacher to assign"
                   value={selectedTeacherId}

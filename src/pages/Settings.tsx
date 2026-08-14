@@ -1005,7 +1005,7 @@ export const Settings = () => {
                         className="space-y-4 bg-slate-50 dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-800"
                       >
                         <div className="space-y-1">
-                          <label htmlFor="current-password" className="text-xs font-bold text-slate-500 uppercase">Current Password</label>
+                          <label htmlFor="current-password" className="text-xs font-bold text-slate-500 uppercase">{t("settings.currentPassword","Current Password")}</label>
                           <div className="relative">
                             <input
                               id="current-password"
@@ -1021,7 +1021,7 @@ export const Settings = () => {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-1">
-                            <label htmlFor="new-password" className="text-xs font-bold text-slate-500 uppercase">New Password</label>
+                            <label htmlFor="new-password" className="text-xs font-bold text-slate-500 uppercase">{t("settings.newPassword","New Password")}</label>
                             <input
                               id="new-password"
                               type="password"

@@ -398,10 +398,10 @@ export const Staff = () => {
             <table className="w-full text-left min-w-[800px]">
               <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
                 <tr>
-                  <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Employee</th>
-                  <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Current Role</th>
+                  <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">{t("staff.colEmployee","Employee")}</th>
+                  <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">{t("staff.colRole","Current Role")}</th>
                   <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">{t("staff.colBranch", "Branch")}</th>
-                  <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Special Flags</th>
+                  <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">{t("staff.colFlags","Special Flags")}</th>
                   <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">{t("staff.colActions", "Actions")}</th>
                 </tr>
               </thead>
@@ -496,7 +496,7 @@ export const Staff = () => {
                 <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
                   <UserPlus size={20} />
                 </div>
-                <h3 className="font-bold text-slate-800 dark:text-slate-100">Create New User</h3>
+                <h3 className="font-bold text-slate-800 dark:text-slate-100">{t("staff.createUser","Create New User")}</h3>
               </div>
               <button
                 type="button"
@@ -708,7 +708,7 @@ export const Staff = () => {
                   <AlertCircle size={24} />
                 </div>
                 <div>
-                  <h3 className="font-bold text-slate-800 dark:text-slate-100 text-lg">Delete User</h3>
+                  <h3 className="font-bold text-slate-800 dark:text-slate-100 text-lg">{t("staff.deleteUserTitle","Delete User")}</h3>
                   <p className="text-sm text-slate-500">This action cannot be undone</p>
                 </div>
               </div>
