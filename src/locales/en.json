@@ -480,14 +480,14 @@
   "roles": {
     "super-admin": "Super Admin",
     "school-admin": "School Admin",
+    "academic-manager": "Academic Manager",
+    "vice-principal": "Vice Principal",
     "teacher": "Teacher",
     "student": "Student",
     "parent": "Parent",
-    "finance-clerk": "Finance Clerk",
-    "vice-principal": "Vice Principal",
     "librarian": "Librarian",
-    "clinic-admin": "Clinic Admin",
-    "driver": "Driver"
+    "storekeeper": "Storekeeper",
+    "finance-clerk": "Finance Clerk"
   },
   "dashboard": {
     "networkOverview": "Network Overview",

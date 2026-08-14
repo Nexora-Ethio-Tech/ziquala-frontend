@@ -406,16 +406,16 @@
     "logout": "Ba'i"
   },
   "roles": {
-    "super-admin": "Super Admin",
-    "school-admin": "Bulchiinsa Mana Barumsaa",
+    "super-admin": "Bulchaa Ol'aanaa",
+    "school-admin": "Bulchaa Mana Barumsaa",
+    "academic-manager": "Bulchaa Barnootaa",
+    "vice-principal": "Itti Aanaa Piriinsipaalaa",
     "teacher": "Barsiisaa",
     "student": "Barataa",
-    "parent": "Maatii",
-    "finance-clerk": "Hojjetaa Faayinaansii",
-    "vice-principal": "Itti Aanaa Rifeensaa",
-    "librarian": "Hojjetaa Mana Dubbisaa",
-    "clinic-admin": "Bulchiinsa Kiliinikaa",
-    "driver": "Konkolaachisaa"
+    "parent": "Warra Barataa",
+    "librarian": "Hojjetaa Mana Kitaabaa",
+    "storekeeper": "Eegduu Kuusaa",
+    "finance-clerk": "Hojjetaa Maallaqaa"
   },
   "dashboard": {
     "networkOverview": "Hubannoo Walii Galaa",

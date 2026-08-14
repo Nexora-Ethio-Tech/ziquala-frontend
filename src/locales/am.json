@@ -405,16 +405,16 @@
     "logout": "ውጣ"
   },
   "roles": {
-    "super-admin": "ዋና አስተዳዳሪ",
-    "school-admin": "የትምህርት ቤት አስተዳዳሪ",
+    "super-admin": "ሱፐር አድሚን",
+    "school-admin": "ትምህርት ቤት አስተዳዳሪ",
+    "academic-manager": "ትምህርት አስተዳዳሪ",
+    "vice-principal": "ምክትል ርዕሰ መምህር",
     "teacher": "መምህር",
     "student": "ተማሪ",
     "parent": "ወላጅ",
-    "finance-clerk": "የፋይናንስ ባለሙያ",
-    "vice-principal": "ምክትል ርዕሰ መምህር",
-    "librarian": "የቤተ መጻሕፍት ባለሙያ",
-    "clinic-admin": "የክሊኒክ አስተዳዳሪ",
-    "driver": "ሹፌር"
+    "librarian": "ቤተ-መጽሐፍት ሹም",
+    "storekeeper": "ዕቃ ግምጃ ቤት ሹም",
+    "finance-clerk": "ፋይናንስ ሹም"
   },
   "dashboard": {
     "networkOverview": "የአውታረ መረብ አጠቃላይ እይታ",
