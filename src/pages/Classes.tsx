@@ -3,10 +3,12 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { classService, type Class, type CreateClassData, type UpdateClassData } from '../services/classService';
 import { useUser } from '../context/UserContext';
+import { useTranslation } from 'react-i18next';
 
 export const Classes = () => {
   const navigate = useNavigate();
   const { role } = useUser();
+  const { t } = useTranslation();
   const isSchoolAdmin = role === 'school-admin';
 
   const [classes, setClasses] = useState<Class[]>([]);
@@ -374,7 +376,7 @@ export const Classes = () => {
                 <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
                   <Plus size={20} />
                 </div>
-                <h3 className="font-bold text-slate-800 dark:text-slate-100">Create New Class</h3>
+                <h3 className="font-bold text-slate-800 dark:text-slate-100">{t("classes.createClassTitle", "Create New Class")}</h3>
               </div>
               <button type="button" title="Close create class modal" onClick={() => setShowCreateModal(false)} className="text-slate-400 hover:text-slate-600">
                 <X size={20} />
@@ -454,7 +456,7 @@ export const Classes = () => {
                 <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
                   <Edit2 size={20} />
                 </div>
-                <h3 className="font-bold text-slate-800 dark:text-slate-100">Edit Class</h3>
+                <h3 className="font-bold text-slate-800 dark:text-slate-100">{t("classes.editClassTitle", "Edit Class")}</h3>
               </div>
               <button type="button" title="Close edit class modal" onClick={() => setShowEditModal(false)} className="text-slate-400 hover:text-slate-600">
                 <X size={20} />

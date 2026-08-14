@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Building, Palette, Save, HelpCircle, CreditCard, GraduationCap, Plus, Trash2, AlertCircle, Lock, Unlock, CheckCircle, Shield, Mail } from 'lucide-react';
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
@@ -74,6 +75,7 @@ const MultiSelectDropdown = ({
 };
 
 export const Settings = () => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('General');
   const location = useLocation();
   const { style, setStyle, autoDarkMode, setAutoDarkMode } = useAppearance();

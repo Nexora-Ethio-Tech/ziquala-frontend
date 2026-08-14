@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Plus, Trash2, Clock, BookOpen, Users, Search, Save, X, Settings2, LayoutGrid, ArrowLeft, ChevronDown, Zap, CheckCircle2, Loader2, AlertTriangle, Eye } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -44,6 +45,7 @@ interface StructureRow {
 }
 
 export const ScheduleBuilder = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [numClasses, setNumClasses] = useState(12);
   const [periodsPerDay, setPeriodsPerDay] = useState(8);

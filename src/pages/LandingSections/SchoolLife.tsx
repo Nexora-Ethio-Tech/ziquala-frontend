@@ -109,7 +109,7 @@ export default function SchoolLife({ showAdmission, setShowAdmission, displaySch
                                 <iframe
                                     className="w-full h-full opacity-90 group-hover:opacity-100 transition-all duration-700 group-hover:scale-105"
                                     src="https://www.youtube.com/embed/DMtKs79RUmA"
-                                    title="Abdi Adama Culture Day"
+                                    title="Ziquala Abo Culture Day"
                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                     allowFullScreen
                                 ></iframe>
@@ -133,7 +133,7 @@ export default function SchoolLife({ showAdmission, setShowAdmission, displaySch
                                 <iframe
                                     className="w-full h-full opacity-90 group-hover:opacity-100 transition-all duration-700 group-hover:scale-105"
                                     src="https://drive.google.com/file/d/1dGwyS7pClTRLflLSDkj8a332nTsS8lNw/preview"
-                                    title="Abdi Adama Intro"
+                                    title="Ziquala Abo Intro"
                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                     allowFullScreen
                                 ></iframe>

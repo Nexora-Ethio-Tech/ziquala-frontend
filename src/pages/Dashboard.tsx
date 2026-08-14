@@ -1110,7 +1110,7 @@ export const Dashboard = () => {
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/50 shrink-0">
-              <h3 className="font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wider text-sm">Post New Notice</h3>
+              <h3 className="font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wider text-sm">{t('modals.postNoticeTitle', 'Post New Notice')}</h3>
               <button
                 type="button"
                 title="Close notice modal"
@@ -1176,12 +1176,12 @@ export const Dashboard = () => {
               setSelectedAudience('all');
             }}>
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-500 uppercase">Notice Title</label>
+                <label className="text-[10px] font-bold text-slate-500 uppercase">{t('modals.noticeTitle', 'Notice Title')}</label>
                 <input name="title" required type="text" placeholder="e.g. Public Holiday Announcement" className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 transition-all" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase">Category</label>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase">{t('modals.category', 'Category')}</label>
                   <select
                     name="category"
                     title="Select notice category"
@@ -1193,7 +1193,7 @@ export const Dashboard = () => {
                   </select>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase">Priority</label>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase">{t('modals.priority', 'Priority')}</label>
                   <select
                     name="priority"
                     title="Select notice priority level"
@@ -1209,7 +1209,7 @@ export const Dashboard = () => {
               <div className="space-y-2">
                 <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
                   <Users size={12} />
-                  Target Audience
+                  {t('modals.targetAudience', 'Target Audience')}
                 </label>
                 <div className="grid grid-cols-1 gap-2">
                   {[
@@ -1238,11 +1238,11 @@ export const Dashboard = () => {
                 </div>
               </div>
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-500 uppercase">Content</label>
+                <label className="text-[10px] font-bold text-slate-500 uppercase">{t('modals.content', 'Content')}</label>
                 <textarea name="content" required rows={4} placeholder="Write the details of the notice here..." className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 transition-all" />
               </div>
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-500 uppercase">Expiry Date (Ethiopian Calendar)</label>
+                <label className="text-[10px] font-bold text-slate-500 uppercase">{t('modals.expiryDate', 'Expiry Date (Ethiopian Calendar)')}</label>
                 <EthiopianDatePicker
                   value={noticeExpiryEthDate}
                   onChange={(gregorianIso) => {
@@ -1264,7 +1264,7 @@ export const Dashboard = () => {
                   ) : (
                     <Bell size={18} />
                   )}
-                  <span>{postingNotice ? 'Publishing...' : 'Publish Notice'}</span>
+                  <span>{postingNotice ? t('modals.publishing', 'Publishing...') : t('modals.publishNotice', 'Publish Notice')}</span>
                 </button>
               </div>
             </form>
@@ -1288,7 +1288,7 @@ export const Dashboard = () => {
               <div className="p-2 bg-red-100 dark:bg-red-900/40 text-red-600 rounded-lg">
                 <AlertTriangle size={20} />
               </div>
-              <h3 className="font-bold text-slate-800 dark:text-slate-100">Delete Event</h3>
+              <h3 className="font-bold text-slate-800 dark:text-slate-100">{t('modals.deleteEvent', 'Delete Event')}</h3>
             </div>
             <div className="p-6">
               <p className="text-slate-600 dark:text-slate-400 mb-6">
@@ -1339,7 +1339,7 @@ export const Dashboard = () => {
             </div>
             <form className="p-6 space-y-4 flex-1 overflow-y-auto" onSubmit={editingEvent ? handleUpdateEvent : handleCreateEvent}>
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-500 uppercase">Event Title</label>
+                <label className="text-[10px] font-bold text-slate-500 uppercase">{t('modals.eventTitle', 'Event Title')}</label>
                 <input
                   name="title"
                   required
@@ -1351,7 +1351,7 @@ export const Dashboard = () => {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase">Date (Ethiopian)</label>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase">{t('modals.dateEth', 'Date (Ethiopian)')}</label>
                   <EthiopianDatePicker
                     value={eventEthDate}
                     onChange={setEventEthDate}
@@ -1360,7 +1360,7 @@ export const Dashboard = () => {
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase">Type</label>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase">{t('modals.type', 'Type')}</label>
                   <select
                     name="type"
                     title="Select event type"
@@ -1376,7 +1376,7 @@ export const Dashboard = () => {
                 </div>
               </div>
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-500 uppercase">Description (Optional)</label>
+                <label className="text-[10px] font-bold text-slate-500 uppercase">{t('modals.description', 'Description (Optional)')}</label>
                 <textarea
                   name="description"
                   rows={3}
@@ -1388,7 +1388,7 @@ export const Dashboard = () => {
               <div className="pt-4">
                 <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-blue-200 dark:shadow-none flex items-center justify-center gap-2">
                   <Calendar size={18} />
-                  <span>{editingEvent ? 'Update Event' : 'Create Event'}</span>
+                  <span>{editingEvent ? t('modals.updateEvent', 'Update Event') : t('modals.createEvent', 'Create Event')}</span>
                 </button>
               </div>
             </form>

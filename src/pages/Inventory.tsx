@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 
 import { Package, Search, Filter, AlertCircle, ArrowLeft } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
@@ -10,6 +11,7 @@ import { getAssets, type Asset } from '../services/asset.service';
 import { branchService, type Branch } from '../services/branchService';
 
 export const Inventory = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { role, selectedBranch } = useUser();
   const { selectedBranchId } = useStore();
@@ -98,7 +100,7 @@ export const Inventory = () => {
       </div>
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Inventory & Assets</h2>
+          <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">{t("inventory.title", "Inventory & Assets")}</h2>
           <p className="text-slate-500 dark:text-slate-400 text-sm">
             Live inventory data {selectedBranch ? `for ${selectedBranch.name}` : 'across all branches'}.
           </p>
@@ -107,15 +109,15 @@ export const Inventory = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-sm transition-all hover:shadow-md">
-          <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Total Amount</p>
+          <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">{t("inventory.totalAmount", "Total Amount")}</p>
           <p className="text-3xl font-black text-slate-800 dark:text-slate-100 mt-2">{totalAmount}</p>
         </div>
         <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-sm transition-all hover:shadow-md">
-          <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Low Stock Alert</p>
+          <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">{t("inventory.lowStockAlert", "Low Stock Alert")}</p>
           <p className="text-3xl font-black text-rose-600 mt-2">{lowStockCount}</p>
         </div>
         <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-sm transition-all hover:shadow-md">
-          <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Branches</p>
+          <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">{t("inventory.branches", "Branches")}</p>
           <p className="text-3xl font-black text-blue-600 mt-2">{activeBranches}</p>
         </div>
         <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-sm flex items-center gap-4 transition-all hover:shadow-md">
@@ -123,7 +125,7 @@ export const Inventory = () => {
             <AlertCircle size={24} />
           </div>
           <div>
-            <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Maintenance Due</p>
+            <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">{t("inventory.maintenanceDue", "Maintenance Due")}</p>
             <p className="text-lg font-black text-slate-800 dark:text-slate-100">{maintenanceDueCount} Items</p>
           </div>
         </div>
@@ -142,7 +144,7 @@ export const Inventory = () => {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors" size={18} />
             <input
               type="text"
-              placeholder="Search assets by name, branch or description..."
+              placeholder={t("inventory.searchPlaceholder", "Search assets by name, branch or description...")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-12 pr-6 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-bold outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all w-full"
@@ -160,12 +162,12 @@ export const Inventory = () => {
           <table className="w-full text-left">
             <thead className="bg-slate-50/50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
               <tr>
-                <th className="px-6 py-5 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Asset Details</th>
-                <th className="px-6 py-5 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Branch</th>
-                <th className="px-6 py-5 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center">Amount</th>
-                <th className="px-6 py-5 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right">Unit Value (ETB)</th>
-                <th className="px-6 py-5 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right">Total Value (ETB)</th>
-                <th className="px-6 py-5 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Added</th>
+                <th className="px-6 py-5 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">{t("inventory.colDetails", "Asset Details")}</th>
+                <th className="px-6 py-5 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">{t("inventory.colBranch", "Branch")}</th>
+                <th className="px-6 py-5 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center">{t("inventory.colAmount", "Amount")}</th>
+                <th className="px-6 py-5 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right">{t("inventory.colUnitValue", "Unit Value (ETB)")}</th>
+                <th className="px-6 py-5 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right">{t("inventory.colTotalValue", "Total Value (ETB)")}</th>
+                <th className="px-6 py-5 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">{t("inventory.colAdded", "Added")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
@@ -175,7 +177,7 @@ export const Inventory = () => {
                 </tr>
               ) : filteredItems.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-slate-500">No inventory records found.</td>
+                  <td colSpan={6} className="px-6 py-12 text-center text-slate-500">{t("inventory.noInventoryFound", "No inventory records found.")}</td>
                 </tr>
               ) : filteredItems.map((item) => (
                 <tr key={item.id} className="group hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-all duration-300">

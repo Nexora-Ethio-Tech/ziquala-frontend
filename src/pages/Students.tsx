@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Search, Download, UserPlus, X, Edit2, Trash2, Users, ArrowLeft, CheckCircle2, XCircle, Check, Loader2, GraduationCap, FileText, RefreshCw, UserCog } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -10,6 +11,7 @@ import * as sectionService from '../services/sectionService';
 import { exportToExcel } from '../utils/exportUtils';
 
 export const Students = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { role, user, registrationOpen, setRegistrationOpen } = useUser();
@@ -598,7 +600,7 @@ export const Students = () => {
           }}
           className="w-full sm:w-auto px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
         >
-          <option value="">All Grades</option>
+          <option value="">{t("students.allGrades", "All Grades")}</option>
           {['KG 1', 'KG 2', 'KG 3', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'].map(g => (
             <option key={g} value={String(g)}>{g.startsWith('KG') ? g : `Grade ${g}`}</option>
           ))}
@@ -722,14 +724,14 @@ export const Students = () => {
                       />
                     </th>
                     <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Student</th>
-                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Digital ID</th>
+                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("students.colDigitalId", "Digital ID")}</th>
                     {canViewStudentRecord && (
                       <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Student Record</th>
                     )}
                     <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Section</th>
                     <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Grade</th>
-                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Status</th>
-                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Actions</th>
+                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("students.colStatus", "Status")}</th>
+                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("students.colActions", "Actions")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">

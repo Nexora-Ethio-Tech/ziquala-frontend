@@ -17,13 +17,13 @@ const resources = {
   }
 };
 
-const savedLanguage = localStorage.getItem('ziquala_language') || 'en';
+const savedLanguage = localStorage.getItem('ziquala_language') || localStorage.getItem('ziquala_lang') || 'en';
 
 i18n
   .use(initReactI18next)
   .init({
     resources,
-    lng: savedLanguage,
+    lng: savedLanguage === 'or' ? 'om' : savedLanguage,
     fallbackLng: 'en',
     interpolation: {
       escapeValue: false

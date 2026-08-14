@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Loader2, AlertCircle, UserCheck, UserPlus, ShieldAlert, Users, Building2, X, Edit2, Trash2, Check } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
@@ -6,6 +7,7 @@ import { userService } from '../services/userService';
 import { branchService } from '../services/branchService';
 import { useStore } from '../context/useStore';
 export const Staff = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { role: currentUserRole, selectedBranch } = useUser();
   const { selectedBranchId } = useStore();
@@ -74,7 +76,7 @@ export const Staff = () => {
               <Users size={14} />
               Branch Required
             </div>
-            <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Staff Management</h1>
+            <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{t("staff.title", "Staff Management")}</h1>
             <p className="text-slate-500 dark:text-slate-400 mt-3 text-sm md:text-base leading-6">
               Select a branch first to view and manage the academic and library staff assigned to it.
             </p>
@@ -119,7 +121,7 @@ export const Staff = () => {
                 }`
               }
             >
-              {tab.label}
+              {t(`nav.${tab.path}`, tab.label)}
             </NavLink>
           ))}
         </div>
@@ -398,9 +400,9 @@ export const Staff = () => {
                 <tr>
                   <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Employee</th>
                   <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Current Role</th>
-                  <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Branch</th>
+                  <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">{t("staff.colBranch", "Branch")}</th>
                   <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Special Flags</th>
-                  <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
+                  <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">{t("staff.colActions", "Actions")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
