@@ -16,7 +16,7 @@ export const Inventory = () => {
   const { role, selectedBranch } = useUser();
   const { selectedBranchId } = useStore();
   // Finance Clerk, Super Admin, and School Admin can view inventory data
-  const allowedRoles = ['finance-clerk', 'super-admin', 'school-admin'];
+  const allowedRoles = ['school-admin', 'super-admin', 'inventory-clerk', 'storekeeper', 'finance-clerk'];
   const [items, setItems] = useState<Asset[]>([]);
   const [branches, setBranches] = useState<Branch[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,7 +40,7 @@ export const Inventory = () => {
         ]);
 
         setItems(Array.isArray(assetsData) ? assetsData : []);
-        setBranches(Array.isArray(branchResponse?.data) ? branchResponse.data : []);
+        setBranches(Array.isArray(branchResponse?.data) ? branchResponse.data : Array.isArray(branchResponse) ? branchResponse : []);
       } catch (e: any) {
         // If the API returns 403 because of insufficient role, show friendly message
         if (e.response?.status === 403) {

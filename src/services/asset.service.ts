@@ -13,8 +13,20 @@ export interface Asset {
 
 export const getAssets = async (branchId?: string): Promise<Asset[]> => {
   const params = branchId ? { branchId } : {};
-  const resp = await api.get('/finance-clerk/assets', { params });
-  return resp.data;
+  try {
+    const resp = await api.get('/storekeeper/assets', { params });
+    if (Array.isArray(resp.data)) return resp.data;
+    if (Array.isArray(resp.data?.data)) return resp.data.data;
+  } catch {
+    try {
+      const resp = await api.get('/school-admin/assets', { params });
+      if (Array.isArray(resp.data)) return resp.data;
+      if (Array.isArray(resp.data?.data)) return resp.data.data;
+    } catch (e) {
+      console.warn('Failed to fetch assets:', e);
+    }
+  }
+  return [];
 };
 
 export const createAsset = async (asset: {
@@ -24,8 +36,13 @@ export const createAsset = async (asset: {
   value: number;
   branch_id: string;
 }): Promise<Asset> => {
-  const resp = await api.post('/finance-clerk/assets', asset);
-  return resp.data;
+  try {
+    const resp = await api.post('/storekeeper/assets', asset);
+    return resp.data;
+  } catch {
+    const resp = await api.post('/school-admin/assets', asset);
+    return resp.data;
+  }
 };
 
 export const updateAsset = async (id: string, asset: {
@@ -36,10 +53,19 @@ export const updateAsset = async (id: string, asset: {
   branch_id?: string;
   reason?: string;
 }): Promise<Asset> => {
-  const resp = await api.post(`/finance-clerk/assets/${id}`, asset);
-  return resp.data;
+  try {
+    const resp = await api.post(`/storekeeper/assets/${id}`, asset);
+    return resp.data;
+  } catch {
+    const resp = await api.post(`/school-admin/assets/${id}`, asset);
+    return resp.data;
+  }
 };
 
 export const deleteAsset = async (id: string): Promise<void> => {
-  await api.delete(`/finance-clerk/assets/${id}`);
+  try {
+    await api.delete(`/storekeeper/assets/${id}`);
+  } catch {
+    await api.delete(`/school-admin/assets/${id}`);
+  }
 };
