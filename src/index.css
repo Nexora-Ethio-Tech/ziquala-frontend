@@ -224,3 +224,61 @@
     transform-style: preserve-3d;
   }
 }
+
+/* Amharic Balanced Typography Sizing (Amharic Only) */
+html[lang="am"],
+html[data-lang="am"],
+[data-lang="am"] {
+  font-size: 1.035rem;
+}
+
+html[lang="am"] body,
+html[data-lang="am"] body {
+  letter-spacing: 0.01em;
+  line-height: 1.55;
+}
+
+/* Tasteful Tailwind font size adjustments for Amharic */
+html[lang="am"] .text-\[10px\],
+[data-lang="am"] .text-\[10px\] {
+  font-size: 0.72rem !important; /* ~11.5px for micro-labels */
+  line-height: 1.2 !important;
+}
+
+html[lang="am"] .text-xs,
+[data-lang="am"] .text-xs {
+  font-size: 0.825rem !important; /* ~13.2px for small text */
+  line-height: 1.35 !important;
+}
+
+html[lang="am"] .text-sm,
+[data-lang="am"] .text-sm {
+  font-size: 0.925rem !important; /* ~14.8px for body text */
+  line-height: 1.45 !important;
+}
+
+html[lang="am"] .text-base,
+[data-lang="am"] .text-base {
+  font-size: 1.035rem !important;
+  line-height: 1.5 !important;
+}
+
+html[lang="am"] th,
+[data-lang="am"] th {
+  font-size: 0.78rem !important;
+  letter-spacing: 0.015em !important;
+  font-weight: 600 !important;
+}
+
+html[lang="am"] button,
+html[lang="am"] input,
+html[lang="am"] select,
+html[lang="am"] textarea,
+[data-lang="am"] button,
+[data-lang="am"] input,
+[data-lang="am"] select,
+[data-lang="am"] textarea {
+  font-size: 0.95rem !important;
+}
+
+
