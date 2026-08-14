@@ -552,7 +552,11 @@
     "loadingStats": "Loading dashboard stats...",
     "loading": "Loading dashboard...",
     "loadingBranchReports": "Loading branch reports...",
-    "branchesNeedingAttention": "Branches Needing Attention"
+    "branchesNeedingAttention": "Branches Needing Attention",
+    "snapshotSub": "A clean, high-level view of all branches and network health.",
+    "branchesMonitored": "{{count}} branches monitored",
+    "teacherAttendance": "Teacher Attendance",
+    "studentAttendance": "Student Attendance"
   },
   "registration": {
     "title": "Student Registration",

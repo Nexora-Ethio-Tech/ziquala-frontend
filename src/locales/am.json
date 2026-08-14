@@ -479,7 +479,11 @@
     "loadingStats": "ስታቲስቲክስ በመጫን ላይ...",
     "loading": "ዳሽቦርድ በመጫን ላይ...",
     "loadingBranchReports": "ሪፖርቶች በጫን ላይ...",
-    "branchesNeedingAttention": "ትኩረት የሚፈልጉ ቅርንጫፎች"
+    "branchesNeedingAttention": "ትኩረት የሚፈልጉ ቅርንጫፎች",
+    "snapshotSub": "የሁሉም ቅርንጫፎች እና የኔትወርክ ጤና ግልጽ እና ከፍተኛ ደረጃ እይታ።",
+    "branchesMonitored": "{{count}} ቅርንጫፎች ይከታተላሉ",
+    "teacherAttendance": "የመምህራን የነበረበት ሁኔታ",
+    "studentAttendance": "የተማሪዎች የነበረበት ሁኔታ"
   },
   "registration": {
     "title": "የተማሪዎች ምዝገባ",

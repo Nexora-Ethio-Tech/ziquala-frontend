@@ -410,27 +410,27 @@ export const Dashboard = () => {
               <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                 <div>
                   <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">{t("dashboard.superAdminSnapshot","Super Admin Snapshot")}</h3>
-                  <p className="text-sm text-slate-500">A clean, high-level view of all branches and network health.</p>
+                  <p className="text-sm text-slate-500">{t('dashboard.snapshotSub', 'A clean, high-level view of all branches and network health.')}</p>
                 </div>
-                <span className="text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">{monitoredBranches} branches monitored</span>
+                <span className="text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">{t('dashboard.branchesMonitored', '{{count}} branches monitored', { count: monitoredBranches })}</span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mt-6">
                 <div className="rounded-3xl border border-slate-100 dark:border-slate-800 p-4 bg-slate-50 dark:bg-slate-950">
-                  <p className="text-[10px] uppercase tracking-widest text-slate-400 mb-2">Total Students</p>
+                  <p className="text-[10px] uppercase tracking-widest text-slate-400 mb-2">{t('dashboard.totalStudents', 'Total Students')}</p>
                   <p className="text-2xl font-black text-slate-900 dark:text-slate-100">{totalStudentsCount.toLocaleString()}</p>
                 </div>
                 <div className="rounded-3xl border border-slate-100 dark:border-slate-800 p-4 bg-slate-50 dark:bg-slate-950">
-                  <p className="text-[10px] uppercase tracking-widest text-slate-400 mb-2">Total Teachers</p>
+                  <p className="text-[10px] uppercase tracking-widest text-slate-400 mb-2">{t('dashboard.totalTeachers', 'Total Teachers')}</p>
                   <p className="text-2xl font-black text-slate-900 dark:text-slate-100">{teacherCount.toLocaleString()}</p>
                 </div>
                 <div className="rounded-3xl border border-slate-100 dark:border-slate-800 p-4 bg-slate-50 dark:bg-slate-950">
-                  <p className="text-[10px] uppercase tracking-widest text-slate-400 mb-2">Teacher Attendance</p>
+                  <p className="text-[10px] uppercase tracking-widest text-slate-400 mb-2">{t('dashboard.teacherAttendance', 'Teacher Attendance')}</p>
                   <p className={`text-2xl font-black ${Number(teacherAttendance) >= 80 ? 'text-emerald-600' : Number(teacherAttendance) >= 60 ? 'text-amber-600' : 'text-rose-600'}`}>
                     {loading ? '...' : `${teacherAttendance}%`}
                   </p>
                 </div>
                 <div className="rounded-3xl border border-slate-100 dark:border-slate-800 p-4 bg-slate-50 dark:bg-slate-950">
-                  <p className="text-[10px] uppercase tracking-widest text-slate-400 mb-2">Student Attendance</p>
+                  <p className="text-[10px] uppercase tracking-widest text-slate-400 mb-2">{t('dashboard.studentAttendance', 'Student Attendance')}</p>
                   <p className={`text-2xl font-black ${Number(studentAttendance) >= 80 ? 'text-emerald-600' : Number(studentAttendance) >= 60 ? 'text-amber-600' : 'text-rose-600'}`}>
                     {loading ? '...' : `${studentAttendance}%`}
                   </p>

@@ -423,8 +423,8 @@
     "aggregateDesc": "Ilaalchi kun qaxxaamura marsariitii irratti yaadamee kan qophaa'edha: beeksisa mana barumsaa, watchlist naannoo fi faffaca'iinsa dammee hin qabu. Kun fuula ajajaa garee mana barumsaa guutuuti.",
     "selectedBranch": "Dammee Filatame",
     "drillBranch": "Gara dammeetti seeni",
-    "totalStudents": "Barattoota Walii Galaa",
-    "totalTeachers": "Barsiisota Walii Galaa",
+    "totalStudents": "Ida'ama Barattootaa",
+    "totalTeachers": "Ida'ama Barsiisotaa",
     "networkAttendance": "Hirmaannaa Walii Galaa",
     "monthlyRevenue": "Galii Ji'aa",
     "branchHealth": "Haala Fayyummaa Dammeewwan",
@@ -480,7 +480,11 @@
     "loadingStats": "Lakkoofsa fe'amaa jira...",
     "loading": "Daashboordii fe'amaa jira...",
     "loadingBranchReports": "Gabaasaalee damee fe'amaa jira...",
-    "branchesNeedingAttention": "Dameewwan Xiyyeeffannoo Barbaadan"
+    "branchesNeedingAttention": "Dameewwan Xiyyeeffannoo Barbaadan",
+    "snapshotSub": "Agarsiisa qulqulluu fi ol'aanaa dameewwan hundumaa fi fayyaa neetworkii.",
+    "branchesMonitored": "Dameewwan {{count}} hordofamaa jiru",
+    "teacherAttendance": "Hirmaannaa Barsiisotaa",
+    "studentAttendance": "Hirmaannaa Barattootaa"
   },
   "registration": {
     "title": "Galmee Barataa",
