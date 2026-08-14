@@ -9,13 +9,6 @@ export const SUPER_ADMIN_SUBTABS: Record<string, SettingsSubTab[]> = {
     { id: 'password', label: 'Password' },
     { id: 'smtp', label: 'Email / SMTP' },
   ],
-  'Financial Policy': [
-    { id: 'student-fees', label: 'Student Fees' },
-    { id: 'payroll-loans', label: 'Payroll & Loans' },
-    { id: 'fee-structure', label: 'Fee Structure' },
-    { id: 'profit-targets', label: 'Profit Targets' },
-    { id: 'audit', label: 'Audit Log' },
-  ],
 };
 
 export const getDefaultSubTab = (mainTab: string): string =>
