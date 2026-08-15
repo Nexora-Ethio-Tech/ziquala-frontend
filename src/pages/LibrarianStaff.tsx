@@ -530,10 +530,10 @@ export const LibrarianStaff = () => {
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{t("teachers.educationStatus", "Education Status")}</label>
                   <select title="Select education level" value={formData.educationLevel} onChange={(e) => setFormData({ ...formData, educationLevel: e.target.value })} className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none">
                     <option value="">{t("teachers.selectLevel", "Select level")}</option>
-                    <option value="Diploma">Diploma</option>
-                    <option value="Degree">Degree</option>
-                    <option value="Master">Master</option>
-                    <option value="PhD">PhD</option>
+                    <option value="Diploma">{t("teachers.diploma", "Diploma")}</option>
+                    <option value="Degree">{t("teachers.degree", "Degree")}</option>
+                    <option value="Master">{t("teachers.master", "Master")}</option>
+                    <option value="PhD">{t("teachers.phd", "PhD")}</option>
                   </select>
                 </div>
                 <div>

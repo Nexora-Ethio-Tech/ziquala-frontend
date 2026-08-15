@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Calendar, BookOpen, Loader2, Info } from 'lucide-react';
 import { getTeacherSchedule } from '../services/teacherService';
@@ -28,6 +29,7 @@ const DAY_BADGE_THEMES: Record<string, string> = {
 };
 
 export const TeacherSchedule = () => {
+  const { t } = useTranslation();
   const [schedule, setSchedule] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -78,16 +80,16 @@ export const TeacherSchedule = () => {
               <Calendar size={30} />
             </div>
             <div>
-              <h2 className="text-3xl font-extrabold tracking-tight">My Schedule</h2>
+              <h2 className="text-3xl font-extrabold tracking-tight">{t('teacherSchedule.mySchedule', 'My Schedule')}</h2>
               <p className="text-indigo-100/90 font-medium mt-1">
-                Your weekly teaching timetable — Monday to Friday
+                {t('teacherSchedule.myScheduleSub', 'Your weekly teaching timetable — Monday to Friday')}
               </p>
             </div>
           </div>
           <div className="flex items-center gap-3">
             <div className="bg-white/10 backdrop-blur-md px-5 py-3 rounded-2xl text-center">
               <p className="text-2xl font-black">{totalSlots}</p>
-              <p className="text-xs text-indigo-200 font-bold uppercase tracking-wider">Total Slots</p>
+              <p className="text-xs text-indigo-200 font-bold uppercase tracking-wider">{t('teacherSchedule.totalSlots', 'Total Slots')}</p>
             </div>
           </div>
         </div>
@@ -102,9 +104,9 @@ export const TeacherSchedule = () => {
       {totalSlots === 0 && !error ? (
         <div className="py-20 text-center bg-white dark:bg-slate-900 border border-dashed border-slate-200 dark:border-slate-800 rounded-3xl">
           <Info className="mx-auto text-slate-300 dark:text-slate-600 mb-4" size={40} />
-          <p className="text-slate-500 dark:text-slate-400 font-semibold mb-1">No schedule assigned yet</p>
+          <p className="text-slate-500 dark:text-slate-400 font-semibold mb-1">{t('teacherSchedule.noScheduleAssignedYet', 'No schedule assigned yet')}</p>
           <p className="text-sm text-slate-400 dark:text-slate-500">
-            Your schedule will appear here once the school admin sets it up in the Schedule Builder.
+            {t('teacherSchedule.noScheduleAssignedYetSub', 'Your schedule will appear here once the school admin sets it up in the Schedule Builder.')}
           </p>
         </div>
       ) : (
@@ -176,7 +178,7 @@ export const TeacherSchedule = () => {
           <Info size={18} />
         </div>
         <div>
-          <h4 className="font-bold text-amber-900 dark:text-amber-400">Schedule is set by Administration</h4>
+          <h4 className="font-bold text-amber-900 dark:text-amber-400">{t('teacherSchedule.scheduleSetByAdmin', 'Schedule is set by Administration')}</h4>
           <p className="text-sm text-amber-800/80 dark:text-amber-500/80 mt-1 font-medium leading-relaxed">
             This timetable is managed by the school admin via the Schedule Builder and applies for the entire week.
             If you notice any conflicts, please contact your Department Head or Principal.

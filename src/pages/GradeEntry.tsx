@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useCallback } from 'react';
 import { useUser } from '../context/UserContext';
 import { Save, Lock, ArrowLeft, ChevronRight, Users, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
@@ -21,6 +22,7 @@ type GradingMethod = { id: string; label: string; maxWeight: number };
 type ScoreMap = Record<string, Record<string, number | ''>>;
 
 export const GradeEntry = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { gradesLocked } = useUser();
@@ -255,13 +257,13 @@ export const GradeEntry = () => {
               <ArrowLeft size={14} />
               Back
             </button>
-            <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Grade Entry</h2>
+            <h2 className="text-2xl font-bold text-slate-800 dark:text-white">{t('gradeEntry.gradeEntry', 'Grade Entry')}</h2>
           </div>
         </div>
 
         <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/30 p-6 rounded-2xl">
-          <h3 className="text-lg font-bold text-blue-900 dark:text-blue-300 mb-2">Select a Class &amp; Subject</h3>
-          <p className="text-blue-700 dark:text-blue-400 text-sm">Choose one of your assigned classes and the subject you want to enter grades for.</p>
+          <h3 className="text-lg font-bold text-blue-900 dark:text-blue-300 mb-2">{t('gradeEntry.selectClassAndSubject', 'Select a Class & Subject')}</h3>
+          <p className="text-blue-700 dark:text-blue-400 text-sm">{t('gradeEntry.selectClassAndSubjectSub', 'Choose one of your assigned classes and the subject you want to enter grades for.')}</p>
         </div>
 
         {classError && (
@@ -276,7 +278,7 @@ export const GradeEntry = () => {
             <Loader2 className="animate-spin text-blue-500" size={32} />
           </div>
         ) : classes.length === 0 ? (
-          <div className="text-center py-16 text-slate-400 text-sm font-medium">No classes assigned to you yet.</div>
+          <div className="text-center py-16 text-slate-400 text-sm font-medium">{t('gradeEntry.noClassesAssignedToYou', 'No classes assigned to you yet.')}</div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {classes.map((cls) => (

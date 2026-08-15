@@ -1135,8 +1135,8 @@ export const Teachers = () => {
                   onChange={(e) => setFormData({ ...formData, role: e.target.value as any })}
                   className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="teacher">Teacher</option>
-                  <option value="librarian">Librarian</option>
+                  <option value="teacher">{t("teachers.roleTeacher", "Teacher")}</option>
+                  <option value="librarian">{t("teachers.roleLibrarian", "Librarian")}</option>
                 </select>
               </div>
 
@@ -1174,10 +1174,10 @@ export const Teachers = () => {
                     className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">{t("teachers.selectLevel", "Select level")}</option>
-                    <option value="Diploma">Diploma</option>
-                    <option value="Degree">Degree</option>
-                    <option value="Master">Master</option>
-                    <option value="PhD">PhD</option>
+                    <option value="Diploma">{t("teachers.diploma", "Diploma")}</option>
+                    <option value="Degree">{t("teachers.degree", "Degree")}</option>
+                    <option value="Master">{t("teachers.master", "Master")}</option>
+                    <option value="PhD">{t("teachers.phd", "PhD")}</option>
                   </select>
                 </div>
                 <div className="space-y-1">

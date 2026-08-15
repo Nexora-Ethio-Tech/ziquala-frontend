@@ -522,7 +522,6 @@ export const VPTranscripts = () => {
             )}
           </div>
         </div>
-
         <div className="space-y-4">
           {error && (
             <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-medium text-rose-700 dark:border-rose-900/40 dark:bg-rose-950/20 dark:text-rose-300">
@@ -532,7 +531,6 @@ export const VPTranscripts = () => {
               </div>
             </div>
           )}
-
           {!templateData ? (
             <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center text-slate-500 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400">
               <FileText className="mx-auto mb-4 h-16 w-16 text-slate-400" />

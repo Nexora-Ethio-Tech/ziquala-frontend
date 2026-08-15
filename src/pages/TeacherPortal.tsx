@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { BookOpen, Users, Calendar, ArrowRight, ArrowLeft, ClipboardList, FileText, Plus, X, CheckCircle2, XCircle, Loader2, Star, Save, Send, Search, ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useCallback } from 'react';
@@ -47,6 +48,7 @@ const matchGrade = (hodGrades: any[], courseGrade: any): boolean => {
 };
 
 export const TeacherPortal = () => {
+  const { t } = useTranslation();
   const { user } = useUser();
   const [activeTab, setActiveTab] = useState<'overview' | 'plans' | 'exams' | 'dept-tasks'>('overview');
   const [dashboard, setDashboard] = useState<any>(null);
@@ -813,9 +815,9 @@ export const TeacherPortal = () => {
       <div className="flex gap-3 p-1.5 bg-slate-100/50 dark:bg-slate-800/50 rounded-2xl w-fit border border-slate-200/50 dark:border-slate-700/50 flex-wrap">
         {(() => {
           const tabs = [
-            { id: 'overview', label: 'Overview' },
-            { id: 'plans', label: 'Weekly Plans' },
-            { id: 'exams', label: 'Exams' },
+            { id: 'overview', label: t('teacherPortal.overview', 'Overview') },
+            { id: 'plans', label: t('teacherPortal.weeklyPlans', 'Weekly Plans') },
+            { id: 'exams', label: t('teacherPortal.exams', 'Exams') },
           ];
           if (isDean) {
             tabs.push({ id: 'dept-tasks', label: 'Department Submissions' });
@@ -844,20 +846,20 @@ export const TeacherPortal = () => {
           {/* Header */}
           <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-[2.5rem] p-10 text-white shadow-2xl relative overflow-hidden">
             <div className="relative z-10">
-              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-400 mb-4 block">Teacher Dashboard</span>
-              <h2 className="text-4xl font-black mb-2 tracking-tight">Welcome back, {user?.name?.split(' ')[0]}!</h2>
+              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-400 mb-4 block">{t('teacherPortal.teacherDashboard', 'Teacher Dashboard')}</span>
+              <h2 className="text-4xl font-black mb-2 tracking-tight">{t('teacherPortal.welcomeBack', 'Welcome back, {{name}}!', { name: user?.name?.split(' ')[0] || '' })}</h2>
               <p className="text-slate-400 font-medium">
-                Digital ID: <span className="text-white font-mono">{(user as any)?.digitalId || (user as any)?.digital_id || '—'}</span>
+                {t('teacherPortal.digitalId', 'Digital ID:')} <span className="text-white font-mono">{(user as any)?.digitalId || (user as any)?.digital_id || '—'}</span>
               </p>
               <div className="mt-8 flex flex-wrap gap-4">
                 <Link to="/attendance" className="bg-blue-600 text-white px-8 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center gap-2 hover:bg-blue-700 transition-all shadow-xl shadow-blue-500/20">
-                  Take Attendance <ArrowRight size={16} />
+                  {t('teacherPortal.takeAttendance', 'Take Attendance')} <ArrowRight size={16} />
                 </Link>
                 <Link to="/schedule" className="bg-white/5 text-white border border-white/10 px-8 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-white/10 transition-all">
-                  My Schedule
+                  {t('teacherPortal.mySchedule', 'My Schedule')}
                 </Link>
                 <Link to="/grades" className="bg-emerald-600 text-white px-8 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center gap-2 hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-500/20">
-                  Enter Grades
+                  {t('teacherPortal.enterGrades', 'Enter Grades')}
                 </Link>
               </div>
             </div>
@@ -868,14 +870,14 @@ export const TeacherPortal = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-xl">
               <div className="bg-amber-50 dark:bg-amber-900/20 text-amber-600 w-14 h-14 rounded-2xl flex items-center justify-center mb-6"><Users size={28} /></div>
-              <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">Assigned Classes</p>
+              <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">{t('teacherPortal.assignedClasses', 'Assigned Classes')}</p>
               <h3 className="text-3xl font-black text-slate-800 dark:text-white">{dashboard?.assignedClassesCount ?? '—'}</h3>
             </div>
             <Link to="/schedule" className="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-xl hover:border-purple-300 dark:hover:border-purple-700 transition-colors block">
               <div className="bg-purple-50 dark:bg-purple-900/20 text-purple-600 w-14 h-14 rounded-2xl flex items-center justify-center mb-6"><Calendar size={28} /></div>
-              <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">My Schedule</p>
+              <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">{t('teacherPortal.mySchedule', 'My Schedule')}</p>
               <h3 className="text-3xl font-black text-slate-800 dark:text-white">{todaySchedule.length}</h3>
-              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-4">Classes today · View full schedule →</p>
+              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-4">{t('teacherPortal.classesTodaySub', 'Classes today · View full schedule →')}</p>
             </Link>
           </div>
 
@@ -883,16 +885,16 @@ export const TeacherPortal = () => {
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
             <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
               <div>
-                <h3 className="font-bold text-slate-800 dark:text-white">My Assigned Classes</h3>
-                <p className="text-xs text-slate-500 mt-0.5">Classes assigned to you from the school administration</p>
+                <h3 className="font-bold text-slate-800 dark:text-white">{t('teacherPortal.myAssignedClasses', 'My Assigned Classes')}</h3>
+                <p className="text-xs text-slate-500 mt-0.5">{t('teacherPortal.myAssignedClassesSub', 'Classes assigned to you from the school administration')}</p>
               </div>
-              <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-xs font-bold">{myClasses.length} class{myClasses.length !== 1 ? 'es' : ''}</span>
+              <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-xs font-bold">{t('teacherPortal.classCount', { count: myClasses.length })}</span>
             </div>
             {myClasses.length === 0 ? (
               <div className="p-12 text-center">
                 <div className="bg-slate-50 dark:bg-slate-800 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"><Users size={28} className="text-slate-400" /></div>
-                <p className="font-bold text-slate-500 dark:text-slate-400">No classes assigned yet</p>
-                <p className="text-xs text-slate-400 mt-1">Contact the school admin to assign classes to you.</p>
+                <p className="font-bold text-slate-500 dark:text-slate-400">{t('teacherPortal.noClassesAssignedYet', 'No classes assigned yet')}</p>
+                <p className="text-xs text-slate-400 mt-1">{t('teacherPortal.contactAdminToAssign', 'Contact the school admin to assign classes to you.')}</p>
               </div>
             ) : (
               <div className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -937,16 +939,16 @@ export const TeacherPortal = () => {
           <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-xl overflow-hidden mt-6">
             <div className="p-8 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-black text-slate-800 dark:text-white">Announcements from School Administration</h3>
-                <p className="text-xs text-slate-500 mt-0.5">Important notifications and updates from the administration</p>
+                <h3 className="text-lg font-black text-slate-800 dark:text-white">{t('teacherPortal.announcementsFromAdmin', 'Announcements from School Administration')}</h3>
+                <p className="text-xs text-slate-500 mt-0.5">{t('teacherPortal.announcementsSub', 'Important notifications and updates from the administration')}</p>
               </div>
-              <span className="px-3 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-full text-xs font-bold">{announcements.length} announcement{announcements.length !== 1 ? 's' : ''}</span>
+              <span className="px-3 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-full text-xs font-bold">{t('teacherPortal.announcementCount', { count: announcements.length })}</span>
             </div>
             {announcements.length === 0 ? (
               <div className="p-12 text-center">
                 <div className="bg-slate-50 dark:bg-slate-800 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"><AlertCircle size={28} className="text-slate-400" /></div>
-                <p className="font-bold text-slate-500 dark:text-slate-400">No announcements yet</p>
-                <p className="text-xs text-slate-400 mt-1">Check back later for any updates from school administration.</p>
+                <p className="font-bold text-slate-500 dark:text-slate-400">{t('teacherPortal.noAnnouncementsYet', 'No announcements yet')}</p>
+                <p className="text-xs text-slate-400 mt-1">{t('teacherPortal.checkBackLaterAnnouncements', 'Check back later for any updates from school administration.')}</p>
               </div>
             ) : (
               <div className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -992,7 +994,7 @@ export const TeacherPortal = () => {
                     : 'border-transparent text-slate-400 hover:text-slate-600'
                   }`}
               >
-                My Weekly Plans
+                {t('teacherPortal.myWeeklyPlans', 'My Weekly Plans')}
               </button>
               <button
                 type="button"
@@ -1002,14 +1004,14 @@ export const TeacherPortal = () => {
                     : 'border-transparent text-slate-400 hover:text-slate-600'
                   }`}
               >
-                Communication Book
+                {t('teacherPortal.communicationBook', 'Communication Book')}
               </button>
             </div>
 
             {/* Elegant simulation toggle to facilitate testing both states easily */}
             <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-800 p-2.5 rounded-2xl border border-slate-200/50 dark:border-slate-700/50">
               <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
-                🧪 Promote to Department Head (Simulation)
+                {t('teacherPortal.promoteToDeptHead', '🧪 Promote to Department Head (Simulation)')}
               </span>
               <input
                 title="Toggle Department Head simulation"
@@ -1033,20 +1035,20 @@ export const TeacherPortal = () => {
               <div className="bg-gradient-to-br from-emerald-600 to-teal-700 rounded-[2rem] p-8 text-white shadow-2xl relative overflow-hidden">
                 <div className="absolute top-0 right-0 p-10 opacity-10"><ClipboardList size={160} /></div>
                 <div className="relative z-10">
-                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-200 mb-2 block">Home Room · Weekly Reports</span>
-                  <h2 className="text-3xl font-black mb-1 tracking-tight">Communication Book</h2>
-                  <p className="text-emerald-100 font-medium text-sm">Select a section or search a student to send weekly ratings to parents.</p>
+                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-200 mb-2 block">{t('teacherPortal.homeRoomWeeklyReports', 'Home Room · Weekly Reports')}</span>
+                  <h2 className="text-3xl font-black mb-1 tracking-tight">{t('teacherPortal.communicationBook', 'Communication Book')}</h2>
+                  <p className="text-emerald-100 font-medium text-sm">{t('teacherPortal.commBookSub', 'Select a section or search a student to send weekly ratings to parents.')}</p>
                 </div>
               </div>
 
               {/* ── Global Student Search ── */}
               <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-lg p-6">
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3 block">Quick Search — All My Homeroom Students</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3 block">{t('teacherPortal.quickSearchHomeroom', 'Quick Search — All My Homeroom Students')}</label>
                 <div className="relative">
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                   <input
                     type="text"
-                    placeholder="Type student name to search across all sections…"
+                    placeholder={t('teacherPortal.typeStudentSearchPlaceholder', 'Type student name to search across all sections…')}
                     value={globalCommSearch}
                     onChange={e => setGlobalCommSearch(e.target.value)}
                     className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-medium outline-none focus:border-emerald-500 transition-all text-slate-900 dark:text-white"
@@ -1068,21 +1070,21 @@ export const TeacherPortal = () => {
                               disabled
                               className="px-4 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-black rounded-xl cursor-not-allowed flex items-center gap-1"
                             >
-                              <CheckCircle2 size={12} /> Sent
+                              <CheckCircle2 size={12} /> {t('teacherPortal.sent', 'Sent')}
                             </button>
                           ) : (
                             <button
                               onClick={() => { setGlobalCommSearch(''); openCommCard({ id, name }); }}
                               className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black rounded-xl transition-all flex items-center gap-1"
                             >
-                              <Send size={12} /> Talk to Parent
+                              <Send size={12} /> {t('teacherPortal.talkToParent', 'Talk to Parent')}
                             </button>
                           )}
                         </div>
                       );
                     })}
                     {allHomeroomStudents.filter(s => (s.studentName || s.student_name || s.name || '').toLowerCase().includes(globalCommSearch.toLowerCase())).length === 0 && (
-                      <p className="text-center text-slate-400 text-sm py-6 font-medium">No students found.</p>
+                      <p className="text-center text-slate-400 text-sm py-6 font-medium">{t('teacherPortal.noStudentsFound', 'No students found.')}</p>
                     )}
                   </div>
                 )}
@@ -1092,12 +1094,12 @@ export const TeacherPortal = () => {
               {!selectedCommSection ? (
                 /* Section Cards */
                 <div>
-                  <h3 className="text-xs font-black uppercase tracking-widest text-slate-500 mb-4">My Homeroom Sections</h3>
+                  <h3 className="text-xs font-black uppercase tracking-widest text-slate-500 mb-4">{t('teacherPortal.myHomeroomSections', 'My Homeroom Sections')}</h3>
                   {commSections.length === 0 ? (
                     <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-800 p-12 text-center">
                       <Users className="text-slate-300 dark:text-slate-700 mx-auto mb-4" size={40} />
-                      <p className="text-slate-500 font-bold text-sm">No homeroom sections assigned.</p>
-                      <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-1">Contact administration if this is incorrect.</p>
+                      <p className="text-slate-500 font-bold text-sm">{t('teacherPortal.noHomeroomSectionsAssigned', 'No homeroom sections assigned.')}</p>
+                      <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-1">{t('teacherPortal.contactAdminIncorrect', 'Contact administration if this is incorrect.')}</p>
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -1133,7 +1135,7 @@ export const TeacherPortal = () => {
                       </button>
                       <div>
                         <h3 className="font-black text-slate-800 dark:text-white">{selectedCommSection.name}</h3>
-                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Student Roster</p>
+                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{t('teacherPortal.studentRoster', 'Student Roster')}</p>
                       </div>
                     </div>
                     <span className="text-xs font-black text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1.5 rounded-full">{commStudents.length} students</span>
@@ -1163,14 +1165,14 @@ export const TeacherPortal = () => {
                                 disabled
                                 className="flex items-center gap-2 px-4 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-black rounded-xl cursor-not-allowed shadow-sm"
                               >
-                                <CheckCircle2 size={13} /> Sent
+                                <CheckCircle2 size={13} /> {t('teacherPortal.sent', 'Sent')}
                               </button>
                             ) : (
                               <button
                                 onClick={() => openCommCard(s)}
                                 className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black rounded-xl transition-all shadow-sm"
                               >
-                                <Send size={13} /> Talk to Parent
+                                <Send size={13} /> {t('teacherPortal.talkToParent', 'Talk to Parent')}
                               </button>
                             )}
                           </div>
@@ -1236,13 +1238,13 @@ export const TeacherPortal = () => {
                           <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center">
                             <CheckCircle2 className="text-emerald-500" size={36} />
                           </div>
-                          <p className="text-emerald-600 font-black text-lg">Sent to Parent!</p>
+                          <p className="text-emerald-600 font-black text-lg">{t('teacherPortal.sentToParent', 'Sent to Parent!')}</p>
                         </div>
                       ) : (
                         <>
                           {/* Metrics Grid */}
                           <div>
-                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-4">Rate each area (1–5 stars)</p>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-4">{t('teacherPortal.rateEachArea', 'Rate each area (1–5 stars)')}</p>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                               {[
                                 { key: 'ratingMaterials', label: 'Materials', icon: '📚' },
@@ -1283,10 +1285,10 @@ export const TeacherPortal = () => {
 
                           {/* Teacher Note */}
                           <div>
-                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">Teacher's Observation Note</label>
+                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">{t('teacherPortal.teacherObservationNote', "Teacher's Observation Note")}</label>
                             <textarea
                               rows={4}
-                              placeholder="Describe the student's performance this week…"
+                              placeholder={t('teacherPortal.describePerformancePlaceholder', "Describe the student's performance this week…")}
                               value={commLogForm.teacherNote}
                               onChange={e => setCommLogForm(f => ({ ...f, teacherNote: e.target.value }))}
                               className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl text-sm outline-none focus:border-emerald-500 transition-all resize-none text-slate-800 dark:text-white"
@@ -1304,7 +1306,7 @@ export const TeacherPortal = () => {
                               className="flex-1 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white font-black text-sm flex items-center justify-center gap-2 transition-all shadow-lg"
                             >
                               {isSubmittingLog ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
-                              {isSubmittingLog ? 'Sending…' : 'Send to Parent'}
+                              {isSubmittingLog ? t('teacherPortal.sending', 'Sending…') : t('teacherPortal.sendToParent', 'Send to Parent')}
                             </button>
                           </div>
                         </>
@@ -1318,8 +1320,8 @@ export const TeacherPortal = () => {
             <div className="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-xl overflow-hidden animate-in fade-in duration-200">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
                 <div>
-                  <h2 className="text-3xl font-black text-slate-800 dark:text-white tracking-tight uppercase">Weekly Plans</h2>
-                  <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px] mt-1">Submit lesson plans for head of department review</p>
+                  <h2 className="text-3xl font-black text-slate-800 dark:text-white tracking-tight uppercase">{t('teacherPortal.weeklyPlans', 'Weekly Plans')}</h2>
+                  <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px] mt-1">{t('teacherPortal.submitLessonPlansSub', 'Submit lesson plans for head of department review')}</p>
                 </div>
                 <div className="flex gap-4 flex-wrap">
                   <button onClick={() => {
@@ -1330,7 +1332,7 @@ export const TeacherPortal = () => {
                     setIsPlanModalOpen(true);
                   }}
                     className="flex items-center gap-3 px-8 py-4 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-700 transition-all shadow-xl shadow-blue-500/20">
-                    <Plus size={18} /> Create New Plan
+                    <Plus size={18} /> {t('teacherPortal.createNewPlan', 'Create New Plan')}
                   </button>
                   <button onClick={() => {
                     setEditingPlan(null);
@@ -1338,7 +1340,7 @@ export const TeacherPortal = () => {
                     setIsPlanModalOpen(true);
                   }}
                     className="flex items-center gap-3 px-8 py-4 bg-emerald-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-500/20">
-                    <Send size={18} /> Submit New Plan
+                    <Send size={18} /> {t('teacherPortal.submitNewPlan', 'Submit New Plan')}
                   </button>
                 </div>
               </div>
@@ -1347,14 +1349,24 @@ export const TeacherPortal = () => {
                 <table className="w-full text-left min-w-[900px]">
                   <thead>
                     <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
-                      {['Date', 'Subject', 'Content', 'Objectives', 'Method', 'Duration', 'Status', 'Feedback', 'Actions'].map(h => (
-                        <th key={h} className="px-4 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">{h}</th>
+                      {[
+                        { key: 'date', default: 'Date' },
+                        { key: 'subject', default: 'Subject' },
+                        { key: 'content', default: 'Content' },
+                        { key: 'objectives', default: 'Objectives' },
+                        { key: 'method', default: 'Method' },
+                        { key: 'duration', default: 'Duration' },
+                        { key: 'status', default: 'Status' },
+                        { key: 'feedback', default: 'Feedback' },
+                        { key: 'actions', default: 'Actions' }
+                      ].map(h => (
+                        <th key={h.key} className="px-4 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">{t(`teacherPortal.${h.key}`, h.default)}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                     {plans.length === 0 ? (
-                      <tr><td colSpan={9} className="px-6 py-12 text-center text-slate-500">No plans yet. Create your first plan!</td></tr>
+                      <tr><td colSpan={9} className="px-6 py-12 text-center text-slate-500">{t('teacherPortal.noPlansYet', 'No plans yet. Create your first plan!')}</td></tr>
                     ) : (
                       plans.map((plan: any) => (
                         <tr key={plan.id} className="hover:bg-blue-50/30 dark:hover:bg-blue-900/5 transition-colors">
