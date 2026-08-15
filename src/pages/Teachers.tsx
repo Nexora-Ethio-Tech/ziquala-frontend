@@ -695,7 +695,7 @@ export const Teachers = () => {
               : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
               }`}
           >
-            <Trophy size={16} /> Leaderboard
+            <Trophy size={16} /> {t("teachers.leaderboard", "Leaderboard")}
           </button>
         </div>
       )}
@@ -914,16 +914,16 @@ export const Teachers = () => {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <h3 className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                  <Trophy className="text-yellow-500" size={20} /> Semester Leaderboard
+                  <Trophy className="text-yellow-500" size={20} /> {t("teachers.semesterLeaderboard", "Semester Leaderboard")}
                 </h3>
-                <p className="text-xs text-slate-500 mt-1">Points = (Student Votes) + (VP Rating × 100) + (Weekly Plan Rating Points)</p>
+                <p className="text-xs text-slate-500 mt-1">{t("teachers.leaderboardFormula", "Points = (Student Votes) + (VP Rating × 100) + (Weekly Plan Rating Points)")}</p>
               </div>
               <button
                 type="button"
                 onClick={handleResetLeaderboard}
                 className="flex items-center gap-2 px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-900/20 dark:hover:bg-red-900/40 dark:text-red-400 rounded-lg text-sm font-bold transition-colors self-start sm:self-auto"
               >
-                <RefreshCcw size={16} /> Reset Semester
+                <RefreshCcw size={16} /> {t("teachers.resetSemester", "Reset Semester")}
               </button>
             </div>
             <div className="mt-3 flex flex-col sm:flex-row gap-2">
@@ -933,7 +933,7 @@ export const Teachers = () => {
                   type="text"
                   value={leaderboardSearch}
                   onChange={(e) => { setLeaderboardSearch(e.target.value); setLeaderboardPage(1); }}
-                  placeholder="Search teacher by name…"
+                  placeholder={t("teachers.searchTeacherByName", "Search teacher by name…")}
                   className="w-full pl-8 pr-4 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 transition"
                 />
               </div>
@@ -943,7 +943,7 @@ export const Teachers = () => {
                 onChange={(e) => { setLeaderboardGradeFilter(e.target.value); setLeaderboardPage(1); }}
                 className="py-2 px-3 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 transition text-slate-700 dark:text-slate-300"
               >
-                <option value="">All Grades</option>
+                <option value="">{t("teachers.allGrades", "All Grades")}</option>
                 {allLeaderboardGrades.map(grade => (
                   <option key={grade} value={grade}>{grade}</option>
                 ))}
@@ -962,26 +962,26 @@ export const Teachers = () => {
             <table className="w-full text-left">
               <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
                 <tr>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Rank</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("teachers.colRank", "Rank")}</th>
                   <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Teacher</th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Student Votes</th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Plan Rating</th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">VP Rating</th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Grades</th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Total Points</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("teachers.colStudentVotes", "Student Votes")}</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("teachers.colPlanRating", "Plan Rating")}</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("teachers.colVPRating", "VP Rating")}</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("teachers.colGrades", "Grades")}</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("teachers.colTotalPoints", "Total Points")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {leaderboardLoading ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-12 text-center text-slate-500">Loading leaderboard…</td>
+                    <td colSpan={7} className="px-6 py-12 text-center text-slate-500">{t("teachers.loadingLeaderboard", "Loading leaderboard…")}</td>
                   </tr>
                 ) : currentLeaderboardData.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="px-6 py-12 text-center text-slate-500">
                       {leaderboardSearch || leaderboardGradeFilter
                         ? `No teachers found${leaderboardGradeFilter ? ` teaching ${leaderboardGradeFilter}` : ''}${leaderboardSearch ? ` matching "${leaderboardSearch}"` : ''}.`
-                        : 'No data available for the leaderboard.'}
+                        : t("teachers.noLeaderboardData", "No data available for the leaderboard.")}
                     </td>
                   </tr>
                 ) : (
@@ -1050,7 +1050,7 @@ export const Teachers = () => {
           {!leaderboardLoading && filteredLeaderboardData.length > LEADERBOARD_ITEMS_PER_PAGE && (
             <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-4">
               <p className="text-xs text-slate-500">
-                Showing {(leaderboardPage - 1) * LEADERBOARD_ITEMS_PER_PAGE + 1}–{Math.min(leaderboardPage * LEADERBOARD_ITEMS_PER_PAGE, filteredLeaderboardData.length)} of {filteredLeaderboardData.length} teachers
+                {t("teachers.showingTeachers", { from: (leaderboardPage - 1) * LEADERBOARD_ITEMS_PER_PAGE + 1, to: Math.min(leaderboardPage * LEADERBOARD_ITEMS_PER_PAGE, filteredLeaderboardData.length), total: filteredLeaderboardData.length, defaultValue: `Showing ${(leaderboardPage - 1) * LEADERBOARD_ITEMS_PER_PAGE + 1}–${Math.min(leaderboardPage * LEADERBOARD_ITEMS_PER_PAGE, filteredLeaderboardData.length)} of ${filteredLeaderboardData.length} teachers` })}
               </p>
               <div className="flex items-center gap-2">
                 <button
@@ -1062,7 +1062,7 @@ export const Teachers = () => {
                 >
                   <ChevronLeft size={16} />
                 </button>
-                <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Page {leaderboardPage} of {totalLeaderboardPages}</span>
+                <span className="text-sm font-bold text-slate-700 dark:text-slate-300">{t("teachers.pageOf", { current: leaderboardPage, total: totalLeaderboardPages, defaultValue: `Page ${leaderboardPage} of ${totalLeaderboardPages}` })}</span>
                 <button
                   type="button"
                   title="Next page"

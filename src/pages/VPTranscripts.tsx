@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AlertCircle, ChevronRight, ChevronDown, Download, FileText, Loader2, Printer, Search, Users, X } from 'lucide-react';
 import * as vicePrincipalService from '../services/vicePrincipalService';
@@ -59,6 +60,7 @@ const buildFallbackTemplate = (label: string): TranscriptTemplateData => ({
 });
 
 export const VPTranscripts = () => {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [lookupLabel, setLookupLabel] = useState('');
   const [searchResults, setSearchResults] = useState<StudentSearchResult[]>([]);
@@ -269,7 +271,7 @@ export const VPTranscripts = () => {
     <div className="space-y-6 px-4 sm:px-6 lg:px-8">
       <div className="flex flex-col gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Student Transcripts</h1>
+          <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">{t("vp.studentTranscripts", "Student Transcripts")}</h1>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Search by name, digital ID, username, or browse grade, section, and student lists.
           </p>
@@ -310,7 +312,7 @@ export const VPTranscripts = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                placeholder="Search student by name or ID"
+                placeholder={t("vp.searchStudentPlaceholder", "Search student by name or ID")}
                 className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-12 text-sm font-medium outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-800"
               />
               {searchQuery && (

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useCallback } from 'react';
 import { ChevronDown, Download, BarChart3, Users, BookOpen, CheckCircle2 } from 'lucide-react';
 import * as vicePrincipalService from '../services/vicePrincipalService';
@@ -51,6 +52,7 @@ interface StudentGrade {
 }
 
 export const VPGradeManagement = () => {
+  const { t } = useTranslation();
   const [grades, setGrades] = useState<VpGradeGroup[]>([]);
   const [selectedGrade, setSelectedGrade] = useState<string | null>(null);
   const [selectedGradeGroup, setSelectedGradeGroup] = useState<VpGradeGroup | null>(null);
@@ -256,10 +258,10 @@ export const VPGradeManagement = () => {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(99,102,241,0.2),_transparent_50%)]" />
         <div className="absolute top-0 right-0 w-80 h-80 bg-white/5 rounded-full blur-3xl transform translate-x-20 -translate-y-20"></div>
         <div className="relative z-10">
-          <p className="text-xs font-black uppercase tracking-[0.25em] text-indigo-400 mb-2">Grade Management</p>
-          <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-2">Student Grade Processing</h1>
+          <p className="text-xs font-black uppercase tracking-[0.25em] text-indigo-400 mb-2">{t("vp.gradeManagement", "Grade Management")}</p>
+          <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-2">{t("vp.studentGradeProcessing", "Student Grade Processing")}</h1>
           <p className="text-slate-400 text-sm max-w-2xl font-medium leading-relaxed">
-            View student grades by class section, submit grades, and generate comprehensive result reports with totals, averages, and rankings.
+            {t("vp.studentGradeProcessingDesc", "View student grades by class section, submit grades, and generate comprehensive result reports with totals, averages, and rankings.")}
           </p>
         </div>
       </section>
@@ -309,7 +311,7 @@ export const VPGradeManagement = () => {
           </div>
           <div className="flex-1 flex items-end">
             <div className="px-5 py-3 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-2xl text-sm">
-              <span className="text-xs font-black text-indigo-500 uppercase tracking-widest">Viewing</span>
+              <span className="text-xs font-black text-indigo-500 uppercase tracking-widest">{t("vp.viewing", "Viewing")}</span>
               <p className="font-bold text-indigo-700 dark:text-indigo-300 mt-0.5">
                 {gregorianToECYear(selectedYear)} E.C. &bull; {selectedSemester}
               </p>
@@ -353,7 +355,7 @@ export const VPGradeManagement = () => {
                 className="w-full appearance-none px-5 py-3 bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-800 dark:text-white outline-none focus:border-indigo-500 transition-all cursor-pointer pr-10"
                 title="Select a grade"
               >
-                <option value="">Select Grade</option>
+                <option value="">{t("vp.selectGrade", "Select Grade")}</option>
                 {grades.map((grade) => (
                   <option key={grade.id} value={grade.grade_name ?? grade.name}>
                     {grade.grade_name ?? grade.name}
@@ -392,7 +394,7 @@ export const VPGradeManagement = () => {
                 title="Select a section (choose a grade first)"
               >
                 <option value="">
-                  {selectedGradeGroup ? 'Select Section' : 'Choose Grade First'}
+                  {selectedGradeGroup ? t('vp.selectSection', 'Select Section') : t('vp.chooseGradeFirst', 'Choose Grade First')}
                 </option>
                 {selectedGradeGroup?.sections.map((section) => (
                   <option key={section.id} value={section.id}>
@@ -416,7 +418,7 @@ export const VPGradeManagement = () => {
                 <div className="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
                   <Users className="text-blue-600 dark:text-blue-400" size={18} />
                 </div>
-                <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold">Total Students</p>
+                <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold">{t("vp.totalStudents", "Total Students")}</p>
               </div>
               <p className="text-2xl font-bold text-slate-800 dark:text-white">{students.length}</p>
             </div>
@@ -426,7 +428,7 @@ export const VPGradeManagement = () => {
                 <div className="p-2 bg-emerald-50 dark:bg-emerald-900/30 rounded-lg">
                   <BookOpen className="text-emerald-600 dark:text-emerald-400" size={18} />
                 </div>
-                <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold">Total Courses</p>
+                <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold">{t("vp.totalCourses", "Total Courses")}</p>
               </div>
               <p className="text-2xl font-bold text-slate-800 dark:text-white">{courses.length}</p>
             </div>
@@ -436,7 +438,7 @@ export const VPGradeManagement = () => {
                 <div className="p-2 bg-purple-50 dark:bg-purple-900/30 rounded-lg">
                   <BarChart3 className="text-purple-600 dark:text-purple-400" size={18} />
                 </div>
-                <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold">Grades Submitted</p>
+                <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold">{t("vp.gradesSubmitted", "Grades Submitted")}</p>
               </div>
               <p className="text-2xl font-bold text-slate-800 dark:text-white">
                 {studentGrades.filter(sg => Object.keys(sg.grades).length > 0).length}
@@ -448,8 +450,8 @@ export const VPGradeManagement = () => {
           <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl border border-slate-100 dark:border-slate-800 p-6">
             <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
               <div>
-                <h3 className="font-bold text-slate-800 dark:text-white">Grade Actions</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Process and calculate grades for this section</p>
+                <h3 className="font-bold text-slate-800 dark:text-white">{t("vp.gradeActions", "Grade Actions")}</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{t("vp.processCalculateGrades", "Process and calculate grades for this section")}</p>
               </div>
               <div className="flex gap-3">
                 <button
@@ -457,7 +459,7 @@ export const VPGradeManagement = () => {
                   disabled={generatingResults || students.length === 0}
                   className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-400 text-white rounded-xl text-sm font-bold transition-all shadow-lg shadow-indigo-600/10"
                 >
-                  {generatingResults ? 'Generating...' : 'Generate Results'}
+                  {generatingResults ? t('schedule.generating', 'Generating...') : t('vp.generateResults', 'Generate Results')}
                 </button>
                 <button
                   onClick={exportToExcel}
@@ -465,7 +467,7 @@ export const VPGradeManagement = () => {
                   className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-400 text-white rounded-xl text-sm font-bold transition-all flex items-center gap-2 shadow-lg shadow-emerald-600/10"
                 >
                   <Download size={16} />
-                  Export Excel
+                  {t("vp.exportExcel", "Export Excel")}
                 </button>
               </div>
             </div>
@@ -484,7 +486,7 @@ export const VPGradeManagement = () => {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-slate-100 dark:border-slate-700">
-                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 dark:text-slate-300 uppercase">Student Name</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 dark:text-slate-300 uppercase">{t("vp.studentName", "Student Name")}</th>
                     {courses.map((course) => (
                       <th key={course.id} className="px-4 py-4 text-center text-xs font-bold text-slate-600 dark:text-slate-300 uppercase whitespace-nowrap">
                         <div>{course.name}</div>
@@ -495,9 +497,9 @@ export const VPGradeManagement = () => {
                         )}
                       </th>
                     ))}
-                    <th className="px-4 py-4 text-center text-xs font-bold text-slate-600 dark:text-slate-300 uppercase">Total</th>
-                    <th className="px-4 py-4 text-center text-xs font-bold text-slate-600 dark:text-slate-300 uppercase">Average</th>
-                    <th className="px-4 py-4 text-center text-xs font-bold text-slate-600 dark:text-slate-300 uppercase">Rank</th>
+                    <th className="px-4 py-4 text-center text-xs font-bold text-slate-600 dark:text-slate-300 uppercase">{t("vp.total", "Total")}</th>
+                    <th className="px-4 py-4 text-center text-xs font-bold text-slate-600 dark:text-slate-300 uppercase">{t("vp.average", "Average")}</th>
+                    <th className="px-4 py-4 text-center text-xs font-bold text-slate-600 dark:text-slate-300 uppercase">{t("vp.rank", "Rank")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
@@ -544,7 +546,7 @@ export const VPGradeManagement = () => {
 
               {studentGrades.length === 0 && (
                 <div className="p-8 text-center">
-                  <p className="text-slate-500 dark:text-slate-400">No grades found for this section</p>
+                  <p className="text-slate-500 dark:text-slate-400">{t("vp.noGradesSection", "No grades found for this section")}</p>
                 </div>
               )}
             </div>
