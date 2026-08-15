@@ -297,7 +297,8 @@ export const LibrarianStaff = () => {
       setShowAddModal(false);
       fetchLibrarianStaff();
     } catch (err: any) {
-      alert(err.response?.data?.error?.message || 'Failed to create librarian account');
+      const serverMsg = err.response?.data?.error?.details || err.response?.data?.error?.message || 'Failed to create librarian account';
+      alert(`Registration Error: ${serverMsg}`);
     } finally {
       setCreating(false);
     }
