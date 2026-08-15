@@ -1158,6 +1158,8 @@
     "excused": "Hayyamame",
     "loadingAbsences": "Barattoota har'a hafan fe'aa jira...",
     "smsSentStatus": "SMS Ergameera",
-    "roomTeacherLabel": "Barsiisaa Kutaa:"
+    "roomTeacherLabel": "Barsiisaa Kutaa:",
+    "loadingGrades": "Kutaalee fe'aa jira...",
+    "loadingStudents": "Barattootaa fe'aa jira..."
   }
 }

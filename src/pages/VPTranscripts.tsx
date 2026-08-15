@@ -284,7 +284,7 @@ export const VPTranscripts = () => {
             className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-sm font-bold text-white transition hover:bg-slate-800 disabled:opacity-40"
           >
             <Printer size={16} />
-            Print
+            {t('vp.print', 'Print')}
           </button>
           <button
             onClick={() => {
@@ -297,7 +297,7 @@ export const VPTranscripts = () => {
             className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
           >
             <Download size={16} />
-            Blank Template
+            {t('vp.blankTemplate', 'Blank Template')}
           </button>
         </div>
       </div>
@@ -367,7 +367,7 @@ export const VPTranscripts = () => {
             {loadingHierarchy ? (
               <div className="flex items-center gap-2 py-6 text-sm text-slate-500">
                 <Loader2 size={16} className="animate-spin" />
-                Loading grades...
+                {t('vp.loadingGrades', 'Loading grades...')}
               </div>
             ) : gradeGroups.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-slate-300 p-6 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
@@ -378,7 +378,7 @@ export const VPTranscripts = () => {
                 {/* Academic Year Dropdown */}
                 <div>
                   <label htmlFor="vp-transcript-year" className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">
-                    Academic Year
+                    {t('vp.academicYear', 'Academic Year')}
                   </label>
                   <div className="relative">
                     <select
@@ -403,7 +403,7 @@ export const VPTranscripts = () => {
                 {/* Semester Dropdown */}
                 <div>
                   <label htmlFor="vp-transcript-semester" className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">
-                    Semester
+                    {t('vp.semester', 'Semester')}
                   </label>
                   <div className="relative">
                     <select
@@ -412,8 +412,8 @@ export const VPTranscripts = () => {
                       onChange={(e) => setSelectedSemester(e.target.value)}
                       className="w-full appearance-none px-4 py-3 bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-800 dark:text-white outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all cursor-pointer pr-10"
                     >
-                      <option>First Semester</option>
-                      <option>Second Semester</option>
+                      <option value="First Semester">{t('vp.firstSemester', 'First Semester')}</option>
+                      <option value="Second Semester">{t('vp.secondSemester', 'Second Semester')}</option>
                     </select>
                     <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                   </div>
@@ -422,7 +422,7 @@ export const VPTranscripts = () => {
                 {/* Grade Dropdown */}
                 <div>
                   <label className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">
-                    Grade
+                    {t('vp.grade', 'Grade')}
                   </label>
                   <div className="relative">
                     <select
@@ -440,7 +440,7 @@ export const VPTranscripts = () => {
                       title="Select a grade level"
                       className="w-full appearance-none px-4 py-3 bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-800 dark:text-white outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all cursor-pointer pr-10"
                     >
-                      <option value="">Select Grade</option>
+                      <option value="">{t('vp.selectGrade', 'Select Grade')}</option>
                       {gradeGroups.map((group) => (
                         <option key={group.grade_name} value={group.grade_name}>
                           {group.grade_name}
@@ -454,7 +454,7 @@ export const VPTranscripts = () => {
                 {/* Section Dropdown */}
                 <div>
                   <label className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">
-                    Section
+                    {t('vp.section', 'Section')}
                   </label>
                   <div className="relative">
                     <select
@@ -465,7 +465,7 @@ export const VPTranscripts = () => {
                       className="w-full appearance-none px-4 py-3 bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-800 dark:text-white outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all cursor-pointer pr-10 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <option value="">
-                        {selectedGrade ? 'Select Section' : 'Choose Grade First'}
+                        {selectedGrade ? t('vp.selectSection', 'Select Section') : t('vp.chooseGradeFirst', 'Choose Grade First')}
                       </option>
                       {selectedGrade &&
                         gradeGroups
@@ -497,7 +497,7 @@ export const VPTranscripts = () => {
             {loadingSectionStudents ? (
               <div className="flex items-center gap-2 py-6 text-sm text-slate-500">
                 <Loader2 size={16} className="animate-spin" />
-                Loading students...
+                {t('vp.loadingStudents', 'Loading students...')}
               </div>
             ) : sectionStudents.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-slate-300 p-6 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">

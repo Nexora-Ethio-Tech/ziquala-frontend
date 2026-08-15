@@ -1157,6 +1157,8 @@
     "excused": "በፈቃድ",
     "loadingAbsences": "የዛሬ የቀሩ ተማሪዎችን በመጫን ላይ...",
     "smsSentStatus": "SMS ተልኳል",
-    "roomTeacherLabel": "የክፍል ኃላፊ መምህር:"
+    "roomTeacherLabel": "የክፍል ኃላፊ መምህር:",
+    "loadingGrades": "ክፍሎችን በመጫን ላይ...",
+    "loadingStudents": "ተማሪዎችን በመጫን ላይ..."
   }
 }

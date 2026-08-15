@@ -1156,6 +1156,8 @@
     "excused": "Excused",
     "loadingAbsences": "Loading today's absences...",
     "smsSentStatus": "SMS Sent",
-    "roomTeacherLabel": "Room Teacher:"
+    "roomTeacherLabel": "Room Teacher:",
+    "loadingGrades": "Loading grades...",
+    "loadingStudents": "Loading students..."
   }
 }
