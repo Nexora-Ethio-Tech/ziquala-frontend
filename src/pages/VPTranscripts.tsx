@@ -273,7 +273,7 @@ export const VPTranscripts = () => {
         <div>
           <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">{t("vp.studentTranscripts", "Student Transcripts")}</h1>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Search by name, digital ID, username, or browse grade, section, and student lists.
+            {t("vp.transcriptSearchDesc", "Search by name, digital ID, username, or browse grade, section, and student lists.")}
           </p>
         </div>
 
@@ -333,12 +333,12 @@ export const VPTranscripts = () => {
               className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white transition hover:bg-blue-700 disabled:opacity-50"
             >
               {searching ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />}
-              {searching ? 'Searching...' : 'Search'}
+              {searching ? t('vp.searching', 'Searching...') : t('vp.search', 'Search')}
             </button>
 
             {searchResults.length > 0 && (
               <div className="mt-4 space-y-2">
-                <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-400">Search Results</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-400">{t("vp.searchResults", "Search Results")}</p>
                 {searchResults.map((student) => (
                   <button
                     key={student.id}
@@ -361,7 +361,7 @@ export const VPTranscripts = () => {
           <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <div className="mb-4 flex items-center gap-2">
               <Users size={18} className="text-blue-600" />
-              <h2 className="text-sm font-black uppercase tracking-[0.2em] text-slate-700 dark:text-slate-200">Grade & Section</h2>
+              <h2 className="text-sm font-black uppercase tracking-[0.2em] text-slate-700 dark:text-slate-200">{t("vp.gradeSection", "Grade & Section")}</h2>
             </div>
 
             {loadingHierarchy ? (
@@ -371,7 +371,7 @@ export const VPTranscripts = () => {
               </div>
             ) : gradeGroups.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-slate-300 p-6 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
-                No grades available for this branch.
+                {t("vp.noGradesAvailable", "No grades available for this branch.")}
               </div>
             ) : (
               <div className="space-y-3">
@@ -487,7 +487,7 @@ export const VPTranscripts = () => {
             <div className="mb-3 flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <Users size={18} className="text-emerald-600" />
-                <h2 className="text-sm font-black uppercase tracking-[0.2em] text-slate-700 dark:text-slate-200">Students</h2>
+                <h2 className="text-sm font-black uppercase tracking-[0.2em] text-slate-700 dark:text-slate-200">{t("vp.students", "Students")}</h2>
               </div>
               {selectedSection && (
                 <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">{selectedSection}</span>
@@ -501,7 +501,7 @@ export const VPTranscripts = () => {
               </div>
             ) : sectionStudents.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-slate-300 p-6 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
-                No students found for this section.
+                {t("vp.noStudentsFoundSection", "No students found for this section.")}
               </div>
             ) : (
               <div className="max-h-[320px] space-y-2 overflow-y-auto pr-1">
@@ -536,7 +536,7 @@ export const VPTranscripts = () => {
           {!templateData ? (
             <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center text-slate-500 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400">
               <FileText className="mx-auto mb-4 h-16 w-16 text-slate-400" />
-              Search for a student or select one from the grade hierarchy to load a transcript.
+              {t("vp.transcriptPrompt", "Search for a student or select one from the grade hierarchy to load a transcript.")}
             </div>
           ) : (
             <div ref={transcriptRef} className="transcript-print overflow-x-auto rounded-[2rem] border border-slate-200 bg-slate-100 p-4 shadow-inner dark:border-slate-800 dark:bg-slate-950 print:border-0 print:bg-white print:p-0 print:shadow-none">

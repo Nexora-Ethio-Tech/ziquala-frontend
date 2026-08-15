@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Users, MessageSquare, Send, Loader, CheckCircle, AlertCircle, Phone, Trash2, Calendar } from 'lucide-react';
 import { useUser } from '../context/UserContext';
@@ -25,6 +26,7 @@ interface SMSMessage {
 }
 
 export const VPAttendanceOversight = () => {
+  const { t } = useTranslation();
   const { user } = useUser();
 
   // Default to today's Ethiopian date for Student Attendance
@@ -327,12 +329,12 @@ export const VPAttendanceOversight = () => {
         </div>
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.25em] text-indigo-400 mb-2">Daily Attendance Monitoring</p>
+            <p className="text-xs font-black uppercase tracking-[0.25em] text-indigo-400 mb-2">{t("vp.dailyAttendanceMonitoring", "Daily Attendance Monitoring")}</p>
             <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-2">
-              Absence Oversight & Parent Notifications
+              {t("vp.absenceOversightTitle", "Absence Oversight & Parent Notifications")}
             </h1>
             <p className="text-slate-400 text-sm max-w-2xl font-medium leading-relaxed">
-              Monitor student absences and send instant SMS notifications to parents.
+              {t("vp.absenceOversightDesc", "Monitor student absences and send instant SMS notifications to parents.")}
             </p>
           </div>
         </div>
@@ -348,7 +350,7 @@ export const VPAttendanceOversight = () => {
               : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
           }`}
         >
-          Student Attendance
+          {t('vp.studentAttendanceTab', 'Student Attendance')}
         </button>
         <button
           onClick={() => setActiveSubTab('teachers')}
@@ -358,7 +360,7 @@ export const VPAttendanceOversight = () => {
               : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
           }`}
         >
-          Teacher Attendance
+          {t('vp.teacherAttendanceTab', 'Teacher Attendance')}
         </button>
       </div>
 
@@ -373,7 +375,7 @@ export const VPAttendanceOversight = () => {
                     <AlertCircle className="text-rose-600 dark:text-rose-400" size={24} />
                   </div>
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Absent Today</p>
+                    <p className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">{t("vp.absentToday", "Absent Today")}</p>
                     <p className="text-3xl font-black text-slate-900 dark:text-white mt-1">
                       {absentStudents.filter(s => s.status === 'absent').length}
                     </p>
@@ -387,7 +389,7 @@ export const VPAttendanceOversight = () => {
                     <CheckCircle className="text-blue-600 dark:text-blue-400" size={24} />
                   </div>
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Excused Today</p>
+                    <p className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">{t("vp.excusedToday", "Excused Today")}</p>
                     <p className="text-3xl font-black text-slate-900 dark:text-white mt-1">
                       {absentStudents.filter(s => s.status === 'excused').length}
                     </p>
@@ -401,7 +403,7 @@ export const VPAttendanceOversight = () => {
                     <Users className="text-indigo-600 dark:text-indigo-400" size={24} />
                   </div>
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Selected</p>
+                    <p className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">{t("vp.selected", "Selected")}</p>
                     <p className="text-3xl font-black text-slate-900 dark:text-white mt-1">{selectedStudents.size}</p>
                   </div>
                 </div>
@@ -413,7 +415,7 @@ export const VPAttendanceOversight = () => {
                     <Phone className="text-purple-600 dark:text-purple-400" size={24} />
                   </div>
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Parents Notified</p>
+                    <p className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">{t("vp.parentsNotified", "Parents Notified")}</p>
                     <p className="text-3xl font-black text-slate-900 dark:text-white mt-1">{notifiedStudents.size}</p>
                   </div>
                 </div>
@@ -441,14 +443,14 @@ export const VPAttendanceOversight = () => {
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20">
               <div className="w-16 h-16 border-4 border-indigo-200 dark:border-indigo-900 border-t-indigo-600 dark:border-t-indigo-400 rounded-full animate-spin mb-4" />
-              <p className="text-slate-600 dark:text-slate-300 font-medium">Loading today's absences...</p>
+              <p className="text-slate-600 dark:text-slate-300 font-medium">{t("vp.loadingAbsences", "Loading today's absences...")}</p>
             </div>
           ) : absentStudents.length === 0 ? (
             <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700 p-12 text-center shadow-sm">
               <CheckCircle className="mx-auto mb-4 text-emerald-500" size={48} />
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Perfect Attendance</h3>
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{t("vp.perfectAttendance", "Perfect Attendance")}</h3>
               <p className="text-slate-600 dark:text-slate-300 max-w-md mx-auto">
-                No absences recorded for today. Try checking again later or make sure attendance has been saved by a teacher.
+                {t("vp.perfectAttendanceDesc", "No absences recorded for today. Try checking again later or make sure attendance has been saved by a teacher.")}
               </p>
             </div>
           ) : (
@@ -464,11 +466,11 @@ export const VPAttendanceOversight = () => {
                       className="w-5 h-5 rounded border-slate-300 text-indigo-600 cursor-pointer"
                     />
                     <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                      {selectAll ? 'Deselect All' : 'Select All'}
+                      {selectAll ? t('vp.deselectAll', 'Deselect All') : t('vp.selectAll', 'Select All')}
                     </span>
                   </label>
                   <span className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
-                    {selectedStudents.size} of {absentStudents.length} selected
+                    {t("vp.selectedOf", { selected: selectedStudents.size, total: absentStudents.length, defaultValue: `${selectedStudents.size} of ${absentStudents.length} selected` })}
                   </span>
                 </div>
                 <button
@@ -480,7 +482,7 @@ export const VPAttendanceOversight = () => {
                     }`}
                 >
                   <MessageSquare size={18} />
-                  Send SMS ({selectedStudents.size})
+                  {t("vp.sendSMS", { count: selectedStudents.size, defaultValue: `Send SMS (${selectedStudents.size})` })}
                 </button>
               </div>
 
@@ -512,23 +514,23 @@ export const VPAttendanceOversight = () => {
                             {notifiedStudents.has(student.id) && (
                               <span className="px-2 py-1 bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/40 rounded text-xs font-bold uppercase tracking-widest inline-flex items-center gap-1">
                                 <CheckCircle size={10} />
-                                SMS Sent
+                                {t("vp.smsSentStatus", "SMS Sent")}
                               </span>
                             )}
                           </div>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                           <div>
-                            <p className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Parent/Guardian</p>
+                            <p className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">{t("vp.parentGuardian", "Parent/Guardian")}</p>
                             <p className="text-slate-700 dark:text-slate-300 font-medium">{student.parentName}</p>
                           </div>
                           <div>
-                            <p className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Phone Number</p>
+                            <p className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">{t("vp.phoneNumber", "Phone Number")}</p>
                             <p className="text-slate-700 dark:text-slate-300 font-medium">{student.parentPhone}</p>
                           </div>
                         </div>
                         <div className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                          <p>Room Teacher: <span className="font-medium text-slate-700 dark:text-slate-300">{student.roomTeacher}</span></p>
+                          <p>{t("vp.roomTeacherLabel", "Room Teacher:")} <span className="font-medium text-slate-700 dark:text-slate-300">{student.roomTeacher}</span></p>
                         </div>
                       </div>
                       {selectedStudents.has(student.id) && (
@@ -549,16 +551,16 @@ export const VPAttendanceOversight = () => {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm">
             <div className="space-y-1">
               <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-                Teacher Attendance & Proxy Scheduling
+                {t("vp.teacherAttendanceProxyTitle", "Teacher Attendance & Proxy Scheduling")}
               </h2>
               <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                View attendance status, closed calendar days, and manage daily proxy substitutions.
+                {t("vp.teacherAttendanceProxyDesc", "View attendance status, closed calendar days, and manage daily proxy substitutions.")}
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-3">
               <div className="flex items-center gap-2">
                 <Calendar className="text-slate-400" size={16} />
-                <label htmlFor="teacherDatePicker" className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Date Picker:</label>
+                <label htmlFor="teacherDatePicker" className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">{t("vp.datePicker", "Date Picker:")}</label>
               </div>
               <div className="w-52">
                 <EthiopianDatePicker
@@ -598,7 +600,7 @@ export const VPAttendanceOversight = () => {
                       <Users className="text-indigo-600 dark:text-indigo-400" size={24} />
                     </div>
                     <div>
-                      <p className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Total Teachers</p>
+                      <p className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">{t("vp.totalTeachers", "Total Teachers")}</p>
                       <p className="text-3xl font-black text-slate-900 dark:text-white mt-1">{teachers.length}</p>
                     </div>
                   </div>
@@ -610,7 +612,7 @@ export const VPAttendanceOversight = () => {
                       <CheckCircle className="text-emerald-600 dark:text-emerald-400" size={24} />
                     </div>
                     <div>
-                      <p className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Present Today</p>
+                      <p className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">{t("vp.presentToday", "Present Today")}</p>
                       <p className="text-3xl font-black text-slate-900 dark:text-white mt-1">
                         {teachers.filter(t => t.attendanceStatus === 'present').length}
                       </p>
@@ -624,7 +626,7 @@ export const VPAttendanceOversight = () => {
                       <AlertCircle className="text-rose-600 dark:text-rose-400" size={24} />
                     </div>
                     <div>
-                      <p className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Absent / Excused</p>
+                      <p className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">{t("vp.absentExcused", "Absent / Excused")}</p>
                       <p className="text-3xl font-black text-slate-900 dark:text-white mt-1">
                         {teachers.filter(t => t.attendanceStatus === 'absent' || t.attendanceStatus === 'excused').length}
                       </p>
@@ -638,9 +640,9 @@ export const VPAttendanceOversight = () => {
                       <Users className="text-amber-600 dark:text-amber-400" size={24} />
                     </div>
                     <div>
-                      <p className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Proxy Coverages</p>
+                      <p className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">{t("vp.proxyCoverages", "Proxy Coverages")}</p>
                       <p className="text-xl font-black text-slate-900 dark:text-white mt-1.5">
-                        {proxies.length} Assigned
+                        {t("vp.assigned", { count: proxies.length, defaultValue: `${proxies.length} Assigned` })}
                       </p>
                     </div>
                   </div>
@@ -651,7 +653,7 @@ export const VPAttendanceOversight = () => {
               <div className="relative">
                 <input
                   type="text"
-                  placeholder="Search teachers by name or department..."
+                  placeholder={t("vp.searchTeachersDept", "Search teachers by name or department...")}
                   value={teacherSearch}
                   onChange={(e) => setTeacherSearch(e.target.value)}
                   className="w-full px-6 py-4 rounded-3xl border border-slate-150 dark:border-slate-800/80 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 shadow-sm text-sm"
@@ -667,9 +669,9 @@ export const VPAttendanceOversight = () => {
               ) : filteredTeachers.length === 0 ? (
                 <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700 p-12 text-center shadow-sm">
                   <Users className="mx-auto mb-4 text-slate-400" size={48} />
-                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">No Teachers Found</h3>
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{t("vp.noTeachersFound", "No Teachers Found")}</h3>
                   <p className="text-slate-600 dark:text-slate-300 max-w-md mx-auto">
-                    No teacher profiles match your current search.
+                    {t("vp.noTeachersFoundDesc", "No teacher profiles match your current search.")}
                   </p>
                 </div>
               ) : (
@@ -678,10 +680,10 @@ export const VPAttendanceOversight = () => {
                     <table className="w-full border-collapse text-left">
                       <thead>
                         <tr className="border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50">
-                          <th className="p-4 pl-6 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Teacher</th>
-                          <th className="p-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Department & Subjects</th>
-                          <th className="p-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Attendance Status</th>
-                          <th className="p-4 pr-6 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Schedules & Proxy Substitutes</th>
+                          <th className="p-4 pl-6 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">{t("vp.colTeacher", "Teacher")}</th>
+                          <th className="p-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">{t("vp.colDeptSubjects", "Department & Subjects")}</th>
+                          <th className="p-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">{t("vp.colAttendanceStatus", "Attendance Status")}</th>
+                          <th className="p-4 pr-6 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">{t("vp.colSchedulesProxy", "Schedules & Proxy Substitutes")}</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
@@ -716,16 +718,16 @@ export const VPAttendanceOversight = () => {
                                     : 'bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-400 border-blue-100 dark:border-blue-800/50'
                                 }`}
                               >
-                                <option value="present">Present</option>
-                                <option value="absent">Absent</option>
-                                <option value="excused">Excused</option>
+                                <option value="present">{t("vp.present", "Present")}</option>
+                                <option value="absent">{t("vp.absent", "Absent")}</option>
+                                <option value="excused">{t("vp.excused", "Excused")}</option>
                               </select>
                             </td>
                             <td className="p-4 pr-6">
                               {teacher.attendanceStatus === 'present' ? (
                                 <span className="px-2.5 py-1 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/40 rounded-lg text-xs font-bold inline-flex items-center gap-1">
                                   <CheckCircle size={12} />
-                                  Present (No Cover Needed)
+                                  {t("vp.presentNoCover", "Present (No Cover Needed)")}
                                 </span>
                               ) : (
                                 <div className="space-y-2">
