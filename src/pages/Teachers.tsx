@@ -1093,7 +1093,7 @@ export const Teachers = () => {
                 <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
                   <UserPlus size={20} />
                 </div>
-                <h3 className="font-bold text-slate-800 dark:text-slate-100">Register New Teacher</h3>
+                <h3 className="font-bold text-slate-800 dark:text-slate-100">{t("teachers.registerNewTeacher", "Register New Teacher")}</h3>
               </div>
               <button type="button" title="Close register teacher dialog" onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-slate-600">
                 <X size={20} />
@@ -1102,7 +1102,7 @@ export const Teachers = () => {
 
             <form className="p-6 space-y-4" onSubmit={handleAddTeacher}>
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-500 uppercase">Full Name</label>
+                <label className="text-xs font-bold text-slate-500 uppercase">{t("teachers.fullName", "Full Name")}</label>
                 <input
                   type="text"
                   required
@@ -1110,12 +1110,12 @@ export const Teachers = () => {
                   onChange={(e) => setFormData({ ...formData, name: e.target.value.replace(/[^a-zA-Z\u00C0-\u024F\s'-]/g, '') })}
                   onBlur={(e) => { const c = e.target.value.trim().split(/\s+/).filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' '); setFormData({ ...formData, name: c }); }}
                   className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="e.g. Ato Bekele Tesfaye"
+                  placeholder={t("teachers.fullNamePlaceholder", "e.g. Ato Bekele Tesfaye")}
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-500 uppercase">Email Address</label>
+                <label className="text-xs font-bold text-slate-500 uppercase">{t("teachers.emailAddress", "Email Address")}</label>
                 <input
                   type="email"
                   required
@@ -1127,7 +1127,7 @@ export const Teachers = () => {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-500 uppercase">Role</label>
+                <label className="text-xs font-bold text-slate-500 uppercase">{t("teachers.role", "Role")}</label>
                 <select
                   required
                   title="Select staff role"
@@ -1142,13 +1142,13 @@ export const Teachers = () => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <PhoneInput
-                  label="Phone Number"
+                  label={t("teachers.phoneNumber", "Phone Number")}
                   value={formData.phoneNumber}
                   onChange={(val) => setFormData({ ...formData, phoneNumber: val })}
                   error={phoneError}
                 />
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-500 uppercase">Emergency Contact Name</label>
+                  <label className="text-xs font-bold text-slate-500 uppercase">{t("teachers.emergencyContactName", "Emergency Contact Name")}</label>
                   <input
                     type="text"
                     required
@@ -1156,24 +1156,24 @@ export const Teachers = () => {
                     onChange={(e) => setFormData({ ...formData, emergencyContactName: e.target.value.replace(/[^a-zA-Z\u00C0-\u024F\s'-]/g, '') })}
                     onBlur={(e) => { const c = e.target.value.trim().split(/\s+/).filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' '); setFormData({ ...formData, emergencyContactName: c }); }}
                     className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Contact person"
+                    placeholder={t("teachers.emergencyContactPlaceholder", "Contact person")}
                   />
                 </div>
                 <PhoneInput
-                  label="Emergency Contact Phone"
+                  label={t("teachers.emergencyContactPhone", "Emergency Contact Phone")}
                   value={formData.emergencyContactPhone}
                   onChange={(val) => setFormData({ ...formData, emergencyContactPhone: val })}
                   error={emergencyPhoneError}
                 />
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-500 uppercase">Education Status</label>
+                  <label className="text-xs font-bold text-slate-500 uppercase">{t("teachers.educationStatus", "Education Status")}</label>
                   <select
                     title="Select education level"
                     value={formData.educationLevel}
                     onChange={(e) => setFormData({ ...formData, educationLevel: e.target.value })}
                     className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="">Select level</option>
+                    <option value="">{t("teachers.selectLevel", "Select level")}</option>
                     <option value="Diploma">Diploma</option>
                     <option value="Degree">Degree</option>
                     <option value="Master">Master</option>
@@ -1181,7 +1181,7 @@ export const Teachers = () => {
                   </select>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-500 uppercase">Specialty / Course</label>
+                  <label className="text-xs font-bold text-slate-500 uppercase">{t("teachers.specialtyCourse", "Specialty / Course")}</label>
                   <input
                     type="text"
                     title="Specialty or course taught"
@@ -1190,18 +1190,18 @@ export const Teachers = () => {
                     onChange={(e) => setFormData({ ...formData, specialty: e.target.value.replace(/[^a-zA-Z\u00C0-\u024F\s'-]/g, '') })}
                     onBlur={(e) => { const c = e.target.value.trim().split(/\s+/).filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' '); setFormData({ ...formData, specialty: c }); }}
                     className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Math, English, Biology..."
+                    placeholder={t("teachers.specialtyPlaceholder", "Math, English, Biology...")}
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-500 uppercase">Date of Birth</label>
+                  <label className="text-xs font-bold text-slate-500 uppercase">{t("teachers.dob", "Date of Birth")}</label>
                   <EthiopianDatePicker
                     value={formData.dob}
                     onChange={(val) => setFormData({ ...formData, dob: val })}
                   />
                 </div>
                 <div className="space-y-1 sm:col-span-2">
-                  <label className="text-xs font-bold text-slate-500 uppercase">Previous School</label>
+                  <label className="text-xs font-bold text-slate-500 uppercase">{t("teachers.previousSchool", "Previous School")}</label>
                   <input
                     type="text"
                     required
@@ -1209,11 +1209,11 @@ export const Teachers = () => {
                     onChange={(e) => setFormData({ ...formData, previousSchool: e.target.value.replace(/[^a-zA-Z\u00C0-\u024F\s'-]/g, '') })}
                     onBlur={(e) => { const c = e.target.value.trim().split(/\s+/).filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' '); setFormData({ ...formData, previousSchool: c }); }}
                     className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Previous School"
+                    placeholder={t("teachers.previousSchoolPlaceholder", "Previous School")}
                   />
                 </div>
                 <div className="space-y-1 sm:col-span-2">
-                  <label className="text-xs font-bold text-slate-500 uppercase">Experience (Years)</label>
+                  <label className="text-xs font-bold text-slate-500 uppercase">{t("teachers.experienceYears", "Experience (Years)")}</label>
                   <input
                     type="text"
                     inputMode="numeric"
@@ -1221,12 +1221,12 @@ export const Teachers = () => {
                     value={formData.experienceYears}
                     onChange={(e) => setFormData({ ...formData, experienceYears: e.target.value.replace(/[^0-9]/g, '') })}
                     className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="e.g. 5"
+                    placeholder={t("teachers.experiencePlaceholder", "e.g. 5")}
                   />
                 </div>
                 <div className="space-y-1 sm:col-span-2">
                   <label className="text-xs font-bold text-slate-500 uppercase">
-                    Staff Document (Mandatory, PDF or Image, max 2MB)
+                    {t("teachers.staffDocument", "Staff Document (Mandatory, PDF or Image, max 2MB)")}
                   </label>
                   <input
                     type="file"
@@ -1251,7 +1251,7 @@ export const Teachers = () => {
 
               <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
                 <p className="text-xs text-blue-700 dark:text-blue-300">
-                  <strong>Note:</strong> A 4-digit PIN will be auto-generated. Teacher will need School Admin approval to login.
+                  {t("teachers.pinGenerationNote", "Note: A 4-digit PIN will be auto-generated. Teacher will need School Admin approval to login.")}
                 </p>
               </div>
 
@@ -1262,7 +1262,7 @@ export const Teachers = () => {
                   className="flex-1 px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg font-bold text-sm text-slate-500 hover:bg-slate-50"
                   disabled={creating}
                 >
-                  Cancel
+                  {t("teachers.cancel", "Cancel")}
                 </button>
                 <button
                   type="submit"
@@ -1274,7 +1274,7 @@ export const Teachers = () => {
                   ) : (
                     <Check size={18} />
                   )}
-                  <span>{creating ? 'Creating...' : 'Create Teacher'}</span>
+                  <span>{creating ? t('teachers.creating', 'Creating...') : t('teachers.createTeacher', 'Create Teacher')}</span>
                 </button>
               </div>
             </form>

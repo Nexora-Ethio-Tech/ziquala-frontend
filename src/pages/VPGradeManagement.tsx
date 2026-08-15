@@ -271,7 +271,7 @@ export const VPGradeManagement = () => {
         <div className="flex flex-col sm:flex-row gap-6 items-end">
           <div className="flex-1">
             <label htmlFor="vp-academic-year" className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">
-              Academic Year
+              {t("vp.academicYear", "Academic Year")}
             </label>
             <div className="relative">
               <select
@@ -294,7 +294,7 @@ export const VPGradeManagement = () => {
           </div>
           <div className="flex-1">
             <label htmlFor="vp-semester" className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">
-              Semester
+              {t("vp.semester", "Semester")}
             </label>
             <div className="relative">
               <select
@@ -303,8 +303,8 @@ export const VPGradeManagement = () => {
                 onChange={(e) => setSelectedSemester(e.target.value)}
                 className="w-full appearance-none px-5 py-3 bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-800 dark:text-white outline-none focus:border-indigo-500 transition-all cursor-pointer pr-10"
               >
-                <option>First Semester</option>
-                <option>Second Semester</option>
+                <option value="First Semester">{t("vp.firstSemester", "First Semester")}</option>
+                <option value="Second Semester">{t("vp.secondSemester", "Second Semester")}</option>
               </select>
               <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
             </div>
@@ -313,7 +313,7 @@ export const VPGradeManagement = () => {
             <div className="px-5 py-3 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-2xl text-sm">
               <span className="text-xs font-black text-indigo-500 uppercase tracking-widest">{t("vp.viewing", "Viewing")}</span>
               <p className="font-bold text-indigo-700 dark:text-indigo-300 mt-0.5">
-                {gregorianToECYear(selectedYear)} E.C. &bull; {selectedSemester}
+                {gregorianToECYear(selectedYear)} E.C. &bull; {selectedSemester === 'First Semester' ? t('vp.firstSemester', 'First Semester') : selectedSemester === 'Second Semester' ? t('vp.secondSemester', 'Second Semester') : selectedSemester}
               </p>
             </div>
           </div>
@@ -333,7 +333,7 @@ export const VPGradeManagement = () => {
           {/* Grade Dropdown */}
           <div>
             <label htmlFor="vp-grade" className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">
-              Grade
+              {t("vp.grade", "Grade")}
             </label>
             <div className="relative">
               <select
@@ -369,7 +369,7 @@ export const VPGradeManagement = () => {
           {/* Section Dropdown */}
           <div>
             <label htmlFor="vp-section" className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">
-              Section
+              {t("vp.section", "Section")}
             </label>
             <div className="relative">
               <select
