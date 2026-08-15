@@ -1160,6 +1160,7 @@
     "smsSentStatus": "SMS Ergameera",
     "roomTeacherLabel": "Barsiisaa Kutaa:",
     "loadingGrades": "Kutaalee fe'aa jira...",
-    "loadingStudents": "Barattootaa fe'aa jira..."
+    "loadingStudents": "Barattootaa fe'aa jira...",
+    "academicOversightHeader": "To'annoo Akkaadaamii"
   }
 }

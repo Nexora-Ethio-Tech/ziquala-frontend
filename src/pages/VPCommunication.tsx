@@ -179,7 +179,7 @@ export const VPCommunication = () => {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(99,102,241,0.2),_transparent_50%)]" />
         <div className="absolute top-0 right-0 w-80 h-80 bg-white/5 rounded-full blur-3xl transform translate-x-20 -translate-y-20"></div>
         <div className="relative z-10">
-          <p className="text-xs font-black uppercase tracking-[0.25em] text-indigo-400 mb-2">Academic Oversight</p>
+          <p className="text-xs font-black uppercase tracking-[0.25em] text-indigo-400 mb-2">{t("vp.academicOversightHeader", "Academic Oversight")}</p>
           <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-2">{t("vp.commBookTracker", "Communication Book Tracker")}</h1>
           <p className="text-slate-400 text-sm max-w-2xl font-medium leading-relaxed">
             {t("vp.commBookTrackerDesc", "Monitor and audit weekly communication books sent by Home Room Teachers to parents. Keep track of completion rates per grade and section.")}
@@ -193,7 +193,7 @@ export const VPCommunication = () => {
           {/* Grade Dropdown */}
           <div>
             <label htmlFor="vp-grade-select" className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">
-              Grade
+              {t("vp.grade", "Grade")}
             </label>
             <div className="relative">
               <select
@@ -202,7 +202,7 @@ export const VPCommunication = () => {
                 onChange={(e) => handleGradeChange(e.target.value)}
                 className="w-full appearance-none px-5 py-3 bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-800 dark:text-white outline-none focus:border-indigo-500 transition-all cursor-pointer pr-10"
               >
-                <option value="">Select Grade</option>
+                <option value="">{t("vp.selectGrade", "Select Grade")}</option>
                 {grades.map((grade) => (
                   <option key={grade.id} value={grade.grade_name ?? grade.name}>
                     {grade.grade_name ?? grade.name}
@@ -216,7 +216,7 @@ export const VPCommunication = () => {
           {/* Section Dropdown */}
           <div>
             <label htmlFor="vp-section-select" className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">
-              Section
+              {t("vp.section", "Section")}
             </label>
             <div className="relative">
               <select
@@ -227,7 +227,7 @@ export const VPCommunication = () => {
                 className="w-full appearance-none px-5 py-3 bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-800 dark:text-white outline-none focus:border-indigo-500 transition-all cursor-pointer pr-10 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <option value="">
-                  {selectedGrade ? 'Select Section' : 'Choose Grade First'}
+                  {selectedGrade ? t("vp.selectSection", "Select Section") : t("vp.chooseGradeFirst", "Choose Grade First")}
                 </option>
                 {selectedGradeGroup?.sections.map((section) => (
                   <option key={section.id} value={section.id}>

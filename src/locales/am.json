@@ -1159,6 +1159,7 @@
     "smsSentStatus": "SMS ተልኳል",
     "roomTeacherLabel": "የክፍል ኃላፊ መምህር:",
     "loadingGrades": "ክፍሎችን በመጫን ላይ...",
-    "loadingStudents": "ተማሪዎችን በመጫን ላይ..."
+    "loadingStudents": "ተማሪዎችን በመጫን ላይ...",
+    "academicOversightHeader": "የትምህርት ቁጥጥር"
   }
 }
