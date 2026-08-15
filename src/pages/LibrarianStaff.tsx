@@ -371,11 +371,11 @@ export const LibrarianStaff = () => {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50">
-                  <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">{t("teachers.colTeacher", "Name")}</th>
-                  <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">{t("teachers.colEmail", "Email")}</th>
-                  <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">{t("teachers.colDigitalId", "Digital ID")}</th>
-                  <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">{t("teachers.colStatus", "Status")}</th>
-                  <th className="px-6 py-3 text-center text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">{t("teachers.colActions", "Actions")}</th>
+                  <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">{t("librarian.name", "Name")}</th>
+                  <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">{t("librarian.email", "Email")}</th>
+                  <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">{t("librarian.digitalId", "Digital ID")}</th>
+                  <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">{t("librarian.status", "Status")}</th>
+                  <th className="px-6 py-3 text-center text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">{t("librarian.actions", "Actions")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -464,7 +464,7 @@ export const LibrarianStaff = () => {
                 <div className="p-2 bg-emerald-100 text-emerald-600 rounded-lg">
                   <UserPlus size={20} />
                 </div>
-                <h3 className="font-bold text-slate-800 dark:text-slate-100">{t("teachers.addNewLibrarian", "Add New Librarian")}</h3>
+                <h3 className="font-bold text-slate-800 dark:text-slate-100">{t("librarian.addNewLibrarian", "Add New Librarian")}</h3>
               </div>
               <button
                 type="button"
@@ -478,7 +478,7 @@ export const LibrarianStaff = () => {
 
             <form onSubmit={handleAddLibrarian} className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{t("teachers.fullName", "Full Name")}</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{t("librarian.fullName", "Full Name")}</label>
                 <input
                   type="text"
                   title="Librarian full name"
@@ -491,7 +491,7 @@ export const LibrarianStaff = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{t("teachers.schoolEmail", "School Email")}</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{t("librarian.schoolEmail", "School Email")}</label>
                 <input
                   type="email"
                   value={formData.email}
@@ -503,13 +503,13 @@ export const LibrarianStaff = () => {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <PhoneInput
-                  label={t("teachers.phoneNumber", "Phone Number")}
+                  label={t("librarian.phoneNumber", "Phone Number")}
                   value={formData.phoneNumber}
                   onChange={(val) => setFormData({ ...formData, phoneNumber: val })}
                   error={phoneError}
                 />
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">{t("teachers.emergencyContactName", "Emergency Contact Name")}</label>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">{t("librarian.emergencyContactName", "Emergency Contact Name")}</label>
                   <input
                     type="text"
                     title="Emergency contact person's name"
@@ -522,15 +522,15 @@ export const LibrarianStaff = () => {
                   />
                 </div>
                 <PhoneInput
-                  label={t("teachers.emergencyContactPhone", "Emergency Contact Phone")}
+                  label={t("librarian.emergencyContactPhone", "Emergency Contact Phone")}
                   value={formData.emergencyContactPhone}
                   onChange={(val) => setFormData({ ...formData, emergencyContactPhone: val })}
                   error={emergencyPhoneError}
                 />
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{t("teachers.educationStatus", "Education Status")}</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{t("librarian.educationStatus", "Education Status")}</label>
                   <select title="Select education level" value={formData.educationLevel} onChange={(e) => setFormData({ ...formData, educationLevel: e.target.value })} className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none">
-                    <option value="">{t("teachers.selectLevel", "Select level")}</option>
+                    <option value="">{t("librarian.selectLevel", "Select level")}</option>
                     <option value="Diploma">{t("teachers.diploma", "Diploma")}</option>
                     <option value="Degree">{t("teachers.degree", "Degree")}</option>
                     <option value="Master">{t("teachers.master", "Master")}</option>
@@ -538,7 +538,7 @@ export const LibrarianStaff = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{t("teachers.specialtyCourse", "Specialty / Course")}</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{t("librarian.specialtyCourse", "Specialty / Course")}</label>
                   <input
                     type="text"
                     title="Librarian specialty or course"
@@ -551,14 +551,14 @@ export const LibrarianStaff = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{t("teachers.dob", "Date of Birth")}</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{t("librarian.dateOfBirth", "Date of Birth")}</label>
                   <EthiopianDatePicker
                     value={formData.dob}
                     onChange={(val) => setFormData({ ...formData, dob: val })}
                   />
                 </div>
                 <div className="sm:col-span-2">
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{t("teachers.previousSchool", "Previous School")}</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{t("librarian.previousSchool", "Previous School")}</label>
                   <input
                     type="text"
                     title="Previous educational institution"
@@ -571,7 +571,7 @@ export const LibrarianStaff = () => {
                   />
                 </div>
                 <div className="sm:col-span-2">
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{t("teachers.experienceYears", "Experience (Years)")}</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{t("librarian.experienceYears", "Experience (Years)")}</label>
                   <input
                     type="text"
                     inputMode="numeric"
@@ -585,7 +585,7 @@ export const LibrarianStaff = () => {
                 </div>
                 <div className="sm:col-span-2">
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                    {t("teachers.staffDocument", "Staff Document (Mandatory, PDF or Image, max 2MB)")}
+                    {t("librarian.staffDocument", "Staff Document (Mandatory, PDF or Image, max 2MB)")}
                   </label>
                   <input
                     type="file"
@@ -620,7 +620,7 @@ export const LibrarianStaff = () => {
                   disabled={creating}
                   className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-medium transition-colors disabled:opacity-50"
                 >
-                  {creating ? t('teachers.creating', 'Creating...') : t('teachers.create', 'Create')}
+                  {creating ? t('librarian.creating', 'Creating...') : t('librarian.create', 'Create')}
                 </button>
               </div>
             </form>
@@ -755,7 +755,7 @@ export const LibrarianStaff = () => {
             <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-blue-100 text-blue-600 rounded-lg"><Edit2 size={20} /></div>
-                <h3 className="font-bold text-slate-800 dark:text-slate-100">Edit Librarian</h3>
+                <h3 className="font-bold text-slate-800 dark:text-slate-100">{t('librarian.editLibrarian', 'Edit Librarian')}</h3>
               </div>
               <button
                 type="button"

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 
 import { Book, Search, Plus, CheckCircle, Clock, RefreshCw, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
@@ -42,6 +43,7 @@ interface LoanType {
 }
 
 export const Library = () => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<'catalog' | 'loans'>('catalog');
   const [books, setBooks] = useState<BookType[]>([]);
   const [availableBooks, setAvailableBooks] = useState<AvailableBook[]>([]);
@@ -231,8 +233,8 @@ export const Library = () => {
     <div className="space-y-6 pb-24">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Library Management</h2>
-          <p className="text-slate-500 dark:text-slate-400 text-sm">Organize school books, track loans, and manage resources.</p>
+          <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">{t("libraryPage.libraryManagement", "Library Management")}</h2>
+          <p className="text-slate-500 dark:text-slate-400 text-sm">{t("libraryPage.librarySub", "Organize school books, track loans, and manage resources.")}</p>
         </div>
         <div className="flex gap-2">
           <button
@@ -249,7 +251,7 @@ export const Library = () => {
               className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors font-bold text-sm"
             >
               <Plus size={18} />
-              <span>Add Book</span>
+              <span>{t("libraryPage.addBook", "Add Book")}</span>
             </button>
           ) : (
             <button
@@ -257,7 +259,7 @@ export const Library = () => {
               className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors font-bold text-sm"
             >
               <Plus size={18} />
-              <span>Issue Book</span>
+              <span>{t("libraryPage.issueBook", "Issue Book")}</span>
             </button>
           )}
         </div>
@@ -283,7 +285,7 @@ export const Library = () => {
           Active Loans
           {overdueLoans.length > 0 && (
             <span className="bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full text-[10px]">
-              {overdueLoans.length} Overdue
+              {t("libraryPage.overdueReturns", "{{count}} Overdue returns", { count: overdueLoans.length })}
             </span>
           )}
         </button>
@@ -291,29 +293,29 @@ export const Library = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-gradient-to-br from-blue-600 to-blue-700 p-6 rounded-2xl text-white shadow-lg">
-          <p className="text-blue-100 text-sm font-medium">Total Collection</p>
-          <h3 className="text-3xl font-bold mt-1">{books.length} Books</h3>
+          <p className="text-blue-100 text-sm font-medium">{t("libraryPage.totalCollection", "Total Collection")}</p>
+          <h3 className="text-3xl font-bold mt-1">{t("libraryPage.booksCount", "{{count}} Books", { count: books.length })}</h3>
           <div className="mt-4 flex items-center gap-2 text-xs text-blue-100">
             <Book size={14} />
-            <span>Inventory across all branches</span>
+            <span>{t("libraryPage.inventoryAcrossBranches", "Inventory across all branches")}</span>
           </div>
         </div>
 
         <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
-          <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Currently Borrowed</p>
+          <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">{t("libraryPage.currentlyBorrowed", "Currently Borrowed")}</p>
           <h3 className="text-3xl font-bold text-slate-800 dark:text-slate-100 mt-1">{loans.filter(l => !l.returned_at).length}</h3>
           <div className="mt-4 flex items-center gap-2 text-xs text-amber-600">
             <Clock size={14} />
-            <span>{overdueLoans.length} Overdue returns</span>
+            <span>{t("libraryPage.overdueReturns", "{{count}} Overdue returns", { count: overdueLoans.length })}</span>
           </div>
         </div>
 
         <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
-          <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Available Now</p>
+          <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">{t("libraryPage.availableNow", "Available Now")}</p>
           <h3 className="text-3xl font-bold text-slate-800 dark:text-slate-100 mt-1">{books.reduce((acc, b) => acc + (b.available || 0), 0)}</h3>
           <div className="mt-4 flex items-center gap-2 text-xs text-emerald-600 font-medium">
             <CheckCircle size={14} />
-            <span>Ready for checkout</span>
+            <span>{t("libraryPage.readyForCheckout", "Ready for checkout")}</span>
           </div>
         </div>
       </div>
@@ -325,7 +327,7 @@ export const Library = () => {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
               <input
                 type="text"
-                placeholder="Search by title or author..."
+                placeholder={t("libraryPage.searchPlaceholder", "Search by title or author...")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none w-full"
@@ -337,11 +339,11 @@ export const Library = () => {
             <table className="w-full text-left">
               <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
                 <tr>
-                  <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Book Info</th>
-                  <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Shelf / Book ID</th>
-                  <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Stock</th>
-                  <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Status</th>
-                  <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase text-right">Actions</th>
+                  <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">{t("libraryPage.colBookInfo", "Book Info")}</th>
+                  <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">{t("libraryPage.colShelfBookId", "Shelf / Book ID")}</th>
+                  <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">{t("libraryPage.colStock", "Stock")}</th>
+                  <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">{t("libraryPage.colStatus", "Status")}</th>
+                  <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase text-right">{t("libraryPage.colActions", "Actions")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -359,7 +361,7 @@ export const Library = () => {
                     <td className="px-6 py-4">
                       <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${book.available > 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
                         }`}>
-                        {book.available > 0 ? 'Available' : 'Out of Stock'}
+                        {book.available > 0 ? t('libraryPage.available', 'Available') : t('libraryPage.outOfStock', 'Out of Stock')}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
@@ -386,8 +388,8 @@ export const Library = () => {
             <table className="w-full text-left">
               <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
                 <tr>
-                  <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Student / Book</th>
-                  <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Dates</th>
+                  <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">{t("libraryPage.colStudentBook", "Student / Book")}</th>
+                  <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">{t("libraryPage.colDates", "Dates")}</th>
                   <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Status</th>
                   <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase text-right">Actions</th>
                 </tr>
@@ -408,7 +410,7 @@ export const Library = () => {
                       <span className={`px-2.5 py-1.5 rounded-full text-xs font-bold uppercase ${loan.returned_at ? 'bg-emerald-100 text-emerald-700' :
                           new Date(loan.due_date) < new Date() ? 'bg-rose-100 text-rose-700' : 'bg-blue-100 text-blue-700'
                         }`}>
-                        {loan.returned_at ? 'Returned' : new Date(loan.due_date) < new Date() ? 'Overdue' : 'Borrowed'}
+                        {loan.returned_at ? t('libraryPage.returned', 'Returned') : new Date(loan.due_date) < new Date() ? t('libraryPage.overdue', 'Overdue') : t('libraryPage.borrowed', 'Borrowed')}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
@@ -417,7 +419,7 @@ export const Library = () => {
                           onClick={() => handleReturnBook(loan.id)}
                           className="bg-emerald-600 text-white px-3 py-1.5 rounded text-xs font-bold hover:bg-emerald-700 transition-colors"
                         >
-                          Mark Return
+                          {t("libraryPage.markReturn", "Mark Return")}
                         </button>
                       )}
                     </td>
@@ -432,10 +434,10 @@ export const Library = () => {
       {showIssueModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
           <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-md p-6 shadow-2xl">
-            <h3 className="text-xl font-bold mb-4">Issue Book</h3>
+            <h3 className="text-xl font-bold mb-4">{t("libraryPage.issueBook", "Issue Book")}</h3>
             <form onSubmit={handleIssueBook} className="space-y-4">
               <div className="space-y-2">
-                <label className="block text-xs font-bold text-slate-500 uppercase">Select Book</label>
+                <label className="block text-xs font-bold text-slate-500 uppercase">{t("libraryPage.selectBook", "Select Book")}</label>
                 <div className="relative">
                   <input
                     type="text"
@@ -446,7 +448,7 @@ export const Library = () => {
                     }}
                     onFocus={() => setShowBookDropdown(true)}
                     className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border rounded-lg text-sm"
-                    placeholder="Search by Book ID, title or author..."
+                    placeholder={t("libraryPage.searchBookPlaceholder", "Search by Book ID, title or author...")}
                     aria-label="Search available books"
                     required
                   />
@@ -482,12 +484,12 @@ export const Library = () => {
                     </div>
                   )}
                 </div>
-                <p className="text-xs text-slate-500">Selected Book ID: <span className="font-mono">{issueData.book_id || 'None'}</span></p>
+                <p className="text-xs text-slate-500">{t("libraryPage.selectedBookId", "Selected Book ID:")} <span className="font-mono">{issueData.book_id || t("libraryPage.none", "None")}</span></p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Borrower Type</label>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">{t("libraryPage.borrowerType", "Borrower Type")}</label>
                   <select
                     title="Select borrower type (Student or Staff)"
                     value={issueData.borrower_type}
@@ -497,12 +499,12 @@ export const Library = () => {
                     }}
                     className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border rounded-lg text-sm"
                   >
-                    <option value="student">Student</option>
-                    <option value="teacher">Teacher</option>
+                    <option value="student">{t("libraryPage.student", "Student")}</option>
+                    <option value="teacher">{t("libraryPage.teacher", "Teacher")}</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Student/Teacher ID</label>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">{t("libraryPage.borrowerIdLabel", "Student/Teacher ID")}</label>
                   <input
                     type="text"
                     value={issueData.borrower_id}
@@ -512,7 +514,7 @@ export const Library = () => {
                     }}
                     onBlur={handleValidateBorrower}
                     className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border rounded-lg text-sm"
-                    placeholder="Enter student or teacher ID"
+                    placeholder={t("libraryPage.borrowerIdPlaceholder", "Enter student or teacher ID")}
                     required
                   />
                   {borrowerValidation.message && (
@@ -524,7 +526,7 @@ export const Library = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Due Date</label>
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">{t("libraryPage.dueDate", "Due Date")}</label>
                 <input
                   type="date"
                   title="Set book due date"
@@ -571,7 +573,7 @@ export const Library = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto">
           <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-lg p-6 shadow-2xl my-8">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold">Add New Book</h3>
+              <h3 className="text-xl font-bold">{t("libraryPage.addNewBook", "Add New Book")}</h3>
               <button
                 type="button"
                 title="Close add book modal"
