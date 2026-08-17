@@ -1384,6 +1384,9 @@
     "teacher": "Barsiisaa",
     "borrowerIdLabel": "ID Barataa/Barsiisaa",
     "borrowerIdPlaceholder": "ID barataa yookiin barsiisaa galchi",
-    "dueDate": "Guyyaa Deebisaa"
+    "dueDate": "Guyyaa Deebisaa",
+    "bookNamePlaceholder": "fkn., The Great Gatsby",
+    "authorPlaceholder": "fkn., F. Scott Fitzgerald",
+    "shelfPlaceholder": "fkn., A-5-12"
   }
 }

@@ -1367,7 +1367,7 @@
     "markReturn": "ተመልሷል በል",
     "addNewBook": "አዲስ መጽሐፍ ጨምር",
     "bookInformation": "የመጽሐፍ መረጃ",
-    "bookName": "የመጽሐፍ ስም",
+    "bookName": "የመጽሐፉ ስም",
     "author": "ደራሲ",
     "shelfNumber": "የመደርደሪያ ቁጥር",
     "availableCopies": "የሚገኙ ኮፒዎች",
@@ -1384,6 +1384,9 @@
     "teacher": "መምህር",
     "borrowerIdLabel": "የተማሪ/መምህር ID",
     "borrowerIdPlaceholder": "የተማሪ ወይም የመምህር ID ያስገቡ",
-    "dueDate": "የመመለሻ ቀን"
+    "dueDate": "የመመለሻ ቀን",
+    "bookNamePlaceholder": "ምሳሌ፡ ፍቅር እስከ መቃብር",
+    "authorPlaceholder": "ምሳሌ፡ ሐዲስ ዓለማየሁ",
+    "shelfPlaceholder": "ምሳሌ፡ A-5-12"
   }
 }

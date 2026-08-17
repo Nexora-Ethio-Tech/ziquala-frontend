@@ -273,7 +273,7 @@ export const Library = () => {
               : 'border-transparent text-slate-500 hover:text-slate-700'
             }`}
         >
-          Book Catalog
+          {t('libraryPage.bookCatalog', 'Book Catalog')}
         </button>
         <button
           onClick={() => setActiveTab('loans')}
@@ -282,7 +282,7 @@ export const Library = () => {
               : 'border-transparent text-slate-500 hover:text-slate-700'
             }`}
         >
-          Active Loans
+          {t('libraryPage.activeLoans', 'Active Loans')}
           {overdueLoans.length > 0 && (
             <span className="bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full text-[10px]">
               {t("libraryPage.overdueReturns", "{{count}} Overdue returns", { count: overdueLoans.length })}
@@ -587,38 +587,38 @@ export const Library = () => {
             <form onSubmit={handleAddBook} className="space-y-6">
               {/* Book Information Section */}
               <div className="border-b border-slate-200 dark:border-slate-700 pb-6">
-                <h4 className="text-sm font-bold text-slate-500 uppercase mb-4">Book Information</h4>
+                <h4 className="text-sm font-bold text-slate-500 uppercase mb-4">{t("libraryPage.bookInformation", "Book Information")}</h4>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Book Name</label>
+                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">{t("libraryPage.bookName", "Book Name")}</label>
                     <input
                       type="text"
                       value={addBookData.title}
                       onChange={(e) => setAddBookData({ ...addBookData, title: e.target.value })}
                       className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
-                      placeholder="e.g., The Great Gatsby"
+                      placeholder={t("libraryPage.bookNamePlaceholder", "e.g., The Great Gatsby")}
                       required
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Author</label>
+                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">{t("libraryPage.author", "Author")}</label>
                     <input
                       type="text"
                       value={addBookData.author}
                       onChange={(e) => setAddBookData({ ...addBookData, author: e.target.value })}
                       className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
-                      placeholder="e.g., F. Scott Fitzgerald"
+                      placeholder={t("libraryPage.authorPlaceholder", "e.g., F. Scott Fitzgerald")}
                       required
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Shelf Number</label>
+                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">{t("libraryPage.shelfNumber", "Shelf Number")}</label>
                     <input
                       type="text"
                       value={addBookData.shelf}
                       onChange={(e) => setAddBookData({ ...addBookData, shelf: e.target.value })}
                       className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
-                      placeholder="e.g., A-5-12"
+                      placeholder={t("libraryPage.shelfPlaceholder", "e.g., A-5-12")}
                       required
                     />
                   </div>
@@ -627,9 +627,9 @@ export const Library = () => {
 
               {/* Quantity Management Section */}
               <div className="pb-6">
-                <h4 className="text-sm font-bold text-slate-500 uppercase mb-4">Available Copies</h4>
+                <h4 className="text-sm font-bold text-slate-500 uppercase mb-4">{t("libraryPage.availableCopies", "Available Copies")}</h4>
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Number of Copies</label>
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">{t("libraryPage.numberOfCopies", "Number of Copies")}</label>
                   <input
                     type="number"
                     title="Set the number of book copies available"
@@ -640,7 +640,7 @@ export const Library = () => {
                     min={1}
                     required
                   />
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">This will set the initial available copies of this book</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">{t("libraryPage.initialCopiesNotice", "This will set the initial available copies of this book")}</p>
                 </div>
               </div>
 

@@ -1383,6 +1383,9 @@
     "teacher": "Teacher",
     "borrowerIdLabel": "Student/Teacher ID",
     "borrowerIdPlaceholder": "Enter student or teacher ID",
-    "dueDate": "Due Date"
+    "dueDate": "Due Date",
+    "bookNamePlaceholder": "e.g., The Great Gatsby",
+    "authorPlaceholder": "e.g., F. Scott Fitzgerald",
+    "shelfPlaceholder": "e.g., A-5-12"
   }
 }
