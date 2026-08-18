@@ -210,6 +210,16 @@ export const getVPSubmittedGrades = async (courseId: string, submissionType: str
   return response.data.data;
 };
 
+export const unlockGradeSubmission = async (data: {
+  courseId: string;
+  submissionType: string;
+  academicYear?: string;
+  semester?: number;
+}) => {
+  const response = await api.post('/vice-principal/unlock-grade-submission', data);
+  return response.data;
+};
+
 export interface TeacherOfWeekVoteSummary {
   cycleKey: string;
   isOpen: boolean;
