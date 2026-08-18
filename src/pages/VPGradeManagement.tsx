@@ -120,6 +120,9 @@ export const VPGradeManagement = () => {
   useEffect(() => {
     fetchGradesAndSections();
     fetchSubmissions();
+    vicePrincipalService.getGradeSubmissionSetting()
+      .then(open => setGradeSubmissionOpen(open))
+      .catch(() => setGradeSubmissionOpen(true));
   }, [fetchSubmissions]);
 
   const handleUnlockSubmission = async (sub: GradeSubmissionRecord) => {
@@ -190,15 +193,17 @@ export const VPGradeManagement = () => {
   const handleToggleGradeSubmission = async (newValue: boolean) => {
     setTogglingSubmission(true);
     try {
+      await vicePrincipalService.toggleGradeSubmission(newValue);
       setGradeSubmissionOpen(newValue);
-      showToast(`Grade submission is now ${newValue ? 'open' : 'closed'}.`, 'success');
+      showToast(`System-wide grade submission window is now ${newValue ? 'OPEN' : 'CLOSED'}.`, 'success');
     } catch (err: any) {
       console.error('Failed to toggle grade submission:', err);
-      showToast('Failed to update grade submission status.', 'error');
+      showToast(err.response?.data?.message || 'Failed to update grade submission status.', 'error');
     } finally {
       setTogglingSubmission(false);
     }
   };
+
 
   const handleSectionSelect = useCallback(async (grade: VpGradeGroup, section: Section, yearOverride?: string, semOverride?: string) => {
     setSelectedGrade(grade.grade_name ?? grade.name);

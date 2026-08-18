@@ -220,6 +220,17 @@ export const unlockGradeSubmission = async (data: {
   return response.data;
 };
 
+export const toggleGradeSubmission = async (open: boolean): Promise<void> => {
+  const response = await api.post('/vice-principal/grade-submission-settings', { open });
+  return response.data;
+};
+
+export const getGradeSubmissionSetting = async (): Promise<boolean> => {
+  const response = await api.get('/vice-principal/grade-submission-settings');
+  return response.data.data?.open ?? true;
+};
+
+
 export interface TeacherOfWeekVoteSummary {
   cycleKey: string;
   isOpen: boolean;
