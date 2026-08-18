@@ -293,6 +293,35 @@ export const reviewDeptPlan = async (planId: string, data: { status: string; fee
   return response.data;
 };
 
+// ─── Annual Plans ─────────────────────────────────────────────────────────────
+export const submitAnnualPlan = async (data: any) => {
+  const response = await api.post('/teacher/annual-plans', data);
+  return response.data;
+};
+
+export const getMyAnnualPlans = async (status?: string) => {
+  const params = status ? `?status=${status}` : '';
+  const response = await api.get(`/teacher/annual-plans${params}`);
+  return response.data.data;
+};
+
+export const updateAnnualPlan = async (planId: string, data: any) => {
+  const response = await api.post(`/teacher/annual-plans/${planId}`, data);
+  return response.data;
+};
+
+export const getDeptAnnualPlans = async (status?: string) => {
+  const params = status ? `?status=${status}` : '';
+  const response = await api.get(`/teacher/dept-annual-plans${params}`);
+  return response.data.data;
+};
+
+export const reviewDeptAnnualPlan = async (planId: string, data: { status: string; feedback?: string; rating?: number }) => {
+  const response = await api.post(`/teacher/dept-annual-plans/${planId}/review`, data);
+  return response.data;
+};
+
+
 const teacherService = {
   getMyClasses,
   getClassStudents,
