@@ -1398,6 +1398,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                         }`}
                     >
                       <option value="">Select Last Grade Completed</option>
+                      <option value="First Time">First Time / ትምህርት ያልጀመረ/ች</option>
                       <option value="KG 1">KG 1</option>
                       <option value="KG 2">KG 2</option>
                       <option value="KG 3">KG 3</option>
