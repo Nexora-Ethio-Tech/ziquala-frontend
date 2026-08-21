@@ -770,10 +770,14 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
       const app = pendingApps.find(a => a.id === appId);
       if (paid) {
         if (app) {
+          const validEmail = (app.email && app.email.includes('@'))
+            ? app.email
+            : `student.${app.id.replace(/[^a-zA-Z0-9]/g, '').slice(0, 8)}@ziquala.edu.et`;
+
           // Proactively register user
           await registerUser({
             name: app.name,
-            email: app.email,
+            email: validEmail,
             role: 'student',
             grade: app.lastGrade,
           });
