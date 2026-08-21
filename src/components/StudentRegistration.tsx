@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UserPlus, RefreshCw, Upload, Search, CheckCircle, AlertCircle, FileText, Info, Check, X, HeartPulse, Mail, MapPin, Shield, AlertTriangle, Clock, ChevronDown, ChevronUp } from 'lucide-react';
+import { UserPlus, User, RefreshCw, Upload, Search, CheckCircle, AlertCircle, FileText, Info, Check, X, HeartPulse, Mail, MapPin, Shield, AlertTriangle, Clock, ChevronDown, ChevronUp } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import { useTranslation } from 'react-i18next';
 import {
@@ -45,6 +45,19 @@ interface PendingApp {
   transcriptFileSize: number | null;
 
   removalReason?: string | null;
+  fatherName?: string;
+  fatherOccupation?: string;
+  fatherPhone?: string;
+  motherName?: string;
+  motherOccupation?: string;
+  motherPhone?: string;
+  placeOfBirth?: string;
+  cardAge?: string;
+  kebele?: string;
+  ketena?: string;
+  houseNo?: string;
+  dateRegistered?: string;
+  religion?: string;
 }
 
 const displayValue = (value?: string | null) => {
@@ -75,6 +88,19 @@ const mapApiApplicationToPendingApp = (app: any): PendingApp => ({
   transcriptFileName: app.transcript_file_name || '',
   transcriptFileSize: app.transcript_file_size != null ? Number(app.transcript_file_size) : null,
   removalReason: app.return_reason || app.removal_reason || null,
+  fatherName: app.father_name || app.parent_name || '',
+  fatherOccupation: app.father_occupation || '',
+  fatherPhone: app.father_phone || app.parent_phone || app.applicant_phone || '',
+  motherName: app.mother_name || '',
+  motherOccupation: app.mother_occupation || '',
+  motherPhone: app.mother_phone || '',
+  placeOfBirth: app.place_of_birth || '',
+  cardAge: app.card_age || '',
+  kebele: app.kebele || '',
+  ketena: app.ketena || '',
+  houseNo: app.house_no || '',
+  dateRegistered: app.date_registered || '',
+  religion: app.religion || '',
 });
 
 interface StudentRegistrationProps {
@@ -157,13 +183,17 @@ function validateRegistrationStep(step: number, formData: any): ValidationErrors
       errors.gender = 'Gender is required';
     }
   } else if (step === 2) {
-    if (!formData.parentName || !formData.parentName.trim()) {
-      errors.parentName = 'Parent/Guardian Name is required';
+    const fatherNameVal = formData.fatherName || formData.parentName;
+    if (!fatherNameVal || !fatherNameVal.trim()) {
+      errors.fatherName = "Father's Full Name is required";
+
     }
-    if (!formData.phone || !formData.phone.trim()) {
-      errors.phone = 'Parent Phone is required';
+    const fatherPhoneVal = formData.fatherPhone || formData.phone;
+    if (!fatherPhoneVal || !fatherPhoneVal.trim()) {
+      errors.fatherPhone = "Father's Phone is required";
+
     } else {
-      const phoneValidation = validatePhoneNumber(formData.phone);
+      const phoneValidation = validatePhoneNumber(fatherPhoneVal);
       if (!phoneValidation.isValid) {
         errors.phone = phoneValidation.error || 'Invalid phone number';
       }
@@ -342,11 +372,25 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
     const formData = new FormData(form);
     const currentStepData = {
       name: formData.get('name'),
-      digital_id: formData.get('digital_id'),
+      placeOfBirth: formData.get('placeOfBirth'),
+      cardAge: formData.get('cardAge'),
+      religion: formData.get('religion'),
+      fatherName: formData.get('fatherName'),
+      fatherOccupation: formData.get('fatherOccupation'),
+      fatherPhone: formData.get('fatherPhone'),
+      motherName: formData.get('motherName'),
+      motherOccupation: formData.get('motherOccupation'),
+      motherPhone: formData.get('motherPhone'),
+      kebele: formData.get('kebele'),
+      ketena: formData.get('ketena'),
+      houseNo: formData.get('houseNo'),
+      dateRegistered: formData.get('dateRegistered'),
+      parentName: formData.get('fatherName') || formData.get('parentName'),
+      phone: formData.get('fatherPhone') || formData.get('phone'),
       dob: formData.get('dob'),
       gender: formData.get('gender'),
-      parentName: formData.get('parentName'),
-      phone: formData.get('phone'),
+
+
       address: formData.get('address'),
       previousSchool: formData.get('previousSchool'),
       grade: formData.get('grade'),
@@ -405,11 +449,25 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
     try {
       const formData = new FormData(e.currentTarget);
       const name = formData.get('name') as string;
-      const digital_id = formData.get('digital_id') as string;
+      const placeOfBirth = formData.get('placeOfBirth') as string;
+      const cardAge = formData.get('cardAge') as string;
+      const religion = formData.get('religion') as string;
+      const fatherName = formData.get('fatherName') as string;
+      const fatherOccupation = formData.get('fatherOccupation') as string;
+      const fatherPhone = formData.get('fatherPhone') as string;
+      const motherName = formData.get('motherName') as string;
+      const motherOccupation = formData.get('motherOccupation') as string;
+      const motherPhone = formData.get('motherPhone') as string;
+      const kebele = formData.get('kebele') as string;
+      const ketena = formData.get('ketena') as string;
+      const houseNo = formData.get('houseNo') as string;
+      const dateRegistered = formData.get('dateRegistered') as string;
+      const parentName = fatherName || (formData.get('parentName') as string);
+      const phone = fatherPhone || (formData.get('phone') as string);
       const dob = formData.get('dob') as string;
       const gender = formData.get('gender') as string;
-      const parentName = formData.get('parentName') as string;
-      const phone = formData.get('phone') as string;
+
+
       const address = formData.get('address') as string;
       const previousSchool = formData.get('previousSchool') as string;
       const grade = formData.get('grade') as string;
@@ -422,7 +480,19 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
       // Validate all required fields for final submission
       const allFormData = {
         name,
-        digital_id,
+        placeOfBirth,
+        cardAge,
+        religion,
+        fatherName,
+        fatherOccupation,
+        fatherPhone,
+        motherName,
+        motherOccupation,
+        motherPhone,
+        kebele,
+        ketena,
+        houseNo,
+        dateRegistered,
         dob,
         gender,
         parentName,
@@ -455,7 +525,20 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
       // Create FormData for file upload (only append non-empty values)
       const submitData = new FormData();
       submitData.append('name', toTitleCase(name) || '');
-      submitData.append('digital_id', digital_id?.trim() || '');
+      const formattedFatherPhone = formatPhoneNumber(fatherPhone || phone);
+      submitData.append('fatherName', toTitleCase(fatherName || parentName) || '');
+      submitData.append('fatherPhone', formattedFatherPhone);
+      if (fatherOccupation?.trim()) submitData.append('fatherOccupation', toTitleCase(fatherOccupation.trim()));
+      if (motherName?.trim()) submitData.append('motherName', toTitleCase(motherName.trim()));
+      if (motherOccupation?.trim()) submitData.append('motherOccupation', toTitleCase(motherOccupation.trim()));
+      if (motherPhone?.trim()) submitData.append('motherPhone', formatPhoneNumber(motherPhone));
+      if (placeOfBirth?.trim()) submitData.append('placeOfBirth', toTitleCase(placeOfBirth.trim()));
+      if (cardAge?.trim()) submitData.append('cardAge', cardAge.trim());
+      if (kebele?.trim()) submitData.append('kebele', kebele.trim());
+      if (ketena?.trim()) submitData.append('ketena', ketena.trim());
+      if (houseNo?.trim()) submitData.append('houseNo', houseNo.trim());
+      if (dateRegistered?.trim()) submitData.append('dateRegistered', dateRegistered.trim());
+      if (religion?.trim()) submitData.append('religion', toTitleCase(religion.trim()));
       submitData.append('dob', dob || '');
       submitData.append('gender', gender || '');
       submitData.append('parentName', toTitleCase(parentName) || '');
@@ -980,6 +1063,21 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
               </div>
             </div>
             <form ref={formRef} onSubmit={handleRegister} className="p-6 space-y-6">
+              {/* School Header Banner */}
+              <div className="text-center pb-6 border-b border-slate-100 dark:border-slate-800 space-y-1">
+                <h2 className="text-lg md:text-xl font-black text-slate-800 dark:text-white tracking-tight">
+                  Ziquala Abo Kindergarten and Primary School
+                </h2>
+                <h3 className="text-sm md:text-base font-bold text-blue-600 dark:text-blue-400">
+                  የዝቋላ አቦ ገዳም አፀደ ህፃናትና አንደኛ ደረጃ ት/ቤት
+                </h3>
+                <div className="pt-2">
+                  <span className="inline-block px-4 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-black rounded-full border border-blue-200 dark:border-blue-800 uppercase tracking-wider">
+                    {t('registration.title', 'Student Registration Form / የተማሪዎች መመዝገቢ ቅፅ')}
+                  </span>
+                </div>
+              </div>
+
               {activeApplicationError && (
                 <div className="rounded-xl border border-rose-200 bg-rose-50 dark:bg-rose-950/30 dark:border-rose-900/50 p-4 flex gap-3">
                   <AlertTriangle className="text-rose-600 dark:text-rose-400 flex-shrink-0 mt-0.5" size={18} />
@@ -991,42 +1089,47 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                 </div>
               )}
               <div className={`space-y-6 animate-in fade-in slide-in-from-right-4 ${registrationStep !== 1 ? 'hidden' : ''}`}>
+                <h4 className="text-xs font-black text-slate-500 uppercase tracking-wider pb-2 border-b border-slate-100 dark:border-slate-800">
+                  1. Student Information / የተማሪዎች መረጃ
+                </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Row 1: Full Name & Place of Birth */}
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">Full Name <span className="text-rose-500">*</span></label>
-                    <input required name="name" type="text" placeholder="Enter student full name"
+                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
+                      Full Name <span className="text-rose-500">*</span> / የተማሪዎች ስም
+                    </label>
+                    <input
+                      required
+                      name="name"
+                      type="text"
+                      placeholder="Enter student full name"
                       onBlur={(e) => { e.target.value = toTitleCase(e.target.value); }}
                       className={`w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-sm outline-none focus:ring-2 ${validationErrors.name
                         ? 'border-rose-300 focus:ring-rose-500 dark:border-rose-700'
                         : 'border-slate-200 dark:border-slate-700 focus:ring-blue-500'
-                        }`} />
+                        }`}
+                    />
                     {validationErrors.name && <p className="text-[10px] text-rose-500 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {validationErrors.name}</p>}
                   </div>
+
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">Fayda Alias Number (FAN) <span className="text-slate-400 font-medium">(optional)</span></label>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
+                      {t('registration.placeOfBirth', 'Place of Birth')} / የትውልድ ቦታ
+                    </label>
                     <input
-                      name="digital_id"
+                      name="placeOfBirth"
                       type="text"
-                      inputMode="numeric"
-                      maxLength={16}
-                      placeholder="16-digit number (e.g. 1234567890123456)"
-                      onKeyDown={(e) => {
-                        if (!/^\d$/.test(e.key) && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)) {
-                          e.preventDefault();
-                        }
-                      }}
-                      onChange={(e) => {
-                        e.target.value = e.target.value.replace(/\D/g, '').slice(0, 16);
-                      }}
-                      className={`w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-sm outline-none focus:ring-2 ${validationErrors.digital_id
-                        ? 'border-rose-300 focus:ring-rose-500 dark:border-rose-700'
-                        : 'border-slate-200 dark:border-slate-700 focus:ring-blue-500'
-                        }`} />
-                    <p className="text-[10px] text-slate-400 pl-1">Exactly 16 digits — numbers only (Ethiopia Fayda card alias)</p>
-                    {validationErrors.digital_id && <p className="text-[10px] text-rose-500 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {validationErrors.digital_id}</p>}
+                      placeholder="Place of Birth / የትውልድ ቦታ"
+                      onBlur={(e) => { e.target.value = toTitleCase(e.target.value); }}
+                      className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                    />
                   </div>
+
+                  {/* Row 2: Date of Birth & Card Age */}
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">Date of Birth (Ethiopian Calendar) <span className="text-rose-500">*</span></label>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
+                      Date of Birth (Ethiopian Calendar) <span className="text-rose-500">*</span> / የትውልድ ቀን
+                    </label>
                     <EthiopianDatePicker
                       value={ethiopianDob}
                       onChange={(val) => setEthiopianDob(val)}
@@ -1036,108 +1139,232 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                     <input type="hidden" name="dob" value={ethiopianDob ? ethiopianToGregorianIso(ethiopianDob) : ''} />
                     {validationErrors.dob && <p className="text-[10px] text-rose-500 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {validationErrors.dob}</p>}
                   </div>
+
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">Gender <span className="text-rose-500">*</span></label>
-                    <select name="gender" title="Gender" aria-label="Gender" className={`w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-sm outline-none focus:ring-2 ${validationErrors.gender
-                      ? 'border-rose-300 focus:ring-rose-500 dark:border-rose-700'
-                      : 'border-slate-200 dark:border-slate-700 focus:ring-blue-500'
-                      }`}>
-                      <option value="">Select Gender</option>
-                      <option>Male</option>
-                      <option>Female</option>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
+                      {t('registration.cardAge', 'Card Age')} / የካርድ ዕድሜ
+                    </label>
+                    <input
+                      name="cardAge"
+                      type="text"
+                      placeholder="Card Age / የካርድ ዕድሜ"
+                      className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  {/* Row 3: Religion (Dropdown) & Gender (Dropdown) */}
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
+                      {t('registration.religion', 'Religion')} / ሐይማኖት
+                    </label>
+                    <select
+                      name="religion"
+                      title="Religion"
+                      aria-label="Religion"
+                      className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">Select Religion / ሐይማኖት ይምረጡ</option>
+                      <option value="Orthodox">Orthodox / ኦርቶዶክስ</option>
+                      <option value="Muslim">Muslim / ሙስሊም</option>
+                      <option value="Protestant">Protestant / ፕሮቴስታንት</option>
+                      <option value="Catholic">Catholic / ካቶሊክ</option>
+                      <option value="Other">Other / ሌላ</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
+                      Gender <span className="text-rose-500">*</span> / ጾታ
+                    </label>
+                    <select
+                      name="gender"
+                      title="Gender"
+                      aria-label="Gender"
+                      className={`w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-sm outline-none focus:ring-2 ${validationErrors.gender
+                        ? 'border-rose-300 focus:ring-rose-500 dark:border-rose-700'
+                        : 'border-slate-200 dark:border-slate-700 focus:ring-blue-500'
+                        }`}
+                    >
+                      <option value="">Select Gender / ጾታ ይምረጡ</option>
+                      <option value="Male">Male / ወንድ</option>
+                      <option value="Female">Female / ሴት</option>
                     </select>
                     {validationErrors.gender && <p className="text-[10px] text-rose-500 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {validationErrors.gender}</p>}
-                  </div>
-                </div>
-
-                {/* Optional student wellbeing details */}
-                <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
-                  <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 mb-4">
-                    <HeartPulse size={16} />
-                    Medical Information (Optional)
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase">Blood Group</label>
-                      <select name="bloodGroup" title="Blood Group" aria-label="Blood Group" className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">Select Blood Group</option>
-                        <option>O+</option>
-                        <option>O-</option>
-                        <option>A+</option>
-                        <option>A-</option>
-                        <option>B+</option>
-                        <option>B-</option>
-                        <option>AB+</option>
-                        <option>AB-</option>
-                      </select>
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase">Known Allergies</label>
-                      <input type="text" name="allergies" placeholder="e.g. Peanuts, Dust, None" className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500" />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase">Chronic Conditions</label>
-                      <input type="text" name="chronicConditions" placeholder="e.g. Asthma, Diabetes, None" className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500" />
-                    </div>
-                    <div className="space-y-1 md:col-span-3">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase">Current Home Medications</label>
-                      <input type="text" name="medications" placeholder="List any medications taken at home..." className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500" />
-                    </div>
                   </div>
                 </div>
               </div>
 
               <div className={`space-y-6 animate-in fade-in slide-in-from-right-4 ${registrationStep !== 2 ? 'hidden' : ''}`}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">Parent/Guardian Name <span className="text-rose-500">*</span></label>
-                    <input
-                      required
-                      name="parentName"
-                      type="text"
-                      placeholder="Enter parent name"
-                      onBlur={(e) => { e.target.value = toTitleCase(e.target.value); }}
-                      className={`w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-sm outline-none focus:ring-2 ${validationErrors.parentName
-                        ? 'border-rose-300 focus:ring-rose-500 dark:border-rose-700'
-                        : 'border-slate-200 dark:border-slate-700 focus:ring-blue-500'
-                        }`} />
-                    {validationErrors.parentName && <p className="text-[10px] text-rose-500 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {validationErrors.parentName}</p>}
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">Parent Phone <span className="text-rose-500">*</span></label>
-                    <div className="flex items-center gap-2">
-                      {/* Fixed country code box */}
-                      <div className="flex items-center justify-center px-4 py-2 bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl text-sm font-black text-slate-600 dark:text-slate-300 select-none whitespace-nowrap">
-                        +251
-                      </div>
-                      {/* Local phone number input */}
+                {/* Father's Information */}
+                <div className="p-4 rounded-2xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/40 space-y-4">
+                  <h4 className="text-xs font-bold text-blue-700 dark:text-blue-400 uppercase tracking-wider flex items-center gap-2">
+                    <User size={14} /> Father's Details / የአባት መረጃ
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
+                        Father's Full Name <span className="text-rose-500">*</span> / የአባት ሙሉ ስም
+                      </label>
                       <input
                         required
-                        type="tel"
-                        inputMode="numeric"
-                        maxLength={9}
-                        placeholder="9xxxxxxxx"
-                        onChange={(e) => {
-                          e.target.value = e.target.value.replace(/[^\d]/g, '').slice(0, 9);
-                        }}
-                        onKeyDown={(e) => {
-                          if (!/^\d$/.test(e.key) && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)) {
-                            e.preventDefault();
-                          }
-                        }}
-                        name="phone"
-                        className={`flex-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-sm outline-none focus:ring-2 font-bold ${(validationErrors.phone || validationErrors.parentPhone)
+                        name="fatherName"
+                        type="text"
+                        placeholder="Father's Full Name"
+                        onBlur={(e) => { e.target.value = toTitleCase(e.target.value); }}
+                        className={`w-full px-4 py-2 bg-white dark:bg-slate-800 border rounded-xl text-sm outline-none focus:ring-2 ${validationErrors.fatherName
                           ? 'border-rose-300 focus:ring-rose-500 dark:border-rose-700'
                           : 'border-slate-200 dark:border-slate-700 focus:ring-blue-500'
-                          }`} />
+                          }`}
+                      />
+                      {validationErrors.fatherName && <p className="text-[10px] text-rose-500 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {validationErrors.fatherName}</p>}
                     </div>
-                    <p className="text-[10px] text-slate-400 pl-1">Must start with 9 or 7 — 9 digits only</p>
-                    {(validationErrors.phone || validationErrors.parentPhone) && <p className="text-[10px] text-rose-500 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {(validationErrors.phone || validationErrors.parentPhone)}</p>}
-                  </div>
 
-                  <div className="space-y-1 md:col-span-2">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">Address <span className="text-rose-500">*</span></label>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase">
+                        Father's Occupation / የአባት ስራ
+                      </label>
+                      <input
+                        name="fatherOccupation"
+                        type="text"
+                        placeholder="e.g. Teacher, Merchant, Engineer"
+                        className="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
+                        Father's Phone / የአባት ስልክ
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center justify-center px-3 py-2 bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl text-xs font-black text-slate-600 dark:text-slate-300 select-none whitespace-nowrap">
+                          +251
+                        </div>
+                        <input
+                          type="tel"
+                          inputMode="numeric"
+                          maxLength={9}
+                          placeholder="9xxxxxxxx"
+                          name="fatherPhone"
+                          onChange={(e) => {
+                            e.target.value = e.target.value.replace(/[^\d]/g, '').slice(0, 9);
+                          }}
+                          className="flex-1 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 font-bold"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Mother's Information */}
+                <div className="p-4 rounded-2xl bg-purple-50/50 dark:bg-purple-950/20 border border-purple-100 dark:border-purple-900/40 space-y-4">
+                  <h4 className="text-xs font-bold text-purple-700 dark:text-purple-400 uppercase tracking-wider flex items-center gap-2">
+                    <User size={14} /> Mother's Details / የእናት መረጃ
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
+                        Mother's Full Name <span className="text-rose-500">*</span> / የእናት ሙሉ ስም
+                      </label>
+                      <input
+                        required
+                        name="motherName"
+                        type="text"
+                        placeholder="Mother's Full Name"
+                        onBlur={(e) => { e.target.value = toTitleCase(e.target.value); }}
+                        className={`w-full px-4 py-2 bg-white dark:bg-slate-800 border rounded-xl text-sm outline-none focus:ring-2 ${validationErrors.motherName
+                          ? 'border-rose-300 focus:ring-rose-500 dark:border-rose-700'
+                          : 'border-slate-200 dark:border-slate-700 focus:ring-blue-500'
+                          }`}
+                      />
+                      {validationErrors.motherName && <p className="text-[10px] text-rose-500 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {validationErrors.motherName}</p>}
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase">
+                        Mother's Occupation / የእናት ስራ
+                      </label>
+                      <input
+                        name="motherOccupation"
+                        type="text"
+                        placeholder="e.g. Accountant, Doctor, Housewife"
+                        className="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
+                        Mother's Phone / የእናት ስልክ
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center justify-center px-3 py-2 bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl text-xs font-black text-slate-600 dark:text-slate-300 select-none whitespace-nowrap">
+                          +251
+                        </div>
+                        <input
+                          type="tel"
+                          inputMode="numeric"
+                          maxLength={9}
+                          placeholder="9xxxxxxxx"
+                          name="motherPhone"
+                          onChange={(e) => {
+                            e.target.value = e.target.value.replace(/[^\d]/g, '').slice(0, 9);
+                          }}
+                          className="flex-1 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 font-bold"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">Address <span className="text-rose-500">*</span> / አድራሻ</label>
                     <input
                       required
                       name="address"
@@ -1148,9 +1375,9 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                         ? 'border-rose-300 focus:ring-rose-500 dark:border-rose-700'
                         : 'border-slate-200 dark:border-slate-700 focus:ring-blue-500'
                         }`} />
-                    {validationErrors.address && <p className="text-[10px] text-rose-500 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {validationErrors.address}</p>}
+
                   </div>
-                </div>
+
               </div>
 
               <div className={`space-y-6 animate-in fade-in slide-in-from-right-4 ${registrationStep !== 3 ? 'hidden' : ''}`}>
@@ -1183,7 +1410,6 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                         }`}
                     >
                       <option value="">Select Last Grade Completed</option>
-                      <option value="None">first time/timirt yalgeba/chi</option>
                       <option value="KG 1">KG 1</option>
                       <option value="KG 2">KG 2</option>
                       <option value="KG 3">KG 3</option>
