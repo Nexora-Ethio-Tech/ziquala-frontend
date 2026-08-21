@@ -1,4 +1,3 @@
-
 import { Link } from 'react-router-dom';
 import { BookOpen, ChevronLeft } from 'lucide-react';
 import { StudentRegistration } from '../components/StudentRegistration';
@@ -35,35 +34,39 @@ export const Register = () => {
         </div>
 
         <div className="card p-1 shadow-2xl overflow-hidden">
-           <div className="p-6 md:p-10 bg-white/50 dark:bg-slate-900/50">
-              {!registrationOpen ? (
-                <div className="text-center py-12 space-y-6">
-                  <div className="w-20 h-20 bg-rose-50 dark:bg-rose-950/30 text-rose-500 rounded-full flex items-center justify-center mx-auto border border-rose-100 dark:border-rose-900">
-                    <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                      <path d="M7 11V7a5 5 0 0 1 10 0v4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </div>
-                  <div className="space-y-2">
-                    <h2 className="text-2xl font-black text-slate-900 dark:text-white">Online Registration Closed</h2>
-                    <p className="text-slate-500 dark:text-slate-400 max-w-md mx-auto text-sm leading-relaxed">
-                      Online applications are currently closed. Please contact the school administration or check back later for registration updates.
-                    </p>
-                  </div>
+          <div className="p-6 md:p-10 bg-white/50 dark:bg-slate-900/50">
+            {!registrationOpen ? (
+              <div className="text-center py-12 space-y-6">
+                <div className="w-20 h-20 bg-rose-50 dark:bg-rose-950/30 text-rose-500 rounded-full flex items-center justify-center mx-auto border border-rose-100 dark:border-rose-900">
+                  <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
                 </div>
-              ) : (
-                <>
-                  <div className="mb-10 text-center md:text-left">
-                    <h2 className="text-3xl font-black text-slate-900 dark:text-white">New Student Registration</h2>
-                    <p className="text-slate-500 dark:text-slate-400 mt-2 max-w-xl">
-                      Please provide your details and Digital National ID to apply for admission.
-                      Our AI system will review your application immediately.
-                    </p>
-                  </div>
-                  <StudentRegistration isAdminView={false} />
-                </>
-              )}
-           </div>
+                <div className="space-y-2">
+                  <h2 className="text-2xl font-black text-slate-900 dark:text-white">Online Registration Closed</h2>
+                  <p className="text-slate-500 dark:text-slate-400 max-w-md mx-auto text-sm leading-relaxed">
+                    Online applications are currently closed. Please contact the school administration or check back later for registration updates.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="mb-8 text-center">
+                  <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+                    Ziquala Abo Kindergarten and Primary School
+                  </h2>
+                  <h3 className="text-base sm:text-lg font-bold text-blue-600 dark:text-blue-400 mt-1">
+                    New student registration
+                  </h3>
+                  <p className="text-slate-500 dark:text-slate-400 mt-2 max-w-xl mx-auto text-xs sm:text-sm font-medium leading-relaxed">
+                    Please provide your details to apply for admission. Our AI system will review your application immediately.
+                  </p>
+                </div>
+                <StudentRegistration isAdminView={false} />
+              </>
+            )}
+          </div>
         </div>
 
         <p className="text-center text-slate-500 font-medium">
