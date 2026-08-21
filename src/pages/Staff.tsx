@@ -34,8 +34,7 @@ export const Staff = () => {
 
   const staffTabs = [
     { label: 'Teachers', path: 'teachers' },
-    { label: 'Librarian Staff', path: 'librarian' },
-    { label: 'Finance Staff', path: 'finance-clerk' }
+    { label: 'Librarian Staff', path: 'librarian' }
   ];
 
   useEffect(() => {
@@ -269,7 +268,7 @@ export const Staff = () => {
     setResettingPassword(true);
     try {
       const result = await userService.resetUserPassword(editingStaff.id);
-      const temporaryPassword = result?.data?.newPIN || result?.newPIN || result?.temporaryPassword || result?.data?.temporaryPassword;
+      const temporaryPassword = result?.temporaryPassword || result?.data?.temporaryPassword;
       if (temporaryPassword) {
         setGeneratedPassword(temporaryPassword);
       } else {
