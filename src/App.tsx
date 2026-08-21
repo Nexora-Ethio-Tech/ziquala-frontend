@@ -61,6 +61,7 @@ const VPGradeManagement = lazy(() => import('./pages/VPGradeManagement').then((m
 const VPTranscripts = lazy(() => import('./pages/VPTranscripts').then((m) => ({ default: m.VPTranscripts })));
 const VPCommunication = lazy(() => import('./pages/VPCommunication').then((m) => ({ default: m.VPCommunication })));
 const LibrarianStaff = lazy(() => import('./pages/LibrarianStaff').then((m) => ({ default: m.LibrarianStaff })));
+const FinanceStaff = lazy(() => import('./pages/FinanceStaff').then((m) => ({ default: m.FinanceStaff })));
 const StudentSchedulePage = lazy(() => import('./pages/StudentSchedule'));
 const ChatbotManagement = lazy(() => import('./pages/ChatbotManagement'));
 const ELearningLibrary = lazy(() => import('./pages/ELearningPage').then((m) => ({ default: m.ELearningPage })));
@@ -205,6 +206,7 @@ function App() {
                 <Route index element={<StaffCategoryPlaceholder />} />
                 <Route path="teachers" element={<Teachers />} />
                 <Route path="librarian" element={<LibrarianStaff />} />
+                <Route path="finance-clerk" element={<FinanceStaff />} />
               </Route>
 
               <Route path="students" element={
@@ -318,6 +320,12 @@ function App() {
               <Route path="librarian-staff" element={
                 <ProtectedRoute allowedRoles={['school-admin', 'super-admin']}>
                   <LibrarianStaff />
+                </ProtectedRoute>
+              } />
+
+              <Route path="finance-staff" element={
+                <ProtectedRoute allowedRoles={['school-admin', 'super-admin']}>
+                  <FinanceStaff />
                 </ProtectedRoute>
               } />
 
