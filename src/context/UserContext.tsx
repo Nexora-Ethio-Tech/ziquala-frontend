@@ -177,36 +177,65 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       if (!user) return;
 
       try {
+        const { default: api } = await import('../services/api');
+        let apiBranches: Branch[] = [];
+
         if (user.role === 'super-admin') {
-          const { default: api } = await import('../services/api');
-          // Super Admin: Fetch all branches
           const res = await api.get('/super-admin/branches');
           if (res.data.success && Array.isArray(res.data.data)) {
-            const apiBranches = res.data.data.map((b: any) => ({
+            apiBranches = res.data.data.map((b: any) => ({
               id: b.id,
               name: b.name,
               location: b.address || b.location || 'N/A'
             }));
-            setBranches(apiBranches);
           }
         } else if (user.role === 'academic-manager') {
-          const { default: api } = await import('../services/api');
           const res = await api.get('/academic-manager/branches');
           if (res.data.success && Array.isArray(res.data.data)) {
-            const apiBranches = res.data.data.map((b: any) => ({
+            apiBranches = res.data.data.map((b: any) => ({
               id: b.id,
               name: b.name,
               location: b.address || b.location || 'N/A'
             }));
-            setBranches(apiBranches);
           }
-        } else if ((user as any).branchId) {
-          // Branch-level users: Use their assigned branch from profile (avoids 403 routes)
-          setBranches([{
-            id: (user as any).branchId,
-            name: (user as any).branchName || 'My Branch',
-            location: 'N/A'
-          }]);
+        } else {
+          try {
+            const res = await api.get('/guest/branches');
+            const data = res.data.data || res.data;
+            if (Array.isArray(data) && data.length > 0) {
+              apiBranches = data.map((b: any) => ({
+                id: b.id,
+                name: b.name,
+                location: b.address || b.location || 'N/A'
+              }));
+            }
+          } catch {
+            if ((user as any).branchId) {
+              apiBranches = [{
+                id: (user as any).branchId,
+                name: (user as any).branchName && (user as any).branchName !== 'My Branch' ? (user as any).branchName : 'Bishoftu Campus',
+                location: 'N/A'
+              }];
+            }
+          }
+        }
+
+        if (apiBranches.length > 0) {
+          setBranches(apiBranches);
+          const userBranchId = (user as any).branchId;
+          const userBranchName = (user as any).branchName;
+
+          const matched = apiBranches.find(b =>
+            (userBranchId && b.id === userBranchId) ||
+            (userBranchName && userBranchName !== 'My Branch' && b.name.toLowerCase().includes(userBranchName.toLowerCase()))
+          ) || apiBranches[0];
+
+          if (matched) {
+            setSelectedBranch(matched);
+            if ((user as any).branchName === 'My Branch' || !(user as any).branchName) {
+              setUser(prev => prev ? { ...prev, branchName: matched.name } as any : null);
+            }
+          }
         }
       } catch (err) {
         console.error('Failed to fetch branches:', err);
@@ -216,8 +245,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   }, [user]);
 
   // ─── Token Verification on Load ────────────────────────────────────────────
-  // This is the ONLY way a user gets restored after page refresh.
-  // No token → no user. Invalid token → user cleared.
   useEffect(() => {
     const verifyToken = async () => {
       const token = localStorage.getItem('ziquala_token');

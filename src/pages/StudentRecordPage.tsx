@@ -263,7 +263,7 @@ export const StudentRecordPage = () => {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
                   <div>
                     <p className="text-[10px] font-bold text-slate-400 uppercase">Applicant Name</p>
-                    <p className="font-bold dark:text-slate-200">{displayValue(app?.applicant_name)}</p>
+                    <p className="font-bold dark:text-slate-200">{displayValue(app?.name || app?.applicant_name)}</p>
                   </div>
                   <div>
                     <p className="text-[10px] font-bold text-slate-400 uppercase">Date of Birth</p>

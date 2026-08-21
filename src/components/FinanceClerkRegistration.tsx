@@ -227,7 +227,7 @@ export const FinanceClerkRegistration = () => {
                     Student Name
                   </p>
                   <p className="text-lg font-bold text-slate-900 dark:text-white">
-                    {app.applicant_name}
+                    {app.applicant_name || (app as any).name}
                   </p>
                 </div>
 
@@ -325,7 +325,7 @@ export const FinanceClerkRegistration = () => {
             <div className="space-y-4 mb-6">
               <div>
                 <p className="text-sm font-semibold text-slate-600 dark:text-slate-400 mb-2">
-                  Student: {selectedApp.applicant_name}
+                  Student: {selectedApp.applicant_name || (selectedApp as any).name}
                 </p>
               </div>
 

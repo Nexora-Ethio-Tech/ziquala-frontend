@@ -13,6 +13,7 @@ import {
   toggleRegistration
 } from '../services/schoolAdminService';
 import api from '../services/api';
+import { API_HOST_URL } from '../config/api';
 import { EthiopianDatePicker } from './EthiopianDatePicker';
 import { ethiopianToGregorianIso, gregorianToEthiopian, formatEthiopianDateOnly } from '../utils/ethiopianCalendar';
 import { ziqualaBranches } from '../data/ziqualaContent';
@@ -67,23 +68,23 @@ const displayValue = (value?: string | null) => {
 
 const mapApiApplicationToPendingApp = (app: any): PendingApp => ({
   id: app.id,
-  name: app.applicant_name || 'Unknown',
+  name: app.name || app.applicant_name || app.student_name || app.full_name || 'Unknown',
   dob: app.dob ? new Date(app.dob).toISOString().split('T')[0] : '',
   gender: app.gender || '',
   digitalId: app.digital_id || '',
-  parentName: app.parent_name || 'N/A',
-  phone: app.applicant_phone || app.parent_phone || 'N/A',
-  parentPhone: app.parent_phone || app.applicant_phone || 'N/A',
-  email: app.applicant_email || '',
+  parentName: app.parent_name || app.father_name || 'N/A',
+  phone: app.parent_phone || app.applicant_phone || app.father_phone || 'N/A',
+  parentPhone: app.parent_phone || app.applicant_phone || app.father_phone || 'N/A',
+  email: app.email || app.applicant_email || '',
   address: app.address || '',
   previousSchool: app.previous_school || '',
-  lastGrade: app.grade_applying || 'N/A',
+  lastGrade: app.grade || app.grade_applying || 'N/A',
   date: app.created_at ? formatEthiopianDateOnly(new Date(app.created_at)) : '',
   status: app.status as AppStatus,
   bloodGroup: app.blood_group || '',
   allergies: app.allergies || '',
   chronicConditions: app.chronic_conditions || '',
-  medications: app.current_medications || '',
+  medications: app.medications || app.current_medications || '',
   notes: app.notes || '',
   transcriptFileName: app.transcript_file_name || '',
   transcriptFileSize: app.transcript_file_size != null ? Number(app.transcript_file_size) : null,
@@ -218,7 +219,7 @@ const initialPendingApplications: PendingApp[] = [];
 export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRegistrationProps) => {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { role, user, registrationOpen, setRegistrationOpen } = useUser();
+  const { role, user, selectedBranch, branches, registrationOpen, setRegistrationOpen } = useUser();
   const isAcademicAdmin = role === 'super-admin' || role === 'academic-manager' || role === 'school-admin';
   const formRef = useRef<HTMLFormElement>(null);
   // Track if showing the active application error (NOT permanently blocking all submissions)
@@ -247,11 +248,18 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
   const [showGradeModal, setShowGradeModal] = useState(false);
   const [selectedAppForGrade, setSelectedAppForGrade] = useState<string | null>(null);
   const [selectedGrade, setSelectedGrade] = useState<string | null>(null);
-  const [branchesList] = useState<{ id: string; name: string }[]>(() =>
+  const [branchesList, setBranchesList] = useState<{ id: string; name: string }[]>(() =>
     ziqualaBranches.map(({ id, name }) => ({ id, name })),
   );
   const [selectedBranchName, setSelectedBranchName] = useState('');
   const [expandedAppIds, setExpandedAppIds] = useState<Record<string, boolean>>({});
+
+  // Sync branches from context when available
+  useEffect(() => {
+    if (branches && branches.length > 0) {
+      setBranchesList(branches.map(b => ({ id: b.id, name: b.name })));
+    }
+  }, [branches]);
 
   // Toggle registration open/closed — persists to backend
   const handleToggleRegistration = async (newValue: boolean) => {
@@ -269,17 +277,24 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
 
   // Automatically select branch for logged in School Admin / Super Admin
   useEffect(() => {
-    if (user && (user.role === 'school-admin' || user.role === 'super-admin')) {
-      if ((user as any).branchName && (user as any).branchName !== 'My Branch') {
-        setSelectedBranchName((user as any).branchName);
-      } else if (branchesList.length > 0 && (user as any).branchId) {
-        const adminBranch = branchesList.find(b => b.id === (user as any).branchId);
-        if (adminBranch) {
-          setSelectedBranchName(adminBranch.name);
+    if (user) {
+      const adminBranchName = (user as any).branchName || selectedBranch?.name;
+      const adminBranchId = (user as any).branchId || selectedBranch?.id;
+
+      if (adminBranchName && adminBranchName !== 'My Branch') {
+        setSelectedBranchName(adminBranchName);
+      } else if (adminBranchId) {
+        const found = (branchesList.length > 0 ? branchesList : (branches || [])).find(b => b.id === adminBranchId);
+        if (found) {
+          setSelectedBranchName(found.name);
+        } else if (branchesList.length > 0) {
+          setSelectedBranchName(branchesList[0].name);
         }
+      } else if (branchesList.length > 0) {
+        setSelectedBranchName(branchesList[0].name);
       }
     }
-  }, [user, branchesList]);
+  }, [user, selectedBranch, branches, branchesList]);
 
   useEffect(() => {
     if (isAdminView) {
@@ -469,6 +484,8 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
 
 
       const address = formData.get('address') as string;
+      const digitalId = (formData.get('digital_id') as string) || (formData.get('digitalId') as string);
+      const email = formData.get('email') as string;
       const previousSchool = formData.get('previousSchool') as string;
       const grade = formData.get('grade') as string;
       const bloodGroup = formData.get('bloodGroup') as string;
@@ -525,6 +542,8 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
       // Create FormData for file upload (only append non-empty values)
       const submitData = new FormData();
       submitData.append('name', toTitleCase(name) || '');
+      if (digitalId?.trim()) submitData.append('digitalId', digitalId.trim());
+      if (email?.trim()) submitData.append('email', email.trim());
       const formattedFatherPhone = formatPhoneNumber(fatherPhone || phone);
       submitData.append('fatherName', toTitleCase(fatherName || parentName) || '');
       submitData.append('fatherPhone', formattedFatherPhone);
@@ -950,6 +969,30 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                           <div><p className="text-[10px] font-bold text-slate-400 uppercase">Fayda ID</p><p className="font-bold dark:text-slate-200 font-mono text-[11px]">{displayValue(app.digitalId)}</p></div>
                         </div>
 
+                        {/* Father & Mother Details */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs pt-3 border-t border-slate-100 dark:border-slate-800">
+                          <div className="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl space-y-1">
+                            <p className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest mb-1">Father's Information</p>
+                            <p className="font-bold dark:text-slate-200">Name: {displayValue(app.fatherName)}</p>
+                            <p className="text-slate-600 dark:text-slate-400">Occupation: {displayValue(app.fatherOccupation)}</p>
+                            <p className="text-slate-600 dark:text-slate-400">Phone: {displayValue(app.fatherPhone)}</p>
+                          </div>
+                          <div className="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl space-y-1">
+                            <p className="text-[10px] font-black text-purple-600 dark:text-purple-400 uppercase tracking-widest mb-1">Mother's Information</p>
+                            <p className="font-bold dark:text-slate-200">Name: {displayValue(app.motherName)}</p>
+                            <p className="text-slate-600 dark:text-slate-400">Occupation: {displayValue(app.motherOccupation)}</p>
+                            <p className="text-slate-600 dark:text-slate-400">Phone: {displayValue(app.motherPhone)}</p>
+                          </div>
+                        </div>
+
+                        {/* Residence & Personal Details */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs pt-3 border-t border-slate-100 dark:border-slate-800">
+                          <div><p className="text-[10px] font-bold text-slate-400 uppercase">Place of Birth</p><p className="font-bold dark:text-slate-200">{displayValue(app.placeOfBirth)}</p></div>
+                          <div><p className="text-[10px] font-bold text-slate-400 uppercase">Card Age</p><p className="font-bold dark:text-slate-200">{displayValue(app.cardAge)}</p></div>
+                          <div><p className="text-[10px] font-bold text-slate-400 uppercase">Religion</p><p className="font-bold dark:text-slate-200">{displayValue(app.religion)}</p></div>
+                          <div><p className="text-[10px] font-bold text-slate-400 uppercase">Kebele / Ketena / House</p><p className="font-bold dark:text-slate-200">{[app.kebele, app.ketena, app.houseNo].filter(Boolean).join(' / ') || '—'}</p></div>
+                        </div>
+
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs pt-2 border-t border-slate-100 dark:border-slate-800">
                           <div><p className="text-[10px] font-bold text-slate-400 uppercase">Parent / Guardian</p><p className="font-bold dark:text-slate-200">{displayValue(app.parentName)}</p></div>
                           <div><p className="text-[10px] font-bold text-slate-400 uppercase">Contact Phone</p><p className="font-bold dark:text-slate-200">{displayValue(app.phone)}</p></div>
@@ -959,7 +1002,25 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs pt-2 border-t border-slate-100 dark:border-slate-800">
                           <div><p className="text-[10px] font-bold text-slate-400 uppercase">Previous School</p><p className="font-bold dark:text-slate-200">{displayValue(app.previousSchool)}</p></div>
                           <div><p className="text-[10px] font-bold text-slate-400 uppercase">Email</p><p className="font-bold dark:text-slate-200 break-all">{displayValue(app.email)}</p></div>
-                          <div className="md:col-span-2"><p className="text-[10px] font-bold text-slate-400 uppercase">Transcript</p><p className="font-bold dark:text-slate-200">{app.transcriptFileName ? `${app.transcriptFileName}${app.transcriptFileSize ? ` (${(app.transcriptFileSize / 1024).toFixed(0)} KB)` : ''}` : '—'}</p></div>
+                          <div className="md:col-span-2">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase">Transcript</p>
+                            {app.transcriptFileName ? (
+                              <div className="flex items-center gap-2 mt-1">
+                                <a
+                                  href={`${API_HOST_URL || ''}/api/school-admin/applications/${app.id}/transcript`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg text-xs font-bold hover:underline"
+                                >
+                                  <FileText size={14} />
+                                  {app.transcriptFileName} {app.transcriptFileSize ? `(${(app.transcriptFileSize / 1024).toFixed(0)} KB)` : ''}
+                                </a>
+                              </div>
+                            ) : (
+                              <p className="font-bold dark:text-slate-200">—</p>
+                            )}
+                          </div>
                         </div>
 
                         {(app.bloodGroup || app.allergies || app.chronicConditions || app.medications) && (
@@ -1141,6 +1202,31 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                     />
                     <input type="hidden" name="dob" value={ethiopianDob ? ethiopianToGregorianIso(ethiopianDob) : ''} />
                     {validationErrors.dob && <p className="text-[10px] text-rose-500 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {validationErrors.dob}</p>}
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
+                      Fayda ID / Digital ID / የፋይዳ ቁጥር <span className="text-slate-400 text-[10px] font-medium">(optional)</span>
+                    </label>
+                    <input
+                      name="digital_id"
+                      type="text"
+                      maxLength={16}
+                      placeholder="16-digit Fayda Number"
+                      className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 font-mono"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
+                      Email Address / ኢሜይል <span className="text-slate-400 text-[10px] font-medium">(optional)</span>
+                    </label>
+                    <input
+                      name="email"
+                      type="email"
+                      placeholder="applicant@example.com"
+                      className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                    />
                   </div>
 
                   <div className="space-y-1">
@@ -1443,48 +1529,56 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                 {/* Branch Selection Section */}
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">Branch <span className="text-rose-500">*</span></label>
-                  {user && (user.role === 'school-admin' || user.role === 'super-admin') ? (
-                    <div className="relative">
+                  {(() => {
+                    const displayBranches = [...branchesList];
+                    if (selectedBranchName && !displayBranches.some(b => b.name === selectedBranchName)) {
+                      displayBranches.unshift({ id: 'selected-branch-id', name: selectedBranchName });
+                    }
+                    if (user && (user.role === 'school-admin' || user.role === 'super-admin')) {
+                      return (
+                        <div className="relative">
+                          <select
+                            value={selectedBranchName}
+                            onChange={(e) => setSelectedBranchName(e.target.value)}
+                            disabled={user.role === 'school-admin'}
+                            className="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none text-slate-500 font-semibold cursor-not-allowed"
+                          >
+                            <option value="">Select Branch</option>
+                            {displayBranches.map(b => (
+                              <option key={b.id} value={b.name}>{b.name}</option>
+                            ))}
+                          </select>
+                          <input type="hidden" name="branchName" value={selectedBranchName} />
+                        </div>
+                      );
+                    }
+                    return (
                       <select
                         name="branchName"
+                        required
                         value={selectedBranchName}
-                        onChange={(e) => setSelectedBranchName(e.target.value)}
-                        disabled={user.role === 'school-admin'}
-                        className="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none text-slate-500 font-semibold cursor-not-allowed"
+                        onChange={(e) => {
+                          setSelectedBranchName(e.target.value);
+                          if (e.target.value) {
+                            setValidationErrors(prev => {
+                              const newErrors = { ...prev };
+                              delete newErrors.branchName;
+                              return newErrors;
+                            });
+                          }
+                        }}
+                        className={`w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-sm outline-none focus:ring-2 ${validationErrors.branchName
+                          ? 'border-rose-300 focus:ring-rose-500 dark:border-rose-700'
+                          : 'border-slate-200 dark:border-slate-700 focus:ring-blue-500'
+                          }`}
                       >
                         <option value="">Select Branch</option>
-                        {branchesList.map(b => (
+                        {displayBranches.map(b => (
                           <option key={b.id} value={b.name}>{b.name}</option>
                         ))}
                       </select>
-                      <input type="hidden" name="branchName" value={selectedBranchName} />
-                    </div>
-                  ) : (
-                    <select
-                      name="branchName"
-                      required
-                      value={selectedBranchName}
-                      onChange={(e) => {
-                        setSelectedBranchName(e.target.value);
-                        if (e.target.value) {
-                          setValidationErrors(prev => {
-                            const newErrors = { ...prev };
-                            delete newErrors.branchName;
-                            return newErrors;
-                          });
-                        }
-                      }}
-                      className={`w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-sm outline-none focus:ring-2 ${validationErrors.branchName
-                        ? 'border-rose-300 focus:ring-rose-500 dark:border-rose-700'
-                        : 'border-slate-200 dark:border-slate-700 focus:ring-blue-500'
-                        }`}
-                    >
-                      <option value="">Select Branch</option>
-                      {branchesList.map(b => (
-                        <option key={b.id} value={b.name}>{b.name}</option>
-                      ))}
-                    </select>
-                  )}
+                    );
+                  })()}
                   {validationErrors.branchName && (
                     <p className="text-[10px] text-rose-500 font-semibold flex items-center gap-1">
                       <AlertTriangle size={12} /> {validationErrors.branchName}
