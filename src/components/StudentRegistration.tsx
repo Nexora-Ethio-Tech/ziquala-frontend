@@ -1062,22 +1062,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                 </div>
               </div>
             </div>
-            <form ref={formRef} onSubmit={handleRegister} className="p-6 space-y-6">
-              {/* School Header Banner */}
-              <div className="text-center pb-6 border-b border-slate-100 dark:border-slate-800 space-y-1">
-                <h2 className="text-lg md:text-xl font-black text-slate-800 dark:text-white tracking-tight">
-                  Ziquala Abo Kindergarten and Primary School
-                </h2>
-                <h3 className="text-sm md:text-base font-bold text-blue-600 dark:text-blue-400">
-                  የዝቋላ አቦ ገዳም አፀደ ህፃናትና አንደኛ ደረጃ ት/ቤት
-                </h3>
-                <div className="pt-2">
-                  <span className="inline-block px-4 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-black rounded-full border border-blue-200 dark:border-blue-800 uppercase tracking-wider">
-                    {t('registration.title', 'Student Registration Form / የተማሪዎች መመዝገቢ ቅፅ')}
-                  </span>
-                </div>
-              </div>
-
+            <form ref={formRef} onSubmit={handleRegister} className="p-4 sm:p-6 space-y-6">
               {activeApplicationError && (
                 <div className="rounded-xl border border-rose-200 bg-rose-50 dark:bg-rose-950/30 dark:border-rose-900/50 p-4 flex gap-3">
                   <AlertTriangle className="text-rose-600 dark:text-rose-400 flex-shrink-0 mt-0.5" size={18} />
@@ -1123,6 +1108,24 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                       onBlur={(e) => { e.target.value = toTitleCase(e.target.value); }}
                       className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
                     />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
+                      Current Address <span className="text-rose-500">*</span> / አሁን ያለበት አድራሻ
+                    </label>
+                    <input
+                      required
+                      name="address"
+                      type="text"
+                      placeholder="City, Sub-city, Woreda"
+                      onBlur={(e) => { e.target.value = toTitleCase(e.target.value); }}
+                      className={`w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-sm outline-none focus:ring-2 ${validationErrors.address
+                        ? 'border-rose-300 focus:ring-rose-500 dark:border-rose-700'
+                        : 'border-slate-200 dark:border-slate-700 focus:ring-blue-500'
+                        }`}
+                    />
+                    {validationErrors.address && <p className="text-[10px] text-rose-500 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {validationErrors.address}</p>}
                   </div>
 
                   {/* Row 2: Date of Birth & Card Age */}
@@ -1362,21 +1365,6 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
 
 
 
-
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">Address <span className="text-rose-500">*</span> / አድራሻ</label>
-                    <input
-                      required
-                      name="address"
-                      type="text"
-                      placeholder="City, Sub-city, Woreda"
-                      onBlur={(e) => { e.target.value = toTitleCase(e.target.value); }}
-                      className={`w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-sm outline-none focus:ring-2 ${validationErrors.address
-                        ? 'border-rose-300 focus:ring-rose-500 dark:border-rose-700'
-                        : 'border-slate-200 dark:border-slate-700 focus:ring-blue-500'
-                        }`} />
-
-                  </div>
 
               </div>
 
