@@ -1891,51 +1891,49 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
           </div>
         </div>
       )}
-      {/* Fee Configuration Modal */}
+      {/* Grade Assignment Modal */}
       {showGradeModal && selectedAppForGrade && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] w-full max-w-md overflow-hidden shadow-2xl border border-slate-100 dark:border-slate-800 animate-in zoom-in-95 duration-200">
-            <div className="p-8 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
-              <h3 className="text-xl font-black text-slate-800 dark:text-white tracking-tight">Assign Grade</h3>
-              <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl sm:rounded-[2.5rem] w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden shadow-2xl border border-slate-100 dark:border-slate-800 animate-in zoom-in-95 duration-200">
+            <div className="p-5 sm:p-8 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50 shrink-0">
+              <h3 className="text-lg sm:text-xl font-black text-slate-800 dark:text-white tracking-tight">Assign Grade</h3>
+              <p className="text-[11px] sm:text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">
                 Select the grade in which this student will be enrolled.
               </p>
             </div>
-            <div className="p-8 space-y-6">
-              <div className="space-y-3">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Grade</label>
-                <div className="grid grid-cols-3 gap-3">
-                  {gradeOptions.map((grade) => (
-                    <button
-                      key={grade}
-                      type="button"
-                      onClick={() => setSelectedGrade(grade)}
-                      className={`py-4 rounded-2xl border-2 text-sm font-black transition-all ${selectedGrade === grade
-                        ? 'border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300'
-                        : 'border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:border-blue-300'
-                        }`}
-                    >
-                      {grade.startsWith('KG') ? grade : `Grade ${grade}`}
-                    </button>
-                  ))}
-                </div>
+            <div className="p-4 sm:p-8 overflow-y-auto flex-1 space-y-4">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Grade</label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-3">
+                {gradeOptions.map((grade) => (
+                  <button
+                    key={grade}
+                    type="button"
+                    onClick={() => setSelectedGrade(grade)}
+                    className={`py-3 sm:py-4 px-3 rounded-xl sm:rounded-2xl border-2 text-xs sm:text-sm font-black transition-all ${selectedGrade === grade
+                      ? 'border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300 shadow-md shadow-blue-500/10'
+                      : 'border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:border-blue-300'
+                      }`}
+                  >
+                    {grade.startsWith('KG') ? grade : `Grade ${grade}`}
+                  </button>
+                ))}
               </div>
             </div>
-            <div className="p-8 bg-slate-50/50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
+            <div className="p-4 sm:p-6 bg-slate-50/50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-3 shrink-0">
               <button
                 onClick={() => {
                   setShowGradeModal(false);
                   setSelectedAppForGrade(null);
                   setSelectedGrade(null);
                 }}
-                className="px-6 py-3 text-xs font-black uppercase tracking-widest text-slate-500 hover:text-slate-700"
+                className="px-4 sm:px-6 py-2.5 sm:py-3 text-xs font-black uppercase tracking-widest text-slate-500 hover:text-slate-700 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleConfirmGradeAssignment}
                 disabled={!selectedGrade}
-                className="bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 shadow-xl shadow-blue-500/20 active:scale-95"
+                className="bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white px-5 sm:px-8 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 shadow-xl shadow-blue-500/20 active:scale-95 transition-all"
               >
                 Continue Enrollment
               </button>
