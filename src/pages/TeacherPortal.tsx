@@ -1,3 +1,4 @@
+import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { BookOpen, Users, Calendar, ArrowRight, ArrowLeft, ClipboardList, FileText, Plus, X, CheckCircle2, XCircle, Loader2, Star, Save, Send, Search, ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -731,7 +732,7 @@ export const TeacherPortal = () => {
 
   const openEditModal = (plan: any) => {
     setEditingPlan(plan);
-    const filled = {
+    const filled: any = {
       date: plan.date ? new Date(plan.date).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10),
       content: plan.content || '',
       objectives: plan.objectives || '',

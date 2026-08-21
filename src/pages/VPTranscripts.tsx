@@ -38,23 +38,48 @@ type TranscriptCourse = {
 };
 
 type StudentTranscript = {
-  studentId: string;
-  studentName: string;
+  student?: {
+    id: string;
+    name: string;
+    email?: string;
+    digitalId?: string;
+    grade?: string;
+    status?: string;
+    sex?: string;
+    age?: string | number;
+    birthDate?: string;
+    birthPlace?: string;
+    region?: string;
+    town?: string;
+    houseNo?: string;
+    phoneNo?: string;
+    poBox?: string;
+  };
+  studentId?: string;
+  studentName?: string;
   className?: string;
   section?: string;
   overallAverage?: number;
   academicYear?: string;
   semester?: string;
   overallRank?: string | number;
-  courses: TranscriptCourse[];
+  courses: any[];
+  summary?: {
+    totalCourses?: number;
+    totalGrades?: number;
+    overallAverage?: number;
+    gradeStatus?: string;
+    rank?: string | number;
+  };
 };
 
 const buildFallbackTemplate = (label: string): TranscriptTemplateData => ({
+  student: { fullName: label },
   name: label || 'Unknown Student',
   id: label || 'N/A',
   academicYear: 'N/A',
   semester: 'N/A',
-  subjects: [{ name: 'No grades found', mark: 0, grade: '0' }],
+  subjects: [],
   average: 0,
   rank: 0
 });
@@ -193,34 +218,67 @@ export const VPTranscripts = () => {
 
   useEffect(() => {
     if (activeStudentId) {
-      const activeName = transcript?.studentName || lookupLabel;
+      const activeName = transcript?.student?.name || transcript?.studentName || lookupLabel;
       openTranscript(activeStudentId, activeName);
     }
   }, [selectedYear, selectedSemester]);
 
   const templateData = useMemo<TranscriptTemplateData | null>(() => {
     if (transcript) {
-      const subjects = transcript.courses.map((course) => {
-        const grades = course.grades || [];
-        const courseAverage = grades.length
-          ? Math.round(grades.reduce((sum, grade) => sum + Number(grade.percentage || 0), 0) / grades.length)
-          : 0;
+      const s: any = transcript.student || {};
+      const currentGradeStr = s.grade || 'Grade 8';
+      const gradeNum = parseInt(currentGradeStr.replace(/\D/g, ''), 10) || 8;
+      const prevGradeNum = gradeNum > 1 ? gradeNum - 1 : 7;
 
+      const year1Class = `Grade ${prevGradeNum}`;
+      const year2Class = `Grade ${gradeNum}`;
+
+      const rawCourses = transcript.courses || [];
+      // Sort ALPHABETICALLY
+      const sortedCourses = [...rawCourses].sort((a, b) => 
+        (a.courseName || '').localeCompare(b.courseName || '')
+      );
+
+      const subjects = sortedCourses.map((c: any) => {
+        const isYear2 = !c.className || c.className.includes(gradeNum.toString());
         return {
-          name: course.courseName,
-          mark: courseAverage,
-          grade: courseAverage >= 90 ? 'A+' : courseAverage >= 80 ? 'A' : courseAverage >= 70 ? 'B' : courseAverage >= 60 ? 'C' : 'D'
+          name: c.courseName,
+          year1Sem1: !isYear2 ? (c.sem1 ?? c.average) : '',
+          year1Sem2: !isYear2 ? (c.sem2 ?? c.average) : '',
+          year1Average: !isYear2 ? c.average : '',
+          year2Sem1: isYear2 ? (c.sem1 ?? c.average) : '',
+          year2Sem2: isYear2 ? (c.sem2 ?? c.average) : '',
+          year2Average: isYear2 ? c.average : ''
         };
       });
 
+      const ecYearVal = gregorianToECYear(selectedYear);
+      const ecYearNum = typeof ecYearVal === 'number' ? ecYearVal : parseInt(String(ecYearVal || '2016'), 10);
+
       return {
-        name: transcript.studentName || lookupLabel || 'Unknown Student',
-        id: transcript.studentId || lookupLabel || 'N/A',
-        academicYear: transcript.academicYear || 'N/A',
-        semester: transcript.semester || 'N/A',
-        subjects: subjects.length > 0 ? subjects : [{ name: 'No grades found', mark: 0, grade: '0' }],
-        average: transcript.overallAverage != null ? Math.round(transcript.overallAverage) : 0,
-        rank: transcript.overallRank ?? 0
+        student: {
+          fullName: s.name || transcript.studentName || lookupLabel,
+          sex: s.sex || '',
+          age: s.age || '',
+          birthDate: s.birthDate || '',
+          birthPlace: s.birthPlace || '',
+          region: s.region || '',
+          town: s.town || '',
+          houseNo: s.houseNo || '',
+          telNo: s.phoneNo || '',
+          poBox: s.poBox || ''
+        },
+        name: s.name || transcript.studentName || lookupLabel || 'Unknown Student',
+        id: s.id || transcript.studentId || lookupLabel || 'N/A',
+        academicYear: selectedYear,
+        year1Class,
+        year2Class,
+        year1Label: `${ecYearNum - 1} E.C.`,
+        year2Label: `${ecYearNum} E.C.`,
+        subjects,
+        year2OverallAverage: transcript.summary?.overallAverage ?? transcript.overallAverage ?? '',
+        average: transcript.summary?.overallAverage ?? transcript.overallAverage ?? 0,
+        rank: transcript.summary?.rank ?? transcript.overallRank ?? 0
       };
     }
 
@@ -229,7 +287,7 @@ export const VPTranscripts = () => {
     }
 
     return null;
-  }, [lookupLabel, transcript]);
+  }, [lookupLabel, transcript, selectedYear]);
 
   const printTranscript = () => {
     // `transcript-print` class and print CSS ensure only the transcript is visible when printing
