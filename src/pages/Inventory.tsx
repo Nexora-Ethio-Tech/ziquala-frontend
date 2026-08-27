@@ -16,7 +16,7 @@ export const Inventory = () => {
   const { role, selectedBranch } = useUser();
   const { selectedBranchId } = useStore();
   // Finance Clerk, Super Admin, and School Admin can view inventory data
-  const allowedRoles = ['school-admin', 'super-admin', 'inventory-clerk', 'storekeeper', 'finance-clerk'];
+  const allowedRoles = ['school-admin', 'super-admin', 'academic-manager', 'inventory-clerk', 'storekeeper', 'finance-clerk'];
   const [items, setItems] = useState<Asset[]>([]);
   const [branches, setBranches] = useState<Branch[]>([]);
   const [loading, setLoading] = useState(true);
