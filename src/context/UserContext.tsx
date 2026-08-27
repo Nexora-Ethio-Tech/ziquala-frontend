@@ -189,8 +189,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
               location: b.address || b.location || 'N/A'
             }));
           }
-        } else if (user.role === 'academic-manager') {
-          const res = await api.get('/academic-manager/branches');
+        } else if (user.role === 'academic-manager' || user.role === 'school-admin' || user.role === 'vice-principal') {
+          const endpoint = user.role === 'academic-manager' ? '/academic-manager/branches' : '/school-admin/branches';
+          const res = await api.get(endpoint);
           if (res.data.success && Array.isArray(res.data.data)) {
             apiBranches = res.data.data.map((b: any) => ({
               id: b.id,

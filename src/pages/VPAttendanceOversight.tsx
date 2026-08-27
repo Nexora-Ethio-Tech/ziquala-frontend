@@ -487,8 +487,8 @@ export const VPAttendanceOversight = () => {
               </div>
 
               <div className="divide-y divide-slate-100 dark:divide-slate-700">
-                {absentStudents.map((student) => (
-                  <div key={student.id} className="p-6 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
+                {absentStudents.map((student, idx) => (
+                  <div key={`${student.id}-${idx}`} className="p-6 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
                     <div className="flex items-start gap-4">
                       <input
                         type="checkbox"

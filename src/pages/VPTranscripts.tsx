@@ -135,7 +135,7 @@ export const VPTranscripts = () => {
       return;
     }
 
-    const firstSection = selectedGradeGroup.sections[0];
+    const firstSection = selectedGradeGroup.sections?.[0];
     if (firstSection && !selectedSection) {
       setSelectedSection(firstSection.id);
     }
@@ -490,7 +490,7 @@ export const VPTranscripts = () => {
                         if (gradeName) {
                           setSelectedGrade(gradeName);
                           const gradeGroup = gradeGroups.find((g) => g.grade_name === gradeName);
-                          if (gradeGroup && gradeGroup.sections.length > 0) {
+                          if (gradeGroup && Array.isArray(gradeGroup.sections) && gradeGroup.sections.length > 0) {
                             setSelectedSection(gradeGroup.sections[0].id);
                           }
                         }
@@ -499,8 +499,8 @@ export const VPTranscripts = () => {
                       className="w-full appearance-none px-4 py-3 bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-800 dark:text-white outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all cursor-pointer pr-10"
                     >
                       <option value="">{t('vp.selectGrade', 'Select Grade')}</option>
-                      {gradeGroups.map((group) => (
-                        <option key={group.grade_name} value={group.grade_name}>
+                      {gradeGroups.map((group, idx) => (
+                        <option key={group.grade_name || idx} value={group.grade_name}>
                           {group.grade_name}
                         </option>
                       ))}
@@ -528,8 +528,8 @@ export const VPTranscripts = () => {
                       {selectedGrade &&
                         gradeGroups
                           .find((g) => g.grade_name === selectedGrade)
-                          ?.sections.map((section) => (
-                            <option key={section.id} value={section.id}>
+                          ?.sections?.map((section, idx) => (
+                            <option key={section.id || idx} value={section.id}>
                               {section.section_name} ({section.student_count}/{section.capacity})
                             </option>
                           ))}
