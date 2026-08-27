@@ -90,7 +90,7 @@ export const Teachers = () => {
   const [successModal, setSuccessModal] = useState<{ show: boolean; data: any }>({ show: false, data: null });
   const [selectedStaff, setSelectedStaff] = useState<any | null>(null);
   const [attendanceTeacher, setAttendanceTeacher] = useState<any | null>(null);
-  const [activeTab, setActiveTab] = useState<'teachers' | 'leaderboard'>('teachers');
+  const [activeTab, setActiveTab] = useState<'teachers' | 'leaderboard'>('leaderboard');
   const [leaderboardData, setLeaderboardData] = useState<any[]>([]);
   const [leaderboardLoading, setLeaderboardLoading] = useState(false);
   const [leaderboardSearch, setLeaderboardSearch] = useState('');
@@ -680,20 +680,8 @@ export const Teachers = () => {
       {isVP && (
         <div className="flex border-b border-slate-200 dark:border-slate-700 mb-6 gap-4">
           <button
-            onClick={() => setActiveTab('teachers')}
-            className={`pb-2 px-1 text-sm font-bold border-b-2 transition-colors ${activeTab === 'teachers'
-              ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-              : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
-              }`}
-          >
-            All Teachers
-          </button>
-          <button
             onClick={() => setActiveTab('leaderboard')}
-            className={`pb-2 px-1 text-sm font-bold border-b-2 transition-colors flex items-center gap-1 ${activeTab === 'leaderboard'
-              ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-              : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
-              }`}
+            className="pb-2 px-1 text-sm font-bold border-b-2 border-blue-600 text-blue-600 dark:text-blue-400 flex items-center gap-1"
           >
             <Trophy size={16} /> {t("teachers.leaderboard", "Leaderboard")}
           </button>
@@ -966,7 +954,7 @@ export const Teachers = () => {
                   <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Teacher</th>
                   <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("teachers.colStudentVotes", "Student Votes")}</th>
                   <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("teachers.colPlanRating", "Plan Rating")}</th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("teachers.colVPRating", "VP Rating")}</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("teachers.colAdminRating", "Admin Rating")}</th>
                   <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("teachers.colGrades", "Grades")}</th>
                   <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("teachers.colTotalPoints", "Total Points")}</th>
                 </tr>
