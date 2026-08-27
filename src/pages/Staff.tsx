@@ -6,6 +6,8 @@ import { useUser, type UserRole } from '../context/UserContext';
 import { userService } from '../services/userService';
 import { branchService } from '../services/branchService';
 import { useStore } from '../context/useStore';
+import PhoneInput from '../components/PhoneInput';
+import { EthiopianDatePicker } from '../components/EthiopianDatePicker';
 
 export const Staff = () => {
   const { t } = useTranslation();
@@ -20,7 +22,26 @@ export const Staff = () => {
   const [statusFilter, setStatusFilter] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [branches, setBranches] = useState<any[]>([]);
-  const [createForm, setCreateForm] = useState({ role: 'vice-principal', name: '', email: '', branchId: '', password: '' });
+
+  const initialCreateForm = {
+    role: 'vice-principal',
+    name: '',
+    email: '',
+    phoneNumber: '',
+    emergencyContactName: '',
+    emergencyContactPhone: '',
+    educationLevel: '',
+    specialty: '',
+    dob: '',
+    previousSchool: '',
+    experienceYears: '',
+    branchId: '',
+    password: ''
+  };
+
+  const [createForm, setCreateForm] = useState(initialCreateForm);
+  const [phoneError, setPhoneError] = useState('');
+  const [emergencyPhoneError, setEmergencyPhoneError] = useState('');
   const [creating, setCreating] = useState(false);
   const [successModal, setSuccessModal] = useState<{ show: boolean; data: any }>({ show: false, data: null });
   const [deleteModal, setDeleteModal] = useState<{ show: boolean; userId: string; userName: string }>({ show: false, userId: '', userName: '' });
@@ -243,6 +264,14 @@ export const Staff = () => {
       const data: any = {
         name: createForm.name,
         email: createForm.email,
+        phoneNumber: createForm.phoneNumber,
+        emergencyContactName: createForm.emergencyContactName,
+        emergencyContactPhone: createForm.emergencyContactPhone,
+        educationLevel: createForm.educationLevel,
+        specialty: createForm.specialty,
+        dob: createForm.dob,
+        previousSchool: createForm.previousSchool,
+        experienceYears: createForm.experienceYears,
         branchId: currentUserRole === 'super-admin' ? selectedBranchId : createForm.branchId,
       };
 
@@ -260,7 +289,11 @@ export const Staff = () => {
       console.log('✅ User created:', response);
       const payload = response?.data?.user != null ? response.data : response;
       setShowCreateModal(false);
-      setCreateForm({ role: currentUserRole === 'super-admin' ? 'school-admin' : 'vice-principal', name: '', email: '', branchId: '', password: '' });
+      setCreateForm({
+        ...initialCreateForm,
+        role: currentUserRole === 'super-admin' ? 'school-admin' : 'vice-principal',
+        branchId: selectedBranchId || ''
+      });
       setSuccessModal({
         show: true,
         data: {
@@ -310,11 +343,9 @@ export const Staff = () => {
             <button
               onClick={() => {
                 setCreateForm({
+                  ...initialCreateForm,
                   role: currentUserRole === 'super-admin' ? 'school-admin' : 'vice-principal',
-                  name: '',
-                  email: '',
-                  branchId: selectedBranchId || '',
-                  password: ''
+                  branchId: selectedBranchId || ''
                 });
                 setShowCreateModal(true);
               }}
@@ -465,7 +496,7 @@ export const Staff = () => {
       {showCreateModal && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-md rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+            <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center sticky top-0 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm z-10">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
                   <UserPlus size={20} />
@@ -483,8 +514,8 @@ export const Staff = () => {
             </div>
 
             <form className="p-6 space-y-4" onSubmit={handleCreateUser}>
-              <div>
-                <label htmlFor="role-select" className="text-xs font-bold text-slate-500 uppercase">Role</label>
+              <div className="space-y-1">
+                <label htmlFor="role-select" className="text-xs font-bold text-slate-500 uppercase">{t("teachers.role", "Role")}</label>
                 <select
                   id="role-select"
                   value={createForm.role}
@@ -493,10 +524,9 @@ export const Staff = () => {
                     setCreateForm({
                       ...createForm,
                       role: newRole,
-                      branchId: createForm.branchId
                     });
                   }}
-                  className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 >
                   {currentUserRole === 'super-admin' && (
@@ -509,14 +539,14 @@ export const Staff = () => {
                 </select>
               </div>
 
-              <div>
-                <label htmlFor="name-input" className="text-xs font-bold text-slate-500 uppercase">Name</label>
+              <div className="space-y-1">
+                <label htmlFor="name-input" className="text-xs font-bold text-slate-500 uppercase">{t("teachers.fullName", "Full Name")}</label>
                 <input
                   id="name-input"
                   type="text"
                   value={createForm.name}
                   onChange={(e) => {
-                    const cleaned = e.target.value.replace(/[^\p{L}\s]/gu, '');
+                    const cleaned = e.target.value.replace(/[^\p{L}\s'-]/gu, '');
                     setCreateForm({ ...createForm, name: cleaned });
                   }}
                   onBlur={(e) => {
@@ -527,28 +557,117 @@ export const Staff = () => {
                       .join(' ');
                     setCreateForm({ ...createForm, name: formatted });
                   }}
-                  className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder={t("teachers.fullNamePlaceholder", "e.g. Ato Bekele Tesfaye")}
                   required
                 />
               </div>
 
-              <div>
-                <label htmlFor="email-input" className="text-xs font-bold text-slate-500 uppercase">Email</label>
+              <div className="space-y-1">
+                <label htmlFor="email-input" className="text-xs font-bold text-slate-500 uppercase">{t("teachers.emailAddress", "Email Address")}</label>
                 <input
                   id="email-input"
                   type="email"
                   value={createForm.email}
                   onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })}
-                  className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="user@school.com"
                   required
                 />
               </div>
 
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <PhoneInput
+                  label={t("teachers.phoneNumber", "Phone Number")}
+                  value={createForm.phoneNumber}
+                  onChange={(val) => setCreateForm({ ...createForm, phoneNumber: val })}
+                  error={phoneError}
+                />
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500 uppercase">{t("teachers.emergencyContactName", "Emergency Contact Name")}</label>
+                  <input
+                    type="text"
+                    value={createForm.emergencyContactName}
+                    onChange={(e) => setCreateForm({ ...createForm, emergencyContactName: e.target.value.replace(/[^\p{L}\s'-]/gu, '') })}
+                    onBlur={(e) => {
+                      const formatted = e.target.value
+                        .trim()
+                        .split(/\s+/)
+                        .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+                        .join(' ');
+                      setCreateForm({ ...createForm, emergencyContactName: formatted });
+                    }}
+                    className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder={t("teachers.emergencyContactPlaceholder", "Contact person")}
+                  />
+                </div>
+                <PhoneInput
+                  label={t("teachers.emergencyContactPhone", "Emergency Contact Phone")}
+                  value={createForm.emergencyContactPhone}
+                  onChange={(val) => setCreateForm({ ...createForm, emergencyContactPhone: val })}
+                  error={emergencyPhoneError}
+                />
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500 uppercase">{t("teachers.educationStatus", "Education Status")}</label>
+                  <select
+                    title="Select education level"
+                    value={createForm.educationLevel}
+                    onChange={(e) => setCreateForm({ ...createForm, educationLevel: e.target.value })}
+                    className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">{t("teachers.selectLevel", "Select level")}</option>
+                    <option value="Diploma">{t("teachers.diploma", "Diploma")}</option>
+                    <option value="Degree">{t("teachers.degree", "Degree")}</option>
+                    <option value="Master">{t("teachers.master", "Master")}</option>
+                    <option value="PhD">{t("teachers.phd", "PhD")}</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500 uppercase">{t("teachers.specialtyCourse", "Specialty / Position")}</label>
+                  <input
+                    type="text"
+                    value={createForm.specialty}
+                    onChange={(e) => setCreateForm({ ...createForm, specialty: e.target.value.replace(/[^\p{L}\s'-]/gu, '') })}
+                    className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="e.g. Administration, Management..."
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500 uppercase">{t("teachers.dob", "Date of Birth")}</label>
+                  <EthiopianDatePicker
+                    value={createForm.dob}
+                    onChange={(val) => setCreateForm({ ...createForm, dob: val })}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500 uppercase">{t("teachers.previousSchool", "Previous Organization")}</label>
+                  <input
+                    type="text"
+                    value={createForm.previousSchool}
+                    onChange={(e) => setCreateForm({ ...createForm, previousSchool: e.target.value })}
+                    className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="e.g. St. Joseph School"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500 uppercase">{t("teachers.experienceYears", "Experience (Years)")}</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="50"
+                    value={createForm.experienceYears}
+                    onChange={(e) => setCreateForm({ ...createForm, experienceYears: e.target.value })}
+                    className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="e.g. 5"
+                  />
+                </div>
+              </div>
+
               {currentUserRole === 'super-admin' && (
-                <div>
+                <div className="space-y-1">
                   <label htmlFor="branch-select" className="text-xs font-bold text-slate-500 uppercase">Branch</label>
                   {selectedBranchId ? (
-                    <div className="w-full mt-1 px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold text-slate-700 dark:text-slate-200">
+                    <div className="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold text-slate-700 dark:text-slate-200">
                       {selectedBranch?.name || branches.find((branch) => branch.id === selectedBranchId)?.name || 'Selected Branch'}
                       <input type="hidden" value={selectedBranchId} />
                     </div>
@@ -557,7 +676,7 @@ export const Staff = () => {
                       id="branch-select"
                       value={createForm.branchId}
                       onChange={(e) => setCreateForm({ ...createForm, branchId: e.target.value })}
-                      className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
                       required
                     >
                       <option value="">Select Branch</option>
