@@ -108,12 +108,10 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
         return [
           { icon: LayoutDashboard, label: t('nav.dashboard', 'Dashboard'), path: dashboardRoutes['school-admin'] },
           { icon: BookOpen, label: t('nav.classes', 'Classes'), path: '/classes' },
-          { icon: GraduationCap, label: t('nav.subjects', 'Subjects'), path: '/subjects' },
           { icon: Users, label: t('nav.students', 'Students'), path: '/students' },
           { icon: UserSquare2, label: t('nav.staffManagement', 'Staff Management'), path: '/staff' },
           { icon: CalendarCheck, label: t('nav.attendance', 'Attendance'), path: '/attendance' },
           { icon: BookOpen, label: t('nav.scheduleBuilder', 'Schedule Builder'), path: '/schedule-builder' },
-          { icon: Package, label: t('nav.inventory', 'Inventory'), path: '/inventory' },
           { icon: LibraryBig, label: t('nav.elearningLibrary', 'eLearning Library'), path: '/elearning-library' },
           { icon: Settings, label: t('nav.settings', 'Settings'), path: '/settings' },
         ];
