@@ -49,7 +49,7 @@ const dashboardRoutes: Record<UserRole, string> = {
   student: '/dashboard/student',
   parent: '/dashboard/parent',
   librarian: '/dashboard/librarian',
-  storekeeper: '/inventory',
+  storekeeper: '/dashboard/storekeeper',
 };
 
 export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
@@ -158,6 +158,12 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
           { icon: LayoutDashboard, label: t('nav.librarianPortal', 'Librarian Portal'), path: dashboardRoutes.librarian },
           { icon: LibraryBig, label: t('nav.library', 'Library'), path: '/library' },
           { icon: BookOpen, label: t('nav.elearningLibrary', 'eLearning Library'), path: '/elearning-library' },
+        ];
+      case 'storekeeper':
+        return [
+          { icon: LayoutDashboard, label: t('nav.storekeeperPortal', 'Store Portal'), path: dashboardRoutes.storekeeper },
+          { icon: Package, label: t('nav.propertyRegister', 'Property Register'), path: '/dashboard/storekeeper?tab=inventory' },
+          { icon: ClipboardList, label: t('nav.addAsset', 'Add Asset'), path: '/dashboard/storekeeper?tab=add' },
         ];
       default:
         return [];

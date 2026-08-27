@@ -66,6 +66,7 @@ const ChatbotManagement = lazy(() => import('./pages/ChatbotManagement'));
 const ELearningLibrary = lazy(() => import('./pages/ELearningPage').then((m) => ({ default: m.ELearningPage })));
 const ELearningManagement = lazy(() => import('./pages/ELearningManagement').then((m) => ({ default: m.ELearningManagement })));
 const AcademicGradeManagement = lazy(() => import('./pages/AcademicGradeManagement').then((m) => ({ default: m.AcademicGradeManagement })));
+const StorekeeperPortal = lazy(() => import('./pages/StorekeeperPortal').then((m) => ({ default: m.StorekeeperPortal })));
 const PageLoader = () => (
   <div className="min-h-[40vh] flex items-center justify-center">
     <div className="text-sm font-bold text-slate-500">Loading page...</div>
@@ -87,7 +88,7 @@ const getDashboardRoute = (role: string | null) => {
     case 'parent': return '/dashboard/parent';
     case 'vice-principal': return '/dashboard/vice-principal';
     case 'librarian': return '/dashboard/librarian';
-    case 'storekeeper': return '/inventory';
+    case 'storekeeper': return '/dashboard/storekeeper';
     default: return '/login';
   }
 };
@@ -165,7 +166,7 @@ function App() {
               <Route path="dashboard/parent" element={<ProtectedRoute allowedRoles={['parent']}><ParentPortal /></ProtectedRoute>} />
               <Route path="dashboard/vice-principal" element={<ProtectedRoute allowedRoles={['vice-principal']}><VicePrincipalDashboard /></ProtectedRoute>} />
               <Route path="dashboard/librarian" element={<ProtectedRoute allowedRoles={['librarian']}><Library /></ProtectedRoute>} />
-              <Route path="dashboard/storekeeper" element={<ProtectedRoute allowedRoles={['storekeeper']}><Inventory /></ProtectedRoute>} />
+              <Route path="dashboard/storekeeper" element={<ProtectedRoute allowedRoles={['storekeeper']}><StorekeeperPortal /></ProtectedRoute>} />
 
               {/* Role specific routes */}
               <Route path="branches" element={
