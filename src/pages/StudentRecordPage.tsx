@@ -217,7 +217,7 @@ export const StudentRecordPage = () => {
               </span>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-xs">
               <div>
                 <p className="text-[10px] font-bold text-slate-400 uppercase">Assigned Grade</p>
                 <p className="font-bold dark:text-slate-200">{displayValue(student?.grade || app?.grade_applying)}</p>
@@ -229,10 +229,6 @@ export const StudentRecordPage = () => {
                     ? `${student.section_name || ''} — Section ${student.section_label}`.trim()
                     : displayValue(student?.section_name)}
                 </p>
-              </div>
-              <div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase">Email Address</p>
-                <p className="font-bold dark:text-slate-200">{displayValue(student?.email || app?.email || app?.applicant_email)}</p>
               </div>
               <div>
                 <p className="text-[10px] font-bold text-slate-400 uppercase">Enrolled Date</p>
@@ -282,9 +278,9 @@ export const StudentRecordPage = () => {
                   <p className="font-bold dark:text-slate-200">{displayValue(app?.gender)}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase">Fayda Alias (Digital ID)</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase">Digital ID</p>
                   <p className="font-bold dark:text-slate-200 font-mono">
-                    {displayValue(app?.digital_id || student?.digital_id)}
+                    {displayValue(student?.digital_id || app?.digital_id)}
                   </p>
                 </div>
                 <div>
