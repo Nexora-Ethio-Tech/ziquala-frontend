@@ -14,9 +14,8 @@ export const userService = {
     return response.data;
   },
 
-  // Future backend endpoint for the Ziquala academic oversight role.
   createAcademicManager: async (data: { name: string; email: string; branchId: string }) => {
-    const response = await api.post('/super-admin/academic-managers', data);
+    const response = await api.post(API_ENDPOINTS.CREATE_ACADEMIC_MANAGER, data);
     return response.data;
   },
 
