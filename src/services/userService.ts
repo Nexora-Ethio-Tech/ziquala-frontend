@@ -19,6 +19,11 @@ export const userService = {
     return response.data;
   },
 
+  createStorekeeper: async (data: { name: string; email: string; branchId: string; password?: string }) => {
+    const response = await api.post('/super-admin/create-storekeeper', data);
+    return response.data;
+  },
+
   // Get all users
   getAllUsers: async (filters: { role?: string; status?: string; branchId?: string } = {}) => {
     const params = new URLSearchParams(filters as Record<string, string>).toString();

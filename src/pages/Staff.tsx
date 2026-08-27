@@ -272,7 +272,7 @@ export const Staff = () => {
         dob: createForm.dob,
         previousSchool: createForm.previousSchool,
         experienceYears: createForm.experienceYears,
-        branchId: currentUserRole === 'super-admin' ? selectedBranchId : createForm.branchId,
+        branchId: createForm.branchId || selectedBranchId || '',
       };
 
       console.log('🚀 Creating User with role:', createForm.role, 'data:', data);
@@ -285,7 +285,7 @@ export const Staff = () => {
       } else if (createForm.role === 'academic-manager') {
         response = await userService.createAcademicManager(data);
       } else if (createForm.role === 'storekeeper') {
-        response = await userService.registerUser({ ...data, role: 'storekeeper' });
+        response = await userService.createStorekeeper(data);
       }
 
       console.log('✅ User created:', response);
