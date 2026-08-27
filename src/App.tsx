@@ -226,7 +226,7 @@ function App() {
               } />
 
               <Route path="branch-users" element={
-                <ProtectedRoute allowedRoles={['school-admin']}>
+                <ProtectedRoute allowedRoles={['school-admin', 'super-admin', 'academic-manager']}>
                   <BranchUsers />
                 </ProtectedRoute>
               } />
@@ -316,7 +316,7 @@ function App() {
               } />
 
               <Route path="librarian-staff" element={
-                <ProtectedRoute allowedRoles={['school-admin', 'super-admin']}>
+                <ProtectedRoute allowedRoles={['school-admin', 'super-admin', 'academic-manager']}>
                   <LibrarianStaff />
                 </ProtectedRoute>
               } />

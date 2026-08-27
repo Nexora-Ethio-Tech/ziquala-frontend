@@ -79,7 +79,7 @@ export const Teachers = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { role } = useUser();
-  const isAdmin = role === 'school-admin' || role === 'super-admin';
+  const isAdmin = role === 'school-admin' || role === 'super-admin' || role === 'academic-manager';
   const isVP = role === 'vice-principal';
 
   const [teachers, setTeachers] = useState<any[]>([]);

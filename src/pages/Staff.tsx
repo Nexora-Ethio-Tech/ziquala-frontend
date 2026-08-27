@@ -165,10 +165,12 @@ export const Staff = () => {
       // - School Admins (created by Super Admin, assigned to branches)
       // - Vice Principals (created by Super Admin)
       // School Admin creates and manages branch-level academic users.
-      const SUPER_ADMIN_MANAGEABLE_ROLES = ['super-admin', 'academic-manager', 'school-admin', 'vice-principal'];
+      const MANAGEABLE_ROLES = currentUserRole === 'super-admin'
+        ? ['super-admin', 'academic-manager', 'school-admin', 'vice-principal']
+        : ['academic-manager', 'vice-principal', 'teacher', 'librarian', 'storekeeper'];
 
       const transformed = (response.data || [])
-        .filter((u: any) => SUPER_ADMIN_MANAGEABLE_ROLES.includes(u.role))
+        .filter((u: any) => MANAGEABLE_ROLES.includes(u.role))
         .map((u: any) => {
           const branchId = u.branch_id || u.branchId;
           const matched = resolvedBranches.find((b: any) => b.id === branchId);
@@ -193,7 +195,7 @@ export const Staff = () => {
     }
   };
 
-  if (currentUserRole !== 'super-admin') {
+  if (currentUserRole !== 'super-admin' && currentUserRole !== 'school-admin' && currentUserRole !== 'academic-manager') {
     return (
       <div className="p-8 text-center text-rose-500">
         <ShieldAlert className="mx-auto mb-4" size={48} />
