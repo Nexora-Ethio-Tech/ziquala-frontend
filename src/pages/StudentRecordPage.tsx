@@ -296,10 +296,6 @@ export const StudentRecordPage = () => {
                   <p className="font-bold dark:text-slate-200">{displayValue(app?.religion)}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase">Card Age</p>
-                  <p className="font-bold dark:text-slate-200">{displayValue(app?.card_age)}</p>
-                </div>
-                <div>
                   <p className="text-[10px] font-bold text-slate-400 uppercase">Date Registered</p>
                   <p className="font-bold dark:text-slate-200">{formatDate(app?.date_registered || app?.created_at)}</p>
                 </div>
@@ -365,22 +361,14 @@ export const StudentRecordPage = () => {
                 <MapPin size={14} className="text-rose-500" />
                 Address & Location Information
               </h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs bg-slate-50 dark:bg-slate-800/40 p-4 rounded-xl">
-                <div className="col-span-2">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-xs bg-slate-50 dark:bg-slate-800/40 p-4 rounded-xl">
+                <div>
                   <p className="text-[10px] font-bold text-slate-400 uppercase">Full Address</p>
                   <p className="font-bold dark:text-slate-200">{displayValue(app?.address)}</p>
                 </div>
                 <div>
                   <p className="text-[10px] font-bold text-slate-400 uppercase">Kebele</p>
                   <p className="font-bold dark:text-slate-200">{displayValue(app?.kebele)}</p>
-                </div>
-                <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase">Ketena</p>
-                  <p className="font-bold dark:text-slate-200">{displayValue(app?.ketena)}</p>
-                </div>
-                <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase">House Number</p>
-                  <p className="font-bold dark:text-slate-200">{displayValue(app?.house_no)}</p>
                 </div>
                 <div>
                   <p className="text-[10px] font-bold text-slate-400 uppercase">Applicant Phone</p>
