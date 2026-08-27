@@ -442,15 +442,15 @@ export const Staff = () => {
                             </span>
                           </td>
                           <td className="px-6 py-4">
-                            <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${staff.status === 'active' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400' : 'bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400'}`}>
+                            <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${(staff.status === 'Approved' || staff.status === 'active') ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400' : 'bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400'}`}>
                               {staff.status}
                             </span>
                           </td>
                           <td className="px-6 py-4 text-right">
                             <div className="flex items-center justify-end gap-2">
-                              {staff.status === 'active' ? (
+                              {(staff.status === 'Approved' || staff.status === 'active') ? (
                                 <button
-                                  onClick={() => handleUpdateStatus(staff.id, 'inactive')}
+                                  onClick={() => handleUpdateStatus(staff.id, 'Revoked')}
                                   className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg transition-colors"
                                   title="Deactivate User"
                                 >
@@ -458,7 +458,7 @@ export const Staff = () => {
                                 </button>
                               ) : (
                                 <button
-                                  onClick={() => handleUpdateStatus(staff.id, 'active')}
+                                  onClick={() => handleUpdateStatus(staff.id, 'Approved')}
                                   className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-colors"
                                   title="Activate User"
                                 >
