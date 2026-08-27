@@ -656,7 +656,7 @@ export const Teachers = () => {
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{t("teachers.title", "Teachers")}</h1>
+          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{role === 'school-admin' ? t("teachers.supervise", "Supervise") : t("teachers.title", "Teachers")}</h1>
           <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">{t("teachers.subtitle", "Manage teaching staff and assignments")}</p>
         </div>
 

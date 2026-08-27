@@ -14,6 +14,7 @@ import {
   Megaphone,
   Package,
   Settings,
+  UserCheck,
   UserSquare2,
   Users,
   X,
@@ -110,6 +111,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
           { icon: BookOpen, label: t('nav.classes', 'Classes'), path: '/classes' },
           { icon: Users, label: t('nav.students', 'Students'), path: '/students' },
           { icon: UserSquare2, label: t('nav.staffManagement', 'Staff Management'), path: '/staff' },
+          { icon: UserCheck, label: t('nav.supervise', 'Supervise'), path: '/teachers' },
           { icon: CalendarCheck, label: t('nav.attendance', 'Attendance'), path: '/attendance' },
           { icon: BookOpen, label: t('nav.scheduleBuilder', 'Schedule Builder'), path: '/schedule-builder' },
           { icon: LibraryBig, label: t('nav.elearningLibrary', 'eLearning Library'), path: '/elearning-library' },
@@ -118,7 +120,6 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
       case 'vice-principal':
         return [
           { icon: LayoutDashboard, label: t('nav.dashboard', 'Dashboard'), path: dashboardRoutes['vice-principal'] },
-          { icon: UserSquare2, label: t('nav.teachers', 'Teachers'), path: '/teachers' },
           { icon: CalendarCheck, label: t('nav.attendanceOversight', 'Attendance Oversight'), path: '/vp-attendance' },
           { icon: ClipboardList, label: t('nav.gradeManagement', 'Grade Management'), path: '/vp-grade-management' },
           { icon: FileText, label: t('nav.transcripts', 'Transcripts'), path: '/vp-transcripts' },
