@@ -388,7 +388,6 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
     const currentStepData = {
       name: formData.get('name'),
       placeOfBirth: formData.get('placeOfBirth'),
-      cardAge: formData.get('cardAge'),
       religion: formData.get('religion'),
       fatherName: formData.get('fatherName'),
       fatherOccupation: formData.get('fatherOccupation'),
@@ -465,7 +464,6 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
       const formData = new FormData(e.currentTarget);
       const name = formData.get('name') as string;
       const placeOfBirth = formData.get('placeOfBirth') as string;
-      const cardAge = formData.get('cardAge') as string;
       const religion = formData.get('religion') as string;
       const fatherName = formData.get('fatherName') as string;
       const fatherOccupation = formData.get('fatherOccupation') as string;
@@ -484,8 +482,6 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
 
 
       const address = formData.get('address') as string;
-      const digitalId = (formData.get('digital_id') as string) || (formData.get('digitalId') as string);
-      const email = formData.get('email') as string;
       const previousSchool = formData.get('previousSchool') as string;
       const grade = formData.get('grade') as string;
       const bloodGroup = formData.get('bloodGroup') as string;
@@ -498,7 +494,6 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
       const allFormData = {
         name,
         placeOfBirth,
-        cardAge,
         religion,
         fatherName,
         fatherOccupation,
@@ -542,8 +537,6 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
       // Create FormData for file upload (only append non-empty values)
       const submitData = new FormData();
       submitData.append('name', toTitleCase(name) || '');
-      if (digitalId?.trim()) submitData.append('digitalId', digitalId.trim());
-      if (email?.trim()) submitData.append('email', email.trim());
       const formattedFatherPhone = formatPhoneNumber(fatherPhone || phone);
       submitData.append('fatherName', toTitleCase(fatherName || parentName) || '');
       submitData.append('fatherPhone', formattedFatherPhone);
@@ -552,7 +545,6 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
       if (motherOccupation?.trim()) submitData.append('motherOccupation', toTitleCase(motherOccupation.trim()));
       if (motherPhone?.trim()) submitData.append('motherPhone', formatPhoneNumber(motherPhone));
       if (placeOfBirth?.trim()) submitData.append('placeOfBirth', toTitleCase(placeOfBirth.trim()));
-      if (cardAge?.trim()) submitData.append('cardAge', cardAge.trim());
       if (kebele?.trim()) submitData.append('kebele', kebele.trim());
       if (ketena?.trim()) submitData.append('ketena', ketena.trim());
       if (houseNo?.trim()) submitData.append('houseNo', houseNo.trim());
@@ -1208,42 +1200,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                     {validationErrors.dob && <p className="text-[10px] text-rose-500 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {validationErrors.dob}</p>}
                   </div>
 
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
-                      Fayda ID / Digital ID / የፋይዳ ቁጥር <span className="text-slate-400 text-[10px] font-medium">(optional)</span>
-                    </label>
-                    <input
-                      name="digital_id"
-                      type="text"
-                      maxLength={16}
-                      placeholder="16-digit Fayda Number"
-                      className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 font-mono"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
-                      Email Address / ኢሜይል <span className="text-slate-400 text-[10px] font-medium">(optional)</span>
-                    </label>
-                    <input
-                      name="email"
-                      type="email"
-                      placeholder="applicant@example.com"
-                      className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
-                      {t('registration.cardAge', 'Card Age')} / የካርድ ዕድሜ
-                    </label>
-                    <input
-                      name="cardAge"
-                      type="text"
-                      placeholder="Card Age / የካርድ ዕድሜ"
-                      className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
+                  
 
                   {/* Row 3: Religion (Dropdown) & Gender (Dropdown) */}
                   <div className="space-y-1">
