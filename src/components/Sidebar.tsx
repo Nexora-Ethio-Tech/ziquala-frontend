@@ -96,17 +96,13 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
       }
       case 'academic-manager':
         return [
-          { icon: LayoutDashboard, label: t('nav.academicOverview', 'Academic Overview'), path: dashboardRoutes['academic-manager'] },
-          { icon: Building2, label: t('nav.branches', 'Branches'), path: '/branches' },
-          { icon: BarChart3, label: t('nav.academicAnalytics', 'Academic Analytics'), path: '/analytics' },
+          { icon: LayoutDashboard, label: t('nav.dashboard', 'Dashboard'), path: dashboardRoutes['academic-manager'] },
           { icon: Users, label: t('nav.students', 'Students'), path: '/students' },
-          { icon: UserSquare2, label: t('nav.teachersStaff', 'Teachers & Staff'), path: '/staff' },
-          { icon: BookOpen, label: t('nav.classes', 'Classes'), path: '/classes' },
-          { icon: GraduationCap, label: t('nav.subjects', 'Subjects'), path: '/subjects' },
-          { icon: CalendarCheck, label: t('nav.attendanceOversight', 'Attendance Oversight'), path: '/vp-attendance' },
-          { icon: ClipboardCheck, label: t('nav.gradeEditing', 'Grade & Point Editing'), path: '/academic-grades' },
-          { icon: LibraryBig, label: t('nav.elearningManagement', 'eLearning Management'), path: '/elearning-management' },
-          { icon: FileText, label: t('nav.transcripts', 'Transcripts'), path: '/vp-transcripts' },
+          { icon: UserSquare2, label: t('nav.staffManagement', 'Staff Management'), path: '/staff' },
+          { icon: CalendarCheck, label: t('nav.attendance', 'Attendance'), path: '/attendance' },
+          { icon: Package, label: t('nav.inventory', 'Inventory'), path: '/inventory' },
+          { icon: LibraryBig, label: t('nav.elearningLibrary', 'eLearning Library'), path: '/elearning-library' },
+          { icon: Settings, label: t('nav.settings', 'Settings'), path: '/settings' },
         ];
       case 'school-admin':
         return [

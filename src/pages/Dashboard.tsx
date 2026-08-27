@@ -137,7 +137,7 @@ export const Dashboard = () => {
           if (response.success) {
             setDashboardStats(response.data);
           }
-        } else if (role === 'school-admin') {
+        } else if (role === 'school-admin' || role === 'academic-manager') {
           const [dashboardData, atRiskData, eventsData, noticesRes] = await Promise.all([
             getSchoolAdminDashboard(),
             getAtRiskStudents(),
@@ -746,7 +746,7 @@ export const Dashboard = () => {
   return (
     <div className="space-y-8">
       {/* Welcome Message for School Admin */}
-      {role === 'school-admin' && user && (
+      {(role === 'school-admin' || role === 'academic-manager') && user && (
         <section className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-2xl p-6 shadow-xl">
           <div className="flex items-center justify-between">
             <div>

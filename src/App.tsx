@@ -157,7 +157,7 @@ function App() {
 
               {/* Explicit Dashboard Routes */}
               <Route path="dashboard/super-admin" element={<ProtectedRoute allowedRoles={['super-admin']}><Dashboard /></ProtectedRoute>} />
-              <Route path="dashboard/academic-manager" element={<ProtectedRoute allowedRoles={['academic-manager']}><AcademicManagerDashboard /></ProtectedRoute>} />
+              <Route path="dashboard/academic-manager" element={<ProtectedRoute allowedRoles={['academic-manager']}><Dashboard /></ProtectedRoute>} />
               <Route path="dashboard/school-admin" element={<ProtectedRoute allowedRoles={['school-admin']}><Dashboard /></ProtectedRoute>} />
               <Route path="dashboard/teacher" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherPortal /></ProtectedRoute>} />
               <Route path="dashboard/student" element={<ProtectedRoute allowedRoles={['student']}><StudentPortal /></ProtectedRoute>} />
@@ -335,7 +335,7 @@ function App() {
               } />
 
               <Route path="inventory" element={
-                <ProtectedRoute allowedRoles={['school-admin', 'super-admin']}>
+                <ProtectedRoute allowedRoles={['school-admin', 'super-admin', 'academic-manager']}>
                   <Inventory />
                 </ProtectedRoute>
               } />
@@ -405,7 +405,7 @@ function App() {
                   <ELearningLibrary />
                 </ProtectedRoute>
               } />
-              <Route path="settings" element={<ProtectedRoute allowedRoles={['super-admin', 'school-admin']}><Settings /></ProtectedRoute>} />
+              <Route path="settings" element={<ProtectedRoute allowedRoles={['super-admin', 'school-admin', 'academic-manager']}><Settings /></ProtectedRoute>} />
               <Route path="change-password" element={<ChangePassword />} />
               <Route path="exam/:examId" element={<ExamSession />} />
 
