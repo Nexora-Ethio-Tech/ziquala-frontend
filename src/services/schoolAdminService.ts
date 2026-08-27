@@ -237,11 +237,14 @@ export const getPendingApplications = async (): Promise<Application[]> => {
 
 export interface AdmissionDocument {
   id: string;
-  type: string;
+  type?: string;
+  name?: string;
   file_name: string;
-  file_size: number | null;
-  mime_type: string | null;
-  uploaded_at: string | null;
+  file_size?: number | null;
+  mime_type?: string | null;
+  uploaded_at?: string | null;
+  applicationId?: string;
+  has_file?: boolean;
   source: string;
 }
 

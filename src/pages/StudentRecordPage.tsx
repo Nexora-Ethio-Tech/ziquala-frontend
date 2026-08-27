@@ -16,7 +16,8 @@ import {
   Building,
   Calendar,
   CreditCard,
-  PhoneCall
+  PhoneCall,
+  ExternalLink
 } from 'lucide-react';
 import { formatEthiopianLabel } from '../utils/ethiopianCalendar';
 import api from '../services/api';
@@ -44,8 +45,9 @@ export const StudentRecordPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [record, setRecord] = useState<StudentAdmissionRecord | null>(null);
 
-  const [viewingDoc, setViewingDoc] = useState<{ applicationId: string; fileName: string } | null>(null);
+  const [viewingDoc, setViewingDoc] = useState<{ applicationId: string; fileName: string; hasFile?: boolean } | null>(null);
   const [docUrl, setDocUrl] = useState<string | null>(null);
+  const [docType, setDocType] = useState<string | null>(null);
   const [docLoading, setDocLoading] = useState(false);
   const [docError, setDocError] = useState<string | null>(null);
 
@@ -73,22 +75,26 @@ export const StudentRecordPage = () => {
     const formData = new FormData();
     formData.append('transcript', file);
 
-    setUploading(true);
     try {
+      setUploading(true);
       await api.post(`/school-admin/applications/${replacingDocId}/transcript/replace`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+        headers: { 'Content-Type': 'multipart/form-data' }
       });
+      alert('Transcript uploaded successfully');
 
+      // Refresh admission record and automatically preview
       if (studentId) {
-        const data = await getStudentAdmissionRecord(studentId);
-        setRecord(data);
+        const res = await getStudentAdmissionRecord(studentId);
+        setRecord(res);
+        const updatedDoc = res.documents.find((d) => d.applicationId === replacingDocId || d.id.includes(replacingDocId));
+        setViewingDoc({
+          applicationId: replacingDocId,
+          fileName: updatedDoc?.file_name || file.name,
+          hasFile: true
+        });
       }
-      alert('Document re-uploaded successfully!');
     } catch (err: any) {
-      const msg = err.response?.data?.message || err.message || 'Failed to replace document';
-      alert(msg);
+      alert(err.response?.data?.message || err.message || 'Failed to replace transcript');
     } finally {
       setUploading(false);
       setReplacingDocId(null);
@@ -96,22 +102,21 @@ export const StudentRecordPage = () => {
   };
 
   useEffect(() => {
-    if (!studentId) return;
     let cancelled = false;
 
     const load = async () => {
+      if (!studentId) return;
       setLoading(true);
       setError(null);
       try {
-        const data = await getStudentAdmissionRecord(studentId);
-        if (!cancelled) setRecord(data);
+        const res = await getStudentAdmissionRecord(studentId);
+        if (!cancelled) setRecord(res);
       } catch (err: any) {
         if (!cancelled) {
           setError(
             err.response?.data?.message ||
-              err.response?.data?.error?.message ||
               err.message ||
-              'Failed to load student record'
+              'Failed to load student admission record'
           );
         }
       } finally {
@@ -130,21 +135,34 @@ export const StudentRecordPage = () => {
 
     const fetchDoc = async () => {
       if (!viewingDoc) return;
+      if (viewingDoc.hasFile === false) {
+        setDocLoading(false);
+        setDocUrl(null);
+        setDocType(null);
+        setDocError('No transcript document uploaded for this record yet.');
+        return;
+      }
+
       setDocLoading(true);
       setDocError(null);
       setDocUrl(null);
+      setDocType(null);
       try {
         const response = await api.get(
           `/school-admin/applications/${viewingDoc.applicationId}/transcript`,
           { responseType: 'blob' }
         );
-        objectUrl = URL.createObjectURL(response.data);
+        const rawHeader = response.headers['content-type'];
+        const contentType = typeof rawHeader === 'string' ? rawHeader : 'application/pdf';
+        const blob = new Blob([response.data], { type: contentType });
+        objectUrl = URL.createObjectURL(blob);
         setDocUrl(objectUrl);
+        setDocType(contentType);
       } catch (err: any) {
         setDocError(
           err.response?.data?.message ||
             err.message ||
-            'Failed to load document'
+            'No transcript document uploaded for this record yet.'
         );
       } finally {
         setDocLoading(false);
@@ -155,6 +173,7 @@ export const StudentRecordPage = () => {
     return () => {
       if (objectUrl) URL.revokeObjectURL(objectUrl);
       setDocUrl(null);
+      setDocType(null);
     };
   }, [viewingDoc]);
 
@@ -494,74 +513,96 @@ export const StudentRecordPage = () => {
               <p className="text-sm text-slate-500">No documents were submitted with this application.</p>
             ) : (
               <div className="space-y-3">
-                {record.documents.map((doc) => (
-                  <div
-                    key={doc.id}
-                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-100 dark:border-slate-800"
-                  >
-                    <div>
-                      <p className="font-bold text-sm text-slate-800 dark:text-slate-200">{doc.file_name}</p>
-                      <p className="text-xs text-slate-500 mt-0.5">
-                        Academic Transcript Document
-                        {doc.uploaded_at ? ` · Uploaded ${formatDate(doc.uploaded_at)}` : ''}
-                      </p>
+                {record.documents.map((doc) => {
+                  const targetAppId = doc.applicationId || app?.id;
+                  return (
+                    <div
+                      key={doc.id}
+                      className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-100 dark:border-slate-800 hover:border-blue-200 dark:hover:border-blue-800 transition-colors"
+                    >
+                      <div
+                        className="cursor-pointer group flex-1"
+                        onClick={() => {
+                          if (targetAppId) {
+                            setViewingDoc({ applicationId: targetAppId, fileName: doc.file_name, hasFile: doc.has_file });
+                          }
+                        }}
+                      >
+                        <p className="font-bold text-sm text-slate-800 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors flex items-center gap-2">
+                          <FileText size={16} className="text-purple-500" />
+                          {doc.file_name}
+                        </p>
+                        <p className="text-xs text-slate-500 mt-1 flex items-center gap-2">
+                          <span>{doc.name || 'Academic Transcript Document'}</span>
+                          {doc.uploaded_at && <span>· Uploaded {formatDate(doc.uploaded_at)}</span>}
+                          {doc.has_file === false && (
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                              No File Uploaded Yet
+                            </span>
+                          )}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        {targetAppId && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setViewingDoc({ applicationId: targetAppId, fileName: doc.file_name, hasFile: doc.has_file })
+                              }
+                              className="px-4 py-2 text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 rounded-lg text-xs font-bold flex items-center gap-2 transition-colors cursor-pointer"
+                            >
+                              <FileText size={14} /> View
+                            </button>
+                            <a
+                              href={`/api/school-admin/applications/${targetAppId}/transcript`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="px-4 py-2 text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-xs font-bold flex items-center gap-2 transition-colors cursor-pointer"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                api
+                                  .get(`/school-admin/applications/${targetAppId}/transcript`, {
+                                    responseType: 'blob'
+                                  })
+                                  .then((res) => {
+                                    const url = URL.createObjectURL(res.data);
+                                    const a = document.createElement('a');
+                                    a.href = url;
+                                    a.download = doc.file_name;
+                                    a.click();
+                                    URL.revokeObjectURL(url);
+                                  })
+                                  .catch((err) => {
+                                    alert(err.response?.data?.message || 'No transcript file available to download yet.');
+                                  });
+                              }}
+                            >
+                              <Download size={14} /> Download
+                            </a>
+                            <button
+                              type="button"
+                              disabled={uploading}
+                              onClick={() => triggerFileSelect(targetAppId)}
+                              className="px-4 py-2 text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 rounded-lg text-xs font-bold flex items-center gap-2 disabled:opacity-50 transition-colors cursor-pointer"
+                            >
+                              {uploading && replacingDocId === targetAppId ? (
+                                <>
+                                  <Loader2 className="animate-spin" size={14} /> Uploading...
+                                </>
+                              ) : (
+                                <>
+                                  <Upload size={14} /> {doc.has_file === false ? 'Upload File' : 'Re-upload'}
+                                </>
+                              )}
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      {doc.source === 'application' && app?.id && (
-                        <>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setViewingDoc({ applicationId: app.id, fileName: doc.file_name })
-                            }
-                            className="px-4 py-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg text-xs font-bold flex items-center gap-2"
-                          >
-                            <FileText size={14} /> View
-                          </button>
-                          <a
-                            href={`/api/school-admin/applications/${app.id}/transcript`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="px-4 py-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-xs font-bold flex items-center gap-2"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              api
-                                .get(`/school-admin/applications/${app.id}/transcript`, {
-                                  responseType: 'blob'
-                                })
-                                .then((res) => {
-                                  const url = URL.createObjectURL(res.data);
-                                  const a = document.createElement('a');
-                                  a.href = url;
-                                  a.download = doc.file_name;
-                                  a.click();
-                                  URL.revokeObjectURL(url);
-                                });
-                            }}
-                          >
-                            <Download size={14} /> Download
-                          </a>
-                          <button
-                            type="button"
-                            disabled={uploading}
-                            onClick={() => triggerFileSelect(app.id)}
-                            className="px-4 py-2 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg text-xs font-bold flex items-center gap-2 disabled:opacity-50"
-                          >
-                            {uploading && replacingDocId === app.id ? (
-                              <>
-                                <Loader2 className="animate-spin" size={14} /> Re-uploading...
-                              </>
-                            ) : (
-                              <>
-                                <Upload size={14} /> Re-upload
-                              </>
-                            )}
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -571,30 +612,65 @@ export const StudentRecordPage = () => {
       {/* Document viewer modal */}
       {viewingDoc && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 w-full max-w-4xl h-[80vh] flex flex-col">
-            <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
-              <h3 className="font-bold text-slate-800 dark:text-slate-100 truncate pr-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 w-full max-w-4xl h-[85vh] flex flex-col overflow-hidden">
+            <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+              <h3 className="font-bold text-slate-800 dark:text-slate-100 truncate pr-4 text-sm flex items-center gap-2">
+                <FileText size={16} className="text-blue-500" />
                 {viewingDoc.fileName}
               </h3>
-              <button
-                type="button"
-                onClick={() => setViewingDoc(null)}
-                className="text-slate-400 hover:text-slate-600"
-                title="Close document viewer"
-                aria-label="Close document viewer"
-              >
-                <X size={20} />
-              </button>
+              <div className="flex items-center gap-2">
+                {docUrl && (
+                  <a
+                    href={docUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/40 hover:bg-blue-100 rounded-lg transition-colors"
+                  >
+                    <ExternalLink size={14} />
+                    Open in New Tab / Print
+                  </a>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setViewingDoc(null)}
+                  className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg cursor-pointer"
+                  title="Close document viewer"
+                  aria-label="Close document viewer"
+                >
+                  <X size={20} />
+                </button>
+              </div>
             </div>
-            <div className="flex-1 p-4">
+            <div className="flex-1 p-4 bg-slate-100 dark:bg-slate-950 overflow-auto flex items-center justify-center">
               {docLoading ? (
-                <div className="flex items-center justify-center h-full">
-                  <Loader2 className="animate-spin text-blue-600" size={28} />
+                <div className="flex flex-col items-center justify-center gap-2">
+                  <Loader2 className="animate-spin text-blue-600" size={32} />
+                  <span className="text-xs font-bold text-slate-400">Loading Document...</span>
                 </div>
               ) : docError ? (
-                <p className="text-sm text-rose-500 text-center">{docError}</p>
+                <div className="text-center p-6 bg-white dark:bg-slate-900 rounded-2xl border border-rose-200 dark:border-rose-900/50 shadow-sm max-w-md">
+                  <p className="text-sm font-bold text-rose-500 mb-2">{docError}</p>
+                  <p className="text-xs text-slate-400 mb-4">Click below to upload a transcript document for this student record.</p>
+                  <button
+                    type="button"
+                    disabled={uploading}
+                    onClick={() => {
+                      setViewingDoc(null);
+                      if (viewingDoc) triggerFileSelect(viewingDoc.applicationId);
+                    }}
+                    className="px-4 py-2.5 bg-blue-600 text-white hover:bg-blue-700 rounded-xl text-xs font-bold inline-flex items-center gap-2 shadow-md transition-all cursor-pointer"
+                  >
+                    <Upload size={14} /> Upload Transcript Document Now
+                  </button>
+                </div>
               ) : docUrl ? (
-                <iframe title={viewingDoc.fileName} src={docUrl} className="w-full h-full rounded-lg border border-slate-200 dark:border-slate-700" />
+                docType?.startsWith('image/') || viewingDoc.fileName.match(/\.(png|jpg|jpeg|gif|webp)$/i) ? (
+                  <img src={docUrl} alt={viewingDoc.fileName} className="max-w-full max-h-full object-contain rounded-lg shadow-md" />
+                ) : (
+                  <object data={docUrl} type={docType || 'application/pdf'} className="w-full h-full rounded-lg border border-slate-200 dark:border-slate-800">
+                    <iframe title={viewingDoc.fileName} src={docUrl} className="w-full h-full rounded-lg" />
+                  </object>
+                )
               ) : null}
             </div>
           </div>
