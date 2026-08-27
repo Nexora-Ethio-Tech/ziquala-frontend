@@ -532,14 +532,8 @@ export const StudentRecordPage = () => {
                           <FileText size={16} className="text-purple-500" />
                           {doc.file_name}
                         </p>
-                        <p className="text-xs text-slate-500 mt-1 flex items-center gap-2">
-                          <span>{doc.name || 'Academic Transcript Document'}</span>
-                          {doc.uploaded_at && <span>· Uploaded {formatDate(doc.uploaded_at)}</span>}
-                          {doc.has_file === false && (
-                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
-                              No File Uploaded Yet
-                            </span>
-                          )}
+                        <p className="text-xs text-slate-500 mt-1">
+                          Academic Transcript Document
                         </p>
                       </div>
 
@@ -593,7 +587,7 @@ export const StudentRecordPage = () => {
                                 </>
                               ) : (
                                 <>
-                                  <Upload size={14} /> {doc.has_file === false ? 'Upload File' : 'Re-upload'}
+                                  <Upload size={14} /> Re-upload
                                 </>
                               )}
                             </button>
