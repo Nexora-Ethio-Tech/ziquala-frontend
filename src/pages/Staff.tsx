@@ -305,24 +305,26 @@ export const Staff = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => {
-              setCreateForm({
-                role: currentUserRole === 'super-admin' ? 'school-admin' : 'vice-principal',
-                name: '',
-                email: '',
-                branchId: selectedBranchId || '',
-                password: ''
-              });
-              setShowCreateModal(true);
-            }}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg flex items-center gap-2 hover:bg-blue-700 text-sm font-bold shadow-lg shadow-blue-200 dark:shadow-none"
-          >
-            <UserPlus size={18} />
-            {t("staff.createUser", "Create User")}
-          </button>
-        </div>
+        {(currentUserRole === 'super-admin' || currentUserRole === 'academic-manager') && (
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => {
+                setCreateForm({
+                  role: currentUserRole === 'super-admin' ? 'school-admin' : 'vice-principal',
+                  name: '',
+                  email: '',
+                  branchId: selectedBranchId || '',
+                  password: ''
+                });
+                setShowCreateModal(true);
+              }}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg flex items-center gap-2 hover:bg-blue-700 text-sm font-bold shadow-lg shadow-blue-200 dark:shadow-none"
+            >
+              <UserPlus size={18} />
+              {t("staff.createUser", "Create User")}
+            </button>
+          </div>
+        )}
       </div>
 
       {currentUserRole === 'school-admin' || currentUserRole === 'academic-manager' ? (
