@@ -80,7 +80,7 @@ export const Teachers = () => {
   const navigate = useNavigate();
   const { role } = useUser();
   const isAdmin = role === 'school-admin' || role === 'super-admin' || role === 'academic-manager';
-  const isVP = role === 'vice-principal';
+  const isVP = role === 'vice-principal' || role === 'school-admin';
 
   const [teachers, setTeachers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -660,7 +660,7 @@ export const Teachers = () => {
           <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">{t("teachers.subtitle", "Manage teaching staff and assignments")}</p>
         </div>
 
-        {isAdmin && (
+        {isAdmin && role !== 'school-admin' && (
           <button
             onClick={() => setShowAddModal(true)}
             className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all text-sm font-bold shadow-lg shadow-blue-200 dark:shadow-none"
