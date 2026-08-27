@@ -205,7 +205,7 @@ function App() {
                   <Staff />
                 </ProtectedRoute>
               }>
-                <Route index element={<StaffCategoryPlaceholder />} />
+                <Route index element={<Navigate to="teachers" replace />} />
                 <Route path="teachers" element={<Teachers />} />
                 <Route path="librarian" element={<LibrarianStaff />} />
               </Route>

@@ -60,7 +60,6 @@ export const Staff = () => {
   ];
 
   useEffect(() => {
-    if (currentUserRole !== 'super-admin') return;
     const init = async () => {
       const branchList = await fetchBranches();
       await fetchUsers(branchList);
@@ -303,10 +302,8 @@ export const Staff = () => {
           temporaryPassword: payload.temporaryPassword ?? payload.temporary_password,
         },
       });
-      if (currentUserRole === 'super-admin') {
-        const branchList = await fetchBranches();
-        fetchUsers(branchList);
-      }
+      const branchList = await fetchBranches();
+      fetchUsers(branchList);
     } catch (err: any) {
       console.error('❌ Error creating user:', err);
       console.error('❌ Error response:', err.response?.data);
@@ -340,7 +337,7 @@ export const Staff = () => {
           </p>
         </div>
 
-        {(currentUserRole === 'super-admin' || currentUserRole === 'academic-manager') && (
+        {(currentUserRole === 'super-admin' || currentUserRole === 'academic-manager' || currentUserRole === 'school-admin') && (
           <div className="flex items-center gap-3">
             <button
               onClick={() => {

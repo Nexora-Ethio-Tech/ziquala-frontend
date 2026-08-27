@@ -1,8 +1,8 @@
 import { useTranslation } from 'react-i18next';
-import { UserPlus, X, Check, ArrowLeft, MoreVertical, CheckCircle, XCircle, Trash2, Printer, Eye, Edit2, Loader2, FileText, Download, Upload } from 'lucide-react';
+import { UserPlus, X, Check, ArrowLeft, MoreVertical, CheckCircle, XCircle, Trash2, Printer, Eye, Edit2, Loader2, FileText, Download, Upload, Users } from 'lucide-react';
 import PhoneInput from '../components/PhoneInput';
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import { registerUser, getBranchTeachers, approveTeacher, revokeTeacher, deleteTeacher, promoteTeacher, updateUser, resetUserPIN, removeTeacherPromotion, replaceUserDocument } from '../services/schoolAdminService';
 import api from '../services/api';
@@ -78,9 +78,11 @@ const MultiSelectDropdown = ({
 export const Teachers = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const { role } = useUser();
   const isAdmin = role === 'school-admin' || role === 'super-admin' || role === 'academic-manager';
-  const isVP = role === 'vice-principal' || role === 'school-admin';
+  const isVP = role === 'vice-principal';
+  const isSuperviseRoute = location.pathname === '/teachers';
 
   const [teachers, setTeachers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -90,7 +92,7 @@ export const Teachers = () => {
   const [successModal, setSuccessModal] = useState<{ show: boolean; data: any }>({ show: false, data: null });
   const [selectedStaff, setSelectedStaff] = useState<any | null>(null);
   const [attendanceTeacher, setAttendanceTeacher] = useState<any | null>(null);
-  const [activeTab, setActiveTab] = useState<'teachers' | 'leaderboard'>('leaderboard');
+  const [activeTab, setActiveTab] = useState<'teachers' | 'leaderboard'>('teachers');
   const [leaderboardData, setLeaderboardData] = useState<any[]>([]);
   const [leaderboardLoading, setLeaderboardLoading] = useState(false);
   const [leaderboardSearch, setLeaderboardSearch] = useState('');
@@ -656,11 +658,11 @@ export const Teachers = () => {
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{role === 'school-admin' ? t("teachers.supervise", "Supervise") : t("teachers.title", "Teachers")}</h1>
+          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{isSuperviseRoute ? t("teachers.supervise", "Supervise") : t("teachers.title", "Teachers")}</h1>
           <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">{t("teachers.subtitle", "Manage teaching staff and assignments")}</p>
         </div>
 
-        {isAdmin && role !== 'school-admin' && (
+        {isAdmin && (
           <button
             onClick={() => setShowAddModal(true)}
             className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all text-sm font-bold shadow-lg shadow-blue-200 dark:shadow-none"
@@ -677,11 +679,17 @@ export const Teachers = () => {
         </div>
       )}
 
-      {isVP && (
+      {(isVP || isSuperviseRoute) && (
         <div className="flex border-b border-slate-200 dark:border-slate-700 mb-6 gap-4">
           <button
+            onClick={() => setActiveTab('teachers')}
+            className={`pb-2 px-1 text-sm font-bold border-b-2 flex items-center gap-1 ${activeTab === 'teachers' ? 'border-blue-600 text-blue-600 dark:text-blue-400' : 'border-transparent text-slate-500'}`}
+          >
+            <Users size={16} /> {t("teachers.teachersList", "Teachers")}
+          </button>
+          <button
             onClick={() => setActiveTab('leaderboard')}
-            className="pb-2 px-1 text-sm font-bold border-b-2 border-blue-600 text-blue-600 dark:text-blue-400 flex items-center gap-1"
+            className={`pb-2 px-1 text-sm font-bold border-b-2 flex items-center gap-1 ${activeTab === 'leaderboard' ? 'border-blue-600 text-blue-600 dark:text-blue-400' : 'border-transparent text-slate-500'}`}
           >
             <Trophy size={16} /> {t("teachers.leaderboard", "Leaderboard")}
           </button>
