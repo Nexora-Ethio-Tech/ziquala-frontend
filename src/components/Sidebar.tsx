@@ -49,6 +49,7 @@ const dashboardRoutes: Record<UserRole, string> = {
   student: '/dashboard/student',
   parent: '/dashboard/parent',
   librarian: '/dashboard/librarian',
+  storekeeper: '/inventory',
 };
 
 export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {

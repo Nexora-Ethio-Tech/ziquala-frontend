@@ -1,9 +1,8 @@
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 
-export type UserRole = 'super-admin' | 'academic-manager' | 'school-admin' | 'vice-principal' | 'teacher' | 'student' | 'parent' | 'librarian';
-export type LegacyExcludedRole = 'finance-clerk' | 'clinic-admin' | 'driver' | 'auditor';
-export type SessionRole = UserRole | LegacyExcludedRole;
+export type UserRole = 'super-admin' | 'academic-manager' | 'school-admin' | 'vice-principal' | 'teacher' | 'student' | 'parent' | 'librarian' | 'storekeeper';
+export type SessionRole = UserRole;
 
 export interface User {
   id: string;
@@ -41,6 +40,7 @@ const getDashboardRoute = (role?: string) => {
     case 'parent': return '/dashboard/parent';
     case 'vice-principal': return '/dashboard/vice-principal';
     case 'librarian': return '/dashboard/librarian';
+    case 'storekeeper': return '/inventory';
     default: return '/';
   }
 };
@@ -80,6 +80,7 @@ export const DEMO_ACCOUNTS: ReadonlyArray<{ id: string; name: string; role: User
   { id: 'ZA-VP', name: 'Vice Principal', role: 'vice-principal', password: 'demo123' },
   { id: 'ZA-TEACHER', name: 'Teacher', role: 'teacher', password: 'demo123' },
   { id: 'ZA-LIBRARY', name: 'Librarian', role: 'librarian', password: 'demo123' },
+  { id: 'ZA-STORE', name: 'Storekeeper', role: 'storekeeper', password: 'demo123' },
   { id: 'ZA-PARENT', name: 'Parent', role: 'parent', password: 'demo123' },
   { id: 'ZA-STUDENT', name: 'Student', role: 'student', password: 'demo123' },
 ];

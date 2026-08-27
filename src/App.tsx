@@ -87,6 +87,7 @@ const getDashboardRoute = (role: string | null) => {
     case 'parent': return '/dashboard/parent';
     case 'vice-principal': return '/dashboard/vice-principal';
     case 'librarian': return '/dashboard/librarian';
+    case 'storekeeper': return '/inventory';
     default: return '/login';
   }
 };
@@ -164,6 +165,7 @@ function App() {
               <Route path="dashboard/parent" element={<ProtectedRoute allowedRoles={['parent']}><ParentPortal /></ProtectedRoute>} />
               <Route path="dashboard/vice-principal" element={<ProtectedRoute allowedRoles={['vice-principal']}><VicePrincipalDashboard /></ProtectedRoute>} />
               <Route path="dashboard/librarian" element={<ProtectedRoute allowedRoles={['librarian']}><Library /></ProtectedRoute>} />
+              <Route path="dashboard/storekeeper" element={<ProtectedRoute allowedRoles={['storekeeper']}><Inventory /></ProtectedRoute>} />
 
               {/* Role specific routes */}
               <Route path="branches" element={
@@ -401,7 +403,7 @@ function App() {
               } />
 
               <Route path="elearning-library" element={
-                <ProtectedRoute allowedRoles={['super-admin', 'academic-manager', 'school-admin', 'vice-principal', 'teacher', 'librarian', 'parent', 'student']}>
+                <ProtectedRoute allowedRoles={['super-admin', 'academic-manager', 'school-admin', 'vice-principal', 'teacher', 'librarian', 'storekeeper', 'parent', 'student']}>
                   <ELearningLibrary />
                 </ProtectedRoute>
               } />

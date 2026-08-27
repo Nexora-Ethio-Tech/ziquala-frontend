@@ -149,7 +149,7 @@ export const Staff = () => {
       const resolvedBranches = branchList || branches;
 
       const MANAGEABLE_ROLES = currentUserRole === 'super-admin'
-        ? ['super-admin', 'academic-manager', 'school-admin', 'vice-principal']
+        ? ['super-admin', 'academic-manager', 'school-admin', 'vice-principal', 'storekeeper']
         : ['academic-manager', 'school-admin', 'vice-principal', 'teacher', 'librarian', 'storekeeper'];
 
       const transformed = (response.data || [])
@@ -284,6 +284,8 @@ export const Staff = () => {
         response = await userService.createVicePrincipal(data);
       } else if (createForm.role === 'academic-manager') {
         response = await userService.createAcademicManager(data);
+      } else if (createForm.role === 'storekeeper') {
+        response = await userService.registerUser({ ...data, role: 'storekeeper' });
       }
 
       console.log('✅ User created:', response);
@@ -533,6 +535,7 @@ export const Staff = () => {
                     <>
                       <option value="school-admin">School Admin</option>
                       <option value="academic-manager">Academic Manager</option>
+                      <option value="storekeeper">Storekeeper</option>
                     </>
                   )}
                   <option value="vice-principal">Vice Principal</option>
