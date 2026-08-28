@@ -288,6 +288,24 @@ function App() {
                 </ProtectedRoute>
               } />
 
+              <Route path="teacher-classes" element={
+                <ProtectedRoute allowedRoles={['teacher']}>
+                  <TeacherClasses />
+                </ProtectedRoute>
+              } />
+
+              <Route path="teacher-grades" element={
+                <ProtectedRoute allowedRoles={['teacher']}>
+                  <TeacherGrades />
+                </ProtectedRoute>
+              } />
+
+              <Route path="teacher-student-grades/:studentId" element={
+                <ProtectedRoute allowedRoles={['teacher']}>
+                  <TeacherStudentGrades />
+                </ProtectedRoute>
+              } />
+
               <Route path="vp-transcripts" element={
                 <ProtectedRoute allowedRoles={['vice-principal', 'super-admin', 'academic-manager']}>
                   <VPTranscripts />
@@ -313,14 +331,8 @@ function App() {
               } />
 
               <Route path="teachers" element={
-                <ProtectedRoute allowedRoles={['school-admin', 'super-admin', 'academic-manager', 'vice-principal']}>
+                <ProtectedRoute allowedRoles={['super-admin', 'academic-manager', 'vice-principal']}>
                   <Teachers />
-                </ProtectedRoute>
-              } />
-
-              <Route path="librarian-staff" element={
-                <ProtectedRoute allowedRoles={['school-admin', 'super-admin', 'academic-manager']}>
-                  <LibrarianStaff />
                 </ProtectedRoute>
               } />
 
@@ -329,11 +341,6 @@ function App() {
                   {role === 'teacher' ? <TeacherAttendance /> :
                     role === 'student' ? <AcademicHistory /> :
                       <Attendance />}
-                </ProtectedRoute>
-              } />
-              <Route path="schedule-builder" element={
-                <ProtectedRoute allowedRoles={['school-admin', 'super-admin', 'academic-manager']}>
-                  <ScheduleBuilder />
                 </ProtectedRoute>
               } />
 
