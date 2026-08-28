@@ -3,6 +3,7 @@ import {
   BarChart3,
   BookOpen,
   Building2,
+  Calendar,
   CalendarCheck,
   ClipboardCheck,
   ClipboardList,
@@ -114,7 +115,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
           { icon: Users, label: t('nav.students', 'Students'), path: '/students' },
           { icon: UserSquare2, label: t('nav.staffManagement', 'Staff Management'), path: '/staff' },
           { icon: CalendarCheck, label: t('nav.attendance', 'Attendance'), path: '/attendance' },
-          { icon: BookOpen, label: t('nav.scheduleBuilder', 'Schedule Builder'), path: '/schedule-builder' },
+          { icon: Calendar, label: t('nav.scheduleBuilder', 'Schedule Builder'), path: '/schedule-builder' },
           { icon: LibraryBig, label: t('nav.elearningLibrary', 'eLearning Library'), path: '/elearning-library' },
           { icon: Settings, label: t('nav.settings', 'Settings'), path: '/settings' },
         ];

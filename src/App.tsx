@@ -350,6 +350,12 @@ function App() {
                 </ProtectedRoute>
               } />
 
+              <Route path="schedule-builder" element={
+                <ProtectedRoute allowedRoles={['school-admin', 'super-admin', 'academic-manager', 'vice-principal']}>
+                  <ScheduleBuilder />
+                </ProtectedRoute>
+              } />
+
               <Route path="library" element={
                 <ProtectedRoute allowedRoles={['librarian', 'super-admin']}>
                   <Library />
