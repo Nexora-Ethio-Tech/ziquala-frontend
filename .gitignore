@@ -53,5 +53,6 @@ QUICK-REFERENCE.md
 
 # Except README
 !README.md
+!AI_FRONTEND_GUIDE.md
 
 .env

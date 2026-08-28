@@ -1,5 +1,6 @@
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { useTheme } from './ThemeContext';
 
 export type UIStyle = 'Standard' | 'Modern' | 'Compact' | 'Classic';
 
@@ -13,6 +14,7 @@ interface AppearanceContextType {
 const AppearanceContext = createContext<AppearanceContextType | undefined>(undefined);
 
 export const AppearanceProvider = ({ children }: { children: ReactNode }) => {
+  const { setTheme } = useTheme();
   const [style, setStyle] = useState<UIStyle>(() => {
     const saved = localStorage.getItem('ui-style');
     return (saved as UIStyle) || 'Standard';
@@ -33,21 +35,17 @@ export const AppearanceProvider = ({ children }: { children: ReactNode }) => {
     if (autoDarkMode) {
       const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
       const handleChange = (e: MediaQueryListEvent) => {
-        if (e.matches) {
-          document.documentElement.classList.add('dark');
-        } else {
-          document.documentElement.classList.remove('dark');
-        }
+        setTheme(e.matches ? 'dark' : 'light');
       };
 
       // Initial check
-      if (mediaQuery.matches) document.documentElement.classList.add('dark');
-      else document.documentElement.classList.remove('dark');
+      setTheme(mediaQuery.matches ? 'dark' : 'light');
 
       mediaQuery.addEventListener('change', handleChange);
       return () => mediaQuery.removeEventListener('change', handleChange);
     }
-  }, [autoDarkMode]);
+    return undefined;
+  }, [autoDarkMode, setTheme]);
 
   return (
     <AppearanceContext.Provider value={{ style, setStyle, autoDarkMode, setAutoDarkMode }}>

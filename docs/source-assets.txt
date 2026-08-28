@@ -1,0 +1,32 @@
+SOURCE ASSET WORKFLOW
+
+The complete photography and document archive should not be copied into this frontend repository. It contains large source videos and working files that are not needed by the browser, which would make every clone and deployment unnecessarily large.
+
+WHAT BELONGS IN THIS REPOSITORY
+
+- Approved images that are actually used by the site
+- Web-ready derivatives with stable, descriptive filenames
+- Small content notes or manifests needed to explain where published material came from
+- Public fonts, icons, and other assets required at runtime
+
+Place imported application assets in src/assets/ and files that must retain a public URL in public/. Prefer WebP or AVIF for photography when an approved conversion is available, provide meaningful alt text in the component, and lazy-load images below the fold.
+
+WHAT STAYS IN SHARED SOURCE STORAGE
+
+- Original video footage and interviews
+- Full-resolution photo shoots and unused portraits
+- TIFF and other production masters
+- PDFs, DOCX, XLSX, and similar office documents
+- Installers, executables, and private administrative material
+
+The current local source archive is outside this repository at ../static files/. Other developers should receive access through the team's shared Drive or media storage. Add that shared location and an owner here once the team has chosen it; do not commit private credentials or unpublished records.
+
+PUBLISHING CHECKLIST
+
+1. Confirm that the asset and accompanying information are approved for public use.
+2. Copy only the selected file into the appropriate src/assets/ or public/ folder.
+3. Rename it using lowercase, descriptive words and no personal device metadata.
+4. Resize or compress it for the actual display size while preserving an archival original in shared storage.
+5. Add alt text, lazy loading where appropriate, and verify the result on mobile and desktop.
+
+If the team later decides that versioning large originals is essential, use a dedicated media repository with Git LFS rather than adding them to the frontend application history.
