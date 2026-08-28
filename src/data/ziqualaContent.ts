@@ -42,7 +42,6 @@ export const publicNavigation = [
     to: '/',
     children: [
       { label: 'School & monastery', hash: '#destinations' },
-      { label: 'At a glance', hash: '#home-overview' },
     ],
   },
   {
@@ -60,6 +59,7 @@ export const publicNavigation = [
     to: '/monastery',
     children: [
       { label: 'History', hash: '#monastery-history' },
+      { label: 'Museum', hash: '#monastery-museum' },
       { label: 'Livelihood projects', hash: '#monastery-projects' },
       { label: 'History film', hash: '#monastery-film' },
       { label: 'Media archive', hash: '#monastery-media' },
@@ -89,6 +89,7 @@ export const monasteryContact = {
 } as const;
 
 export const monasteryDonation = {
+  bankName: 'Commercial Bank of Ethiopia (CBE)',
   accountNumber: '1000011282222',
 } as const;
 

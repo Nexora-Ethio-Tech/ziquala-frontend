@@ -12,7 +12,6 @@ import {
   ExternalLink,
   GraduationCap,
   HeartHandshake,
-  Landmark,
   LogIn,
   Mail,
   Menu,
@@ -53,6 +52,7 @@ import craterCommunity from '../assets/monastery/crater-community.webp';
 import monksByLake from '../assets/monastery/monks-by-lake.webp';
 import monkOnPath from '../assets/monastery/monk-on-path.webp';
 import monasteryCommunity from '../assets/monastery/monastery-community.webp';
+import monasteryMuseum from '../assets/monastery/museum.jpg';
 import schoolBuilding from '../assets/school/school-building.jpg';
 import studentAssembly from '../assets/school/student-assembly.jpg';
 import schoolLogo from '../assets/school/school-logo.jpg';
@@ -64,6 +64,7 @@ import cropHarvest from '../assets/monastery/projects/crop-harvest.webp';
 import oxFarming from '../assets/monastery/projects/ox-farming.webp';
 import livestock from '../assets/monastery/projects/livestock.webp';
 import abbotHarvest from '../assets/monastery/projects/abbot-harvest.webp';
+import cbeLogo from '../assets/cbe-logo.svg';
 
 const SectionTitle = ({ eyebrow, children, copy }: { eyebrow: string; children: ReactNode; copy?: string }) => (
   <div className="max-w-3xl mb-10 md:mb-14">
@@ -72,6 +73,58 @@ const SectionTitle = ({ eyebrow, children, copy }: { eyebrow: string; children: 
     {copy && <p className="mt-5 text-base md:text-lg leading-8 text-slate-600 dark:text-slate-300">{copy}</p>}
   </div>
 );
+
+type RevealEffect = 'rise' | 'slide' | 'scale' | 'wipe';
+
+const ScrollReveal = ({ children, className = '', delay = 0, direction = 'up', effect = 'rise' }: { children: ReactNode; className?: string; delay?: number; direction?: 'up' | 'left' | 'right'; effect?: RevealEffect }) => {
+  const reduceMotion = useReducedMotion();
+  const side = direction === 'left' ? -1 : 1;
+  const initialState = effect === 'scale'
+      ? { opacity: 0, scale: 0.9, y: 24 }
+      : effect === 'slide'
+        ? { opacity: 0, x: side * 72, rotate: side * 1.4 }
+        : { opacity: 0, y: 54, filter: 'blur(6px)' };
+  const visibleState = effect === 'scale'
+      ? { opacity: 1, scale: 1, y: 0 }
+      : effect === 'slide'
+        ? { opacity: 1, x: 0, rotate: 0 }
+        : { opacity: 1, y: 0, filter: 'blur(0px)' };
+
+  if (effect === 'wipe') {
+    return (
+      <motion.div
+        initial={reduceMotion ? false : 'hidden'}
+        whileInView="visible"
+        viewport={{ once: false, amount: 0.08 }}
+        className={className}
+      >
+        <motion.div
+          variants={{
+            hidden: { opacity: 0, clipPath: direction === 'right' ? 'inset(0 0 0 100%)' : 'inset(0 100% 0 0)', scale: 1.035 },
+            visible: { opacity: 1, clipPath: 'inset(0 0 0 0)', scale: 1 },
+          }}
+          transition={{ duration: 1.05, delay, ease: [0.16, 1, 0.3, 1] }}
+        >
+          {children}
+        </motion.div>
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.div
+      initial={reduceMotion ? false : initialState}
+      whileInView={visibleState}
+      viewport={{ once: false, amount: 0.14 }}
+      transition={effect === 'scale'
+        ? { type: 'spring', stiffness: 105, damping: 17, mass: 0.9, delay }
+        : { duration: 0.82, delay, ease: [0.16, 1, 0.3, 1] }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+};
 
 const BrandMark = ({ compact = false }: { compact?: boolean }) => (
   <div className="flex items-center gap-3 min-w-0">
@@ -294,7 +347,7 @@ const PublicLayout = () => {
   }, [location.pathname, location.hash]);
 
   return (
-    <div className="min-h-screen bg-[#f4f0e7] text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+    <div className="min-h-screen overflow-x-clip bg-[#f4f0e7] text-slate-900 dark:bg-slate-950 dark:text-slate-100">
       <PublicHeader />
       <main><Outlet /></main>
       <PublicFooter />
@@ -307,18 +360,20 @@ const HomePage = () => {
 
   return (
     <>
-      <section className="relative isolate flex min-h-[calc(100svh-4.75rem)] items-end overflow-hidden bg-[#f4f0e7] text-emerald-950 dark:bg-emerald-950 dark:text-white">
+      <section className="relative isolate flex min-h-[62rem] items-end overflow-hidden bg-[#f4f0e7] text-emerald-950 dark:min-h-[calc(100svh-4.75rem)] dark:bg-emerald-950 dark:text-white md:min-h-[calc(100svh-4.75rem)]">
         <motion.img
           initial={reduceMotion ? false : { scale: 1.08 }}
           animate={{ scale: 1 }}
           transition={{ duration: 1.8, ease: [0.16, 1, 0.3, 1] }}
           src={schoolBuilding}
           alt="The Ziquala Abo School building in Bishoftu"
-          className="absolute inset-0 -z-20 h-full w-full object-cover opacity-45 dark:opacity-100"
+          className="absolute inset-0 -z-20 h-[20rem] w-full object-cover dark:h-full md:h-full"
         />
-        <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(244,240,231,.98)_0%,rgba(244,240,231,.88)_45%,rgba(244,240,231,.2)_82%),linear-gradient(0deg,rgba(244,240,231,.82)_0%,transparent_55%)] dark:bg-[linear-gradient(90deg,rgba(2,44,32,.94)_0%,rgba(2,44,32,.72)_44%,rgba(2,44,32,.15)_78%),linear-gradient(0deg,rgba(3,30,24,.72)_0%,transparent_50%)]" />
-        <div className="absolute inset-0 -z-10 bg-[#f4f0e7]/45 dark:bg-emerald-950/30 sm:hidden" />
-        <div className="mx-auto grid w-full max-w-[90rem] gap-12 px-5 pb-12 pt-24 md:pb-16 lg:grid-cols-[1fr_18rem] lg:items-end lg:px-10 lg:pb-20">
+        <div className="absolute inset-x-0 bottom-0 top-[17rem] -z-10 bg-[#f4f0e7] dark:hidden md:hidden" />
+        <div className="absolute inset-x-0 top-[14rem] -z-10 h-12 bg-gradient-to-b from-transparent to-[#f4f0e7] dark:hidden md:hidden" />
+        <div className="absolute inset-y-0 left-0 -z-10 hidden w-[86%] bg-[#f4f0e7] [clip-path:polygon(0_0,74%_0,100%_100%,0_100%)] dark:hidden md:block" />
+        <div className="absolute inset-0 -z-10 hidden bg-[linear-gradient(90deg,rgba(2,44,32,.94)_0%,rgba(2,44,32,.72)_44%,rgba(2,44,32,.15)_78%),linear-gradient(0deg,rgba(3,30,24,.72)_0%,transparent_50%)] dark:block" />
+        <div className="mx-auto grid w-full max-w-[90rem] gap-12 px-5 pb-12 pt-[20rem] dark:pt-24 md:pb-16 md:pt-24 lg:grid-cols-[1fr_18rem] lg:items-end lg:px-10 lg:pb-20">
           <motion.div
             initial={reduceMotion ? false : { opacity: 0, y: 36 }}
             animate={{ opacity: 1, y: 0 }}
@@ -347,10 +402,13 @@ const HomePage = () => {
             initial={reduceMotion ? false : { opacity: 0, x: 24 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.55 }}
-            className="border-l border-emerald-900/25 bg-white/75 p-5 text-sm leading-7 text-slate-600 backdrop-blur-sm dark:border-white/30 dark:bg-transparent dark:py-0 dark:pr-0 dark:text-white/72"
+            className="flex items-center gap-4 border-l border-emerald-900/25 bg-[#f4f0e7]/90 p-5 text-sm leading-7 text-slate-600 backdrop-blur-sm dark:border-white/30 dark:bg-transparent dark:py-0 dark:pr-0 dark:text-white/72"
           >
-            <p lang="am" className="font-serif text-lg leading-8 text-emerald-950 dark:text-white">{ziqualaIdentity.amharicName}</p>
-            <p className="mt-4 text-[10px] font-black uppercase tracking-[0.24em] text-amber-700 dark:text-amber-300">Official school identity</p>
+            <img src={schoolLogo} alt="Ziquala Abo School logo" className="h-20 w-20 shrink-0 rounded-full border-4 border-white object-cover shadow-lg" />
+            <div>
+              <p lang="am" className="font-serif text-lg leading-8 text-emerald-950 dark:text-white">{ziqualaIdentity.amharicName}</p>
+              <p className="mt-3 text-[10px] font-black uppercase tracking-[0.14em] text-amber-700 dark:text-amber-300 sm:tracking-[0.24em]">Official school identity</p>
+            </div>
           </motion.div>
         </div>
       </section>
@@ -592,29 +650,33 @@ const monasteryProjects = [
 const MonasteryProjects = () => (
   <section id="monastery-projects" className="scroll-mt-24 bg-[#ebe4d5] py-20 dark:bg-slate-900 md:py-28">
     <div className="mx-auto max-w-[90rem] px-5 lg:px-10">
-      <div className="grid gap-8 lg:grid-cols-[.75fr_1.25fr] lg:items-end">
-        <p className="text-xs font-black uppercase tracking-[0.28em] text-amber-700 dark:text-amber-400">Sustaining the monastery</p>
-        <div>
-          <h2 className="font-serif text-4xl font-medium leading-[1.02] tracking-[-0.035em] text-emerald-950 dark:text-white sm:text-5xl md:text-6xl">Income-generating projects.</h2>
-          <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-600 dark:text-slate-300">Farming, food production, sewing, and livestock care generate the income the monastery needs for everyday expenses, community life, and long-term sustainability.</p>
+      <ScrollReveal effect="wipe">
+        <div className="grid gap-8 lg:grid-cols-[.75fr_1.25fr] lg:items-end">
+          <p className="text-xs font-black uppercase tracking-[0.28em] text-amber-700 dark:text-amber-400">Sustaining the monastery</p>
+          <div>
+            <h2 className="font-serif text-4xl font-medium leading-[1.02] tracking-[-0.035em] text-emerald-950 dark:text-white sm:text-5xl md:text-6xl">Income-generating projects.</h2>
+            <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-600 dark:text-slate-300">Farming, food production, sewing, and livestock care generate the income the monastery needs for everyday expenses, community life, and long-term sustainability.</p>
+          </div>
         </div>
-      </div>
+      </ScrollReveal>
 
       <div className="mt-12 grid gap-8">
         {monasteryProjects.map((project, index) => (
-          <article key={project.title} className="grid overflow-hidden bg-white dark:bg-slate-950 md:grid-cols-2">
-            <div className={`relative min-h-72 overflow-hidden bg-stone-300 dark:bg-slate-800 md:min-h-[30rem] ${index % 2 === 1 ? 'md:order-2' : ''}`}>
-              <img src={project.image} alt={project.alt} loading="lazy" decoding="async" className="h-full w-full object-cover transition duration-700 hover:scale-[1.035]" />
-              <span className="absolute left-5 top-5 bg-amber-400 px-3 py-2 font-mono text-[10px] font-black text-emerald-950">{String(index + 1).padStart(2, '0')}</span>
-            </div>
-            <div className="flex flex-col justify-center p-7 sm:p-10 lg:p-14">
-              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-amber-700 dark:text-amber-400">Product focus</p>
-              <h3 className="mt-4 font-serif text-4xl text-emerald-950 dark:text-white sm:text-5xl">{project.title}</h3>
-              <p className="mt-5 text-sm font-black uppercase tracking-[0.16em] text-emerald-700 dark:text-emerald-300">{project.product}</p>
-              <p className="mt-6 max-w-xl text-lg leading-8 text-slate-600 dark:text-slate-300">{project.copy}</p>
-              <a href="#monastery-contact" className="mt-8 inline-flex w-fit items-center gap-2 border-b border-emerald-800 pb-2 text-sm font-black text-emerald-900 dark:border-amber-300 dark:text-amber-300">Ask about this project <ArrowRight size={17} /></a>
-            </div>
-          </article>
+          <ScrollReveal key={project.title} direction={index % 2 === 0 ? 'left' : 'right'} effect="slide">
+            <article className="grid overflow-hidden bg-white dark:bg-slate-950 md:grid-cols-2">
+              <div className={`relative min-h-72 overflow-hidden bg-stone-300 dark:bg-slate-800 md:min-h-[30rem] ${index % 2 === 1 ? 'md:order-2' : ''}`}>
+                <img src={project.image} alt={project.alt} loading="lazy" decoding="async" className="h-full w-full object-cover transition duration-700 hover:scale-[1.035]" />
+                <span className="absolute left-5 top-5 bg-amber-400 px-3 py-2 font-mono text-[10px] font-black text-emerald-950">{String(index + 1).padStart(2, '0')}</span>
+              </div>
+              <div className="flex flex-col justify-center p-7 sm:p-10 lg:p-14">
+                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-amber-700 dark:text-amber-400">Product focus</p>
+                <h3 className="mt-4 font-serif text-4xl text-emerald-950 dark:text-white sm:text-5xl">{project.title}</h3>
+                <p className="mt-5 text-sm font-black uppercase tracking-[0.16em] text-emerald-700 dark:text-emerald-300">{project.product}</p>
+                <p className="mt-6 max-w-xl text-lg leading-8 text-slate-600 dark:text-slate-300">{project.copy}</p>
+                <a href="#monastery-contact" className="mt-8 inline-flex w-fit items-center gap-2 border-b border-emerald-800 pb-2 text-sm font-black text-emerald-900 dark:border-amber-300 dark:text-amber-300">Ask about this project <ArrowRight size={17} /></a>
+              </div>
+            </article>
+          </ScrollReveal>
         ))}
       </div>
     </div>
@@ -624,31 +686,36 @@ const MonasteryProjects = () => (
 const MonasteryHistory = () => (
   <section id="monastery-history" className="scroll-mt-24 bg-white py-20 dark:bg-slate-950 md:py-28">
     <div className="mx-auto max-w-[90rem] px-5 lg:px-10">
-      <div className="grid gap-8 border-b border-black/15 pb-12 dark:border-white/15 lg:grid-cols-[.7fr_1.3fr] lg:items-end">
-        <p className="text-xs font-black uppercase tracking-[0.28em] text-emerald-700 dark:text-emerald-400">A living history</p>
-        <div>
-          <h2 lang="am" className="font-serif text-4xl font-medium leading-[1.1] tracking-[-0.025em] text-emerald-950 dark:text-white sm:text-5xl md:text-6xl">የደብረ ዝቋላ ገዳም ታሪክ</h2>
-          <p lang="am" className="mt-6 max-w-3xl text-lg leading-9 text-slate-600 dark:text-slate-300">የዘመናት የታሪክ፣ የቅድስና እና የትምህርት ማዕከል። ከዘመነ አክሱም እስከ ዛሬ የዘለቀውን የገዳሙን ታሪክ ከተሰጠን የገዳሙ ሰነድ እናቀርባለን።</p>
+      <ScrollReveal effect="wipe">
+        <div className="grid gap-8 border-b border-black/15 pb-12 dark:border-white/15 lg:grid-cols-[.7fr_1.3fr] lg:items-end">
+          <p className="text-xs font-black uppercase tracking-[0.28em] text-emerald-700 dark:text-emerald-400">A living history</p>
+          <div>
+            <h2 lang="am" className="font-serif text-4xl font-medium leading-[1.1] tracking-[-0.025em] text-emerald-950 dark:text-white sm:text-5xl md:text-6xl">የደብረ ዝቋላ ገዳም ታሪክ</h2>
+            <p lang="am" className="mt-6 max-w-3xl text-lg leading-9 text-slate-600 dark:text-slate-300">የዘመናት የታሪክ፣ የቅድስና እና የትምህርት ማዕከል። ከዘመነ አክሱም እስከ ዛሬ የዘለቀውን የገዳሙን ታሪክ ከተሰጠን የገዳሙ ሰነድ እናቀርባለን።</p>
+          </div>
         </div>
-      </div>
+      </ScrollReveal>
 
       <div className="divide-y divide-black/15 dark:divide-white/15">
         {monasteryHistory.map((chapter, index) => (
-          <article key={chapter.title} className="grid gap-5 py-9 md:grid-cols-[11rem_1fr] md:gap-10 md:py-12">
-            <div>
-              <p className="font-mono text-xs font-black text-amber-700 dark:text-amber-400">{String(index + 1).padStart(2, '0')}</p>
-              <p lang="am" className="mt-3 text-sm font-black leading-6 text-emerald-800 dark:text-emerald-300">{chapter.period}</p>
-            </div>
-            <div className="max-w-4xl">
-              <h3 lang="am" className="text-2xl font-black leading-10 text-emerald-950 dark:text-white md:text-3xl">{chapter.title}</h3>
-              <p lang="am" className="mt-4 text-base leading-9 text-slate-600 dark:text-slate-300 md:text-lg">{chapter.body}</p>
-            </div>
-          </article>
+          <ScrollReveal key={chapter.title} direction={index % 2 === 0 ? 'left' : 'right'} effect="slide" delay={Math.min(index * 0.04, 0.16)}>
+            <article className="grid gap-5 py-9 md:grid-cols-[11rem_1fr] md:gap-10 md:py-12">
+              <div>
+                <p className="font-mono text-xs font-black text-amber-700 dark:text-amber-400">{String(index + 1).padStart(2, '0')}</p>
+                <p lang="am" className="mt-3 text-sm font-black leading-6 text-emerald-800 dark:text-emerald-300">{chapter.period}</p>
+              </div>
+              <div className="max-w-4xl">
+                <h3 lang="am" className="text-2xl font-black leading-10 text-emerald-950 dark:text-white md:text-3xl">{chapter.title}</h3>
+                <p lang="am" className="mt-4 text-base leading-9 text-slate-600 dark:text-slate-300 md:text-lg">{chapter.body}</p>
+              </div>
+            </article>
+          </ScrollReveal>
         ))}
       </div>
 
-      <div id="monastery-film" className="mt-6 grid scroll-mt-24 overflow-hidden bg-emerald-950 text-white lg:grid-cols-[1.35fr_.65fr]">
-        <div className="aspect-video min-h-64 bg-black lg:min-h-[28rem]">
+      <ScrollReveal className="mt-6" direction="left" effect="scale">
+        <div id="monastery-film" className="grid scroll-mt-24 overflow-hidden bg-emerald-950 text-white lg:grid-cols-[1.35fr_.65fr]">
+          <div className="aspect-video min-h-64 bg-black lg:min-h-[28rem]">
           <iframe
             src="https://www.youtube-nocookie.com/embed/6zhMGpFsfGg?start=118&rel=0"
             title="የዝቋላ አቦ ገዳም ታሪክ"
@@ -658,14 +725,40 @@ const MonasteryHistory = () => (
             allowFullScreen
             className="h-full w-full"
           />
+          </div>
+          <div className="flex flex-col justify-center p-8 sm:p-10 md:p-12">
+            <p className="text-xs font-black uppercase tracking-[0.24em] text-amber-300">History film · የገዳሙ ታሪክ</p>
+            <h3 lang="am" className="mt-5 font-serif text-3xl leading-tight sm:text-4xl">ስለ ገዳሙ አጭር ታሪክ</h3>
+            <p className="mt-5 leading-7 text-white/70">Watch the monastery’s history film from the selected starting point at 1:58.</p>
+            <a href="https://youtu.be/6zhMGpFsfGg?t=118" target="_blank" rel="noreferrer" className="mt-8 inline-flex items-center gap-2 font-black text-amber-300">Watch directly on YouTube <ExternalLink size={17} /></a>
+          </div>
         </div>
-        <div className="flex flex-col justify-center p-8 sm:p-10 md:p-12">
-          <p className="text-xs font-black uppercase tracking-[0.24em] text-amber-300">History film · የገዳሙ ታሪክ</p>
-          <h3 lang="am" className="mt-5 font-serif text-3xl leading-tight sm:text-4xl">ስለ ገዳሙ አጭር ታሪክ</h3>
-          <p className="mt-5 leading-7 text-white/70">Watch the monastery’s history film from the selected starting point at 1:58.</p>
-          <a href="https://youtu.be/6zhMGpFsfGg?t=118" target="_blank" rel="noreferrer" className="mt-8 inline-flex items-center gap-2 font-black text-amber-300">Watch directly on YouTube <ExternalLink size={17} /></a>
+      </ScrollReveal>
+    </div>
+  </section>
+);
+
+const MonasteryMuseum = () => (
+  <section id="monastery-museum" className="scroll-mt-24 overflow-hidden bg-[#143d31] py-20 text-white md:py-28">
+    <div className="mx-auto grid max-w-[90rem] items-center gap-10 px-5 lg:grid-cols-[1.18fr_.82fr] lg:gap-16 lg:px-10">
+      <ScrollReveal effect="wipe" direction="left" className="relative">
+        <div className="relative min-h-[22rem] overflow-hidden sm:min-h-[30rem] lg:min-h-[38rem]">
+          <img src={monasteryMuseum} alt="The Ziquala Abo Monastery museum building" decoding="async" className="absolute inset-0 h-full w-full object-cover transition duration-1000 hover:scale-[1.025]" />
+          <div className="absolute inset-0 bg-gradient-to-t from-emerald-950/65 via-transparent to-transparent" />
+          <span className="absolute bottom-5 left-5 border border-white/35 bg-emerald-950/55 px-4 py-2 text-[10px] font-black uppercase tracking-[0.22em] backdrop-blur-sm">Monastery heritage</span>
         </div>
-      </div>
+      </ScrollReveal>
+
+      <ScrollReveal effect="rise" delay={0.14}>
+        <div className="max-w-xl">
+          <span className="grid h-14 w-14 place-items-center rounded-full border border-amber-300/50 text-amber-300"><Building2 size={25} /></span>
+          <p className="mt-8 text-xs font-black uppercase tracking-[0.28em] text-amber-300">The monastery museum</p>
+          <h2 lang="am" className="mt-5 font-serif text-4xl leading-tight sm:text-5xl">የገዳሙ ቤተ መዘክር</h2>
+          <p className="mt-6 text-lg leading-8 text-white/75">A dedicated place for safeguarding and sharing the history, heritage, and living memory of Debre Ziquala Monastery.</p>
+          <p className="mt-5 leading-7 text-white/60">Information about the collection and visitor access can be confirmed through the monastery’s official contact channels.</p>
+          <a href="#monastery-contact" className="group mt-8 inline-flex items-center gap-3 border-b border-amber-300/70 pb-2 text-sm font-black text-amber-300">Ask about visiting <ArrowRight size={17} className="transition-transform group-hover:translate-x-1" /></a>
+        </div>
+      </ScrollReveal>
     </div>
   </section>
 );
@@ -681,23 +774,31 @@ const MonasteryDonation = () => {
 
   return (
     <section id="donate" className="scroll-mt-24 bg-emerald-950 py-20 text-white md:py-28">
-      <div className="mx-auto grid max-w-[90rem] gap-10 px-5 lg:grid-cols-[.8fr_1.2fr] lg:px-10">
-        <div>
-          <p className="text-xs font-black uppercase tracking-[0.28em] text-amber-300">Support the monastery</p>
-          <h2 className="mt-5 font-serif text-4xl leading-tight sm:text-5xl">Help preserve a living spiritual heritage.</h2>
-          <p className="mt-6 max-w-xl text-lg leading-8 text-emerald-50/75">Donations help the monastery meet its needs, sustain its community, care for its heritage, and continue its service.</p>
+      <ScrollReveal effect="scale" className="mx-auto max-w-[90rem] px-5 lg:px-10">
+        <div className="grid gap-10 lg:grid-cols-[.8fr_1.2fr]">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.28em] text-amber-300">Support the monastery</p>
+            <h2 className="mt-5 font-serif text-4xl leading-tight sm:text-5xl">Help preserve a living spiritual heritage.</h2>
+            <p className="mt-6 max-w-xl text-lg leading-8 text-emerald-50/75">Donations help the monastery meet its needs, sustain its community, care for its heritage, and continue its service.</p>
+          </div>
+          <div className="border border-white/20 bg-white/10 p-6 sm:p-9">
+            <div className="flex items-center gap-4">
+              <span className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-full bg-white p-1 shadow-lg"><img src={cbeLogo} alt="Commercial Bank of Ethiopia logo" className="h-full w-full object-contain" /></span>
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-emerald-200">CBE donation account</p>
+                <p className="mt-1 font-bold text-white">{monasteryDonation.bankName}</p>
+              </div>
+            </div>
+            <p className="mt-8 text-xs font-black uppercase tracking-[0.22em] text-emerald-200">Account number</p>
+            <p className="mt-3 break-all font-mono text-3xl font-black tracking-tight sm:text-4xl">{monasteryDonation.accountNumber}</p>
+            <button type="button" onClick={copyAccountNumber} className="mt-6 inline-flex items-center gap-2 border border-white/30 px-5 py-3 text-sm font-black transition hover:bg-white hover:text-emerald-950">
+              {copied ? <CheckCircle2 size={18} /> : <Copy size={18} />}
+              {copied ? 'Account number copied' : 'Copy account number'}
+            </button>
+            <p className="mt-7 max-w-xl text-sm leading-7 text-emerald-50/65">Please confirm the account-holder details with the monastery through its official email, phone, or Telegram before transferring funds.</p>
+          </div>
         </div>
-        <div className="border border-white/20 bg-white/10 p-6 sm:p-9">
-          <Landmark className="text-amber-300" size={34} />
-          <p className="mt-8 text-xs font-black uppercase tracking-[0.22em] text-emerald-200">Donation account number</p>
-          <p className="mt-3 break-all font-mono text-3xl font-black tracking-tight sm:text-4xl">{monasteryDonation.accountNumber}</p>
-          <button type="button" onClick={copyAccountNumber} className="mt-6 inline-flex items-center gap-2 border border-white/30 px-5 py-3 text-sm font-black transition hover:bg-white hover:text-emerald-950">
-            {copied ? <CheckCircle2 size={18} /> : <Copy size={18} />}
-            {copied ? 'Account number copied' : 'Copy account number'}
-          </button>
-          <p className="mt-7 max-w-xl text-sm leading-7 text-emerald-50/65">Please confirm the bank name and account-holder details with the monastery through its official email, phone, or Telegram before transferring funds.</p>
-        </div>
-      </div>
+      </ScrollReveal>
     </section>
   );
 };
@@ -713,7 +814,7 @@ const MonasteryContact = () => {
 
   return (
     <section id="monastery-contact" className="scroll-mt-24 border-t border-black/10 bg-white py-20 dark:border-white/10 dark:bg-slate-900 md:py-24">
-      <div className="mx-auto max-w-[90rem] px-5 lg:px-10">
+      <ScrollReveal className="mx-auto max-w-[90rem] px-5 lg:px-10">
         <div className="grid gap-10 lg:grid-cols-[.7fr_1.3fr]">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.28em] text-emerald-700 dark:text-emerald-400">Contact the monastery</p>
@@ -732,7 +833,7 @@ const MonasteryContact = () => {
             ))}
           </div>
         </div>
-      </div>
+      </ScrollReveal>
     </section>
   );
 };
@@ -812,30 +913,37 @@ const SchoolPage = () => (
           ))}
         </div>
 
-        <div className="mt-8 grid gap-6 border border-amber-800/20 bg-amber-50 p-7 dark:border-amber-300/15 dark:bg-amber-300/5 md:grid-cols-[1fr_auto] md:items-center">
-          <div>
-            <h3 className="text-xl font-black text-emerald-950 dark:text-white">Student assessment details</h3>
-            <p className="mt-2 leading-7 text-slate-600 dark:text-slate-300">The exact weighting for classroom work, continuous assessment, and examinations still needs confirmation before it is published as official school policy.</p>
-          </div>
-          <Link to="/news" className="inline-flex items-center gap-2 font-black text-emerald-800 dark:text-amber-300"><Newspaper size={18} /> School updates</Link>
-        </div>
       </div>
     </section>
   </>
 );
 
-const MonasteryPage = () => (
-  <>
-    <section className="relative min-h-[680px] flex items-end overflow-hidden bg-slate-950 text-white">
-      <img src={craterCommunity} alt="Ziquala monastery clergy at the crater lake" className="absolute inset-0 h-full w-full object-cover" />
-      <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/55 to-slate-950/10" />
-      <div className="relative max-w-7xl mx-auto w-full px-5 lg:px-8 pb-16 md:pb-24 grid lg:grid-cols-[1fr_.65fr] gap-12 items-end">
+const MonasteryHero = () => {
+  const reduceMotion = useReducedMotion();
+
+  return (
+    <section className="relative flex min-h-[680px] items-end overflow-hidden bg-slate-950 text-white">
+      <img
+        src="https://drive.google.com/thumbnail?id=1SXwy-EtzKvvq9RkYbB6fIKlGj-tHUGs6&sz=w2560"
+        alt="Ziquala Abo Monastery and its natural surroundings"
+        referrerPolicy="no-referrer"
+        fetchPriority="high"
+        className="absolute inset-0 h-full w-full object-cover"
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/45 to-slate-950/10" />
+
+      <motion.div
+        initial={reduceMotion ? false : { opacity: 0, y: 42 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+        className="relative mx-auto grid w-full max-w-7xl items-end gap-12 px-5 pb-16 lg:grid-cols-[1fr_.65fr] lg:px-8 md:pb-24"
+      >
         <div>
           <div className="flex items-center gap-4">
-            <img src={monasteryMark} alt="Ziquala Abo Media mark" className="h-20 w-20 object-contain rounded-xl bg-white/95 p-2" />
+            <img src={monasteryMark} alt="Ziquala Abo Media mark" className="h-20 w-20 rounded-xl bg-white/95 object-contain p-2" />
             <p className="text-xs font-black uppercase tracking-[0.28em] text-amber-300">Monastery information</p>
           </div>
-          <h1 className="mt-7 text-5xl md:text-7xl font-black tracking-[-0.045em] leading-none">Ziquala Abo Monastery</h1>
+          <h1 className="mt-7 text-5xl font-black leading-none tracking-[-0.045em] md:text-7xl">Ziquala Abo Monastery</h1>
         </div>
         <div>
           <p className="text-lg leading-8 text-white/75">A dedicated space for the monastery’s history, spiritual community, income-generating projects, and media archive—kept separate from school photography and academic content.</p>
@@ -844,33 +952,48 @@ const MonasteryPage = () => (
             <a href="#donate" className="inline-flex items-center gap-2 border border-white/35 px-5 py-3 text-sm font-black text-white">Support the monastery <HeartHandshake size={17} /></a>
           </div>
         </div>
-      </div>
+      </motion.div>
     </section>
+  );
+};
+
+const MonasteryPage = () => (
+  <>
+    <MonasteryHero />
 
     <section className="max-w-7xl mx-auto px-5 lg:px-8 py-20 md:py-28">
-      <SectionTitle eyebrow="A separate public experience" copy="The archive contains extensive professional documentation of the crater lake, clergy, monastic life, interviews, journeys, and community activity.">Faith, place, and living heritage</SectionTitle>
-      <div className="grid lg:grid-cols-3 gap-5">
-        {[
-          { icon: Mountain, title: 'History', copy: 'Read the supplied Amharic history from the monastery’s sixth-century foundation through its trials, restoration, and life today.' },
-          { icon: Users, title: 'Monastic community', copy: 'Profiles of monks and community members will be published only after names, roles, and permissions are confirmed.' },
-          { icon: HeartHandshake, title: 'Livelihood projects', copy: 'Agriculture, food production, sewing, and livestock help generate the income the monastery needs to sustain itself.' },
-        ].map((item) => (
-          <div key={item.title} className="p-8 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900">
-            <item.icon size={32} className="text-emerald-700 dark:text-emerald-400" />
-            <h2 className="mt-8 text-2xl font-black">{item.title}</h2>
-            <p className="mt-4 leading-7 text-slate-600 dark:text-slate-300">{item.copy}</p>
-          </div>
-        ))}
+      <ScrollReveal effect="wipe">
+        <SectionTitle eyebrow="A separate public experience" copy="The archive contains extensive professional documentation of the crater lake, clergy, monastic life, interviews, journeys, and community activity.">Faith, place, and living heritage</SectionTitle>
+      </ScrollReveal>
+      <div className="grid gap-5 lg:grid-cols-3">
+          {[
+            { icon: Mountain, title: 'History', copy: 'Read the supplied Amharic history from the monastery’s sixth-century foundation through its trials, restoration, and life today.' },
+            { icon: Users, title: 'Monastic community', copy: 'Profiles of monks and community members will be published only after names, roles, and permissions are confirmed.' },
+            { icon: HeartHandshake, title: 'Livelihood projects', copy: 'Agriculture, food production, sewing, and livestock help generate the income the monastery needs to sustain itself.' },
+          ].map((item, index) => (
+            <ScrollReveal key={item.title} effect="scale" delay={index * 0.1}>
+              <div className="min-h-full rounded-xl border border-slate-200 bg-white p-8 transition duration-500 hover:-translate-y-1 hover:shadow-xl dark:border-white/10 dark:bg-slate-900">
+                <item.icon size={32} className="text-emerald-700 dark:text-emerald-400" />
+                <h2 className="mt-8 text-2xl font-black">{item.title}</h2>
+                <p className="mt-4 leading-7 text-slate-600 dark:text-slate-300">{item.copy}</p>
+              </div>
+            </ScrollReveal>
+          ))}
       </div>
     </section>
 
     <MonasteryHistory />
 
+    <MonasteryMuseum />
+
     <MonasteryProjects />
 
     <section id="monastery-media" className="scroll-mt-24 bg-[#f4f0e7] text-slate-950 dark:bg-slate-950 dark:text-white">
       <div className="max-w-7xl mx-auto px-5 lg:px-8 py-20 md:py-28">
-        <SectionTitle eyebrow="Monastery media" copy="A first curated selection from the read-only archive. The original high-resolution files remain safely on the Transcend drive.">Archive preview</SectionTitle>
+        <ScrollReveal effect="rise">
+          <SectionTitle eyebrow="Monastery media" copy="A first curated selection from the read-only archive. The original high-resolution files remain safely on the Transcend drive.">Archive preview</SectionTitle>
+        </ScrollReveal>
+        <ScrollReveal effect="wipe" direction="left" delay={0.08}>
         <div className="grid gap-4 md:grid-cols-12">
           <figure className="relative min-h-[500px] overflow-hidden md:col-span-7 md:row-span-2">
             <img src={church} alt="The church at Ziquala Abo Monastery" className="absolute inset-0 h-full w-full object-cover" />
@@ -886,16 +1009,7 @@ const MonasteryPage = () => (
           <figure className="relative min-h-[320px] overflow-hidden"><img src={monkOnPath} alt="A monk walking through the Ziquala landscape" className="absolute inset-0 h-full w-full object-cover" /></figure>
           <figure className="relative min-h-[320px] overflow-hidden"><img src={monasteryCommunity} alt="Members of the monastery community" className="absolute inset-0 h-full w-full object-cover" /></figure>
         </div>
-        <div className="mt-8 flex flex-col justify-between gap-5 rounded-xl border border-black/10 bg-white/70 p-6 dark:border-white/10 dark:bg-white/5 md:flex-row md:items-center">
-          <div className="flex gap-4">
-            <PlayCircle size={32} className="shrink-0 text-amber-700 dark:text-amber-400" />
-            <div>
-              <p className="font-black">Documentary and interview archive available</p>
-              <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">Large source videos will be streamed through an approved media host rather than bundled into the frontend.</p>
-            </div>
-          </div>
-          <a href={monasteryContact.youtube} target="_blank" rel="noreferrer" className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-amber-500 px-5 py-3 font-black text-slate-950">Watch on YouTube <ExternalLink size={17} /></a>
-        </div>
+        </ScrollReveal>
       </div>
     </section>
 
