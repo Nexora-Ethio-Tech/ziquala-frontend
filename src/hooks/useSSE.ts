@@ -93,8 +93,16 @@ export const useSSE = () => {
           console.log('📢 [SSE] New school notice received:', payload.id);
           // Convert comma-separated audience string back to array
           const audienceArr = payload.audience === 'all'
-            ? ['super-admin', 'school-admin', 'vice-principal', 'teacher', 'student', 'parent', 'librarian', 'storekeeper']
-            : String(payload.audience || 'all').split(',').map((r: string) => r.trim());
+            ? ['super-admin', 'academic-manager', 'school-admin', 'vice-principal', 'teacher', 'student', 'parent', 'librarian', 'storekeeper']
+            : payload.audience === 'teacher'
+            ? ['teacher', 'school-admin', 'academic-manager', 'vice-principal', 'super-admin']
+            : payload.audience === 'academic'
+            ? ['academic-manager', 'school-admin', 'vice-principal', 'teacher', 'super-admin']
+            : payload.audience === 'parent-student'
+            ? ['parent', 'student', 'school-admin', 'academic-manager', 'vice-principal', 'super-admin']
+            : typeof payload.audience === 'string'
+            ? payload.audience.split(',').map((r: string) => r.trim())
+            : payload.audience || [];
           const notice: SchoolNotice = {
             id: payload.id,
             title: payload.title,

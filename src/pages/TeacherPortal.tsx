@@ -4,6 +4,7 @@ import { BookOpen, Users, Calendar, ArrowRight, ArrowLeft, ClipboardList, FileTe
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useCallback } from 'react';
 import { useUser } from '../context/UserContext';
+import { useStore } from '../context/useStore';
 import { getTodayEthiopianDate, gregorianToEthiopian, formatEthiopianLabel } from '../utils/ethiopianCalendar';
 import {
   getTeacherDashboard,
@@ -60,6 +61,40 @@ export const TeacherPortal = () => {
   const [dashboard, setDashboard] = useState<any>(null);
   const [plans, setPlans] = useState<any[]>([]);
   const [announcements, setAnnouncements] = useState<any[]>([]);
+  const storeNotices = useStore((state) => state.notices);
+
+  const mergedAnnouncements = (() => {
+    const map = new Map<string, any>();
+    announcements.forEach((a: any) => {
+      const id = String(a.id);
+      map.set(id, {
+        id,
+        title: a.title,
+        content: a.content,
+        priority: a.priority || 'Normal',
+        category: a.category || 'Academic',
+        timestamp: a.timestamp || a.created_at || a.time || new Date().toISOString(),
+        posted_by_name: a.posted_by_name || 'School Admin'
+      });
+    });
+    storeNotices
+      .filter((n) => !n.audience || n.audience.length === 0 || n.audience.includes('teacher') || n.audience.includes('all') || n.audience.includes('academic'))
+      .forEach((n) => {
+        const id = String(n.id);
+        if (!map.has(id)) {
+          map.set(id, {
+            id,
+            title: n.title,
+            content: n.content,
+            priority: n.priority || 'Normal',
+            category: n.category || 'Academic',
+            timestamp: n.time || new Date().toISOString(),
+            posted_by_name: 'School Admin'
+          });
+        }
+      });
+    return Array.from(map.values()).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  })();
   const [loading, setLoading] = useState(true);
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
   const [editingPlan, setEditingPlan] = useState<any>(null);
@@ -1028,9 +1063,9 @@ export const TeacherPortal = () => {
                 <h3 className="text-lg font-black text-slate-800 dark:text-white">Announcements from School Administration</h3>
                 <p className="text-xs text-slate-500 mt-0.5">Important notifications and updates from the administration</p>
               </div>
-              <span className="px-3 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-full text-xs font-bold">{announcements.length} announcement{announcements.length !== 1 ? 's' : ''}</span>
+              <span className="px-3 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-full text-xs font-bold">{mergedAnnouncements.length} announcement{mergedAnnouncements.length !== 1 ? 's' : ''}</span>
             </div>
-            {announcements.length === 0 ? (
+            {mergedAnnouncements.length === 0 ? (
               <div className="p-12 text-center">
                 <div className="bg-slate-50 dark:bg-slate-800 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"><AlertCircle size={28} className="text-slate-400" /></div>
                 <p className="font-bold text-slate-500 dark:text-slate-400">No announcements yet</p>
@@ -1038,30 +1073,34 @@ export const TeacherPortal = () => {
               </div>
             ) : (
               <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                {announcements.map((ann: any) => (
-                  <div key={ann.id} className="p-8 hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-all">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${
-                        ann.priority === 'High' 
-                          ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300' 
-                          : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
-                      }`}>
-                        {ann.priority || 'Normal'} Priority
-                      </span>
-                      {ann.category && (
-                        <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[9px] font-bold rounded-full">
-                          {ann.category}
+                {mergedAnnouncements.map((ann: any) => {
+                  const dateObj = new Date(ann.timestamp);
+                  const isValidDate = !isNaN(dateObj.getTime());
+                  return (
+                    <div key={ann.id} className="p-8 hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-all">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${
+                          ann.priority === 'High' 
+                            ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300' 
+                            : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+                        }`}>
+                          {ann.priority || 'Normal'} Priority
                         </span>
-                      )}
-                      <span className="text-[10px] text-slate-400 ml-auto font-medium">
-                        {formatEthiopianLabel(ann.timestamp)} {new Date(ann.timestamp).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
-                      </span>
+                        {ann.category && (
+                          <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[9px] font-bold rounded-full">
+                            {ann.category}
+                          </span>
+                        )}
+                        <span className="text-[10px] text-slate-400 ml-auto font-medium">
+                          {isValidDate ? `${formatEthiopianLabel(ann.timestamp)} ${dateObj.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}` : ''}
+                        </span>
+                      </div>
+                      <h4 className="font-bold text-slate-800 dark:text-slate-100 text-sm mb-1">{ann.title}</h4>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed whitespace-pre-wrap">{ann.content}</p>
+                      <p className="text-[10px] text-slate-400 mt-2 font-medium">Posted by: {ann.posted_by_name || 'School Admin'}</p>
                     </div>
-                    <h4 className="font-bold text-slate-800 dark:text-slate-100 text-sm mb-1">{ann.title}</h4>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed whitespace-pre-wrap">{ann.content}</p>
-                    <p className="text-[10px] text-slate-400 mt-2 font-medium">Posted by: {ann.posted_by_name || 'School Admin'}</p>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

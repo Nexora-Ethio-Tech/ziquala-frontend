@@ -158,9 +158,16 @@ export const Dashboard = () => {
               priority: n.priority || 'Normal',
               time: n.created_at || new Date().toISOString(),
               category: (n.category || 'Academic') as any,
-              audience: n.audience === 'all'
-                ? ['super-admin','academic-manager','school-admin','vice-principal','teacher','student','parent','librarian']
-                : String(n.audience || 'all').split(',').map((r: string) => r.trim()),
+                            audience: (() => {
+                const map: Record<string, string[]> = {
+                  all: ['super-admin', 'academic-manager', 'school-admin', 'vice-principal', 'teacher', 'student', 'parent', 'librarian', 'storekeeper'],
+                  teacher: ['teacher', 'school-admin', 'academic-manager', 'vice-principal', 'super-admin'],
+                  academic: ['academic-manager', 'school-admin', 'vice-principal', 'teacher', 'super-admin'],
+                  'parent-student': ['parent', 'student', 'school-admin', 'academic-manager', 'vice-principal', 'super-admin'],
+                };
+                const aud = n.audience || 'all';
+                return map[aud] || (String(aud).includes(',') ? String(aud).split(',').map((r: string) => r.trim()) : [aud]);
+              })(),
             }));
             _setNotices(mapped);
           }
