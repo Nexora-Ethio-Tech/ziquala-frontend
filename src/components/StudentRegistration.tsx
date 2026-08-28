@@ -253,6 +253,16 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
   );
   const [selectedBranchName, setSelectedBranchName] = useState('');
   const [expandedAppIds, setExpandedAppIds] = useState<Record<string, boolean>>({});
+  const [credentialsModal, setCredentialsModal] = useState<{
+    studentName: string;
+    studentGrade: string;
+    studentDigitalId: string;
+    studentPin: string;
+    parentName: string;
+    parentDigitalId: string;
+    parentPin: string;
+    phone?: string;
+  } | null>(null);
 
   // Sync branches from context when available
   useEffect(() => {
@@ -766,12 +776,45 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
             ? app.email
             : `student.${app.id.replace(/[^a-zA-Z0-9]/g, '').slice(0, 8)}@ziquala.edu.et`;
 
-          // Proactively register user
-          await registerUser({
+          // 1. Register Student User and capture credentials
+          const studentRes = await registerUser({
             name: app.name,
             email: validEmail,
             role: 'student',
             grade: app.lastGrade,
+          });
+
+          const sDigitalId = studentRes?.data?.user?.digital_id || 'N/A';
+          const sPin = studentRes?.data?.temporaryPassword || 'N/A';
+
+          // 2. Register Parent/Guardian User and capture credentials
+          const parentName = app.parentName || app.fatherName || `Parent of ${app.name}`;
+          const parentEmail = `parent.${app.id.replace(/[^a-zA-Z0-9]/g, '').slice(0, 8)}@ziquala.edu.et`;
+
+          let pDigitalId = 'N/A';
+          let pPin = 'N/A';
+          try {
+            const parentRes = await registerUser({
+              name: parentName,
+              email: parentEmail,
+              role: 'parent',
+            });
+            pDigitalId = parentRes?.data?.user?.digital_id || 'N/A';
+            pPin = parentRes?.data?.temporaryPassword || 'N/A';
+          } catch (pErr) {
+            console.warn('Parent account creation warning:', pErr);
+          }
+
+          // 3. Show the credentials modal with both accounts
+          setCredentialsModal({
+            studentName: app.name,
+            studentGrade: app.lastGrade || 'N/A',
+            studentDigitalId: sDigitalId,
+            studentPin: sPin,
+            parentName: parentName,
+            parentDigitalId: pDigitalId,
+            parentPin: pPin,
+            phone: app.phone || app.parentPhone || 'N/A',
           });
         }
         await updateApplicationStatus(appId, { status: 'payment-confirmed' });
@@ -1852,6 +1895,113 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
           </div>
         </div>
       )}
+      {/* Generated Credentials Modal */}
+      {credentialsModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-xl overflow-hidden shadow-2xl border border-slate-100 dark:border-slate-800 flex flex-col max-h-[90vh]">
+            <div className="p-6 bg-gradient-to-r from-blue-600 to-indigo-600 text-white flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-white/20 rounded-2xl backdrop-blur-sm">
+                  <Shield size={24} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-black tracking-tight">Digital IDs & Password Credentials</h3>
+                  <p className="text-xs text-blue-100 font-medium">Issued upon enrollment confirmation</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setCredentialsModal(null)}
+                className="p-2 hover:bg-white/20 rounded-full transition-colors text-white"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto space-y-6 flex-1">
+              <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40 rounded-2xl flex items-center gap-3 text-xs text-amber-800 dark:text-amber-300 font-medium">
+                <Info size={18} className="shrink-0 text-amber-600" />
+                <span>Please save or print these unique Digital IDs and temporary 4-digit PIN passwords. Give them to the student and parent for portal login.</span>
+              </div>
+
+              {/* Student Credentials Box */}
+              <div className="p-5 rounded-2xl border-2 border-blue-100 dark:border-blue-900/40 bg-blue-50/40 dark:bg-blue-900/10 space-y-3">
+                <div className="flex items-center justify-between pb-2 border-b border-blue-100 dark:border-blue-900/30">
+                  <span className="text-xs font-black uppercase text-blue-700 dark:text-blue-400 flex items-center gap-2">
+                    <User size={16} /> Student Credentials
+                  </span>
+                  <span className="text-[10px] font-bold px-2.5 py-0.5 bg-blue-200/60 dark:bg-blue-800/60 text-blue-800 dark:text-blue-200 rounded-full">
+                    {credentialsModal.studentGrade}
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase block">Full Name</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-100">{credentialsModal.studentName}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase block">Digital ID</span>
+                    <span className="font-mono font-black text-sm text-blue-600 dark:text-blue-400 bg-white dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700 inline-block">
+                      {credentialsModal.studentDigitalId}
+                    </span>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase block">Temporary PIN / Password</span>
+                    <span className="font-mono font-black text-base tracking-widest text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-3 py-1 rounded border border-emerald-200 dark:border-emerald-800 inline-block">
+                      {credentialsModal.studentPin}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Parent Credentials Box */}
+              <div className="p-5 rounded-2xl border-2 border-purple-100 dark:border-purple-900/40 bg-purple-50/40 dark:bg-purple-900/10 space-y-3">
+                <div className="flex items-center justify-between pb-2 border-b border-purple-100 dark:border-purple-900/30">
+                  <span className="text-xs font-black uppercase text-purple-700 dark:text-purple-400 flex items-center gap-2">
+                    <User size={16} /> Parent Credentials
+                  </span>
+                  <span className="text-[10px] font-bold text-slate-400">Linked Guardian</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase block">Guardian Name</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-100">{credentialsModal.parentName}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase block">Parent Digital ID</span>
+                    <span className="font-mono font-black text-sm text-purple-600 dark:text-purple-400 bg-white dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700 inline-block">
+                      {credentialsModal.parentDigitalId}
+                    </span>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase block">Temporary PIN / Password</span>
+                    <span className="font-mono font-black text-base tracking-widest text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-3 py-1 rounded border border-emerald-200 dark:border-emerald-800 inline-block">
+                      {credentialsModal.parentPin}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-5 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={() => window.print()}
+                className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 dark:bg-slate-700 dark:hover:bg-slate-600 text-white rounded-xl font-bold text-xs flex items-center gap-2 transition-all shadow-md"
+              >
+                <FileText size={15} /> Print Credential Slip
+              </button>
+              <button
+                type="button"
+                onClick={() => setCredentialsModal(null)}
+                className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xs transition-all shadow-lg shadow-blue-500/20"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Grade Assignment Modal */}
       {showGradeModal && selectedAppForGrade && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-900/60 backdrop-blur-sm">
