@@ -1066,38 +1066,42 @@ export const TeacherPortal = () => {
               <span className="px-3 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-full text-xs font-bold">{mergedAnnouncements.length} announcement{mergedAnnouncements.length !== 1 ? 's' : ''}</span>
             </div>
             {mergedAnnouncements.length === 0 ? (
-              <div className="p-12 text-center">
-                <div className="bg-slate-50 dark:bg-slate-800 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"><AlertCircle size={28} className="text-slate-400" /></div>
-                <p className="font-bold text-slate-500 dark:text-slate-400">No announcements yet</p>
-                <p className="text-xs text-slate-400 mt-1">Check back later for any updates from school administration.</p>
+              <div className="p-6 text-center">
+                <div className="bg-slate-50 dark:bg-slate-800/60 w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-3"><AlertCircle size={22} className="text-slate-400" /></div>
+                <p className="font-bold text-slate-600 dark:text-slate-300 text-sm">No announcements yet</p>
+                <p className="text-xs text-slate-400 mt-1">Check back later for updates from school administration.</p>
               </div>
             ) : (
-              <div className="divide-y divide-slate-100 dark:divide-slate-800">
+              <div className="p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                 {mergedAnnouncements.map((ann: any) => {
                   const dateObj = new Date(ann.timestamp);
                   const isValidDate = !isNaN(dateObj.getTime());
                   return (
-                    <div key={ann.id} className="p-8 hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-all">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${
-                          ann.priority === 'High' 
-                            ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300' 
-                            : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
-                        }`}>
-                          {ann.priority || 'Normal'} Priority
-                        </span>
-                        {ann.category && (
-                          <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[9px] font-bold rounded-full">
-                            {ann.category}
+                    <div key={ann.id} className="p-5 rounded-2xl border border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-800/40 hover:bg-slate-100/60 dark:hover:bg-slate-800/70 transition-all flex flex-col justify-between shadow-sm">
+                      <div>
+                        <div className="flex items-center gap-2 mb-3 flex-wrap">
+                          <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider ${
+                            ann.priority === 'High' 
+                              ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300' 
+                              : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+                          }`}>
+                            {ann.priority || 'Normal'} Priority
                           </span>
-                        )}
-                        <span className="text-[10px] text-slate-400 ml-auto font-medium">
-                          {isValidDate ? `${formatEthiopianLabel(ann.timestamp)} ${dateObj.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}` : ''}
-                        </span>
+                          {ann.category && (
+                            <span className="px-2 py-0.5 bg-slate-200/70 dark:bg-slate-700/60 text-slate-700 dark:text-slate-300 text-[10px] font-bold rounded-md">
+                              {ann.category}
+                            </span>
+                          )}
+                          <span className="text-[10px] text-slate-400 dark:text-slate-500 ml-auto font-medium">
+                            {isValidDate ? `${formatEthiopianLabel(ann.timestamp)} ${dateObj.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}` : ''}
+                          </span>
+                        </div>
+                        <h4 className="font-bold text-slate-800 dark:text-slate-100 text-sm mb-1.5">{ann.title}</h4>
+                        <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed whitespace-pre-wrap">{ann.content}</p>
                       </div>
-                      <h4 className="font-bold text-slate-800 dark:text-slate-100 text-sm mb-1">{ann.title}</h4>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed whitespace-pre-wrap">{ann.content}</p>
-                      <p className="text-[10px] text-slate-400 mt-2 font-medium">Posted by: {ann.posted_by_name || 'School Admin'}</p>
+                      <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-4 pt-2 border-t border-slate-200/50 dark:border-slate-700/50 font-medium">
+                        Posted by: {ann.posted_by_name || 'School Admin'}
+                      </p>
                     </div>
                   );
                 })}
