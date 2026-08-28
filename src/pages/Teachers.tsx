@@ -216,7 +216,7 @@ export const Teachers = () => {
   }, []);
 
   useEffect(() => {
-    if (activeTab === 'leaderboard' && isVP) {
+    if (activeTab === 'leaderboard') {
       fetchLeaderboardData();
     }
   }, [activeTab]);
