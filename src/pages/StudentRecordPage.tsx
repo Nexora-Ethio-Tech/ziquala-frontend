@@ -22,6 +22,7 @@ import {
 import { formatEthiopianLabel } from '../utils/ethiopianCalendar';
 import api from '../services/api';
 import { getStudentAdmissionRecord, type StudentAdmissionRecord } from '../services/schoolAdminService';
+import { useUser } from '../context/UserContext';
 
 const displayValue = (value?: string | number | null) => {
   if (value === null || value === undefined || String(value).trim() === '') return '—';
@@ -35,6 +36,8 @@ const formatDate = (value?: string | null) => {
 };
 
 export const StudentRecordPage = () => {
+  const { role } = useUser();
+  const isSchoolAdmin = role === 'school-admin';
   const { studentId } = useParams<{ studentId: string }>();
   const navigate = useNavigate();
   const location = useLocation();
@@ -575,22 +578,24 @@ export const StudentRecordPage = () => {
                             >
                               <Download size={14} /> Download
                             </a>
-                            <button
-                              type="button"
-                              disabled={uploading}
-                              onClick={() => triggerFileSelect(targetAppId)}
-                              className="px-4 py-2 text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 rounded-lg text-xs font-bold flex items-center gap-2 disabled:opacity-50 transition-colors cursor-pointer"
-                            >
-                              {uploading && replacingDocId === targetAppId ? (
-                                <>
-                                  <Loader2 className="animate-spin" size={14} /> Uploading...
-                                </>
-                              ) : (
-                                <>
-                                  <Upload size={14} /> Re-upload
-                                </>
-                              )}
-                            </button>
+                            {isSchoolAdmin && (
+                              <button
+                                type="button"
+                                disabled={uploading}
+                                onClick={() => triggerFileSelect(targetAppId)}
+                                className="px-4 py-2 text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 rounded-lg text-xs font-bold flex items-center gap-2 disabled:opacity-50 transition-colors cursor-pointer"
+                              >
+                                {uploading && replacingDocId === targetAppId ? (
+                                  <>
+                                    <Loader2 className="animate-spin" size={14} /> Uploading...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Upload size={14} /> Re-upload
+                                  </>
+                                )}
+                              </button>
+                            )}
                           </>
                         )}
                       </div>
@@ -644,18 +649,22 @@ export const StudentRecordPage = () => {
               ) : docError ? (
                 <div className="text-center p-6 bg-white dark:bg-slate-900 rounded-2xl border border-rose-200 dark:border-rose-900/50 shadow-sm max-w-md">
                   <p className="text-sm font-bold text-rose-500 mb-2">{docError}</p>
-                  <p className="text-xs text-slate-400 mb-4">Click below to upload a transcript document for this student record.</p>
-                  <button
-                    type="button"
-                    disabled={uploading}
-                    onClick={() => {
-                      setViewingDoc(null);
-                      if (viewingDoc) triggerFileSelect(viewingDoc.applicationId);
-                    }}
-                    className="px-4 py-2.5 bg-blue-600 text-white hover:bg-blue-700 rounded-xl text-xs font-bold inline-flex items-center gap-2 shadow-md transition-all cursor-pointer"
-                  >
-                    <Upload size={14} /> Upload Transcript Document Now
-                  </button>
+                  {isSchoolAdmin && (
+                    <>
+                      <p className="text-xs text-slate-400 mb-4">Click below to upload a transcript document for this student record.</p>
+                      <button
+                        type="button"
+                        disabled={uploading}
+                        onClick={() => {
+                          setViewingDoc(null);
+                          if (viewingDoc) triggerFileSelect(viewingDoc.applicationId);
+                        }}
+                        className="px-4 py-2.5 bg-blue-600 text-white hover:bg-blue-700 rounded-xl text-xs font-bold inline-flex items-center gap-2 shadow-md transition-all cursor-pointer"
+                      >
+                        <Upload size={14} /> Upload Transcript Document Now
+                      </button>
+                    </>
+                  )}
                 </div>
               ) : docUrl ? (
                 docType?.startsWith('image/') || viewingDoc.fileName.match(/\.(png|jpg|jpeg|gif|webp)$/i) ? (

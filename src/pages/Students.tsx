@@ -628,7 +628,7 @@ export const Students = () => {
           <option value="Suspended">Suspended</option>
           <option value="Graduated">Graduated</option>
         </select>
-        {canViewStudentRecord && activeView === 'students' && filterGrade && (
+        {isSchoolAdmin && activeView === 'students' && filterGrade && (
           <button
             type="button"
             onClick={handleAutoDistribute}
@@ -709,20 +709,22 @@ export const Students = () => {
               <table className="w-full text-left min-w-[800px]">
                 <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
                   <tr>
-                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">
-                      <input
-                        type="checkbox"
-                        checked={
-                          filtered.length > 0 &&
-                          filtered.filter(s => !s.section).length > 0 &&
-                          filtered.filter(s => !s.section).every(s => selectedStudentIds.has(s.id))
-                        }
-                        onChange={selectAllFiltered}
-                        className="rounded cursor-pointer"
-                        title="Select all visible unassigned students"
-                        aria-label="Select all students"
-                      />
-                    </th>
+                    {isSchoolAdmin && (
+                      <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">
+                        <input
+                          type="checkbox"
+                          checked={
+                            filtered.length > 0 &&
+                            filtered.filter(s => !s.section).length > 0 &&
+                            filtered.filter(s => !s.section).every(s => selectedStudentIds.has(s.id))
+                          }
+                          onChange={selectAllFiltered}
+                          className="rounded cursor-pointer"
+                          title="Select all visible unassigned students"
+                          aria-label="Select all students"
+                        />
+                      </th>
+                    )}
                     <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("students.colStudent","Student")}</th>
                     <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("students.colDigitalId", "Digital ID")}</th>
                     {canViewStudentRecord && (
@@ -731,29 +733,33 @@ export const Students = () => {
                     <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("students.colSection","Section")}</th>
                     <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("students.colGrade","Grade")}</th>
                     <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("students.colStatus", "Status")}</th>
-                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("students.colActions", "Actions")}</th>
+                    {isSchoolAdmin && (
+                      <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("students.colActions", "Actions")}</th>
+                    )}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {filtered.length === 0 ? (
                     <tr>
-                      <td colSpan={canViewStudentRecord ? 8 : 7} className="px-6 py-12 text-center text-slate-500">
+                      <td colSpan={(isSchoolAdmin ? 1 : 0) + 5 + (canViewStudentRecord ? 1 : 0) + (isSchoolAdmin ? 1 : 0)} className="px-6 py-12 text-center text-slate-500">
                         No students found. Add your first student!
                       </td>
                     </tr>
                   ) : (
                     filtered.map((student) => (
                       <tr key={student.id} className={`hover:bg-slate-50 dark:hover:bg-slate-800/30 ${selectedStudentIds.has(student.id) ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}>
-                        <td className="px-6 py-4">
-                          <input
-                            type="checkbox"
-                            checked={selectedStudentIds.has(student.id)}
-                            onChange={() => toggleStudentSelection(student.id)}
-                            className="rounded cursor-pointer"
-                            title={`Select ${student.firstName}`}
-                            aria-label={`Select ${student.firstName}`}
-                          />
-                        </td>
+                        {isSchoolAdmin && (
+                          <td className="px-6 py-4">
+                            <input
+                              type="checkbox"
+                              checked={selectedStudentIds.has(student.id)}
+                              onChange={() => toggleStudentSelection(student.id)}
+                              className="rounded cursor-pointer"
+                              title={`Select ${student.firstName}`}
+                              aria-label={`Select ${student.firstName}`}
+                            />
+                          </td>
+                        )}
                         <td className="px-6 py-4 text-sm font-medium text-slate-900 dark:text-slate-100">{student.firstName} {student.lastName}</td>
                         <td className="px-6 py-4 text-sm font-mono text-slate-600 dark:text-slate-400">{student.digitalId}</td>
                         {canViewStudentRecord && (
@@ -781,120 +787,122 @@ export const Students = () => {
                             {student.status}
                           </span>
                         </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-2">
-                            <button
-                              type="button"
-                              onClick={() => { setSelectedStudent(student); setShowAssignModal(true); }}
-                              className="p-2 hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-600 rounded-lg transition-colors"
-                              title="Assign Class"
-                              aria-label="Assign class"
-                            >
-                              <Users size={16} />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={async () => {
-                                setSelectedStudent(student);
-                                setSelectedSectionForStudent('');
-                                setShowAssignSectionModal(true);
-                                try {
-                                  const gradeParam = getGradeNumber(student.grade) || student.grade;
-                                  const sections = await sectionService.getAvailableSections(gradeParam);
-                                  setAvailableSectionsForSingle(sections);
-                                  if (sections.length > 0) setSelectedSectionForStudent(sections[0].id);
-                                } catch (err) {
-                                  setAvailableSectionsForSingle([]);
-                                  showToast(getErrorMessage(err, 'Failed to fetch sections'), 'error');
-                                }
-                              }}
-                              className="p-2 hover:bg-green-100 dark:hover:bg-green-900/30 text-green-600 rounded-lg transition-colors"
-                              title="Assign Section"
-                              aria-label="Assign section"
-                            >
-                              <GraduationCap size={16} />
-                            </button>
-                            <div className="relative inline-block">
+                        {isSchoolAdmin && (
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-2">
                               <button
                                 type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setActiveStatusDropdownStudentId(
-                                    activeStatusDropdownStudentId === student.id ? null : student.id
-                                  );
-                                }}
-                                className={`p-2 rounded-lg transition-colors ${
-                                  activeStatusDropdownStudentId === student.id
-                                    ? 'bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300'
-                                    : 'hover:bg-purple-100 dark:hover:bg-purple-900/30 text-purple-600 dark:text-purple-400'
-                                }`}
-                                title="Change Status"
-                                aria-label="Change status"
+                                onClick={() => { setSelectedStudent(student); setShowAssignModal(true); }}
+                                className="p-2 hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-600 rounded-lg transition-colors"
+                                title="Assign Class"
+                                aria-label="Assign class"
                               >
-                                <UserCog size={16} />
+                                <Users size={16} />
                               </button>
-                              
-                              {activeStatusDropdownStudentId === student.id && (
-                                <>
-                                  <div 
-                                    className="fixed inset-0 z-30 bg-transparent cursor-default" 
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setActiveStatusDropdownStudentId(null);
-                                    }}
-                                  />
-                                  <div className="absolute right-0 mt-2 w-48 rounded-xl bg-white dark:bg-slate-800 shadow-2xl border border-slate-200 dark:border-slate-700 z-40 py-2 animate-in fade-in slide-in-from-top-2 duration-150">
-                                    <div className="px-3 py-1.5 border-b border-slate-100 dark:border-slate-700/50 mb-1">
-                                      <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Change Status</p>
+                              <button
+                                type="button"
+                                onClick={async () => {
+                                  setSelectedStudent(student);
+                                  setSelectedSectionForStudent('');
+                                  setShowAssignSectionModal(true);
+                                  try {
+                                    const gradeParam = getGradeNumber(student.grade) || student.grade;
+                                    const sections = await sectionService.getAvailableSections(gradeParam);
+                                    setAvailableSectionsForSingle(sections);
+                                    if (sections.length > 0) setSelectedSectionForStudent(sections[0].id);
+                                  } catch (err) {
+                                    setAvailableSectionsForSingle([]);
+                                    showToast(getErrorMessage(err, 'Failed to fetch sections'), 'error');
+                                  }
+                                }}
+                                className="p-2 hover:bg-green-100 dark:hover:bg-green-900/30 text-green-600 rounded-lg transition-colors"
+                                title="Assign Section"
+                                aria-label="Assign section"
+                              >
+                                <GraduationCap size={16} />
+                              </button>
+                              <div className="relative inline-block">
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setActiveStatusDropdownStudentId(
+                                      activeStatusDropdownStudentId === student.id ? null : student.id
+                                    );
+                                  }}
+                                  className={`p-2 rounded-lg transition-colors ${
+                                    activeStatusDropdownStudentId === student.id
+                                      ? 'bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300'
+                                      : 'hover:bg-purple-100 dark:hover:bg-purple-900/30 text-purple-600 dark:text-purple-400'
+                                  }`}
+                                  title="Change Status"
+                                  aria-label="Change status"
+                                >
+                                  <UserCog size={16} />
+                                </button>
+                                
+                                {activeStatusDropdownStudentId === student.id && (
+                                  <>
+                                    <div 
+                                      className="fixed inset-0 z-30 bg-transparent cursor-default" 
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setActiveStatusDropdownStudentId(null);
+                                      }}
+                                    />
+                                    <div className="absolute right-0 mt-2 w-48 rounded-xl bg-white dark:bg-slate-800 shadow-2xl border border-slate-200 dark:border-slate-700 z-40 py-2 animate-in fade-in slide-in-from-top-2 duration-150">
+                                      <div className="px-3 py-1.5 border-b border-slate-100 dark:border-slate-700/50 mb-1">
+                                        <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Change Status</p>
+                                      </div>
+                                      {[
+                                        { name: 'Active', color: 'bg-green-500', text: 'text-green-700 dark:text-green-400', bg: 'hover:bg-green-50 dark:hover:bg-green-950/20' },
+                                        { name: 'Inactive', color: 'bg-slate-400', text: 'text-slate-700 dark:text-slate-400', bg: 'hover:bg-slate-50 dark:hover:bg-slate-800/50' },
+                                        { name: 'Suspended', color: 'bg-red-500', text: 'text-red-700 dark:text-red-400', bg: 'hover:bg-red-50 dark:hover:bg-red-950/20' },
+                                        { name: 'Graduated', color: 'bg-blue-500', text: 'text-blue-700 dark:text-blue-400', bg: 'hover:bg-blue-50 dark:hover:bg-blue-950/20' }
+                                      ].map((opt) => (
+                                        <button
+                                          key={opt.name}
+                                          type="button"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleUpdateStatus(student.userId, opt.name);
+                                          }}
+                                          className={`w-full px-3 py-2 flex items-center justify-between text-left text-sm font-semibold transition-colors ${opt.bg} ${opt.text}`}
+                                        >
+                                          <div className="flex items-center gap-2.5">
+                                            <span className={`h-2.5 w-2.5 rounded-full ${opt.color}`} />
+                                            <span>{opt.name}</span>
+                                          </div>
+                                          {student.status === opt.name && (
+                                            <Check size={14} className="text-slate-600 dark:text-slate-400" />
+                                          )}
+                                        </button>
+                                      ))}
                                     </div>
-                                    {[
-                                      { name: 'Active', color: 'bg-green-500', text: 'text-green-700 dark:text-green-400', bg: 'hover:bg-green-50 dark:hover:bg-green-950/20' },
-                                      { name: 'Inactive', color: 'bg-slate-400', text: 'text-slate-700 dark:text-slate-400', bg: 'hover:bg-slate-50 dark:hover:bg-slate-800/50' },
-                                      { name: 'Suspended', color: 'bg-red-500', text: 'text-red-700 dark:text-red-400', bg: 'hover:bg-red-50 dark:hover:bg-red-950/20' },
-                                      { name: 'Graduated', color: 'bg-blue-500', text: 'text-blue-700 dark:text-blue-400', bg: 'hover:bg-blue-50 dark:hover:bg-blue-950/20' }
-                                    ].map((opt) => (
-                                      <button
-                                        key={opt.name}
-                                        type="button"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleUpdateStatus(student.userId, opt.name);
-                                        }}
-                                        className={`w-full px-3 py-2 flex items-center justify-between text-left text-sm font-semibold transition-colors ${opt.bg} ${opt.text}`}
-                                      >
-                                        <div className="flex items-center gap-2.5">
-                                          <span className={`h-2.5 w-2.5 rounded-full ${opt.color}`} />
-                                          <span>{opt.name}</span>
-                                        </div>
-                                        {student.status === opt.name && (
-                                          <Check size={14} className="text-slate-600 dark:text-slate-400" />
-                                        )}
-                                      </button>
-                                    ))}
-                                  </div>
-                                </>
-                              )}
+                                  </>
+                                )}
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => openEditModal(student)}
+                                className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 rounded-lg transition-colors"
+                                title="Edit student"
+                                aria-label="Edit student"
+                              >
+                                <Edit2 size={16} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setConfirmDelete({ show: true, student })}
+                                className="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 rounded-lg transition-colors"
+                                title="Delete student"
+                                aria-label="Delete student"
+                              >
+                                <Trash2 size={16} />
+                              </button>
                             </div>
-                            <button
-                              type="button"
-                              onClick={() => openEditModal(student)}
-                              className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 rounded-lg transition-colors"
-                              title="Edit student"
-                              aria-label="Edit student"
-                            >
-                              <Edit2 size={16} />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setConfirmDelete({ show: true, student })}
-                              className="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 rounded-lg transition-colors"
-                              title="Delete student"
-                              aria-label="Delete student"
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </div>
-                        </td>
+                          </td>
+                        )}
                       </tr>
                     ))
                   )}
