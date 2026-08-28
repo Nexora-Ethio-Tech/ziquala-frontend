@@ -990,7 +990,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                         </h4>
                         {expandedAppIds[app.id] && (
                           <>
-                            <p className="text-[10px] text-slate-400 dark:text-slate-500 font-black uppercase tracking-[0.2em] mt-1">Grade {app.lastGrade} • {app.date} • {app.email}</p>
+                            <p className="text-[10px] text-slate-400 dark:text-slate-500 font-black uppercase tracking-[0.2em] mt-1">Grade {app.lastGrade} • {app.date}</p>
                             {app.removalReason && (
                               <p className="text-xs text-rose-600 dark:text-rose-400 font-bold mt-2">Returned to School Admin: {app.removalReason}</p>
                             )}
@@ -1015,7 +1015,6 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                           <div><p className="text-[10px] font-bold text-slate-400 uppercase">Date of Birth</p><p className="font-bold dark:text-slate-200">{app.dob ? formatEthiopianDateOnly(app.dob) : '—'}</p></div>
                           <div><p className="text-[10px] font-bold text-slate-400 uppercase">Gender</p><p className="font-bold dark:text-slate-200">{displayValue(app.gender)}</p></div>
                           <div><p className="text-[10px] font-bold text-slate-400 uppercase">Grade Applying</p><p className="font-bold dark:text-slate-200">Grade {displayValue(app.lastGrade)}</p></div>
-                          <div><p className="text-[10px] font-bold text-slate-400 uppercase">Fayda ID</p><p className="font-bold dark:text-slate-200 font-mono text-[11px]">{displayValue(app.digitalId)}</p></div>
                         </div>
 
                         {/* Father & Mother Details */}
@@ -1037,9 +1036,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                         {/* Residence & Personal Details */}
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs pt-3 border-t border-slate-100 dark:border-slate-800">
                           <div><p className="text-[10px] font-bold text-slate-400 uppercase">Place of Birth</p><p className="font-bold dark:text-slate-200">{displayValue(app.placeOfBirth)}</p></div>
-                          <div><p className="text-[10px] font-bold text-slate-400 uppercase">Card Age</p><p className="font-bold dark:text-slate-200">{displayValue(app.cardAge)}</p></div>
                           <div><p className="text-[10px] font-bold text-slate-400 uppercase">Religion</p><p className="font-bold dark:text-slate-200">{displayValue(app.religion)}</p></div>
-                          <div><p className="text-[10px] font-bold text-slate-400 uppercase">Kebele / Ketena / House</p><p className="font-bold dark:text-slate-200">{[app.kebele, app.ketena, app.houseNo].filter(Boolean).join(' / ') || '—'}</p></div>
                         </div>
 
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs pt-2 border-t border-slate-100 dark:border-slate-800">
@@ -1050,8 +1047,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
 
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs pt-2 border-t border-slate-100 dark:border-slate-800">
                           <div><p className="text-[10px] font-bold text-slate-400 uppercase">Previous School</p><p className="font-bold dark:text-slate-200">{displayValue(app.previousSchool)}</p></div>
-                          <div><p className="text-[10px] font-bold text-slate-400 uppercase">Email</p><p className="font-bold dark:text-slate-200 break-all">{displayValue(app.email)}</p></div>
-                          <div className="md:col-span-2">
+                          <div className="md:col-span-3">
                             <p className="text-[10px] font-bold text-slate-400 uppercase">Transcript</p>
                             {app.transcriptFileName ? (
                               <div className="flex items-center gap-2 mt-1">
