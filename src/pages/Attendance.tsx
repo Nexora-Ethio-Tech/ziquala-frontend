@@ -784,8 +784,8 @@ export const Attendance = () => {
                   <span className="text-[10px] font-bold text-rose-500 dark:text-rose-400">{t("attendance.actionRequired","Action Required")}</span>
                 </div>
                 <div className="grid grid-cols-1 gap-3">
-                  {staffAttendance.filter(t => t.status === 'Absent').map((teacher) => (
-                    <div key={teacher.id} className="group p-5 bg-slate-50 dark:bg-slate-800/40 rounded-3xl border border-slate-100 dark:border-slate-800 hover:border-rose-200 dark:hover:border-rose-900/30 transition-all duration-300 hover:shadow-lg hover:shadow-rose-500/5">
+                  {staffAttendance.filter(t => t.status === 'Absent').map((teacher, index) => (
+                    <div key={teacher.id ? `absent-${teacher.id}-${index}` : `absent-${index}`} className="group p-5 bg-slate-50 dark:bg-slate-800/40 rounded-3xl border border-slate-100 dark:border-slate-800 hover:border-rose-200 dark:hover:border-rose-900/30 transition-all duration-300 hover:shadow-lg hover:shadow-rose-500/5">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
                           <div className="w-12 h-12 bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-2xl flex items-center justify-center font-black text-xl shadow-inner">
@@ -963,7 +963,7 @@ export const Attendance = () => {
                 >
                   <option value="">-- {t("attendance.selectGradeOption", "Select Grade")} --</option>
                   {gradeStats.map((grade, idx) => (
-                    <option key={idx} value={grade.grade}>{grade.grade}</option>
+                    <option key={grade.id ? `grade-opt-${grade.id}-${idx}` : `grade-opt-${idx}`} value={grade.grade}>{grade.grade}</option>
                   ))}
                 </select>
                 <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
@@ -1088,7 +1088,7 @@ export const Attendance = () => {
                 </thead>
                 <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
                   {gradeStats.map((stat, i) => (
-                    <tr key={i} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
+                    <tr key={stat.id ? `stat-${stat.id}-${i}` : `stat-${stat.grade}-${i}`} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center text-blue-700 dark:text-blue-400 font-bold text-xs">
@@ -1122,8 +1122,8 @@ export const Attendance = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
-                  {students.map((student: any) => (
-                    <tr key={student.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
+                  {students.map((student: any, idx: number) => (
+                    <tr key={student.id ? `student-${student.id}-${idx}` : `student-${idx}`} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center text-blue-700 dark:text-blue-400 font-bold text-xs">
