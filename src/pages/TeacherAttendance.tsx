@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Check, X, Users, ChevronRight, Save, Loader2, ArrowLeft, Calendar, Search, Clock, ShieldAlert } from 'lucide-react';
 import teacherService, { markAttendance, getMyClasses, getClassAttendance } from '../services/teacherService';
@@ -5,6 +6,7 @@ import { getTodayEthiopianDate } from '../utils/ethiopianCalendar';
 import { EthiopianDatePicker } from '../components/EthiopianDatePicker';
 
 export const TeacherAttendance = () => {
+  const { t } = useTranslation();
   const [classes, setClasses] = useState<any[]>([]);
   const [students, setStudents] = useState<any[]>([]);
   const [selectedClass, setSelectedClass] = useState<any>(null);
@@ -163,17 +165,17 @@ export const TeacherAttendance = () => {
       <div className="space-y-8 animate-in fade-in slide-in-from-bottom duration-300">
         <div className="relative overflow-hidden bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 text-white p-8 rounded-3xl shadow-xl shadow-indigo-500/10">
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl transform translate-x-20 -translate-y-20"></div>
-          <h2 className="text-3xl font-extrabold mb-2 tracking-tight">Attendance Roster</h2>
+          <h2 className="text-3xl font-extrabold mb-2 tracking-tight">{t('teacherAttendance.attendanceRoster', 'Attendance Roster')}</h2>
           <p className="text-indigo-100/90 font-medium max-w-xl">
-            Select one of your assigned classes below to register and update student attendance records.
+            {t('teacherAttendance.attendanceRosterSub', 'Select one of your assigned classes below to register and update student attendance records.')}
           </p>
         </div>
 
         {classes.length === 0 ? (
           <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl p-12 text-center shadow-sm">
             <Users className="mx-auto text-slate-300 dark:text-slate-600 mb-4" size={48} />
-            <p className="text-slate-500 dark:text-slate-400 font-semibold mb-1">No Classes Assigned</p>
-            <p className="text-sm text-slate-400 dark:text-slate-500">You are not currently set as a teacher for any class. Please contact the administrator.</p>
+            <p className="text-slate-500 dark:text-slate-400 font-semibold mb-1">{t('teacherAttendance.noClassesAssigned', 'No Classes Assigned')}</p>
+            <p className="text-sm text-slate-400 dark:text-slate-500">{t('teacherAttendance.noClassesAssignedSub', 'You are not currently set as a teacher for any class. Please contact the administrator.')}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

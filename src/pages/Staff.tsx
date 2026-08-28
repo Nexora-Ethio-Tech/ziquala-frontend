@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Loader2, AlertCircle, UserCheck, UserPlus, ShieldAlert, Users, Building2, X, Edit2, Trash2, Check } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
@@ -5,7 +6,11 @@ import { useUser, type UserRole } from '../context/UserContext';
 import { userService } from '../services/userService';
 import { branchService } from '../services/branchService';
 import { useStore } from '../context/useStore';
+import PhoneInput from '../components/PhoneInput';
+import { EthiopianDatePicker } from '../components/EthiopianDatePicker';
+
 export const Staff = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { role: currentUserRole, selectedBranch } = useUser();
   const { selectedBranchId } = useStore();
@@ -17,7 +22,26 @@ export const Staff = () => {
   const [statusFilter, setStatusFilter] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [branches, setBranches] = useState<any[]>([]);
-  const [createForm, setCreateForm] = useState({ role: 'school-admin', name: '', email: '', branchId: '', password: '' });
+
+  const initialCreateForm = {
+    role: currentUserRole === 'super-admin' ? 'school-admin' : 'vice-principal',
+    name: '',
+    email: '',
+    phoneNumber: '',
+    emergencyContactName: '',
+    emergencyContactPhone: '',
+    educationLevel: '',
+    specialty: '',
+    dob: '',
+    previousSchool: '',
+    experienceYears: '',
+    branchId: '',
+    password: ''
+  };
+
+  const [createForm, setCreateForm] = useState(initialCreateForm);
+  const [phoneError, setPhoneError] = useState('');
+  const [emergencyPhoneError, setEmergencyPhoneError] = useState('');
   const [creating, setCreating] = useState(false);
   const [successModal, setSuccessModal] = useState<{ show: boolean; data: any }>({ show: false, data: null });
   const [deleteModal, setDeleteModal] = useState<{ show: boolean; userId: string; userName: string }>({ show: false, userId: '', userName: '' });
@@ -36,7 +60,6 @@ export const Staff = () => {
   ];
 
   useEffect(() => {
-    if (currentUserRole !== 'super-admin') return;
     const init = async () => {
       const branchList = await fetchBranches();
       await fetchUsers(branchList);
@@ -74,7 +97,7 @@ export const Staff = () => {
               <Users size={14} />
               Branch Required
             </div>
-            <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Staff Management</h1>
+            <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{t("staff.title", "Staff Management")}</h1>
             <p className="text-slate-500 dark:text-slate-400 mt-3 text-sm md:text-base leading-6">
               Select a branch first to view and manage the academic and library staff assigned to it.
             </p>
@@ -99,39 +122,6 @@ export const Staff = () => {
     );
   }
 
-  if (currentUserRole === 'school-admin' || currentUserRole === 'academic-manager') {
-    return (
-      <div className="space-y-6 pb-12">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Staff Management</h1>
-            <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">Manage the teaching and library teams from one academic workspace.</p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          {staffTabs.map((tab) => (
-            <NavLink
-              key={tab.path}
-              to={`/staff/${tab.path}`}
-              className={({ isActive }) =>
-                `rounded-2xl border border-slate-200 dark:border-slate-800 px-4 py-3 text-sm font-bold text-center transition ${isActive ? 'bg-white text-slate-900 shadow dark:bg-slate-950 dark:text-white' : 'bg-slate-50 text-slate-600 hover:bg-slate-100 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'
-                }`
-              }
-            >
-              {tab.label}
-            </NavLink>
-          ))}
-        </div>
-
-        <div className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-xl shadow-slate-200/40 dark:shadow-none border border-slate-100 dark:border-slate-800 overflow-hidden">
-          <Outlet />
-        </div>
-      </div>
-    );
-  }
-
-
   const fetchBranches = async () => {
     try {
       const response = await branchService.getAllBranches();
@@ -150,23 +140,19 @@ export const Staff = () => {
       setError(null);
       const filters: any = {};
       if (roleFilter) filters.role = roleFilter;
-      if (statusFilter) filters.status = statusFilter;
+      if (statusFilter) filters.status = statusFilter as any;
       if (currentUserRole === 'super-admin' && selectedBranchId) {
         filters.branchId = selectedBranchId;
       }
       const response = await userService.getAllUsers(filters);
       const resolvedBranches = branchList || branches;
 
-      // 🔐 SECURITY: Super Admin can ONLY see users they create:
-      // - Super Admins (system-level)
-      // - Academic Managers (system-level academic oversight)
-      // - School Admins (created by Super Admin, assigned to branches)
-      // - Vice Principals (created by Super Admin)
-      // School Admin creates and manages branch-level academic users.
-      const SUPER_ADMIN_MANAGEABLE_ROLES = ['super-admin', 'academic-manager', 'school-admin', 'vice-principal'];
+      const MANAGEABLE_ROLES = currentUserRole === 'super-admin'
+        ? ['super-admin', 'academic-manager', 'school-admin', 'vice-principal', 'storekeeper']
+        : ['academic-manager', 'school-admin', 'vice-principal', 'teacher', 'librarian', 'storekeeper'];
 
       const transformed = (response.data || [])
-        .filter((u: any) => SUPER_ADMIN_MANAGEABLE_ROLES.includes(u.role))
+        .filter((u: any) => MANAGEABLE_ROLES.includes(u.role))
         .map((u: any) => {
           const branchId = u.branch_id || u.branchId;
           const matched = resolvedBranches.find((b: any) => b.id === branchId);
@@ -191,19 +177,9 @@ export const Staff = () => {
     }
   };
 
-  if (currentUserRole !== 'super-admin') {
-    return (
-      <div className="p-8 text-center text-rose-500">
-        <ShieldAlert className="mx-auto mb-4" size={48} />
-        <h2 className="text-2xl font-bold">Access Denied</h2>
-        <p>You do not have permission to view staff management.</p>
-      </div>
-    );
-  }
-
-  const handleUpdateStatus = async (userId: string, status: 'Approved' | 'Pending' | 'Revoked') => {
+  const handleUpdateStatus = async (userId: string, newStatus: string) => {
     try {
-      await userService.updateUserStatus(userId, status);
+      await userService.updateUserStatus(userId, newStatus as any);
       const branchList = await fetchBranches();
       fetchUsers(branchList);
       setToast({ show: true, message: 'Status updated successfully', type: 'success' });
@@ -248,13 +224,14 @@ export const Staff = () => {
         name: editFormData.name,
         email: editFormData.email
       });
-      setToast({ show: true, message: 'User updated successfully', type: 'success' });
-      setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
       setShowEditModal(false);
       setEditingStaff(null);
       const branchList = await fetchBranches();
       fetchUsers(branchList);
+      setToast({ show: true, message: 'User updated successfully', type: 'success' });
+      setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
     } catch (err: any) {
+      console.error('❌ Error updating user:', err);
       setErrorModal({ show: true, message: err.response?.data?.error?.message || 'Failed to update user' });
     } finally {
       setSubmitting(false);
@@ -265,15 +242,13 @@ export const Staff = () => {
     if (!editingStaff) return;
     setResettingPassword(true);
     try {
-      const result = await userService.resetUserPassword(editingStaff.id);
-      const temporaryPassword = result?.temporaryPassword || result?.data?.temporaryPassword;
-      if (temporaryPassword) {
-        setGeneratedPassword(temporaryPassword);
-      } else {
-        setToast({ show: true, message: 'Password reset succeeded', type: 'success' });
-        setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3500);
-      }
+      const response = await userService.resetUserPIN(editingStaff.id);
+      const newPass = response.temporaryPassword ?? response.temporary_password ?? response.data?.temporaryPassword ?? response.data?.temporary_password;
+      setGeneratedPassword(newPass || 'Generated');
+      setToast({ show: true, message: 'Password reset successfully', type: 'success' });
+      setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
     } catch (err: any) {
+      console.error('❌ Error resetting password:', err);
       setErrorModal({ show: true, message: err.response?.data?.error?.message || 'Failed to reset password' });
     } finally {
       setResettingPassword(false);
@@ -282,36 +257,24 @@ export const Staff = () => {
 
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Validate email before submitting
-    const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-    if (!isValidEmail(createForm.email)) {
-      setErrorModal({ show: true, message: 'Please enter a valid email address' });
-      return;
-    }
-
-    // Format name: Capitalize first letter of each word, rest lowercase
-    const formattedName = createForm.name
-      .trim()
-      .split(/\s+/)
-      .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-      .join(' ');
-
-    if (!formattedName) {
-      setErrorModal({ show: true, message: 'Name is required' });
-      return;
-    }
-
     setCreating(true);
+
     try {
-      // Backend has conflicting validation - dedicated endpoints shouldn't require role field
       const data: any = {
-        name: formattedName,
+        name: createForm.name,
         email: createForm.email,
-        branchId: currentUserRole === 'super-admin' && selectedBranchId ? selectedBranchId : createForm.branchId
+        phoneNumber: createForm.phoneNumber,
+        emergencyContactName: createForm.emergencyContactName,
+        emergencyContactPhone: createForm.emergencyContactPhone,
+        educationLevel: createForm.educationLevel,
+        specialty: createForm.specialty,
+        dob: createForm.dob,
+        previousSchool: createForm.previousSchool,
+        experienceYears: createForm.experienceYears,
+        branchId: createForm.branchId || selectedBranchId || '',
       };
 
-      console.log('📤 Sending data:', data);
-      console.log('🎯 Endpoint:', createForm.role);
+      console.log('🚀 Creating User with role:', createForm.role, 'data:', data);
 
       let response;
       if (createForm.role === 'school-admin') {
@@ -320,12 +283,18 @@ export const Staff = () => {
         response = await userService.createVicePrincipal(data);
       } else if (createForm.role === 'academic-manager') {
         response = await userService.createAcademicManager(data);
+      } else if (createForm.role === 'storekeeper') {
+        response = await userService.createStorekeeper(data);
       }
 
       console.log('✅ User created:', response);
       const payload = response?.data?.user != null ? response.data : response;
       setShowCreateModal(false);
-      setCreateForm({ role: 'school-admin', name: '', email: '', branchId: '', password: '' });
+      setCreateForm({
+        ...initialCreateForm,
+        role: currentUserRole === 'super-admin' ? 'school-admin' : 'vice-principal',
+        branchId: selectedBranchId || ''
+      });
       setSuccessModal({
         show: true,
         data: {
@@ -338,7 +307,6 @@ export const Staff = () => {
     } catch (err: any) {
       console.error('❌ Error creating user:', err);
       console.error('❌ Error response:', err.response?.data);
-      console.error('❌ Full error details:', JSON.stringify(err.response?.data, null, 2));
       const errorMsg = err.response?.data?.error?.message || err.response?.data?.message || 'Failed to create user';
       setShowCreateModal(false);
       setErrorModal({ show: true, message: errorMsg });
@@ -349,152 +317,190 @@ export const Staff = () => {
 
   return (
     <div className="space-y-6 pb-12">
-      <button
-        onClick={() => navigate(-1)}
-        className="flex items-center gap-1 text-blue-600 hover:underline text-xs font-bold uppercase tracking-widest"
-      >
-        <ArrowLeft size={14} />
-        Back
-      </button>
+      {currentUserRole === 'super-admin' && (
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-1 text-blue-600 hover:underline text-xs font-bold uppercase tracking-widest"
+        >
+          <ArrowLeft size={14} />
+          Back
+        </button>
+      )}
 
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Staff Management</h1>
+          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{t("staff.title", "Staff Management")}</h1>
           <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">
-            Assign system roles and global permissions.
-            {selectedBranch && currentUserRole === 'super-admin' ? ` Viewing ${selectedBranch.name}.` : ''}
+            {currentUserRole === 'super-admin'
+              ? `Assign system roles and global permissions. ${selectedBranch ? ` Viewing ${selectedBranch.name}.` : ''}`
+              : t("staff.subtitle", "Manage the teaching and library teams from one academic workspace.")}
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg flex items-center gap-2 hover:bg-blue-700 text-sm font-bold"
-          >
-            <UserPlus size={18} />
-            Create User
-          </button>
-        </div>
+        {(currentUserRole === 'super-admin' || currentUserRole === 'academic-manager' || currentUserRole === 'school-admin') && (
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => {
+                setCreateForm({
+                  ...initialCreateForm,
+                  role: currentUserRole === 'super-admin' ? 'school-admin' : 'vice-principal',
+                  branchId: selectedBranchId || ''
+                });
+                setShowCreateModal(true);
+              }}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg flex items-center gap-2 hover:bg-blue-700 text-sm font-bold shadow-lg shadow-blue-200 dark:shadow-none"
+            >
+              <UserPlus size={18} />
+              {t("staff.createUser", "Create User")}
+            </button>
+          </div>
+        )}
       </div>
 
-      {loading && (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="animate-spin text-blue-600" size={32} />
-        </div>
-      )}
-
-      {error && (
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 flex items-center gap-3">
-          <AlertCircle className="text-red-600" size={20} />
-          <p className="text-red-800 dark:text-red-200 text-sm">{error}</p>
-        </div>
-      )}
-
-      {!loading && !error && (
-        <div className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-xl shadow-slate-200/40 dark:shadow-none border border-slate-100 dark:border-slate-800 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left min-w-[800px]">
-              <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
-                <tr>
-                  <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Employee</th>
-                  <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Current Role</th>
-                  <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Branch</th>
-                  <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Special Flags</th>
-                  <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
-                {staffList.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center text-slate-500">
-                      No users found
-                    </td>
-                  </tr>
-                ) : (
-                  staffList.map((staff) => (
-                    <tr key={staff.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-all">
-                      <td className="px-6 py-4">
-                        <div>
-                          <p className="font-bold text-slate-800 dark:text-white">{staff.name}</p>
-                          <p className="text-xs text-slate-500">{staff.email}</p>
-                          <div className="flex items-center gap-2 mt-1">
-                            <p className="text-xs font-mono text-slate-400">{staff.digitalId || '—'}</p>
-                            {staff.zkDeviceId && (
-                              <span className="px-1.5 py-0.5 bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 rounded text-[10px] font-bold tracking-wider">
-                                ZK: {staff.zkDeviceId}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-full text-[10px] font-black uppercase tracking-wider">
-                          {staff.role}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-sm font-bold text-slate-600 dark:text-slate-400">
-                        {staff.branchName || (staff.branchId ? staff.branchId : 'All Branches')}
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${staff.status === 'Approved' ? 'bg-green-100 text-green-700' :
-                          staff.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' :
-                            'bg-red-100 text-red-700'
-                          }`}>
-                          {staff.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          {(staff.status === 'Pending' || staff.status === 'Revoked') && (
-                            <button
-                              onClick={() => handleUpdateStatus(staff.id, 'Approved')}
-                              className="px-3 py-1 bg-green-600 text-white rounded text-xs font-bold hover:bg-green-700"
-                            >
-                              Approve
-                            </button>
-                          )}
-                          {staff.status === 'Approved' && (
-                            <button
-                              onClick={() => handleUpdateStatus(staff.id, 'Revoked')}
-                              className="px-3 py-1 bg-red-600 text-white rounded text-xs font-bold hover:bg-red-700"
-                            >
-                              Revoke
-                            </button>
-                          )}
-                          <button
-                            onClick={() => openEditModal(staff)}
-                            className="p-1.5 text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-950/30 rounded-lg transition-colors"
-                            title="Edit User"
-                          >
-                            <Edit2 size={16} />
-                          </button>
-                          <button
-                            onClick={() => setDeleteModal({ show: true, userId: staff.id, userName: staff.name })}
-                            className="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors"
-                            title="Delete User"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+      {currentUserRole === 'school-admin' || currentUserRole === 'academic-manager' ? (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {staffTabs.map((tab) => (
+              <NavLink
+                key={tab.path}
+                to={`/staff/${tab.path}`}
+                className={({ isActive }) =>
+                  `rounded-2xl border border-slate-200 dark:border-slate-800 px-4 py-3 text-sm font-bold text-center transition ${isActive ? 'bg-white text-slate-900 shadow dark:bg-slate-950 dark:text-white' : 'bg-slate-50 text-slate-600 hover:bg-slate-100 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'
+                  }`
+                }
+              >
+                {t(`nav.${tab.path}`, tab.label)}
+              </NavLink>
+            ))}
           </div>
-        </div>
+
+          <div className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-xl shadow-slate-200/40 dark:shadow-none border border-slate-100 dark:border-slate-800 overflow-hidden">
+            <Outlet />
+          </div>
+        </>
+      ) : (
+        <>
+          {loading && (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="animate-spin text-blue-600" size={32} />
+            </div>
+          )}
+
+          {error && (
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 flex items-center gap-3">
+              <AlertCircle className="text-red-600" size={20} />
+              <p className="text-red-800 dark:text-red-200 text-sm">{error}</p>
+            </div>
+          )}
+
+          {!loading && !error && (
+            <div className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-xl shadow-slate-200/40 dark:shadow-none border border-slate-100 dark:border-slate-800 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left min-w-[800px]">
+                  <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
+                    <tr>
+                      <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">{t("staff.colEmployee","Employee")}</th>
+                      <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">{t("staff.colRole","Current Role")}</th>
+                      <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">{t("staff.colBranch", "Branch")}</th>
+                      <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">{t("staff.colFlags","Special Flags")}</th>
+                      <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">{t("staff.colActions", "Actions")}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
+                    {staffList.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="px-6 py-12 text-center text-slate-500">
+                          No users found
+                        </td>
+                      </tr>
+                    ) : (
+                      staffList.map((staff) => (
+                        <tr key={staff.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-all">
+                          <td className="px-6 py-4">
+                            <div>
+                              <p className="font-bold text-slate-800 dark:text-white">{staff.name}</p>
+                              <p className="text-xs text-slate-500">{staff.email}</p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <p className="text-xs font-mono text-slate-400">{staff.digitalId || '—'}</p>
+                                {staff.zkDeviceId && (
+                                  <span className="text-[10px] bg-purple-50 text-purple-600 dark:bg-purple-900/30 dark:text-purple-300 px-1.5 py-0.5 rounded font-mono">
+                                    Biometric: {staff.zkDeviceId}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className="px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-full text-xs font-bold capitalize">
+                              {staff.role}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className="text-sm font-semibold text-slate-600 dark:text-slate-400">
+                              {staff.branchName}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${(staff.status === 'Approved' || staff.status === 'active') ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400' : 'bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400'}`}>
+                              {staff.status}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              {(staff.status === 'Approved' || staff.status === 'active') ? (
+                                <button
+                                  onClick={() => handleUpdateStatus(staff.id, 'Revoked')}
+                                  className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg transition-colors"
+                                  title="Deactivate User"
+                                >
+                                  <UserCheck size={16} />
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => handleUpdateStatus(staff.id, 'Approved')}
+                                  className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-colors"
+                                  title="Activate User"
+                                >
+                                  <UserCheck size={16} />
+                                </button>
+                              )}
+                              <button
+                                onClick={() => openEditModal(staff)}
+                                className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                                title="Edit User"
+                              >
+                                <Edit2 size={16} />
+                              </button>
+                              <button
+                                onClick={() => setDeleteModal({ show: true, userId: staff.id, userName: staff.name })}
+                                className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-colors"
+                                title="Delete User"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </>
       )}
 
+      {/* Create User Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-md rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+            <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center sticky top-0 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm z-10">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
                   <UserPlus size={20} />
                 </div>
-                <h3 className="font-bold text-slate-800 dark:text-slate-100">Create New User</h3>
+                <h3 className="font-bold text-slate-800 dark:text-slate-100">{t("staff.createUser","Create New User")}</h3>
               </div>
               <button
                 type="button"
@@ -507,8 +513,8 @@ export const Staff = () => {
             </div>
 
             <form className="p-6 space-y-4" onSubmit={handleCreateUser}>
-              <div>
-                <label htmlFor="role-select" className="text-xs font-bold text-slate-500 uppercase">Role</label>
+              <div className="space-y-1">
+                <label htmlFor="role-select" className="text-xs font-bold text-slate-500 uppercase">{t("teachers.role", "Role")}</label>
                 <select
                   id="role-select"
                   value={createForm.role}
@@ -517,31 +523,34 @@ export const Staff = () => {
                     setCreateForm({
                       ...createForm,
                       role: newRole,
-                      branchId: createForm.branchId
                     });
                   }}
-                  className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 >
-                  <option value="school-admin">School Admin</option>
-                  <option value="academic-manager">Academic Manager</option>
-                  <option value="vice-principal">Vice Principal</option>
+                  {currentUserRole === 'super-admin' ? (
+                    <>
+                      <option value="school-admin">School Admin</option>
+                      <option value="academic-manager">Academic Manager</option>
+                      <option value="storekeeper">Storekeeper</option>
+                    </>
+                  ) : (
+                    <option value="vice-principal">Vice Principal</option>
+                  )}
                 </select>
               </div>
 
-              <div>
-                <label htmlFor="name-input" className="text-xs font-bold text-slate-500 uppercase">Name</label>
+              <div className="space-y-1">
+                <label htmlFor="name-input" className="text-xs font-bold text-slate-500 uppercase">{t("teachers.fullName", "Full Name")}</label>
                 <input
                   id="name-input"
                   type="text"
                   value={createForm.name}
                   onChange={(e) => {
-                    // Reject numbers, symbols, and other special characters. Allow unicode letters & spaces.
-                    const cleaned = e.target.value.replace(/[^\p{L}\s]/gu, '');
+                    const cleaned = e.target.value.replace(/[^\p{L}\s'-]/gu, '');
                     setCreateForm({ ...createForm, name: cleaned });
                   }}
                   onBlur={(e) => {
-                    // Capitalize first letter of each word, rest lowercase
                     const formatted = e.target.value
                       .trim()
                       .split(/\s+/)
@@ -549,27 +558,119 @@ export const Staff = () => {
                       .join(' ');
                     setCreateForm({ ...createForm, name: formatted });
                   }}
-                  className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder={t("teachers.fullNamePlaceholder", "e.g. Ato Bekele Tesfaye")}
                   required
                 />
               </div>
 
-              <div>
-                <label htmlFor="email-input" className="text-xs font-bold text-slate-500 uppercase">Email</label>
+              <div className="space-y-1">
+                <label htmlFor="email-input" className="text-xs font-bold text-slate-500 uppercase">{t("teachers.emailAddress", "Email Address")}</label>
                 <input
                   id="email-input"
                   type="email"
                   value={createForm.email}
                   onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })}
-                  className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="user@school.com"
                   required
                 />
               </div>
 
-              <div>
+              {createForm.role === 'school-admin' && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <PhoneInput
+                    label={t("teachers.phoneNumber", "Phone Number")}
+                    value={createForm.phoneNumber}
+                    onChange={(val) => setCreateForm({ ...createForm, phoneNumber: val })}
+                    error={phoneError}
+                  />
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-500 uppercase">{t("teachers.emergencyContactName", "Emergency Contact Name")}</label>
+                    <input
+                      type="text"
+                      value={createForm.emergencyContactName}
+                      onChange={(e) => setCreateForm({ ...createForm, emergencyContactName: e.target.value.replace(/[^\p{L}\s'-]/gu, '') })}
+                      onBlur={(e) => {
+                        const formatted = e.target.value
+                          .trim()
+                          .split(/\s+/)
+                          .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+                          .join(' ');
+                        setCreateForm({ ...createForm, emergencyContactName: formatted });
+                      }}
+                      className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder={t("teachers.emergencyContactPlaceholder", "Contact person")}
+                    />
+                  </div>
+                  <PhoneInput
+                    label={t("teachers.emergencyContactPhone", "Emergency Contact Phone")}
+                    value={createForm.emergencyContactPhone}
+                    onChange={(val) => setCreateForm({ ...createForm, emergencyContactPhone: val })}
+                    error={emergencyPhoneError}
+                  />
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-500 uppercase">{t("teachers.educationStatus", "Education Status")}</label>
+                    <select
+                      title="Select education level"
+                      value={createForm.educationLevel}
+                      onChange={(e) => setCreateForm({ ...createForm, educationLevel: e.target.value })}
+                      className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">{t("teachers.selectLevel", "Select level")}</option>
+                      <option value="Diploma">{t("teachers.diploma", "Diploma")}</option>
+                      <option value="Degree">{t("teachers.degree", "Degree")}</option>
+                      <option value="Master">{t("teachers.master", "Master")}</option>
+                      <option value="PhD">{t("teachers.phd", "PhD")}</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-500 uppercase">{t("teachers.specialtyCourse", "Specialty / Position")}</label>
+                    <input
+                      type="text"
+                      value={createForm.specialty}
+                      onChange={(e) => setCreateForm({ ...createForm, specialty: e.target.value.replace(/[^\p{L}\s'-]/gu, '') })}
+                      className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="e.g. Administration, Management..."
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-500 uppercase">{t("teachers.dob", "Date of Birth")}</label>
+                    <EthiopianDatePicker
+                      value={createForm.dob}
+                      onChange={(val) => setCreateForm({ ...createForm, dob: val })}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-500 uppercase">{t("teachers.previousSchool", "Previous Organization")}</label>
+                    <input
+                      type="text"
+                      value={createForm.previousSchool}
+                      onChange={(e) => setCreateForm({ ...createForm, previousSchool: e.target.value })}
+                      className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="e.g. St. Joseph School"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-500 uppercase">{t("teachers.experienceYears", "Experience (Years)")}</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="50"
+                      value={createForm.experienceYears}
+                      onChange={(e) => setCreateForm({ ...createForm, experienceYears: e.target.value })}
+                      className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="e.g. 5"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {currentUserRole === 'super-admin' && (
+                <div className="space-y-1">
                   <label htmlFor="branch-select" className="text-xs font-bold text-slate-500 uppercase">Branch</label>
-                  {currentUserRole === 'super-admin' && selectedBranchId ? (
-                    <div className="w-full mt-1 px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold text-slate-700 dark:text-slate-200">
+                  {selectedBranchId ? (
+                    <div className="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold text-slate-700 dark:text-slate-200">
                       {selectedBranch?.name || branches.find((branch) => branch.id === selectedBranchId)?.name || 'Selected Branch'}
                       <input type="hidden" value={selectedBranchId} />
                     </div>
@@ -578,7 +679,7 @@ export const Staff = () => {
                       id="branch-select"
                       value={createForm.branchId}
                       onChange={(e) => setCreateForm({ ...createForm, branchId: e.target.value })}
-                      className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
                       required
                     >
                       <option value="">Select Branch</option>
@@ -587,7 +688,8 @@ export const Staff = () => {
                       ))}
                     </select>
                   )}
-              </div>
+                </div>
+              )}
 
               <div className="pt-4 flex gap-3">
                 <button
@@ -660,36 +762,11 @@ export const Staff = () => {
                 </p>
               </div>
 
-              {successModal.data?.user && (
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-slate-500">Name:</span>
-                    <span className="font-bold text-slate-800 dark:text-slate-100">{successModal.data.user.name}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-slate-500">Email:</span>
-                    <span className="font-bold text-slate-800 dark:text-slate-100">{successModal.data.user.email}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-slate-500">Digital ID:</span>
-                    <span className="font-mono font-bold text-slate-800 dark:text-slate-100">{successModal.data.user.digital_id || successModal.data.user.digitalId}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-slate-500">Status:</span>
-                    <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs font-bold uppercase">
-                      {successModal.data.user.status || 'Pending'}
-                    </span>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="p-6 border-t border-slate-100 dark:border-slate-800">
               <button
                 onClick={() => setSuccessModal({ show: false, data: null })}
-                className="w-full bg-slate-900 dark:bg-slate-800 text-white font-bold py-3 rounded-lg hover:bg-slate-800 dark:hover:bg-slate-700"
+                className="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition-colors text-sm"
               >
-                Close
+                Done
               </button>
             </div>
           </div>
@@ -701,28 +778,25 @@ export const Staff = () => {
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 w-full max-w-md">
             <div className="p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-3 bg-red-100 text-red-600 rounded-full">
-                  <AlertCircle size={24} />
+              <div className="flex items-center gap-3 mb-4 text-rose-600">
+                <div className="p-3 bg-rose-100 dark:bg-rose-950/50 rounded-full">
+                  <Trash2 size={24} />
                 </div>
-                <div>
-                  <h3 className="font-bold text-slate-800 dark:text-slate-100 text-lg">Delete User</h3>
-                  <p className="text-sm text-slate-500">This action cannot be undone</p>
-                </div>
+                <h3 className="font-bold text-slate-800 dark:text-slate-100 text-lg">Delete User</h3>
               </div>
-              <p className="text-slate-600 dark:text-slate-400 mb-6">
-                Are you sure you want to delete <strong>{deleteModal.userName}</strong>?
+              <p className="text-slate-600 dark:text-slate-400 mb-6 text-sm">
+                Are you sure you want to delete <strong>{deleteModal.userName}</strong>? This action cannot be undone.
               </p>
               <div className="flex gap-3">
                 <button
                   onClick={() => setDeleteModal({ show: false, userId: '', userName: '' })}
-                  className="flex-1 px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg font-bold text-sm text-slate-500 hover:bg-slate-50"
+                  className="flex-1 px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={confirmDelete}
-                  className="flex-1 bg-red-600 text-white font-bold py-2 rounded-lg hover:bg-red-700"
+                  className="flex-1 bg-rose-600 text-white font-bold py-2.5 rounded-xl hover:bg-rose-700 transition-colors text-sm"
                 >
                   Delete
                 </button>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { ChevronDown, Users, BookOpen, CheckCircle2, AlertCircle, Calendar, RefreshCw } from 'lucide-react';
 import { useUser } from '../context/UserContext';
@@ -32,6 +33,7 @@ interface CommSummary {
 }
 
 export const VPCommunication = () => {
+  const { t } = useTranslation();
   const { user } = useUser();
   const [grades, setGrades] = useState<VpGradeGroup[]>([]);
   const [selectedGrade, setSelectedGrade] = useState<string>('');
@@ -177,10 +179,10 @@ export const VPCommunication = () => {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(99,102,241,0.2),_transparent_50%)]" />
         <div className="absolute top-0 right-0 w-80 h-80 bg-white/5 rounded-full blur-3xl transform translate-x-20 -translate-y-20"></div>
         <div className="relative z-10">
-          <p className="text-xs font-black uppercase tracking-[0.25em] text-indigo-400 mb-2">Academic Oversight</p>
-          <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-2">Communication Book Tracker</h1>
+          <p className="text-xs font-black uppercase tracking-[0.25em] text-indigo-400 mb-2">{t("vp.academicOversightHeader", "Academic Oversight")}</p>
+          <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-2">{t("vp.commBookTracker", "Communication Book Tracker")}</h1>
           <p className="text-slate-400 text-sm max-w-2xl font-medium leading-relaxed">
-            Monitor and audit weekly communication books sent by Home Room Teachers to parents. Keep track of completion rates per grade and section.
+            {t("vp.commBookTrackerDesc", "Monitor and audit weekly communication books sent by Home Room Teachers to parents. Keep track of completion rates per grade and section.")}
           </p>
         </div>
       </section>
@@ -191,7 +193,7 @@ export const VPCommunication = () => {
           {/* Grade Dropdown */}
           <div>
             <label htmlFor="vp-grade-select" className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">
-              Grade
+              {t("vp.grade", "Grade")}
             </label>
             <div className="relative">
               <select
@@ -200,7 +202,7 @@ export const VPCommunication = () => {
                 onChange={(e) => handleGradeChange(e.target.value)}
                 className="w-full appearance-none px-5 py-3 bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-800 dark:text-white outline-none focus:border-indigo-500 transition-all cursor-pointer pr-10"
               >
-                <option value="">Select Grade</option>
+                <option value="">{t("vp.selectGrade", "Select Grade")}</option>
                 {grades.map((grade) => (
                   <option key={grade.id} value={grade.grade_name ?? grade.name}>
                     {grade.grade_name ?? grade.name}
@@ -214,7 +216,7 @@ export const VPCommunication = () => {
           {/* Section Dropdown */}
           <div>
             <label htmlFor="vp-section-select" className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">
-              Section
+              {t("vp.section", "Section")}
             </label>
             <div className="relative">
               <select
@@ -225,7 +227,7 @@ export const VPCommunication = () => {
                 className="w-full appearance-none px-5 py-3 bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-800 dark:text-white outline-none focus:border-indigo-500 transition-all cursor-pointer pr-10 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <option value="">
-                  {selectedGrade ? 'Select Section' : 'Choose Grade First'}
+                  {selectedGrade ? t("vp.selectSection", "Select Section") : t("vp.chooseGradeFirst", "Choose Grade First")}
                 </option>
                 {selectedGradeGroup?.sections.map((section) => (
                   <option key={section.id} value={section.id}>
@@ -240,7 +242,7 @@ export const VPCommunication = () => {
           {/* Week Selector */}
           <div>
             <label htmlFor="vp-week-select" className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">
-              Weekly Report (Week Ending)
+              {t("vp.weeklyReport", "Weekly Report (Week Ending)")}
             </label>
             <div className="relative">
               <select
@@ -273,9 +275,9 @@ export const VPCommunication = () => {
       {!selectedSection && (
         <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-[2rem] border border-slate-100 dark:border-slate-800 p-12 text-center">
           <BookOpen className="mx-auto text-slate-400 dark:text-slate-600 mb-4" size={48} />
-          <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-2">Select Section & Week</h3>
+          <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-2">{t("vp.selectSectionWeek", "Select Section & Week")}</h3>
           <p className="text-slate-500 dark:text-slate-400 text-sm max-w-md mx-auto">
-            Please select a grade, section, and a week-ending report date above to inspect the weekly communication book completion statistics.
+            {t("vp.selectSectionWeekPrompt", "Please select a grade, section, and a week-ending report date above to inspect the weekly communication book completion statistics.")}
           </p>
         </div>
       )}
@@ -287,7 +289,7 @@ export const VPCommunication = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             {/* Homeroom Teacher */}
             <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-6 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm">
-              <p className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">Homeroom Teacher</p>
+              <p className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">{t("vp.homeroomTeacher", "Homeroom Teacher")}</p>
               <p className="text-xl font-bold text-slate-800 dark:text-white">{summaryData.homeroomTeacher || 'Not Assigned'}</p>
             </div>
 
@@ -295,7 +297,7 @@ export const VPCommunication = () => {
             <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-6 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm">
               <div className="flex justify-between items-start">
                 <div>
-                  <p className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">Total Students</p>
+                  <p className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">{t("vp.totalStudents", "Total Students")}</p>
                   <p className="text-3xl font-black text-slate-800 dark:text-white">{summaryData.totalStudents}</p>
                 </div>
                 <div className="p-3 bg-indigo-50 dark:bg-indigo-950/30 rounded-2xl">
@@ -308,7 +310,7 @@ export const VPCommunication = () => {
             <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-6 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm">
               <div className="flex justify-between items-start">
                 <div>
-                  <p className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">Received Logs</p>
+                  <p className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">{t("vp.receivedLogs", "Received Logs")}</p>
                   <p className="text-3xl font-black text-slate-800 dark:text-white">{summaryData.sentCount}</p>
                 </div>
                 <div className="p-3 bg-emerald-50 dark:bg-emerald-950/30 rounded-2xl">
@@ -319,7 +321,7 @@ export const VPCommunication = () => {
 
             {/* Completion rate percentage */}
             <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-6 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm">
-              <p className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Completion Rate</p>
+              <p className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">{t("vp.completionRate", "Completion Rate")}</p>
               <div className="flex items-center gap-4">
                 <div className="flex-1">
                   <div className="h-3 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
@@ -345,7 +347,7 @@ export const VPCommunication = () => {
           {/* Action Row */}
           <div className="flex justify-between items-center bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl border border-slate-100 dark:border-slate-800 p-6">
             <div>
-              <h3 className="font-bold text-slate-800 dark:text-white">Completion Audit Roster</h3>
+              <h3 className="font-bold text-slate-800 dark:text-white">{t("vp.completionAuditRoster", "Completion Audit Roster")}</h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Verification roster of parents who received communication books for this week</p>
             </div>
             <button
@@ -370,10 +372,10 @@ export const VPCommunication = () => {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
-                      <th className="px-8 py-4 text-left text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">Student Name</th>
-                      <th className="px-8 py-4 text-left text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">Parent Name</th>
-                      <th className="px-8 py-4 text-center text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
-                      <th className="px-8 py-4 text-right text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">Timestamp</th>
+                      <th className="px-8 py-4 text-left text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t("vp.studentName", "Student Name")}</th>
+                      <th className="px-8 py-4 text-left text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t("vp.parentName", "Parent Name")}</th>
+                      <th className="px-8 py-4 text-center text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t("vp.status", "Status")}</th>
+                      <th className="px-8 py-4 text-right text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t("vp.timestamp", "Timestamp")}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -392,12 +394,12 @@ export const VPCommunication = () => {
                           {student.sent ? (
                             <span className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 rounded-full text-xs font-black">
                               <CheckCircle2 size={12} />
-                              Sent to Parent
+                              {t("vp.sentToParent", "Sent to Parent")}
                             </span>
                           ) : (
                             <span className="inline-flex items-center gap-1 px-3 py-1 bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 rounded-full text-xs font-black">
                               <AlertCircle size={12} />
-                              Pending Submission
+                              {t("vp.pendingSubmission", "Pending Submission")}
                             </span>
                           )}
                         </td>

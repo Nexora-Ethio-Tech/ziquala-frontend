@@ -9,11 +9,11 @@ export default function BranchesPage() {
   const branchData = [
     {
       title:  "Branch 1 — Adama Kebele 10",
-      desc: "Our foundational campus, known for pioneering Abdi Adama School's commitment to core academic excellence, serves as a central learning hub for the wider Adama community.",
+      desc: "Our foundational campus, known for pioneering Ziquala Abo School's commitment to core academic excellence, serves as a central learning hub for the wider Adama community.",
       addr: "Kebele 10, Adama, Ethiopia",
       contact: "+251 22 111 2233",
       email: "campus@ziqualaabo.edu.et",
-      director: "Ato Girma Lemi",
+      director: "Ziquala Abo School Founders",
       img: "/school.png",
       isAnchor: true,
     },
@@ -43,7 +43,7 @@ export default function BranchesPage() {
       addr: "Awash Region, Route 4",
       contact: "+251 22 111 8899",
       email: "campus@ziqualaabo.edu.et",
-      director: "Ato Girma Lemi",
+      director: "Ziquala Abo School Founders",
       img: "/school.png",
       isAnchor: true,
     },

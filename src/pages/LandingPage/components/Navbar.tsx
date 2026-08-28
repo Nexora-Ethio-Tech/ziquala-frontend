@@ -46,10 +46,10 @@ export default function Navbar() {
           <img
             src="/school.png"
             className="h-10 w-10 md:h-12 md:w-12 rounded-full transition-all duration-300 border border-zinc-200 dark:border-white/10"
-            alt="Abdi Adama Logo"
+            alt="Ziquala Abo Logo"
           />
           <span className="font-bold tracking-widest uppercase text-xs md:text-sm text-zinc-900 dark:text-white">
-            Abdi Adama
+            Ziquala Abo
           </span>
         </Link>
 
@@ -143,7 +143,7 @@ export default function Navbar() {
                   alt="Logo"
                 />
                 <span className="font-bold tracking-wider text-sm uppercase text-zinc-900 dark:text-white">
-                  Abdi Adama
+                  Ziquala Abo
                 </span>
               </div>
               <button

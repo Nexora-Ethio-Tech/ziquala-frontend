@@ -6,10 +6,12 @@ import { Chatbot } from '../components/Chatbot';
 import { ShootingStars } from '../components/Effects';
 import { useUser } from '../context/UserContext';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export const Layout = () => {
   const location = useLocation();
   const { role, user, schoolName } = useUser();
+  const { t } = useTranslation();
 
   const displaySchoolName = schoolName.english;
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);

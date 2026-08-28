@@ -8,13 +8,15 @@ import {
   ClipboardCheck,
   FileText,
   UserSquare2,
+  UserCheck,
   Users,
   LibraryBig,
 } from 'lucide-react';
 
 const workspaces = [
   { title: 'Students', description: 'Review enrolment, profiles, and academic records.', path: '/students', icon: Users },
-  { title: 'Teachers & Staff', description: 'Supervise the academic team across the school.', path: '/staff', icon: UserSquare2 },
+  { title: 'Staff Management', description: 'Manage the teaching and library teams.', path: '/staff', icon: UserSquare2 },
+  { title: 'Supervise', description: 'Supervise teachers and evaluation records.', path: '/teachers', icon: UserCheck },
   { title: 'Attendance', description: 'Monitor attendance patterns and follow-up needs.', path: '/vp-attendance', icon: CalendarCheck },
   { title: 'Grades & Points', description: 'Edit student grades, assessment scores, and participation points.', path: '/academic-grades', icon: ClipboardCheck },
   { title: 'eLearning Management', description: 'Publish Drive books by grade, subject, and shared collection.', path: '/elearning-management', icon: LibraryBig },

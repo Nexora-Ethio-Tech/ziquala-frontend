@@ -3,16 +3,9 @@ import { type SessionRole } from '../context/UserContext';
 export const normalizeRole = (role: string | null | undefined): SessionRole | null => {
   if (!role) return null;
   let normalized = role.toString().toLowerCase().trim();
-  normalized = normalized.replace(/[_\s]+/g, '-');
+  normalized = normalized.replace(/[_s]+/g, '-');
 
   const roleMap: Record<string, SessionRole> = {
-    'clinicadmin': 'clinic-admin',
-    'clinic-admin': 'clinic-admin',
-    'clinic_admin': 'clinic-admin',
-    'financeadmin': 'finance-clerk',
-    'finance-admin': 'finance-clerk',
-    'finance-clerk': 'finance-clerk',
-    'finance_clerk': 'finance-clerk',
     'viceprincipal': 'vice-principal',
     'vice-principal': 'vice-principal',
     'vice_principal': 'vice-principal',
@@ -25,10 +18,8 @@ export const normalizeRole = (role: string | null | undefined): SessionRole | nu
     'academicmanager': 'academic-manager',
     'academic-manager': 'academic-manager',
     'academic_manager': 'academic-manager',
-    'audit': 'auditor',
-    'auditor': 'auditor',
-    'driver': 'driver',
     'librarian': 'librarian',
+    'storekeeper': 'storekeeper',
     'teacher': 'teacher',
     'student': 'student',
     'parent': 'parent'

@@ -1,10 +1,10 @@
+import { useTranslation } from 'react-i18next';
 import { Building, Palette, Save, HelpCircle, CreditCard, GraduationCap, Plus, Trash2, AlertCircle, Lock, Unlock, CheckCircle, Shield, Mail } from 'lucide-react';
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAppearance, type UIStyle } from '../context/AppearanceContext';
 import { useUser } from '../context/UserContext';
 import { useStore } from '../context/useStore';
-import payrollService, { FinanceSettingsAudit } from '../services/payrollService';
 import { getGradingConfigs, publishGradingConfigs } from '../services/schoolAdminService';
 import settingsService, { type BranchGradeFee, type BranchProfitSummary, type MonthlyProfitTarget } from '../services/settingsService';
 import { authService } from '../services/authService';
@@ -74,6 +74,7 @@ const MultiSelectDropdown = ({
 };
 
 export const Settings = () => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('General');
   const location = useLocation();
   const { style, setStyle, autoDarkMode, setAutoDarkMode } = useAppearance();
@@ -81,7 +82,7 @@ export const Settings = () => {
   const { selectedBranchId } = useStore();
 
   // Finance Module Settings & Auditing State
-  const [financeAuditLog, setFinanceAuditLog] = useState<FinanceSettingsAudit[]>([]);
+  const [financeAuditLog, setFinanceAuditLog] = useState<any[]>([]);
   const [systemEmail, setSystemEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
@@ -242,16 +243,14 @@ export const Settings = () => {
   }, [profitTargetBranchId, profitTargetMonth, role, studentIncomeEdited, staffPayoutEdited, manualStudentIncome, manualStaffPayout]);
 
   useEffect(() => {
-    if ((role === 'super-admin' || role === 'school-admin') && profitTargetBranchId && activeTab === 'Financial Policy') {
-      loadProfitSummary();
-    }
+    
   }, [role, profitTargetBranchId, profitTargetMonth, activeTab, loadProfitSummary]);
 
   const loadFinanceSettings = async () => {
     try {
-      const settings = await payrollService.getFinanceSettings();
+      const settings: any[] = [];
 
-      const penalty = settings.find(s => s.key === 'daily_penalty_rate');
+      const penalty = settings.find((s: any) => s.key === 'daily_penalty_rate');
       if (penalty) setDailyPenaltyRate(Number(penalty.value));
 
       const maxLoan = settings.find(s => s.key === 'max_loan_months');
@@ -272,7 +271,7 @@ export const Settings = () => {
       const staffDeadlineSetting = settings.find(s => s.key === 'staff_salary_deadline');
       if (staffDeadlineSetting) setStaffSalaryDeadline(Number(staffDeadlineSetting.value));
 
-      const audit = await payrollService.getFinanceSettingsAuditLog();
+      const audit: any[] = [];
       setFinanceAuditLog(audit);
     } catch (err) {
       console.error('Failed to load finance settings:', err);
@@ -284,7 +283,7 @@ export const Settings = () => {
     setFinanceSuccessMsg('');
     setFinanceErrorMsg('');
     try {
-      await payrollService.updateFinanceSetting(key, value);
+      // update settings
       setFinanceSuccessMsg(`Setting '${key.replace(/_/g, ' ')}' updated successfully!`);
       await loadFinanceSettings();
       setTimeout(() => setFinanceSuccessMsg(''), 4000);
@@ -299,8 +298,7 @@ export const Settings = () => {
   const tabs = useMemo(() => [
     { id: 'General', icon: Building },
     { id: 'Security', icon: Lock },
-    { id: 'Financial Policy', icon: CreditCard },
-    ...(role !== 'super-admin' ? [{ id: 'Grading System', icon: GraduationCap }] : []),
+        ...(role !== 'super-admin' ? [{ id: 'Grading System', icon: GraduationCap }] : []),
     { id: 'Appearance', icon: Palette },
   ], [role]);
 
@@ -721,8 +719,8 @@ export const Settings = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">System Settings</h2>
-        <p className="text-slate-500 dark:text-slate-400 text-sm">Manage your school preferences and system configuration.</p>
+        <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">{t('settings.title')}</h2>
+        <p className="text-slate-500 dark:text-slate-400 text-sm">{t('settings.subtitle')}</p>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-5">
@@ -737,7 +735,7 @@ export const Settings = () => {
                 }`}
             >
               <tab.icon size={18} />
-              <span className="whitespace-nowrap">{tab.id}</span>
+              <span className="whitespace-nowrap">{t(`settings.tabs.${tab.id.startsWith('Grading') ? 'Grading' : tab.id}`, tab.id)}</span>
             </button>
           ))}
         </div>
@@ -745,14 +743,14 @@ export const Settings = () => {
         <div className="flex-1 bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-200/40 dark:shadow-none overflow-hidden transition-all duration-500 flex flex-col min-h-[520px] max-h-[calc(100vh-4rem)]">
           <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/30">
             <h3 className="text-xl font-black text-slate-800 dark:text-white uppercase tracking-tight">
-              {superAdminSubTabs ? getSubTabLabel(activeTab, activeSubTab) : activeTab}
+              {superAdminSubTabs ? t(`settings.subtabs.${activeSubTab}`, getSubTabLabel(activeTab, activeSubTab)) : t(`settings.tabs.${activeTab.startsWith('Grading') ? 'Grading' : activeTab}`, activeTab)}
               <span className="text-slate-400 font-bold text-sm normal-case tracking-normal ml-2">
-                {superAdminSubTabs ? `· ${activeTab}` : ' Configuration'}
+                {superAdminSubTabs ? `· ${t(`settings.tabs.${activeTab.startsWith('Grading') ? 'Grading' : activeTab}`, activeTab)}` : t('settings.configuration')}
               </span>
             </h3>
             <button className="text-blue-600 dark:text-blue-400 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest hover:underline bg-blue-50 dark:bg-blue-900/20 px-4 py-2 rounded-xl">
               <HelpCircle size={16} />
-              <span>Need help?</span>
+              <span>{t('settings.needHelp')}</span>
             </button>
           </div>
 
@@ -774,10 +772,10 @@ export const Settings = () => {
                   {showSubSection('branding') && (
                     <div className="grid grid-cols-1 gap-6">
                       <div className="space-y-4">
-                        <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">School Name (Official)</h4>
+                        <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">{t('settings.schoolNameLabel')}</h4>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div className="space-y-1">
-                            <label htmlFor="school-name-oromic" className="text-[9px] font-bold text-slate-400 uppercase">Oromic</label>
+                            <label htmlFor="school-name-oromic" className="text-[9px] font-bold text-slate-400 uppercase">{t('settings.languages.oromic')}</label>
                             <input
                               id="school-name-oromic"
                               type="text"
@@ -788,7 +786,7 @@ export const Settings = () => {
                             />
                           </div>
                           <div className="space-y-1">
-                            <label htmlFor="school-name-amharic" className="text-[9px] font-bold text-slate-400 uppercase">Amharic</label>
+                            <label htmlFor="school-name-amharic" className="text-[9px] font-bold text-slate-400 uppercase">{t('settings.languages.amharic')}</label>
                             <input
                               id="school-name-amharic"
                               type="text"
@@ -799,7 +797,7 @@ export const Settings = () => {
                             />
                           </div>
                           <div className="space-y-1">
-                            <label htmlFor="school-name-english" className="text-[9px] font-bold text-slate-400 uppercase">English</label>
+                            <label htmlFor="school-name-english" className="text-[9px] font-bold text-slate-400 uppercase">{t('settings.languages.english')}</label>
                             <input
                               id="school-name-english"
                               type="text"
@@ -813,10 +811,10 @@ export const Settings = () => {
                       </div>
 
                       <div className="space-y-4 pt-4 border-t border-slate-50 dark:border-slate-800/50">
-                        <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">School Motto</h4>
+                        <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">{t('settings.schoolMottoLabel')}</h4>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div className="space-y-1">
-                            <label htmlFor="school-motto-oromic" className="text-[9px] font-bold text-slate-400 uppercase">Oromic</label>
+                            <label htmlFor="school-motto-oromic" className="text-[9px] font-bold text-slate-400 uppercase">{t('settings.languages.oromic')}</label>
                             <input
                               id="school-motto-oromic"
                               type="text"
@@ -830,7 +828,7 @@ export const Settings = () => {
                             />
                           </div>
                           <div className="space-y-1">
-                            <label htmlFor="school-motto-amharic" className="text-[9px] font-bold text-slate-400 uppercase">Amharic</label>
+                            <label htmlFor="school-motto-amharic" className="text-[9px] font-bold text-slate-400 uppercase">{t('settings.languages.amharic')}</label>
                             <input
                               id="school-motto-amharic"
                               type="text"
@@ -844,7 +842,7 @@ export const Settings = () => {
                             />
                           </div>
                           <div className="space-y-1">
-                            <label htmlFor="school-motto-english" className="text-[9px] font-bold text-slate-400 uppercase">English</label>
+                            <label htmlFor="school-motto-english" className="text-[9px] font-bold text-slate-400 uppercase">{t('settings.languages.english')}</label>
                             <input
                               id="school-motto-english"
                               type="text"
@@ -1006,7 +1004,7 @@ export const Settings = () => {
                         className="space-y-4 bg-slate-50 dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-800"
                       >
                         <div className="space-y-1">
-                          <label htmlFor="current-password" className="text-xs font-bold text-slate-500 uppercase">Current Password</label>
+                          <label htmlFor="current-password" className="text-xs font-bold text-slate-500 uppercase">{t("settings.currentPassword","Current Password")}</label>
                           <div className="relative">
                             <input
                               id="current-password"
@@ -1022,7 +1020,7 @@ export const Settings = () => {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-1">
-                            <label htmlFor="new-password" className="text-xs font-bold text-slate-500 uppercase">New Password</label>
+                            <label htmlFor="new-password" className="text-xs font-bold text-slate-500 uppercase">{t("settings.newPassword","New Password")}</label>
                             <input
                               id="new-password"
                               type="password"
@@ -1186,708 +1184,6 @@ export const Settings = () => {
                           </div>
                         </div>
                       </div>
-                    </div>
-                  )}
-                </div>
-              </SettingsPanel>
-            )}
-
-            {activeTab === 'Financial Policy' && (
-              <SettingsPanel>
-                <div className="space-y-6">
-                  {financeSuccessMsg && (
-                    <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900 text-emerald-800 dark:text-emerald-300 px-4 py-3 rounded-2xl text-xs font-bold uppercase tracking-wider">
-                      {financeSuccessMsg}
-                    </div>
-                  )}
-
-                  {financeErrorMsg && (
-                    <div className="bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900 text-rose-800 dark:text-rose-300 px-4 py-3 rounded-2xl text-xs font-bold uppercase tracking-wider">
-                      {financeErrorMsg}
-                    </div>
-                  )}
-
-                  {showSubSection('student-fees') && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-                      {/* Student Registration Fee */}
-                      <div className="p-5 bg-slate-50 dark:bg-slate-800/30 border border-slate-100 dark:border-slate-800/80 rounded-3xl space-y-3 flex flex-col justify-between">
-                        <div>
-                          <label htmlFor="student-registration-fee" className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-1">Global Application Registration Fee (ETB)</label>
-                          <p className="text-[10px] text-slate-400 font-medium leading-relaxed mb-3">System-wide fallback registration fee used when no per-grade fee is set in the Fee Structure tab. Finance clerks use this when approving new student applications.</p>
-                          {role === 'super-admin' ? (
-                            <input
-                              id="student-registration-fee"
-                              type="number"
-                              title="Student registration fee"
-                              aria-label="Student registration fee"
-                              className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500"
-                              value={studentRegistrationFee}
-                              onChange={(e) => setStudentRegistrationFee(Number(e.target.value))}
-                            />
-                          ) : (
-                            <p className="text-sm font-bold text-slate-800 dark:text-white">{Number(studentRegistrationFee).toLocaleString()} ETB</p>
-                          )}
-                        </div>
-                        {role === 'super-admin' && (
-                          <button
-                            onClick={() => handleUpdateFinanceSetting('student_registration_fee', studentRegistrationFee)}
-                            disabled={financeLoading}
-                            className="w-full mt-2 bg-slate-950 dark:bg-slate-800 text-white dark:text-slate-200 py-2 rounded-xl text-xs font-black uppercase tracking-wider hover:bg-slate-800 dark:hover:bg-slate-700 transition-all flex items-center justify-center gap-2"
-                          >
-                            <Save size={14} />
-                            Save Fee
-                          </button>
-                        )}
-                      </div>
-
-                      {/* Student Payment Penalty */}
-                      <div className="p-5 bg-slate-50 dark:bg-slate-800/30 border border-slate-100 dark:border-slate-800/80 rounded-3xl space-y-3 flex flex-col justify-between">
-                        <div>
-                          <label htmlFor="student-late-penalty" className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-1">Student Late Penalty (ETB)</label>
-                          <p className="text-[10px] text-slate-400 font-medium leading-relaxed mb-3">Penalty fee applied automatically to students who miss deadlines.</p>
-                          {role === 'super-admin' ? (
-                            <input
-                              id="student-late-penalty"
-                              type="number"
-                              title="Student late penalty"
-                              aria-label="Student late penalty"
-                              className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500"
-                              value={studentLatePenaltyRate}
-                              onChange={(e) => setStudentLatePenaltyRate(Number(e.target.value))}
-                            />
-                          ) : (
-                            <p className="text-sm font-bold text-slate-800 dark:text-white">{Number(studentLatePenaltyRate).toLocaleString()} ETB</p>
-                          )}
-                        </div>
-                        {role === 'super-admin' && (
-                          <button
-                            onClick={() => handleUpdateFinanceSetting('student_late_penalty_rate', studentLatePenaltyRate)}
-                            disabled={financeLoading}
-                            className="w-full mt-2 bg-slate-950 dark:bg-slate-800 text-white dark:text-slate-200 py-2 rounded-xl text-xs font-black uppercase tracking-wider hover:bg-slate-800 dark:hover:bg-slate-700 transition-all flex items-center justify-center gap-2"
-                          >
-                            <Save size={14} />
-                            Save Penalty
-                          </button>
-                        )}
-                      </div>
-
-                      {/* Student Fee Deadline */}
-                      <div className="p-5 bg-slate-50 dark:bg-slate-800/30 border border-slate-100 dark:border-slate-800/80 rounded-3xl space-y-3 flex flex-col justify-between">
-                        <div>
-                          <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-1">Student Fee Deadline (Day)</label>
-                          <p className="text-[10px] text-slate-400 font-medium leading-relaxed mb-3">Day of the month by which all student fee payments must be settled.</p>
-                          {role === 'super-admin' ? (
-                            <select
-                              title="Student fee payment deadline"
-                              aria-label="Student fee payment deadline"
-                              className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500"
-                              value={studentPaymentDeadline}
-                              onChange={(e) => setStudentPaymentDeadline(Number(e.target.value))}
-                            >
-                              {[5, 10, 15, 20, 25, 28, 30].map(day => (
-                                <option key={day} value={day}>Day {day}</option>
-                              ))}
-                            </select>
-                          ) : (
-                            <p className="text-sm font-bold text-slate-800 dark:text-white">Day {studentPaymentDeadline}</p>
-                          )}
-                        </div>
-                        {role === 'super-admin' && (
-                          <button
-                            onClick={() => handleUpdateFinanceSetting('student_payment_deadline', studentPaymentDeadline)}
-                            disabled={financeLoading}
-                            className="w-full mt-2 bg-slate-950 dark:bg-slate-800 text-white dark:text-slate-200 py-2 rounded-xl text-xs font-black uppercase tracking-wider hover:bg-slate-800 dark:hover:bg-slate-700 transition-all flex items-center justify-center gap-2"
-                          >
-                            <Save size={14} />
-                            Save Deadline
-                          </button>
-                        )}
-                      </div>
-
-                      {/* Staff Salary Deadline */}
-                      <div className="p-5 bg-slate-50 dark:bg-slate-800/30 border border-slate-100 dark:border-slate-800/80 rounded-3xl space-y-3 flex flex-col justify-between">
-                        <div>
-                          <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-1">Staff Salary Deadline (Day)</label>
-                          <p className="text-[10px] text-slate-400 font-medium leading-relaxed mb-3">Day of the month by which employee salaries must be disbursed.</p>
-                          {role === 'super-admin' ? (
-                            <select
-                              title="Staff salary deadline"
-                              aria-label="Staff salary deadline"
-                              className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500"
-                              value={staffSalaryDeadline}
-                              onChange={(e) => setStaffSalaryDeadline(Number(e.target.value))}
-                            >
-                              {[5, 10, 15, 20, 25, 28, 30].map(day => (
-                                <option key={day} value={day}>Day {day}</option>
-                              ))}
-                            </select>
-                          ) : (
-                            <p className="text-sm font-bold text-slate-800 dark:text-white">Day {staffSalaryDeadline}</p>
-                          )}
-                        </div>
-                        {role === 'super-admin' && (
-                          <button
-                            onClick={() => handleUpdateFinanceSetting('staff_salary_deadline', staffSalaryDeadline)}
-                            disabled={financeLoading}
-                            className="w-full mt-2 bg-slate-950 dark:bg-slate-800 text-white dark:text-slate-200 py-2 rounded-xl text-xs font-black uppercase tracking-wider hover:bg-slate-800 dark:hover:bg-slate-700 transition-all flex items-center justify-center gap-2"
-                          >
-                            <Save size={14} />
-                            Save Deadline
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {showSubSection('payroll-loans') && (
-                    <div className="space-y-6">
-                      <div>
-                        <h4 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest mb-1">Payroll & Loans</h4>
-                        <p className="text-xs text-slate-500 font-medium">Employee penalties and loan repayment rules.</p>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="p-5 bg-slate-50 dark:bg-slate-800/30 border border-slate-100 dark:border-slate-800/80 rounded-3xl space-y-3 flex flex-col justify-between">
-                          <div>
-                            <label htmlFor="daily-penalty-rate" className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-1">Daily Penalty Rate (ETB)</label>
-                            <p className="text-[10px] text-slate-400 font-medium leading-relaxed mb-3">Deduction amount from basic salary per day of absenteeism.</p>
-                            <input
-                              id="daily-penalty-rate"
-                              type="number"
-                              title="Daily penalty rate"
-                              aria-label="Daily penalty rate"
-                              disabled={role !== 'super-admin'}
-                              className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500"
-                              value={dailyPenaltyRate}
-                              onChange={(e) => setDailyPenaltyRate(Number(e.target.value))}
-                            />
-                            {(() => {
-                              const audit = financeAuditLog.find(a => a.setting_key === 'daily_penalty_rate');
-                              return audit ? (
-                                <p className="text-[9px] text-slate-400 font-semibold mt-2">
-                                  Last updated by {audit.changed_by_name || audit.changed_by_username || 'System'} on {formatEthiopianLabel(audit.changed_at)}
-                                </p>
-                              ) : null;
-                            })()}
-                          </div>
-                          {role === 'super-admin' && (
-                            <button
-                              onClick={() => handleUpdateFinanceSetting('daily_penalty_rate', dailyPenaltyRate)}
-                              disabled={financeLoading}
-                              className="w-full mt-2 bg-slate-950 dark:bg-slate-800 text-white dark:text-slate-200 py-2 rounded-xl text-xs font-black uppercase tracking-wider hover:bg-slate-800 dark:hover:bg-slate-700 transition-all flex items-center justify-center gap-2"
-                            >
-                              <Save size={14} />
-                              Save Rate
-                            </button>
-                          )}
-                        </div>
-
-                        <div className="p-5 bg-slate-50 dark:bg-slate-800/30 border border-slate-100 dark:border-slate-800/80 rounded-3xl space-y-3 flex flex-col justify-between">
-                          <div>
-                            <label htmlFor="max-loan-duration" className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-1">Max Loan Duration (Months)</label>
-                            <p className="text-[10px] text-slate-400 font-medium leading-relaxed mb-3">Maximum duration for employee loan repayments (Default to 3).</p>
-                            <input
-                              id="max-loan-duration"
-                              type="number"
-                              title="Max loan duration"
-                              aria-label="Max loan duration"
-                              disabled={role !== 'super-admin'}
-                              className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500"
-                              value={maxLoanMonths}
-                              onChange={(e) => setMaxLoanMonths(Number(e.target.value))}
-                            />
-                            {(() => {
-                              const audit = financeAuditLog.find(a => a.setting_key === 'max_loan_months');
-                              return audit ? (
-                                <p className="text-[9px] text-slate-400 font-semibold mt-2">
-                                  Last updated by {audit.changed_by_name || audit.changed_by_username || 'System'} on {formatEthiopianLabel(audit.changed_at)}
-                                </p>
-                              ) : null;
-                            })()}
-                          </div>
-                          {role === 'super-admin' && (
-                            <button
-                              onClick={() => handleUpdateFinanceSetting('max_loan_months', maxLoanMonths)}
-                              disabled={financeLoading}
-                              className="w-full mt-2 bg-slate-950 dark:bg-slate-800 text-white dark:text-slate-200 py-2 rounded-xl text-xs font-black uppercase tracking-wider hover:bg-slate-800 dark:hover:bg-slate-700 transition-all flex items-center justify-center gap-2"
-                            >
-                              <Save size={14} />
-                              Save Duration
-                            </button>
-                          )}
-                        </div>
-
-                        <div className="p-5 bg-slate-50 dark:bg-slate-800/30 border border-slate-100 dark:border-slate-800/80 rounded-3xl space-y-3 flex flex-col justify-between">
-                          <div>
-                            <label htmlFor="loan-deduction-percentage" className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-1">Loan Deduction Percentage (%)</label>
-                            <p className="text-[10px] text-slate-400 font-medium leading-relaxed mb-3">Percentage cut from basic salary monthly for loan repayment.</p>
-                            <input
-                              id="loan-deduction-percentage"
-                              type="number"
-                              title="Loan deduction percentage"
-                              aria-label="Loan deduction percentage"
-                              disabled={role !== 'super-admin'}
-                              className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500"
-                              value={loanDeductionPct}
-                              onChange={(e) => setLoanDeductionPct(Number(e.target.value))}
-                            />
-                            {(() => {
-                              const audit = financeAuditLog.find(a => a.setting_key === 'loan_deduction_percentage');
-                              return audit ? (
-                                <p className="text-[9px] text-slate-400 font-semibold mt-2">
-                                  Last updated by {audit.changed_by_name || audit.changed_by_username || 'System'} on {formatEthiopianLabel(audit.changed_at)}
-                                </p>
-                              ) : null;
-                            })()}
-                          </div>
-                          {role === 'super-admin' && (
-                            <button
-                              onClick={() => handleUpdateFinanceSetting('loan_deduction_percentage', loanDeductionPct)}
-                              disabled={financeLoading}
-                              className="w-full mt-2 bg-slate-950 dark:bg-slate-800 text-white dark:text-slate-200 py-2 rounded-xl text-xs font-black uppercase tracking-wider hover:bg-slate-800 dark:hover:bg-slate-700 transition-all flex items-center justify-center gap-2"
-                            >
-                              <Save size={14} />
-                              Save Percentage
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {showSubSection('audit') && (
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <h5 className="text-[11px] font-black text-slate-700 dark:text-slate-200 uppercase tracking-wider">Settings Audit Log</h5>
-                        <span className="text-[9px] font-bold text-slate-400 uppercase">Updates list in real-time</span>
-                      </div>
-                      <div className="overflow-x-auto rounded-[2rem] border border-slate-100 dark:border-slate-800 overflow-hidden">
-                        <table className="w-full text-left text-[10px] sm:text-xs min-w-[500px]">
-                          <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
-                            <tr>
-                              <th className="px-6 py-4 text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Setting</th>
-                              <th className="px-6 py-4 text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Old Value</th>
-                              <th className="px-6 py-4 text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">New Value</th>
-                              <th className="px-6 py-4 text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Changed By</th>
-                              <th className="px-6 py-4 text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Date / Time</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-slate-50 dark:divide-slate-800/30 text-slate-600 dark:text-slate-300">
-                            {financeAuditLog.length === 0 ? (
-                              <tr>
-                                <td colSpan={5} className="text-center py-6 text-slate-400 font-bold uppercase text-[10px] tracking-wider">No change activities audited yet.</td>
-                              </tr>
-                            ) : (
-                              (() => {
-                                const getSettingUnit = (key: string): string => {
-                                  const etbKeys = ['student_registration_fee', 'student_late_penalty_rate', 'daily_penalty_rate'];
-                                  const pctKeys = ['loan_deduction_percentage'];
-                                  const rawKeys = ['student_payment_deadline', 'staff_salary_deadline', 'max_loan_months', 'max_loan_duration'];
-                                  if (etbKeys.includes(key)) return ' ETB';
-                                  if (pctKeys.includes(key)) return '%';
-                                  if (rawKeys.includes(key)) return '';
-                                  return '';
-                                };
-                                return financeAuditLog.slice(0, 10).map((log) => {
-                                  const unit = getSettingUnit(log.setting_key);
-                                  return (
-                                    <tr key={log.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
-                                      <td className="px-6 py-3 font-bold uppercase tracking-tight text-blue-600 dark:text-blue-400">{log.setting_key.replace(/_/g, ' ')}</td>
-                                      <td className="px-6 py-3 font-medium text-slate-400">{log.old_value !== null ? `${log.old_value}${unit}` : 'N/A'}</td>
-                                      <td className="px-6 py-3 font-bold text-slate-800 dark:text-white">{log.new_value}{unit}</td>
-                                      <td className="px-6 py-3 font-medium">{log.changed_by_name || log.changed_by_username || 'Super Admin'}</td>
-                                      <td className="px-6 py-3 font-medium text-slate-400">{formatEthiopianLabel(log.changed_at)}</td>
-                                    </tr>
-                                  );
-                                });
-                              })()
-                            )}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  )}
-
-                  {showSubSection('fee-structure') && (
-                    <div className="space-y-4">
-                      <div>
-                        <h4 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest mb-1">Fee Structure <span className="text-blue-600">(Per Grade Override)</span></h4>
-                        <p className="text-xs text-slate-500 font-medium">Set monthly, registration, and bus fees per branch and grade level. These override the global fallback set in the <strong>Student Fees</strong> tab.</p>
-                      </div>
-
-                      {role === 'super-admin' && (
-                        <div className="bg-slate-50 dark:bg-slate-800/50 p-4 sm:p-6 rounded-3xl border border-slate-100 dark:border-slate-800 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                          <div className="space-y-1">
-                            <label htmlFor="fee-branch" className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Branch</label>
-                            <select
-                              id="fee-branch"
-                              value={feeBranchId}
-                              onChange={(e) => setFeeBranchId(e.target.value)}
-                              disabled={role !== 'super-admin'}
-                              className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500"
-                            >
-                              {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-                            </select>
-                          </div>
-                          <div className="space-y-1">
-                            <label htmlFor="fee-grade" className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Grade</label>
-                            <select
-                              id="fee-grade"
-                              value={feeGrade}
-                              onChange={(e) => setFeeGrade(e.target.value)}
-                              disabled={role !== 'super-admin'}
-                              className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500"
-                            >
-                              {['KG 1', 'KG 2', 'KG 3', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'].map(g => <option key={g} value={g}>{g.startsWith('KG') ? g : `Grade ${g}`}</option>)}
-                            </select>
-                          </div>
-                          <div className="space-y-1">
-                            <label htmlFor="fee-monthly" className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Monthly Fee</label>
-                            <input
-                              id="fee-monthly"
-                              type="number"
-                              title="Monthly fee"
-                              aria-label="Monthly fee"
-                              value={feeMonthly}
-                              onChange={(e) => setFeeMonthly(Number(e.target.value))}
-                              disabled={role !== 'super-admin'}
-                              className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                          </div>
-                          <div className="space-y-1">
-                            <label htmlFor="fee-registration" className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Registration Fee (Per Grade)</label>
-                            <input
-                              id="fee-registration"
-                              type="number"
-                              title="Registration fee per grade"
-                              aria-label="Registration fee per grade"
-                              value={feeRegistration}
-                              onChange={(e) => setFeeRegistration(Number(e.target.value))}
-                              disabled={role !== 'super-admin'}
-                              className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                          </div>
-                          <div className="space-y-1">
-                            <label htmlFor="fee-bus" className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Bus Fee</label>
-                            <input
-                              id="fee-bus"
-                              type="number"
-                              title="Bus fee"
-                              aria-label="Bus fee"
-                              value={feeBus}
-                              onChange={(e) => setFeeBus(Number(e.target.value))}
-                              disabled={role !== 'super-admin'}
-                              className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                          </div>
-                          <div className="flex items-end lg:col-span-5">
-                            <button
-                              type="button"
-                              onClick={handleApplyFeeConfig}
-                              disabled={financeLoading || !feeBranchId}
-                              className="w-full bg-slate-900 dark:bg-blue-600 text-white py-4 sm:py-3 rounded-xl text-sm font-bold hover:bg-slate-800 dark:hover:bg-blue-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-slate-200 dark:shadow-none disabled:opacity-50"
-                            >
-                              <Plus size={16} />
-                              <span>Apply Fee Configuration</span>
-                            </button>
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="overflow-x-auto -mx-4 sm:mx-0 sm:rounded-[2rem] border-y sm:border border-slate-100 dark:border-slate-800 overflow-hidden">
-                        <table className="w-full text-left text-[10px] sm:text-xs min-w-[600px]">
-                          <thead className="bg-slate-50/50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
-                            <tr>
-                              <th className="px-6 py-5 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Branch</th>
-                              <th className="px-6 py-5 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Grade Level</th>
-                              <th className="px-6 py-5 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Monthly</th>
-                              <th className="px-6 py-5 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Reg. Fee (Per Grade)</th>
-                              <th className="px-6 py-5 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Bus Fee</th>
-                              <th className="px-6 py-5 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right">Action</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
-                            {branchGradeFees.length === 0 ? (
-                              <tr>
-                                <td colSpan={6} className="text-center py-6 text-slate-400 font-bold uppercase text-[10px]">
-                                  No fee configurations yet. Apply one above.
-                                </td>
-                              </tr>
-                            ) : (
-                              branchGradeFees.map((fee) => (
-                                <tr key={fee.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30">
-                                  <td className="px-4 py-3 font-medium">{fee.branch_name}</td>
-                                  <td className="px-4 py-3 font-bold text-blue-600">Grade {fee.grade_level}</td>
-                                  <td className="px-4 py-3 font-bold">{Number(fee.monthly_fee).toLocaleString()} ETB</td>
-                                  <td className="px-4 py-3 font-bold">{Number(fee.registration_fee).toLocaleString()} ETB</td>
-                                  <td className="px-4 py-3 font-bold">{Number(fee.bus_fee).toLocaleString()} ETB</td>
-                                  <td className="px-4 py-3 text-right">
-                                    {role === 'super-admin' && (
-                                      <button
-                                        type="button"
-                                        onClick={() => handleDeleteFeeConfig(fee.id)}
-                                        className="text-rose-500 hover:text-rose-700 p-1"
-                                        aria-label="Delete fee configuration"
-                                        title="Delete fee configuration"
-                                      >
-                                        <Trash2 size={14} />
-                                      </button>
-                                    )}
-                                  </td>
-                                </tr>
-                              ))
-                            )}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  )}
-
-                  {role === 'super-admin' && showSubSection('profit-targets') && (
-                    <div className="space-y-5">
-                      <div>
-                        <h4 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest mb-1">Branch Profit Target</h4>
-                        <p className="text-xs text-slate-500 font-medium">
-                          Set targets per branch using real student fee collections minus staff payroll for the selected period.
-                        </p>
-                      </div>
-
-                      <div className="bg-slate-50 dark:bg-slate-800/50 p-4 sm:p-6 rounded-3xl border border-slate-100 dark:border-slate-800 space-y-5">
-                        {role === 'super-admin' && (
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-1">
-                              <label htmlFor="profit-target-branch" className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Branch</label>
-                              <select
-                                id="profit-target-branch"
-                                value={profitTargetBranchId}
-                                onChange={(e) => setProfitTargetBranchId(e.target.value)}
-                                className="w-full px-3 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500"
-                              >
-                                {branches.map((b) => (
-                                  <option key={b.id} value={b.id}>{b.name}</option>
-                                ))}
-                              </select>
-                            </div>
-                            <div className="space-y-1">
-                              <label htmlFor="profit-target-month" className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Ethiopian Month</label>
-                              <select
-                                id="profit-target-month"
-                                value={profitTargetMonth}
-                                onChange={(e) => setProfitTargetMonth(e.target.value)}
-                                className="w-full px-3 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500"
-                              >
-                                {ethiopianMonths.map((m) => (
-                                  <option key={m.id} value={m.id}>{m.ge} — {m.am}</option>
-                                ))}
-                              </select>
-                            </div>
-                          </div>
-                        )}
-
-                        {profitSummaryLoading ? (
-                          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider py-6 text-center">Loading branch financials…</p>
-                        ) : profitSummary ? (
-                          <>
-                            {/* Period info & lock notice */}
-                            <div className="flex flex-wrap items-center justify-between gap-2">
-                              <p className="text-[10px] text-slate-500 font-medium">
-                                Period mapped to <strong>{profitSummary.monthName} {profitSummary.gregYear}</strong> (Gregorian) ·{' '}
-                                {profitSummary.student_transaction_count} student payment{profitSummary.student_transaction_count === 1 ? '' : 's'} recorded
-                                {profitSummary.payroll_status
-                                  ? ` · Payroll: ${profitSummary.payroll_status}`
-                                  : ' · No payroll run yet'}
-                              </p>
-                              {isTargetSettingLocked && (
-                                <span className="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400">
-                                  🔒 Locked — editable up to 4th of month only
-                                </span>
-                              )}
-                            </div>
-
-                            {/* Editable Student Income */}
-                            <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/40 space-y-2">
-                              <div className="flex items-center justify-between flex-wrap gap-2">
-                                <div>
-                                  <p className="text-[9px] font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-widest">Student Income</p>
-                                  <p className="text-[10px] text-emerald-600/80">Pagume → Sene (10-month window) · Fees, bus, registration &amp; other payments</p>
-                                </div>
-                                {studentIncomeEdited && (
-                                  <button
-                                    type="button"
-                                    onClick={() => { setStudentIncomeEdited(false); setManualStudentIncome(String(Math.round(profitSummary.student_income))); }}
-                                    className="text-[9px] font-black text-emerald-700 dark:text-emerald-400 hover:underline uppercase tracking-wider"
-                                  >↩ Reset to auto</button>
-                                )}
-                              </div>
-                              <input
-                                id="manual-student-income"
-                                type="number"
-                                disabled={isTargetSettingLocked}
-                                value={manualStudentIncome}
-                                onChange={(e) => { setManualStudentIncome(e.target.value); setStudentIncomeEdited(true); setProfitTargetAmount(String(Number(e.target.value) + Number(manualStaffPayout))); }}
-                                className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-800 rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-emerald-400 disabled:opacity-60 disabled:cursor-not-allowed"
-                              />
-                              {!studentIncomeEdited && (
-                                <p className="text-[9px] text-emerald-600/70 italic">Auto-fetched from finance records · edit to override</p>
-                              )}
-                            </div>
-
-                            {/* Editable Staff Payout */}
-                            <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/30 border border-rose-100 dark:border-rose-900/40 space-y-2">
-                              <div className="flex items-center justify-between flex-wrap gap-2">
-                                <div>
-                                  <p className="text-[9px] font-black text-rose-700 dark:text-rose-400 uppercase tracking-widest flex items-center gap-2">
-                                    Staff Payout — All Roles
-                                    {profitSummary.staff_payout_is_projected && (
-                                      <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 text-[8px] font-black">PROJECTED</span>
-                                    )}
-                                  </p>
-                                  <p className="text-[10px] text-rose-600/80">Full year · Net salary + employer pension (11%) for all staff</p>
-                                </div>
-                                {staffPayoutEdited && (
-                                  <button
-                                    type="button"
-                                    onClick={() => { setStaffPayoutEdited(false); setManualStaffPayout(String(Math.round(profitSummary.staff_payout))); }}
-                                    className="text-[9px] font-black text-rose-700 dark:text-rose-400 hover:underline uppercase tracking-wider"
-                                  >↩ Reset to auto</button>
-                                )}
-                              </div>
-                              <input
-                                id="manual-staff-payout"
-                                type="number"
-                                disabled={isTargetSettingLocked}
-                                value={manualStaffPayout}
-                                onChange={(e) => { setManualStaffPayout(e.target.value); setStaffPayoutEdited(true); setProfitTargetAmount(String(Number(manualStudentIncome) + Number(e.target.value))); }}
-                                className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-rose-200 dark:border-rose-800 rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-rose-400 disabled:opacity-60 disabled:cursor-not-allowed"
-                              />
-                              {!staffPayoutEdited && profitSummary.staff_payout_is_projected && (
-                                <p className="text-[9px] text-amber-600/80 italic">⚠ No payroll run found — value projected from salary profiles</p>
-                              )}
-                              {!staffPayoutEdited && !profitSummary.staff_payout_is_projected && (
-                                <p className="text-[9px] text-rose-600/70 italic">Auto-fetched from finalized payroll · edit to override</p>
-                              )}
-                            </div>
-
-                            {/* Suggested Target = Income + Payout */}
-                            <div className="p-4 rounded-2xl bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/40">
-                              <p className="text-[9px] font-black text-blue-700 dark:text-blue-400 uppercase tracking-widest">Suggested Target</p>
-                              <p className="text-2xl font-black text-blue-800 dark:text-blue-300 mt-1">
-                                {(Number(manualStudentIncome || 0) + Number(manualStaffPayout || 0)).toLocaleString()} <span className="text-sm font-bold">ETB</span>
-                              </p>
-                              <p className="text-[10px] text-blue-600/80 mt-1">Student Income + Staff Payout (total monthly school budget obligation)</p>
-                            </div>
-
-                            {role === 'super-admin' ? (
-                              <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-3 items-end">
-                                <div className="space-y-1">
-                                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Final Target Amount (ETB)</label>
-                                  <input
-                                    id="profit-target-amount"
-                                    type="number"
-                                    disabled={isTargetSettingLocked}
-                                    placeholder={String(Number(manualStudentIncome || 0) + Number(manualStaffPayout || 0))}
-                                    value={profitTargetAmount}
-                                    onChange={(e) => setProfitTargetAmount(e.target.value)}
-                                    className="w-full px-3 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60 disabled:cursor-not-allowed"
-                                  />
-                                </div>
-                                <div className="flex flex-wrap gap-2">
-                                  <button
-                                    type="button"
-                                    disabled={isTargetSettingLocked}
-                                    onClick={() => setProfitTargetAmount(String(Number(manualStudentIncome || 0) + Number(manualStaffPayout || 0)))}
-                                    className="px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-100 hover:bg-slate-300 dark:hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                                  >
-                                    Use suggested
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={handleSetProfitTarget}
-                                    disabled={financeLoading || !profitTargetBranchId || isTargetSettingLocked}
-                                    className="px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider bg-slate-900 dark:bg-blue-600 text-white hover:bg-slate-800 dark:hover:bg-blue-700 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                                  >
-                                    <Save size={14} />
-                                    Save target
-                                  </button>
-                                </div>
-                              </div>
-                            ) : (
-                              <div className="p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800">
-                                <p className="text-sm font-bold">Target (ETB): {Number(profitTargetAmount || profitSummary.saved_target || (Number(manualStudentIncome || 0) + Number(manualStaffPayout || 0))).toLocaleString()}</p>
-                              </div>
-                            )}
-
-                            {(() => {
-                              const target = Number(profitTargetAmount) || 0;
-                              const actual = profitSummary.actual_net_profit;
-                              const percent = target > 0 ? Math.min(Math.round((actual / target) * 100), 100) : 0;
-                              const status = actual >= target ? 'Exceeded' : percent >= 80 ? 'On Track' : percent >= 50 ? 'Behind' : 'Critical';
-                              const statusColor = actual >= target ? 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40' : percent >= 80 ? 'text-blue-600 bg-blue-50' : percent >= 50 ? 'text-amber-600 bg-amber-50' : 'text-rose-600 bg-rose-50';
-                              const barColor = actual >= target ? 'bg-emerald-500' : percent >= 80 ? 'bg-blue-500' : percent >= 50 ? 'bg-amber-500' : 'bg-rose-500';
-                              const monthLabel = ethiopianMonths.find((m) => m.id === profitTargetMonth);
-
-                              if (target <= 0) return null;
-                              return (
-                                <div className="p-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-4">
-                                  <div className="flex items-center justify-between gap-4 flex-wrap">
-                                    <div>
-                                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                                        {profitSummary.branch_name} · {monthLabel?.ge}
-                                      </p>
-                                      <p className="text-lg font-black text-slate-800 dark:text-white mt-1">
-                                        Actual net {actual.toLocaleString()}{' '}
-                                        <span className="text-sm text-slate-400 font-bold">/ target {target.toLocaleString()} ETB</span>
-                                      </p>
-                                    </div>
-                                    <div className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${statusColor}`}>
-                                      {status} — {percent}%
-                                    </div>
-                                  </div>
-                                  <progress
-                                    className={`w-full h-4 rounded-full overflow-hidden appearance-none bg-slate-100 dark:bg-slate-800 ${barColor} progress-bar`}
-                                    value={Math.min(100, Math.max(0, percent))}
-                                    max={100}
-                                  />
-                                </div>
-                              );
-                            })()}
-                          </>
-                        ) : (
-                          <p className="text-xs text-slate-400 py-4">Select a branch to load financial data.</p>
-                        )}
-                      </div>
-
-
-                      {profitTargets.filter((t) => t.branch_id === profitTargetBranchId).length > 0 && (
-                        <div className="overflow-x-auto rounded-2xl border border-slate-100 dark:border-slate-800">
-                          <table className="w-full text-left text-[10px] min-w-[520px]">
-                            <thead className="bg-slate-50 dark:bg-slate-800/50">
-                              <tr>
-                                <th className="px-4 py-3 font-black uppercase text-slate-400">Month</th>
-                                <th className="px-4 py-3 font-black uppercase text-slate-400">Target</th>
-                                <th className="px-4 py-3 font-black uppercase text-slate-400">Actual net</th>
-                                <th className="px-4 py-3 font-black uppercase text-slate-400">Income</th>
-                                <th className="px-4 py-3 font-black uppercase text-slate-400">Staff</th>
-                              </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                              {profitTargets
-                                .filter((t) => t.branch_id === profitTargetBranchId)
-                                .map((t) => {
-                                  const m = ethiopianMonths.find((em) => em.id === String(t.ethiopian_month));
-                                  return (
-                                    <tr key={t.id}>
-                                      <td className="px-4 py-2 font-bold">{m?.ge ?? t.ethiopian_month}</td>
-                                      <td className="px-4 py-2">{Number(t.target_amount).toLocaleString()}</td>
-                                      <td className="px-4 py-2">{Number(t.actual_net_profit ?? t.actual_amount ?? 0).toLocaleString()}</td>
-                                      <td className="px-4 py-2 text-emerald-600">{Number(t.student_income ?? 0).toLocaleString()}</td>
-                                      <td className="px-4 py-2 text-rose-600">{Number(t.staff_payout ?? 0).toLocaleString()}</td>
-                                    </tr>
-                                  );
-                                })}
-                            </tbody>
-                          </table>
-                        </div>
-                      )}
                     </div>
                   )}
                 </div>

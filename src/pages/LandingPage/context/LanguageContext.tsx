@@ -1,3 +1,4 @@
+import i18n from '../../../i18n';
 import React, { createContext, useContext, useState, useEffect } from "react";
 
 export type Language = "en" | "am" | "or";
@@ -187,7 +188,7 @@ const translations: Record<Language, TranslationSchema> = {
     },
     hero: {
       welcome: "Welcome to",
-      title: "Abdi Adama",
+      title: "Ziquala Abo",
       subtitlePrefix: "Planting seeds of ",
       subtitleExcellence: "excellence",
       subtitleSuffix: " today.",
@@ -197,9 +198,9 @@ const translations: Record<Language, TranslationSchema> = {
       badge: "Our Foundation",
       titleLine1: "Message from",
       titleLine2: "the Founders",
-      quote: "Abdi Adama School was established in 1998 E.C. (2005/2006 G.C.) with a dream to create a place where children feel seen, supported, and encouraged to discover their full potential. To build the future of our children, we must plant the seeds of excellence today.",
+      quote: "Ziquala Abo School was established in 1998 E.C. (2005/2006 G.C.) with a dream to create a place where children feel seen, supported, and encouraged to discover their full potential. To build the future of our children, we must plant the seeds of excellence today.",
       button: "Read more ..",
-      name: "Ato Girma Lemi",
+      name: "Ziquala Abo School Founders",
       role: "Founder & Owner",
     },
     stats: {
@@ -246,19 +247,19 @@ const translations: Record<Language, TranslationSchema> = {
         {
           name: "Firdos Musa",
           achievement: "Top Scorer - National Exams",
-          message: "Hard work, patience, and prayer have guided my journey. I thank Abdi Adama School for giving me the chance to discover my potential and grow into someone who believes in possibilities.",
+          message: "Hard work, patience, and prayer have guided my journey. I thank Ziquala Abo School for giving me the chance to discover my potential and grow into someone who believes in possibilities.",
           img: "/school.png",
         },
         {
           name: "Fuad Abdella",
           achievement: "Excellence in Sciences",
-          message: "Hard work and faith brought me here. I'm proud to represent Abdi Adama School and thankful for my teachers' constant support throughout these years.",
+          message: "Hard work and faith brought me here. I'm proud to represent Ziquala Abo School and thankful for my teachers' constant support throughout these years.",
           img: "/school.png",
         },
         {
           name: "Saron Leulseged",
           achievement: "Outstanding Leadership",
-          message: "I thank my family for believing in me and Abdi Adama School for shaping that belief into achievement. With their support, I have learned that dreams come true through learning and discipline.",
+          message: "I thank my family for believing in me and Ziquala Abo School for shaping that belief into achievement. With their support, I have learned that dreams come true through learning and discipline.",
           img: "/school.png",
         },
       ],
@@ -306,7 +307,7 @@ const translations: Record<Language, TranslationSchema> = {
         values: {
           integrity: {
             title: "integrity",
-            desc: "At Abdi Adama School we believe in doing what is right — always. our community encourages honesty, responsibility and respect. we help students build strong moral character that guides them for life.",
+            desc: "At Ziquala Abo School we believe in doing what is right — always. our community encourages honesty, responsibility and respect. we help students build strong moral character that guides them for life.",
           },
           leadership: {
             title: "leadership",
@@ -314,7 +315,7 @@ const translations: Record<Language, TranslationSchema> = {
           },
           growth: {
             title: "growth & success",
-            desc: "Success is not only about grades — it is about growth. In Abdi Adama we teach students to set goals, work hard, learn from challenges, and believe in their own potential.",
+            desc: "Success is not only about grades — it is about growth. In Ziquala Abo we teach students to set goals, work hard, learn from challenges, and believe in their own potential.",
           },
           learning: {
             title: "lifelong learning",
@@ -331,7 +332,7 @@ const translations: Record<Language, TranslationSchema> = {
       },
       promise: {
         title: "Our Promise to Parents",
-        desc: "At Abdi Adama school, we understand that you are placing great trust in us when you choose our school for your child. We promise to provide a safe, respectful, and encouraging environment where every student is guided to grow academically, emotionally, socially, and morally. We believe in open communication and partnership with parents, because we know that education is most effective when school and family work together. We are committed to nurturing confidence, curiosity, discipline, and strong values in every student, while ensuring that each child is seen, heard, and supported every step of the way. your child’s success is our shared goal, and we will always work with dedication and integrity to help them reach their full potential.",
+        desc: "At Ziquala Abo school, we understand that you are placing great trust in us when you choose our school for your child. We promise to provide a safe, respectful, and encouraging environment where every student is guided to grow academically, emotionally, socially, and morally. We believe in open communication and partnership with parents, because we know that education is most effective when school and family work together. We are committed to nurturing confidence, curiosity, discipline, and strong values in every student, while ensuring that each child is seen, heard, and supported every step of the way. your child’s success is our shared goal, and we will always work with dedication and integrity to help them reach their full potential.",
       },
     },
     programsPage: {
@@ -364,7 +365,7 @@ const translations: Record<Language, TranslationSchema> = {
       charityTitle: "Community Responsibility",
       charityDesc: "Developing empathy and social responsibility. Our students participate in school-organized initiatives that distribute meals, books, and supplies to families in need within Adama.",
       uniformTitle: "Uniform & Pride",
-      uniformDesc: "Our uniform represents discipline, neatness, and unity. Students wear it proudly as representatives of the Abdi Adama legacy."
+      uniformDesc: "Our uniform represents discipline, neatness, and unity. Students wear it proudly as representatives of the Ziquala Abo legacy."
     },
     branchesPage: {
       title: "Our Campus Branches",
@@ -395,7 +396,7 @@ const translations: Record<Language, TranslationSchema> = {
     },
     hero: {
       welcome: "እንኳን ወደ",
-      title: "አብዲ አዳማ",
+      title: "ዝቋላ አቦ",
       subtitlePrefix: "የ",
       subtitleExcellence: "ብልህነትና የስኬት",
       subtitleSuffix: " ዘርን ዛሬ እንተክላለን።",
@@ -405,9 +406,9 @@ const translations: Record<Language, TranslationSchema> = {
       badge: "መሠረታችን",
       titleLine1: "መልዕክት ከ",
       titleLine2: "መሥራቾቹ",
-      quote: "የአብዲ አዳማ ትምህርት ቤት በ1998 ዓ.ም የተመሠረተው ሕፃናት የሚታዩበት፣ የሚደገፉበት እና ሙሉ አቅማቸውን እንዲያወጡ የሚበረታቱበትን ቦታ የመፍጠር ህልም ይዞ ነው። የልጆቻችንን መጻኢ ዕድል ለመገንባት፣ ዛሬ የስኬትን ዘር መዝራት አለብን።",
+      quote: "የዝቋላ አቦ ትምህርት ቤት በ1998 ዓ.ም የተመሠረተው ሕፃናት የሚታዩበት፣ የሚደገፉበት እና ሙሉ አቅማቸውን እንዲያወጡ የሚበረታቱበትን ቦታ የመፍጠር ህልም ይዞ ነው። የልጆቻችንን መጻኢ ዕድል ለመገንባት፣ ዛሬ የስኬትን ዘር መዝራት አለብን።",
       button: "ታሪካችንን ይመልገቱ",
-      name: "አቶ ግርማ ለሚ",
+      name: "የዝቋላ አቦ ትምህርት ቤት መስራቾች",
       role: "መሥራች እና ባለቤት",
     },
     stats: {
@@ -454,19 +455,19 @@ const translations: Record<Language, TranslationSchema> = {
         {
           name: "ፊርዶስ ሙሳ",
           achievement: "ከፍተኛ ውጤት አስመዝጋቢ - ብሔራዊ ፈተና",
-          message: "ጠንካራ ሥራ፣ ትዕግሥት እና ጸሎት መንገዴን መርተውታል። አቅሜን እንዳውቅና በምኞቶቼ እንዳምን ዕድል ስለሰጠኝ የአብዲ አዳማ ትምህርት ቤትን አመሰግናለሁ።",
+          message: "ጠንካራ ሥራ፣ ትዕግሥት እና ጸሎት መንገዴን መርተውታል። አቅሜን እንዳውቅና በምኞቶቼ እንዳምን ዕድል ስለሰጠኝ የዝቋላ አቦ ትምህርት ቤትን አመሰግናለሁ።",
           img: "/school.png",
         },
         {
           name: "ፉአድ አብደላ",
           achievement: "በሳይንስ ትምህርቶች የላቀ ውጤት",
-          message: "ትጋትና እምነት እዚህ አድርሰውኛል። አብዲ አዳማ ትምህርት ቤትን በመወከሌ ኩራት ይሰማኛል፣ ለመምህራኖቼም ላደረጉልኝ ተከታታይ ድጋፍ አመሰግናለሁ።",
+          message: "ትጋትና እምነት እዚህ አድርሰውኛል። ዝቋላ አቦ ትምህርት ቤትን በመወከሌ ኩራት ይሰማኛል፣ ለመምህራኖቼም ላደረጉልኝ ተከታታይ ድጋፍ አመሰግናለሁ።",
           img: "/school.png",
         },
         {
           name: "ሳሮን ሌውልሰገድ",
           achievement: "የላቀ የአመራር ብቃት",
-          message: "በእኔ ስላመኑ ቤተሰቦቼን እና ያንን እምነት ወደ ስኬት ለቀየረው አብዲ አዳማ ትምህርት ቤት ምስጋናዬ የላቀ ነው። በትምህርት እና በሥነ-ምግባር ህልሞች እውን እንደሚሆኑ ተምሬያለሁ።",
+          message: "በእኔ ስላመኑ ቤተሰቦቼን እና ያንን እምነት ወደ ስኬት ለቀየረው ዝቋላ አቦ ትምህርት ቤት ምስጋናዬ የላቀ ነው። በትምህርት እና በሥነ-ምግባር ህልሞች እውን እንደሚሆኑ ተምሬያለሁ።",
           img: "/school.png",
         },
       ],
@@ -490,9 +491,9 @@ const translations: Record<Language, TranslationSchema> = {
       directorsTitle: "መልዕክት ከትምህርት ቤቱ ዳይሬክተር",
       leaders: {
         girma: {
-          name: "አቶ ግርማ ለሚ",
+          name: "የዝቋላ አቦ ትምህርት ቤት መስራቾች",
           role: "ተባባሪ መሥራች እና ባለቤት",
-          message: "እያንዳንዱ ልጅ መማር አነቃቂ፣ ትርጉም ያለው እና አስደሳች ወደሆነበት አካባቢ መምጣት ይገባዋል ከሚለው የጋራ እምነታችን ወደተገነባው የአብዲ አዳማ ትምህርት ቤት እንኳን በደህና መጡ። የአብዲ አዳማ ትምህርት ቤትን ስንመሠርት ህልማችን ልጆች የሚታዩበት፣ የሚደገፉበት እና ሙሉ አቅማቸውን እንዲያወጡ የሚበረታቱበትን ቦታ መፍጠር ነበር። ከመማሪያ መጽሐፍት በላይ የሚሄድ ትምህርት ቤት ፈልገን ነበር — የማወቅ ጉጉት የሚቀበልበት፣ ደግነት የሚተገበርበት እና መማር ሕያው የሚሆንበት። ተማሪዎቻችን በራስ መተማመን እና ባህሪ ሲያድጉ ማየት ትልቁ ስኬታችን ነው፣ እናም እያንዳንዱን ልጅ በጥንቃቄ እና በዓላማ ለማሳደግ ቁርጠኞች ነን።",
+          message: "እያንዳንዱ ልጅ መማር አነቃቂ፣ ትርጉም ያለው እና አስደሳች ወደሆነበት አካባቢ መምጣት ይገባዋል ከሚለው የጋራ እምነታችን ወደተገነባው የዝቋላ አቦ ትምህርት ቤት እንኳን በደህና መጡ። የዝቋላ አቦ ትምህርት ቤትን ስንመሠርት ህልማችን ልጆች የሚታዩበት፣ የሚደገፉበት እና ሙሉ አቅማቸውን እንዲያወጡ የሚበረታቱበትን ቦታ መፍጠር ነበር። ከመማሪያ መጽሐፍት በላይ የሚሄድ ትምህርት ቤት ፈልገን ነበር — የማወቅ ጉጉት የሚቀበልበት፣ ደግነት የሚተገበርበት እና መማር ሕያው የሚሆንበት። ተማሪዎቻችን በራስ መተማመን እና ባህሪ ሲያድጉ ማየት ትልቁ ስኬታችን ነው፣ እናም እያንዳንዱን ልጅ በጥንቃቄ እና በዓላማ ለማሳደግ ቁርጠኞች ነን።",
           img: "/school.png",
         },
         aberash: {
@@ -504,7 +505,7 @@ const translations: Record<Language, TranslationSchema> = {
         yodit: {
           name: "ወ/ሮ ዮዲት ዮሐንስ",
           role: "የትምህርት ቤቱ ዳይሬክተር",
-          message: "እያንዳንዱ ተማሪ በትጋት፣ በአክብሮት እና በከፍተኛ ጥበቃ በሚመራበት በአብዲ አዳማ ትምህርት ቤት እንኳን በደህና መጡ ለማለት ደስ ይለኛል። ዓላማችን እያንዳንዱ ልጅ በአካዳሚክ፣ በማህበራዊ እና በስሜታዊነት እንዲያድግ ደህንነቱ የተጠበቀ እና ድጋፍ ሰጪ የትምህርት ሁኔታ መፍጠር ነው። ተማሪዎች አቅማቸውን ለመመርመር የተሻሉ እድሎችን እንዲያገኙ ከቤተሰቦች እና ከወሰኑ መምህራኖቻችን ጋር በቅርበት እንሰራለን። የማህበረሰባችን አካል ለመሆን ስለመረጡ እናመሰግናለን። አብረን፣ ጠንካራ አእምሮዎችን፣ አወንታዊ እሴቶችን እና ብሩህ የወደፊት ህይወትን ለመቅረጽ እንጠብቃለን።",
+          message: "እያንዳንዱ ተማሪ በትጋት፣ በአክብሮት እና በከፍተኛ ጥበቃ በሚመራበት በዝቋላ አቦ ትምህርት ቤት እንኳን በደህና መጡ ለማለት ደስ ይለኛል። ዓላማችን እያንዳንዱ ልጅ በአካዳሚክ፣ በማህበራዊ እና በስሜታዊነት እንዲያድግ ደህንነቱ የተጠበቀ እና ድጋፍ ሰጪ የትምህርት ሁኔታ መፍጠር ነው። ተማሪዎች አቅማቸውን ለመመርመር የተሻሉ እድሎችን እንዲያገኙ ከቤተሰቦች እና ከወሰኑ መምህራኖቻችን ጋር በቅርበት እንሰራለን። የማህበረሰባችን አካል ለመሆን ስለመረጡ እናመሰግናለን። አብረን፣ ጠንካራ አእምሮዎችን፣ አወንታዊ እሴቶችን እና ብሩህ የወደፊት ህይወትን ለመቅረጽ እንጠብቃለን።",
           img: "/school.png",
         },
       },
@@ -514,7 +515,7 @@ const translations: Record<Language, TranslationSchema> = {
         values: {
           integrity: {
             title: "ታማኝነት",
-            desc: "በአብዲ አዳማ ትምህርት ቤት ሁል ጊዜ ትክክለኛውን ነገር ማድረግ እናምናለን። ማህበረሰባችን ታማኝነትን፣ ኃላፊነትን እና አክብሮትን ያበረታታል። ተማሪዎች በሕይወታቸው ውስጥ የሚመራቸውን ጠንካራ የሥነ-ምግባር ባህሪ እንዲገነቡ እንረዳቸዋለን።",
+            desc: "በዝቋላ አቦ ትምህርት ቤት ሁል ጊዜ ትክክለኛውን ነገር ማድረግ እናምናለን። ማህበረሰባችን ታማኝነትን፣ ኃላፊነትን እና አክብሮትን ያበረታታል። ተማሪዎች በሕይወታቸው ውስጥ የሚመራቸውን ጠንካራ የሥነ-ምግባር ባህሪ እንዲገነቡ እንረዳቸዋለን።",
           },
           leadership: {
             title: "አመራር",
@@ -522,7 +523,7 @@ const translations: Record<Language, TranslationSchema> = {
           },
           growth: {
             title: "እድገት እና ስኬት",
-            desc: "ስኬት ስለ ውጤት ብቻ አይደለም — ስለ እድገትም ጭምር ነው። በአብዲ አዳማ ተማሪዎችን ግብ እንዲያወጡ፣ ጠንክረው እንዲሰሩ፣ ከችግሮች እንዲማሩ እና በራሳቸው አቅም እንዲያምኑ እናስተምራለን።",
+            desc: "ስኬት ስለ ውጤት ብቻ አይደለም — ስለ እድገትም ጭምር ነው። በዝቋላ አቦ ተማሪዎችን ግብ እንዲያወጡ፣ ጠንክረው እንዲሰሩ፣ ከችግሮች እንዲማሩ እና በራሳቸው አቅም እንዲያምኑ እናስተምራለን።",
           },
           learning: {
             title: "ቀጣይነት ያለው ትምህርት",
@@ -539,7 +540,7 @@ const translations: Record<Language, TranslationSchema> = {
       },
       promise: {
         title: "ለወላጆች የገባነው ቃል",
-        desc: "በአብዲ አዳማ ትምህርት ቤት ለልጅዎ ትምህርት ቤታችንን ሲመርጡ ታላቅ እምነት እየጣሉብን እንደሆነ እንረዳለን። እያንዳንዱ ተማሪ በአካዳሚክ፣ በስሜታዊነት፣ በማህበራዊ እና በስነ-ምግባር እንዲያድግ ደህንነቱ የተጠበቀ፣ አክብሮት የተሞላበት እና አበረታች አካባቢ ለመስጠት ቃል እንገባለን። ክፍት ግንኙነት እና ከወላጆች ጋር አጋርነት እናምናለን፣ ምክንያቱም ትምህርት ቤት እና ቤተሰብ አብረው ሲሰሩ ትምህርት እጅግ ውጤታማ እንደሚሆን እናውቃለን። እያንዳንዱ ልጅ በየመንገዱ መታየቱን፣ መሰማቱን እና መደገፉን እያረጋገጥን እያንዳንዱ ተማሪ በራስ መተማመን፣ የማወቅ ጉጉት፣ ዲሲፕሊን እና ጠንካራ እሴቶችን እንዲያዳብር ቁርጠኞች ነን። የልጅዎ ስኬት የጋራ ግባችን ነው፣ እናም ሙሉ አቅማቸውን እንዲያሳኩ ለመርዳት ሁል ጊዜ በትጋት እና በታማኝነት እንሰራለን።",
+        desc: "በዝቋላ አቦ ትምህርት ቤት ለልጅዎ ትምህርት ቤታችንን ሲመርጡ ታላቅ እምነት እየጣሉብን እንደሆነ እንረዳለን። እያንዳንዱ ተማሪ በአካዳሚክ፣ በስሜታዊነት፣ በማህበራዊ እና በስነ-ምግባር እንዲያድግ ደህንነቱ የተጠበቀ፣ አክብሮት የተሞላበት እና አበረታች አካባቢ ለመስጠት ቃል እንገባለን። ክፍት ግንኙነት እና ከወላጆች ጋር አጋርነት እናምናለን፣ ምክንያቱም ትምህርት ቤት እና ቤተሰብ አብረው ሲሰሩ ትምህርት እጅግ ውጤታማ እንደሚሆን እናውቃለን። እያንዳንዱ ልጅ በየመንገዱ መታየቱን፣ መሰማቱን እና መደገፉን እያረጋገጥን እያንዳንዱ ተማሪ በራስ መተማመን፣ የማወቅ ጉጉት፣ ዲሲፕሊን እና ጠንካራ እሴቶችን እንዲያዳብር ቁርጠኞች ነን። የልጅዎ ስኬት የጋራ ግባችን ነው፣ እናም ሙሉ አቅማቸውን እንዲያሳኩ ለመርዳት ሁል ጊዜ በትጋት እና በታማኝነት እንሰራለን።",
       },
     },
     programsPage: {
@@ -572,7 +573,7 @@ const translations: Record<Language, TranslationSchema> = {
       charityTitle: "የማህበረሰብ ኃላፊነት",
       charityDesc: "ርህራሄን እና ማህበራዊ ኃላፊነትን ማሳደግ። ተማሪዎቻችን በአዳማ ከተማ ውስጥ ችግረኛ ለሆኑ ቤተሰቦች ምግብ፣ መጽሃፍ እና አቅርቦቶችን በሚያከፋፍሉ የበጎ አድራጎት ስራዎች ላይ ይሳተፋሉ።",
       uniformTitle: "ዩኒፎርም እና ኩራት",
-      uniformDesc: "የእኛ ዩኒፎርም ስነ-ስርዓትን፣ ጽዳትን እና አንድነትን ይወክላል። ተማሪዎች የአብዲ አዳማን ውርስ በመወከል በኩራት ይለብሱታል።"
+      uniformDesc: "የእኛ ዩኒፎርም ስነ-ስርዓትን፣ ጽዳትን እና አንድነትን ይወክላል። ተማሪዎች የዝቋላ አቦን ውርስ በመወከል በኩራት ይለብሱታል።"
     },
     branchesPage: {
       title: "የትምህርት ቤት ቅርንጫፎች",
@@ -603,7 +604,7 @@ const translations: Record<Language, TranslationSchema> = {
     },
     hero: {
       welcome: "Baga Gara",
-      title: "Abdi Adamaa",
+      title: "Ziquala Aboa",
       subtitlePrefix: "Sanyii ",
       subtitleExcellence: "filatamaa fi bilchinaa",
       subtitleSuffix: " har'a facaafna.",
@@ -613,9 +614,9 @@ const translations: Record<Language, TranslationSchema> = {
       badge: "Hundee Keenya",
       titleLine1: "Ergaa",
       titleLine2: "Hundeesitoota Biraa",
-      quote: "Mannii Barumsaa Abdi Adamaa bara 1998 A.L.I.tti kan hundeeffame hawwii daa'imman itti mul'atan, deeggaraman, fi dandeettii isaanii guutuu akka bira gahan itti jajjabeeffaman uumuufi. Jireenya gara fuulduraa daa'imman keenyaa ijaaruuf, har'a sanyii bilchinaa facaajuu qabna.",
+      quote: "Mannii Barumsaa Ziquala Aboa bara 1998 A.L.I.tti kan hundeeffame hawwii daa'imman itti mul'atan, deeggaraman, fi dandeettii isaanii guutuu akka bira gahan itti jajjabeeffaman uumuufi. Jireenya gara fuulduraa daa'imman keenyaa ijaaruuf, har'a sanyii bilchinaa facaajuu qabna.",
       button: "Seenaa Keenya Qoradhaa",
-      name: "Obbo Girmaa Lammii",
+      name: "Hundeessitoota Mana Barumsaa Ziqwaalaa Abo",
       role: "Hundeessaa & Abbaa Qabeenyaa",
     },
     stats: {
@@ -662,19 +663,19 @@ const translations: Record<Language, TranslationSchema> = {
         {
           name: "Fiirdoos Musaa",
           achievement: "Qabxii Olaanaa - Qormaata Biyyoolessaa",
-          message: "Hojiin cimaan, obsi fi kadhannaan daandii koo qajeelchaniiru. Dandeettii koo akkan baradhuu fi abjiiwwan koo akkan dhugoomsu carraa naaf kennuusaatiif Mana Barumsaa Abdi Adamaa nan galateeffadha.",
+          message: "Hojiin cimaan, obsi fi kadhannaan daandii koo qajeelchaniiru. Dandeettii koo akkan baradhuu fi abjiiwwan koo akkan dhugoomsu carraa naaf kennuusaatiif Mana Barumsaa Ziquala Aboa nan galateeffadha.",
           img: "/school.png",
         },
         {
           name: "Fuaad Abdayilaa",
           achievement: "Saayinsii Keessatti Olaantummaa",
-          message: "Hojiin cimaa fi amantiin as na gahan. Mana Barumsaa Abdi Adamaa bakka bu'uu kootiif nan boona, barsiisota kootiifis deeggarsa walitti aanaa naaf taasisaniif nan galateeffadha.",
+          message: "Hojiin cimaa fi amantiin as na gahan. Mana Barumsaa Ziquala Aboa bakka bu'uu kootiif nan boona, barsiisota kootiifis deeggarsa walitti aanaa naaf taasisaniif nan galateeffadha.",
           img: "/school.png",
         },
         {
           name: "Saaroon Liyulsegad",
           achievement: "Geggeessummaa Adda Ta'e",
-          message: "Maatii koo kan natti amananiif fi Mana Barumsaa Abdi Adamaa kan amantii sana gara milkaa'inaatti jijjiire nan galateeffadha. Barnoota fi naamusaan abjiiwwan dhugoomuu akka danda'an baradheera.",
+          message: "Maatii koo kan natti amananiif fi Mana Barumsaa Ziquala Aboa kan amantii sana gara milkaa'inaatti jijjiire nan galateeffadha. Barnoota fi naamusaan abjiiwwan dhugoomuu akka danda'an baradheera.",
           img: "/school.png",
         },
       ],
@@ -700,7 +701,7 @@ const translations: Record<Language, TranslationSchema> = {
         girma: {
           name: "Obbo GIRMAA LAMMII",
           role: "Hundeessaa & Abbaa Qabeenyaa",
-          message: "Baga gara mana barumsaa Abdi Adamaatti nagaan dhuftan, bakka barachuu fi bilchina daa'imman keenyaa itti dhugoomsuuf hundeeffame. Yeroo mana barumsaa kana hundessinu, hawwiin keenya daa'imman kan itti mul'atan, deeggaraman fi dandeettii isaanii guutuu kan itti gabbifatan uumuufi. Mana barumsaa kitaaba qofa irra darbe — bakka beekumsi itti simatamu, gaarummaan itti baratamuu fi barachuun lubbuu itti horatu uumuuf yaadnee. Barattoonni keenya amantii fi naamusa qabaniin yommuu guddatan arguun milkii keenya isa guddaadha, nutis tokkoon tokkoon isaanii kunuunsuuf kutannoo qabna.",
+          message: "Baga gara mana barumsaa Ziquala Aboatti nagaan dhuftan, bakka barachuu fi bilchina daa'imman keenyaa itti dhugoomsuuf hundeeffame. Yeroo mana barumsaa kana hundessinu, hawwiin keenya daa'imman kan itti mul'atan, deeggaraman fi dandeettii isaanii guutuu kan itti gabbifatan uumuufi. Mana barumsaa kitaaba qofa irra darbe — bakka beekumsi itti simatamu, gaarummaan itti baratamuu fi barachuun lubbuu itti horatu uumuuf yaadnee. Barattoonni keenya amantii fi naamusa qabaniin yommuu guddatan arguun milkii keenya isa guddaadha, nutis tokkoon tokkoon isaanii kunuunsuuf kutannoo qabna.",
           img: "/school.png",
         },
         aberash: {
@@ -712,7 +713,7 @@ const translations: Record<Language, TranslationSchema> = {
         yodit: {
           name: "Addee YODIT YOHANNIS",
           role: "Daarektara Mana Barumsaa",
-          message: "Gara mana barumsaa Abdi Adamaatti isan simachuu kootiif gammachuu guddaatu natti dhaga'ama, bakka tokkoon tokkoon barataa kunuunsa, kabajaa fi eeggannoo olaanaadhaan itti qajeelfamu. Kaayyoon keenya haala barachuu nageenya qabu uumuudhaan barataan hundi gama barnootaa, hawaasummaa fi miiraatiin akka guddatu gochuudha. Barattoonni carraa gaarii akka argataniif maatii fi barsiisota keenya waliin dhiyoon hojjenna. Galatoomaa miseensa hawaasa keenyaa ta'uu keessaniif. Waliin ta'uun gara fuulduraa ifaa ijaaruuf hawwiidhaan eegganna.",
+          message: "Gara mana barumsaa Ziquala Aboatti isan simachuu kootiif gammachuu guddaatu natti dhaga'ama, bakka tokkoon tokkoon barataa kunuunsa, kabajaa fi eeggannoo olaanaadhaan itti qajeelfamu. Kaayyoon keenya haala barachuu nageenya qabu uumuudhaan barataan hundi gama barnootaa, hawaasummaa fi miiraatiin akka guddatu gochuudha. Barattoonni carraa gaarii akka argataniif maatii fi barsiisota keenya waliin dhiyoon hojjenna. Galatoomaa miseensa hawaasa keenyaa ta'uu keessaniif. Waliin ta'uun gara fuulduraa ifaa ijaaruuf hawwiidhaan eegganna.",
           img: "/school.png",
         },
       },
@@ -722,7 +723,7 @@ const translations: Record<Language, TranslationSchema> = {
         values: {
           integrity: {
             title: "Amanamummaa",
-            desc: "Mana barumsaa Abdi Adamaa keessatti yeroo hundaa waan sirrii ta'e hojjechuu amanna. Hawaasni keenya amanamummaa, itti-gaafatamummaa fi kabaja ni jajjabeessa. Naamusa cimaa jireenya isaanii geggeessu akka ijaarratan barattoota ni gargaarra.",
+            desc: "Mana barumsaa Ziquala Aboa keessatti yeroo hundaa waan sirrii ta'e hojjechuu amanna. Hawaasni keenya amanamummaa, itti-gaafatamummaa fi kabaja ni jajjabeessa. Naamusa cimaa jireenya isaanii geggeessu akka ijaarratan barattoota ni gargaarra.",
           },
           leadership: {
             title: "Geggeessummaa",
@@ -730,7 +731,7 @@ const translations: Record<Language, TranslationSchema> = {
           },
           growth: {
             title: "Guddina & Milkaa'ina",
-            desc: "Milkaa'inni qabxii qofa miti — guddina jireenyati. Abdi Adamaa keessatti barattoonni galma akka kaa'atan, akka hojjetanii fi gufuuwwan irraa akka baratan ni barsiinna.",
+            desc: "Milkaa'inni qabxii qofa miti — guddina jireenyati. Ziquala Aboa keessatti barattoonni galma akka kaa'atan, akka hojjetanii fi gufuuwwan irraa akka baratan ni barsiinna.",
           },
           learning: {
             title: "Barnoota Jireenya Guutuu",
@@ -747,7 +748,7 @@ const translations: Record<Language, TranslationSchema> = {
       },
       promise: {
         title: "Waadaa Maatiif Galle",
-        desc: "Mana Barumsaa Abdi Adamaa yeroo filattan, amantii guddaa akka nu irratti gattan ni hubanna. Daa'imman keessan gama barnootaa, miiraa fi hawaasummaatiin akka guddattu gochuuf naannoo nageenya qabu uumuuf waadaa galla. Qajeelfama maatii waliin hojjechuu amanna, sababni isaas mana barumsaa fi maatiin yoo waliin ta'an barnoonni milkaa'aa ta'a. Ofitti amanamummaa, naamusa fi eenyummaa isaanii akka eeggatan barattoota cinaa ni dhaabbanna. Milkaa'inni daa'imman keessanii galma keenya kan waliiniiti.",
+        desc: "Mana Barumsaa Ziquala Aboa yeroo filattan, amantii guddaa akka nu irratti gattan ni hubanna. Daa'imman keessan gama barnootaa, miiraa fi hawaasummaatiin akka guddattu gochuuf naannoo nageenya qabu uumuuf waadaa galla. Qajeelfama maatii waliin hojjechuu amanna, sababni isaas mana barumsaa fi maatiin yoo waliin ta'an barnoonni milkaa'aa ta'a. Ofitti amanamummaa, naamusa fi eenyummaa isaanii akka eeggatan barattoota cinaa ni dhaabbanna. Milkaa'inni daa'imman keessanii galma keenya kan waliiniiti.",
       },
     },
     programsPage: {

@@ -52,34 +52,34 @@ export const Header = ({ title, onMenuClick }: HeaderProps) => {
     <>
       <header className="h-16 border-b border-slate-200/50 dark:border-slate-800/50 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md flex items-center justify-between px-4 md:px-8 sticky top-0 z-20 transition-colors duration-300">
         {/* Left: Menu + Title */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 md:gap-4 min-w-0 shrink">
           <button
             onClick={onMenuClick}
-            className="p-2 -ml-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg lg:hidden"
+            className="p-2 -ml-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg lg:hidden shrink-0"
             aria-label="Open Menu"
           >
             <Menu size={24} />
           </button>
-          <h1 className="text-lg md:text-xl font-black text-slate-900 dark:text-white tracking-tight truncate max-w-[150px] sm:max-w-none">
+          <h1 className="text-base sm:text-lg md:text-xl font-black text-slate-900 dark:text-white tracking-tight truncate min-w-0">
             {title}
           </h1>
           {selectedBranch && role === 'super-admin' && (
-            <span className="hidden sm:inline-block bg-school-primary/10 text-school-primary px-3 py-1 rounded-full text-xs font-bold border border-school-primary/20">
+            <span className="hidden md:inline-flex shrink-0 bg-school-primary/10 text-school-primary px-3 py-1 rounded-full text-xs font-bold border border-school-primary/20 whitespace-nowrap">
               {t('header.branch')} {selectedBranch.name}
             </span>
           )}
         </div>
 
         {/* Right: Controls */}
-        <div className="flex items-center gap-1 md:gap-3">
+        <div className="flex items-center gap-1 md:gap-3 shrink-0">
           {/* Search — hidden on xs */}
-          <div className={cn("relative group hidden sm:block", isExamLockedDown && "opacity-50 pointer-events-none")}>
+          <div className={cn("relative group hidden sm:block shrink min-w-0", isExamLockedDown && "opacity-50 pointer-events-none")}>
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" size={16} />
             <input
               type="text"
               placeholder={t('header.search')}
               disabled={isExamLockedDown}
-              className="pl-9 pr-4 py-1.5 bg-slate-100 dark:bg-slate-800 dark:text-slate-100 border-none rounded-full text-xs focus:ring-2 focus:ring-blue-500 outline-none w-32 md:w-48 xl:w-64"
+              className="pl-9 pr-4 py-1.5 bg-slate-100 dark:bg-slate-800 dark:text-slate-100 border-none rounded-full text-xs focus:ring-2 focus:ring-blue-500 outline-none w-24 md:w-36 lg:w-48 xl:w-56 shrink min-w-0"
             />
           </div>
 
@@ -129,27 +129,27 @@ export const Header = ({ title, onMenuClick }: HeaderProps) => {
           </button>
 
           {/* User Profile + Role Switcher */}
-          <div className="relative pl-3 border-l border-slate-200 dark:border-slate-800">
+          <div className="relative pl-3 border-l border-slate-200 dark:border-slate-800 shrink-0">
             {/* Trigger */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="flex items-center gap-2 md:gap-3 p-1.5 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              className="flex items-center gap-2 md:gap-3 p-1.5 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0"
             >
-              <div className="text-right hidden sm:block">
-                <p className="text-sm font-black text-slate-900 dark:text-white leading-tight">
+              <div className="text-right hidden sm:block min-w-0">
+                <p className="text-xs md:text-sm font-black text-slate-900 dark:text-white leading-tight truncate max-w-[120px] md:max-w-[180px] lg:max-w-[220px]">
                   {user?.name || t('header.guest')}
                 </p>
                 <div className="flex items-center justify-end gap-1">
-                  <p className="text-[10px] font-bold text-school-primary uppercase tracking-widest">
-                    {role?.replace(/-/g, ' ')}
+                  <p className="text-[10px] md:text-xs font-bold text-school-primary uppercase tracking-widest whitespace-nowrap">
+                    {t(`roles.${role || ''}`, (role || '').replace(/-/g, ' '))}
                   </p>
                   <ChevronDown
-                    size={10}
-                    className={cn("text-slate-400 transition-transform duration-200", isMenuOpen && "rotate-180")}
+                    size={12}
+                    className={cn("text-slate-400 shrink-0 transition-transform duration-200", isMenuOpen && "rotate-180")}
                   />
                 </div>
               </div>
-              <div className="w-9 h-9 md:w-10 md:h-10 bg-gradient-to-br from-school-primary to-school-accent rounded-xl flex items-center justify-center text-white shadow-lg shadow-school-primary/20">
+              <div className="w-9 h-9 md:w-10 md:h-10 bg-gradient-to-br from-school-primary to-school-accent rounded-xl flex items-center justify-center text-white shadow-lg shadow-school-primary/20 shrink-0">
                 <User size={18} />
               </div>
             </button>
@@ -166,8 +166,8 @@ export const Header = ({ title, onMenuClick }: HeaderProps) => {
                   <div className="px-5 pt-4 pb-3 bg-gradient-to-br from-school-primary/5 to-school-accent/5 border-b border-slate-100 dark:border-slate-800">
                     <p className="text-xs font-black text-slate-700 dark:text-slate-200">{user?.name}</p>
                     <p className="text-[10px] text-slate-400 mt-0.5 truncate">{user?.email}</p>
-                    <span className="inline-block mt-1.5 px-2 py-0.5 bg-school-primary/10 text-school-primary rounded-full text-[10px] font-bold uppercase tracking-wide">
-                      {role?.replace(/-/g, ' ')}
+                    <span className="inline-block mt-1.5 px-2 py-0.5 bg-school-primary/10 text-school-primary rounded-full text-[10px] font-bold uppercase tracking-wide whitespace-nowrap">
+                      {t(`roles.${role || ''}`, (role || '').replace(/-/g, ' '))}
                     </span>
                   </div>
 

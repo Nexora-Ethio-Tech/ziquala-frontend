@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { BookOpen, Plus, Edit2, Trash2, X } from 'lucide-react';
 import subjectService, { Subject, CreateSubjectData, UpdateSubjectData } from '../services/subjectService';
 
 const Subjects: React.FC = () => {
+  const { t } = useTranslation();
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -105,15 +107,15 @@ const Subjects: React.FC = () => {
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Subjects</h1>
-          <p className="text-gray-600">Manage subjects for your branch</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('subjects.title', 'Subjects')}</h1>
+          <p className="text-gray-600">{t('subjects.subtitle', 'Manage subjects for your branch')}</p>
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
         >
           <Plus className="w-5 h-5" />
-          Add Subject
+          {t('subjects.addSubject', 'Add Subject')}
         </button>
       </div>
 

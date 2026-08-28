@@ -66,7 +66,7 @@ export default function About() {
                         >
                             <div className="space-y-4 pt-12">
                                 <div className="h-64 rounded-3xl overflow-hidden shadow-2xl border-2 border-white dark:border-slate-800 group">
-                                    <img src={founderImg} alt="Ato Girma Lemi - Founder" className="w-full h-full object-cover object-top group-hover:scale-110 transition-transform duration-700" />
+                                    <img src={founderImg} alt="Ziquala Abo School Founders - Founder" className="w-full h-full object-cover object-top group-hover:scale-110 transition-transform duration-700" />
                                 </div>
                                 <div className="bg-school-primary p-8 rounded-3xl text-white shadow-2xl transform hover:-translate-y-2 transition-all">
                                     <h4 className="font-black text-4xl">20+</h4>

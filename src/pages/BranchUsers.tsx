@@ -77,6 +77,7 @@ export const BranchUsers = () => {
             <option value="student">Student</option>
             <option value="parent">Parent</option>
             <option value="librarian">Librarian</option>
+            <option value="storekeeper">Storekeeper</option>
           </select>
 
           <select

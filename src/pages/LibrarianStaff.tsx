@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { UserPlus, X, Check, ArrowLeft, MoreVertical, CheckCircle, XCircle, Trash2, Printer, Clock, Edit2, Loader2, FileText, Download, Upload } from 'lucide-react';
 import PhoneInput from '../components/PhoneInput';
 import { formatEthiopianLabel } from '../utils/ethiopianCalendar';
@@ -10,9 +11,10 @@ import { StaffProfileModal } from '../components/StaffProfileModal';
 import api from '../services/api';
 
 export const LibrarianStaff = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { role } = useUser();
-  const isAdmin = role === 'school-admin' || role === 'super-admin';
+  const isAdmin = role === 'school-admin' || role === 'super-admin' || role === 'academic-manager';
 
   const [librarianStaff, setLibrarianStaff] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -295,7 +297,8 @@ export const LibrarianStaff = () => {
       setShowAddModal(false);
       fetchLibrarianStaff();
     } catch (err: any) {
-      alert(err.response?.data?.error?.message || 'Failed to create librarian account');
+      const serverMsg = err.response?.data?.error?.details || err.response?.data?.error?.message || 'Failed to create librarian account';
+      alert(`Registration Error: ${serverMsg}`);
     } finally {
       setCreating(false);
     }
@@ -314,7 +317,7 @@ export const LibrarianStaff = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <button
             onClick={() => navigate(-1)}
@@ -325,17 +328,17 @@ export const LibrarianStaff = () => {
           </button>
           <div>
             <h1 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white">
-              Librarian Staff Management
+              {t("librarian.managementTitle", "Librarian Staff Management")}
             </h1>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-              Approve, manage, or delete librarian accounts
+              {t("librarian.managementSubtitle", "Approve, manage, or delete librarian accounts")}
             </p>
           </div>
         </div>
         {isAdmin && (
           <button
             onClick={() => setShowAddModal(true)}
-            className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors font-medium"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-emerald-600 text-white px-4 py-2.5 rounded-xl hover:bg-emerald-700 transition-colors font-medium shadow-md"
           >
             <UserPlus size={18} />
             Add Librarian
@@ -359,8 +362,8 @@ export const LibrarianStaff = () => {
         ) : librarianStaff.length === 0 ? (
           <div className="flex items-center justify-center p-8 text-center">
             <div>
-              <div className="text-slate-500 text-sm font-medium">No librarian staff found</div>
-              <p className="text-slate-400 text-xs mt-1">Create your first librarian account to get started</p>
+              <div className="text-slate-500 text-sm font-medium">{t("librarian.noStaffFound", "No librarian staff found")}</div>
+              <p className="text-slate-400 text-xs mt-1">{t("librarian.createFirstAccount", "Create your first librarian account to get started")}</p>
             </div>
           </div>
         ) : (
@@ -368,11 +371,11 @@ export const LibrarianStaff = () => {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50">
-                  <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">Name</th>
-                  <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">Email</th>
-                  <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">Digital ID</th>
-                  <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">Status</th>
-                  <th className="px-6 py-3 text-center text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">Actions</th>
+                  <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">{t("librarian.name", "Name")}</th>
+                  <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">{t("librarian.email", "Email")}</th>
+                  <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">{t("librarian.digitalId", "Digital ID")}</th>
+                  <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">{t("librarian.status", "Status")}</th>
+                  <th className="px-6 py-3 text-center text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">{t("librarian.actions", "Actions")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -461,7 +464,7 @@ export const LibrarianStaff = () => {
                 <div className="p-2 bg-emerald-100 text-emerald-600 rounded-lg">
                   <UserPlus size={20} />
                 </div>
-                <h3 className="font-bold text-slate-800 dark:text-slate-100">Add New Librarian</h3>
+                <h3 className="font-bold text-slate-800 dark:text-slate-100">{t("librarian.addNewLibrarian", "Add New Librarian")}</h3>
               </div>
               <button
                 type="button"
@@ -475,7 +478,7 @@ export const LibrarianStaff = () => {
 
             <form onSubmit={handleAddLibrarian} className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Full Name</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{t("librarian.fullName", "Full Name")}</label>
                 <input
                   type="text"
                   title="Librarian full name"
@@ -483,34 +486,34 @@ export const LibrarianStaff = () => {
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value.replace(/[^a-zA-Z\u00C0-\u024F\s'-]/g, '') })}
                   onBlur={(e) => { const c = e.target.value.trim().split(/\s+/).filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' '); setFormData({ ...formData, name: c }); }}
-                  placeholder="e.g. John Doe"
+                  placeholder={t("teachers.librarianNamePlaceholder", "e.g. John Doe")}
                   className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">School Email</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{t("librarian.schoolEmail", "School Email")}</label>
                 <input
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  placeholder="e.g. john@school.com"
+                  placeholder={t("teachers.schoolEmailPlaceholder", "e.g. john@school.com")}
                   className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500"
                   required
                 />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <PhoneInput
-                  label="Phone Number"
+                  label={t("librarian.phoneNumber", "Phone Number")}
                   value={formData.phoneNumber}
                   onChange={(val) => setFormData({ ...formData, phoneNumber: val })}
                   error={phoneError}
                 />
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Emergency Contact Name</label>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">{t("librarian.emergencyContactName", "Emergency Contact Name")}</label>
                   <input
                     type="text"
                     title="Emergency contact person's name"
-                    placeholder="Enter emergency contact name"
+                    placeholder={t("teachers.emergencyContactPlaceholderLib", "Emergency contact name")}
                     required
                     value={formData.emergencyContactName}
                     onChange={(e) => setFormData({ ...formData, emergencyContactName: e.target.value.replace(/[^a-zA-Z\u00C0-\u024F\s'-]/g, '') })}
@@ -519,27 +522,27 @@ export const LibrarianStaff = () => {
                   />
                 </div>
                 <PhoneInput
-                  label="Emergency Contact Phone"
+                  label={t("librarian.emergencyContactPhone", "Emergency Contact Phone")}
                   value={formData.emergencyContactPhone}
                   onChange={(val) => setFormData({ ...formData, emergencyContactPhone: val })}
                   error={emergencyPhoneError}
                 />
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Education Status</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{t("librarian.educationStatus", "Education Status")}</label>
                   <select title="Select education level" value={formData.educationLevel} onChange={(e) => setFormData({ ...formData, educationLevel: e.target.value })} className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none">
-                    <option value="">Select level</option>
-                    <option value="Diploma">Diploma</option>
-                    <option value="Degree">Degree</option>
-                    <option value="Master">Master</option>
-                    <option value="PhD">PhD</option>
+                    <option value="">{t("librarian.selectLevel", "Select level")}</option>
+                    <option value="Diploma">{t("teachers.diploma", "Diploma")}</option>
+                    <option value="Degree">{t("teachers.degree", "Degree")}</option>
+                    <option value="Master">{t("teachers.master", "Master")}</option>
+                    <option value="PhD">{t("teachers.phd", "PhD")}</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Specialty / Course</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{t("librarian.specialtyCourse", "Specialty / Course")}</label>
                   <input
                     type="text"
                     title="Librarian specialty or course"
-                    placeholder="Enter specialty or course"
+                    placeholder={t("teachers.specialtyPlaceholderLib", "Enter specialty or course")}
                     required
                     value={formData.specialty}
                     onChange={(e) => setFormData({ ...formData, specialty: e.target.value.replace(/[^a-zA-Z\u00C0-\u024F\s'-]/g, '') })}
@@ -548,18 +551,18 @@ export const LibrarianStaff = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Date of Birth</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{t("librarian.dateOfBirth", "Date of Birth")}</label>
                   <EthiopianDatePicker
                     value={formData.dob}
                     onChange={(val) => setFormData({ ...formData, dob: val })}
                   />
                 </div>
                 <div className="sm:col-span-2">
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Previous School</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{t("librarian.previousSchool", "Previous School")}</label>
                   <input
                     type="text"
                     title="Previous educational institution"
-                    placeholder="Enter previous school name"
+                    placeholder={t("teachers.previousSchoolPlaceholder", "Previous school name")}
                     required
                     value={formData.previousSchool}
                     onChange={(e) => setFormData({ ...formData, previousSchool: e.target.value.replace(/[^a-zA-Z\u00C0-\u024F\s'-]/g, '') })}
@@ -568,12 +571,12 @@ export const LibrarianStaff = () => {
                   />
                 </div>
                 <div className="sm:col-span-2">
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Experience (Years)</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{t("librarian.experienceYears", "Experience (Years)")}</label>
                   <input
                     type="text"
                     inputMode="numeric"
                     title="Years of professional experience"
-                    placeholder="Enter years of experience"
+                    placeholder={t("teachers.experiencePlaceholderLib", "Years of experience")}
                     required
                     value={formData.experienceYears}
                     onChange={(e) => setFormData({ ...formData, experienceYears: e.target.value.replace(/[^0-9]/g, '') })}
@@ -582,7 +585,7 @@ export const LibrarianStaff = () => {
                 </div>
                 <div className="sm:col-span-2">
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                    Staff Document (Mandatory, PDF or Image, max 2MB)
+                    {t("librarian.staffDocument", "Staff Document (Mandatory, PDF or Image, max 2MB)")}
                   </label>
                   <input
                     type="file"
@@ -617,7 +620,7 @@ export const LibrarianStaff = () => {
                   disabled={creating}
                   className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-medium transition-colors disabled:opacity-50"
                 >
-                  {creating ? 'Creating...' : 'Create'}
+                  {creating ? t('librarian.creating', 'Creating...') : t('librarian.create', 'Create')}
                 </button>
               </div>
             </form>
@@ -752,7 +755,7 @@ export const LibrarianStaff = () => {
             <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-blue-100 text-blue-600 rounded-lg"><Edit2 size={20} /></div>
-                <h3 className="font-bold text-slate-800 dark:text-slate-100">Edit Librarian</h3>
+                <h3 className="font-bold text-slate-800 dark:text-slate-100">{t('librarian.editLibrarian', 'Edit Librarian')}</h3>
               </div>
               <button
                 type="button"

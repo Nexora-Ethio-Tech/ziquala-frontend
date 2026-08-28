@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Users, GraduationCap, Clock, ChevronRight, BarChart3, Lock, CheckCircle2, Unlock, BookOpen } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import { useState, useEffect } from 'react';
@@ -14,6 +15,7 @@ const StatCard = ({ icon: Icon, label, value, color }: any) => (
 );
 
 export const VicePrincipalDashboard = () => {
+  const { t } = useTranslation();
   const { user } = useUser();
   const [dashboard, setDashboard] = useState<any>(null);
   const [staffAbsentCount, setStaffAbsentCount] = useState<number | null>(null);
@@ -63,12 +65,12 @@ export const VicePrincipalDashboard = () => {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(99,102,241,0.2),_transparent_50%)]" />
         <div className="absolute top-0 right-0 w-80 h-80 bg-white/5 rounded-full blur-3xl transform translate-x-20 -translate-y-20"></div>
         <div className="relative z-10">
-          <p className="text-xs font-black uppercase tracking-[0.25em] text-indigo-400 mb-2">Vice Principal Portal</p>
+          <p className="text-xs font-black uppercase tracking-[0.25em] text-indigo-400 mb-2">{t("vp.portal", "Vice Principal Portal")}</p>
           <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight">
-            Academic Oversight, <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-cyan-400 to-indigo-300">VP {user?.name?.split(' ')[0]}</span>
+            {t("vp.academicOversight", { name: user?.name?.split(" ")[0] || "", defaultValue: `Academic Oversight, VP ${user?.name?.split(" ")[0] || ""}` })}
           </h1>
           <p className="text-slate-400 text-sm mt-3 max-w-2xl font-medium leading-relaxed">
-            Monitor branch attendance counts and absence escalations with verified data from the database.
+            {t("vp.portalDesc", "Monitor branch attendance counts and absence escalations with verified data from the database.")}
           </p>
         </div>
       </section>
@@ -78,7 +80,7 @@ export const VicePrincipalDashboard = () => {
         <Link to="/vp-attendance" className="block">
           <StatCard
             icon={Users}
-            label="Pending Absences"
+            label={t("vp.pendingAbsences", "Pending Absences")}
             value={staffAbsentCount != null ? staffAbsentCount : dashboard?.pendingAbsencesCount ?? '-'}
             color="bg-rose-600 shadow-lg shadow-rose-600/10"
           />
@@ -86,7 +88,7 @@ export const VicePrincipalDashboard = () => {
         <Link to="/vp-attendance" className="block">
           <StatCard
             icon={Clock}
-            label="Today's Attendance"
+            label={t("vp.todayAttendance", "Today's Attendance")}
             value={dashboard?.todayAttendanceRate != null ? `${dashboard.todayAttendanceRate.toFixed(1)}%` : '-'}
             color="bg-emerald-600 shadow-lg shadow-emerald-600/10"
           />
@@ -96,18 +98,18 @@ export const VicePrincipalDashboard = () => {
       <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-3xl border border-slate-100 dark:border-slate-800/80 shadow-sm p-6">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="font-bold text-slate-800 dark:text-white text-lg">Staff Absence Summary</h3>
+            <h3 className="font-bold text-slate-800 dark:text-white text-lg">{t("vp.staffAbsenceSummary", "Staff Absence Summary")}</h3>
             <p className="text-xs text-slate-500 mt-1">
               {staffAbsentCount != null
-                ? `${staffAbsentCount} staff member(s) have not checked in today`
-                : 'Calculating absent staff...'}
+                ? t("vp.staffAbsentCount", { count: staffAbsentCount, defaultValue: `${staffAbsentCount} staff member(s) have not checked in today` })
+                : t("vp.calculatingAbsent", "Calculating absent staff...")}
             </p>
           </div>
           <Link
             to="/vp-attendance"
             className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-sm font-bold transition-all"
           >
-            View Details
+            {t("vp.viewDetails", "View Details")}
           </Link>
         </div>
       </div>
@@ -123,8 +125,8 @@ export const VicePrincipalDashboard = () => {
             </div>
             <ChevronRight className="group-hover:translate-x-1.5 transition-transform" size={20} />
           </div>
-          <h3 className="font-bold text-lg mb-1">Attendance Oversight</h3>
-          <p className="text-emerald-50/90 text-sm font-medium">Audit daily student presence matrices</p>
+          <h3 className="font-bold text-lg mb-1">{t("vp.attendanceOversight", "Attendance Oversight")}</h3>
+          <p className="text-emerald-50/90 text-sm font-medium">{t("vp.attendanceOversightDesc", "Audit daily student presence matrices")}</p>
         </Link>
 
         <Link
@@ -137,8 +139,8 @@ export const VicePrincipalDashboard = () => {
             </div>
             <ChevronRight className="group-hover:translate-x-1.5 transition-transform" size={20} />
           </div>
-          <h3 className="font-bold text-lg mb-1">Grade Management</h3>
-          <p className="text-blue-50/90 text-sm font-medium">Process and view student grades by section</p>
+          <h3 className="font-bold text-lg mb-1">{t("vp.gradeManagement", "Grade Management")}</h3>
+          <p className="text-blue-50/90 text-sm font-medium">{t("vp.gradeManagementDesc", "Process and view student grades by section")}</p>
         </Link>
 
         <Link
@@ -151,8 +153,8 @@ export const VicePrincipalDashboard = () => {
             </div>
             <ChevronRight className="group-hover:translate-x-1.5 transition-transform" size={20} />
           </div>
-          <h3 className="font-bold text-lg mb-1">Transcripts & Record Archive</h3>
-          <p className="text-indigo-50/90 text-sm font-medium">Verify student histories and transcripts</p>
+          <h3 className="font-bold text-lg mb-1">{t("vp.transcriptsArchive", "Transcripts & Record Archive")}</h3>
+          <p className="text-indigo-50/90 text-sm font-medium">{t("vp.transcriptsArchiveDesc", "Verify student histories and transcripts")}</p>
         </Link>
 
         <Link
@@ -165,8 +167,8 @@ export const VicePrincipalDashboard = () => {
             </div>
             <ChevronRight className="group-hover:translate-x-1.5 transition-transform" size={20} />
           </div>
-          <h3 className="font-bold text-lg mb-1">Communication Book</h3>
-          <p className="text-violet-50/90 text-sm font-medium">Audit weekly parent logs status</p>
+          <h3 className="font-bold text-lg mb-1">{t("vp.communicationBook", "Communication Book")}</h3>
+          <p className="text-violet-50/90 text-sm font-medium">{t("vp.communicationBookDesc", "Audit weekly parent logs status")}</p>
         </Link>
       </div>
 

@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UserPlus, RefreshCw, Upload, Search, CheckCircle, AlertCircle, FileText, Info, Check, X, HeartPulse, Mail, MapPin, Shield, AlertTriangle, Clock, ChevronDown, ChevronUp } from 'lucide-react';
+import { UserPlus, User, RefreshCw, Upload, Search, CheckCircle, AlertCircle, FileText, Info, Check, X, HeartPulse, Mail, MapPin, Shield, AlertTriangle, Clock, ChevronDown, ChevronUp, Eye, EyeOff } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import { useTranslation } from 'react-i18next';
 import {
@@ -10,9 +10,12 @@ import {
   createPendingApplication,
   createPublicPendingApplication,
   registerUser,
-  toggleRegistration
+  linkParentStudent,
+  toggleRegistration,
+  completeEnrollment
 } from '../services/schoolAdminService';
 import api from '../services/api';
+import { API_HOST_URL } from '../config/api';
 import { EthiopianDatePicker } from './EthiopianDatePicker';
 import { ethiopianToGregorianIso, gregorianToEthiopian, formatEthiopianDateOnly } from '../utils/ethiopianCalendar';
 import { ziqualaBranches } from '../data/ziqualaContent';
@@ -45,6 +48,19 @@ interface PendingApp {
   transcriptFileSize: number | null;
 
   removalReason?: string | null;
+  fatherName?: string;
+  fatherOccupation?: string;
+  fatherPhone?: string;
+  motherName?: string;
+  motherOccupation?: string;
+  motherPhone?: string;
+  placeOfBirth?: string;
+  cardAge?: string;
+  kebele?: string;
+  ketena?: string;
+  houseNo?: string;
+  dateRegistered?: string;
+  religion?: string;
 }
 
 const displayValue = (value?: string | null) => {
@@ -54,27 +70,40 @@ const displayValue = (value?: string | null) => {
 
 const mapApiApplicationToPendingApp = (app: any): PendingApp => ({
   id: app.id,
-  name: app.applicant_name || 'Unknown',
+  name: app.name || app.applicant_name || app.student_name || app.full_name || 'Unknown',
   dob: app.dob ? new Date(app.dob).toISOString().split('T')[0] : '',
   gender: app.gender || '',
   digitalId: app.digital_id || '',
-  parentName: app.parent_name || 'N/A',
-  phone: app.applicant_phone || app.parent_phone || 'N/A',
-  parentPhone: app.parent_phone || app.applicant_phone || 'N/A',
-  email: app.applicant_email || '',
+  parentName: app.parent_name || app.father_name || 'N/A',
+  phone: app.parent_phone || app.applicant_phone || app.father_phone || 'N/A',
+  parentPhone: app.parent_phone || app.applicant_phone || app.father_phone || 'N/A',
+  email: app.email || app.applicant_email || '',
   address: app.address || '',
   previousSchool: app.previous_school || '',
-  lastGrade: app.grade_applying || 'N/A',
+  lastGrade: app.grade || app.grade_applying || 'N/A',
   date: app.created_at ? formatEthiopianDateOnly(new Date(app.created_at)) : '',
   status: app.status as AppStatus,
   bloodGroup: app.blood_group || '',
   allergies: app.allergies || '',
   chronicConditions: app.chronic_conditions || '',
-  medications: app.current_medications || '',
+  medications: app.medications || app.current_medications || '',
   notes: app.notes || '',
   transcriptFileName: app.transcript_file_name || '',
   transcriptFileSize: app.transcript_file_size != null ? Number(app.transcript_file_size) : null,
   removalReason: app.return_reason || app.removal_reason || null,
+  fatherName: app.father_name || app.parent_name || '',
+  fatherOccupation: app.father_occupation || '',
+  fatherPhone: app.father_phone || app.parent_phone || app.applicant_phone || '',
+  motherName: app.mother_name || '',
+  motherOccupation: app.mother_occupation || '',
+  motherPhone: app.mother_phone || '',
+  placeOfBirth: app.place_of_birth || '',
+  cardAge: app.card_age || '',
+  kebele: app.kebele || '',
+  ketena: app.ketena || '',
+  houseNo: app.house_no || '',
+  dateRegistered: app.date_registered || '',
+  religion: app.religion || '',
 });
 
 interface StudentRegistrationProps {
@@ -157,13 +186,17 @@ function validateRegistrationStep(step: number, formData: any): ValidationErrors
       errors.gender = 'Gender is required';
     }
   } else if (step === 2) {
-    if (!formData.parentName || !formData.parentName.trim()) {
-      errors.parentName = 'Parent/Guardian Name is required';
+    const fatherNameVal = formData.fatherName || formData.parentName;
+    if (!fatherNameVal || !fatherNameVal.trim()) {
+      errors.fatherName = "Father's Full Name is required";
+
     }
-    if (!formData.phone || !formData.phone.trim()) {
-      errors.phone = 'Parent Phone is required';
+    const fatherPhoneVal = formData.fatherPhone || formData.phone;
+    if (!fatherPhoneVal || !fatherPhoneVal.trim()) {
+      errors.fatherPhone = "Father's Phone is required";
+
     } else {
-      const phoneValidation = validatePhoneNumber(formData.phone);
+      const phoneValidation = validatePhoneNumber(fatherPhoneVal);
       if (!phoneValidation.isValid) {
         errors.phone = phoneValidation.error || 'Invalid phone number';
       }
@@ -188,7 +221,7 @@ const initialPendingApplications: PendingApp[] = [];
 export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRegistrationProps) => {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { role, user, registrationOpen, setRegistrationOpen } = useUser();
+  const { role, user, selectedBranch, branches, registrationOpen, setRegistrationOpen } = useUser();
   const isAcademicAdmin = role === 'super-admin' || role === 'academic-manager' || role === 'school-admin';
   const formRef = useRef<HTMLFormElement>(null);
   // Track if showing the active application error (NOT permanently blocking all submissions)
@@ -217,11 +250,42 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
   const [showGradeModal, setShowGradeModal] = useState(false);
   const [selectedAppForGrade, setSelectedAppForGrade] = useState<string | null>(null);
   const [selectedGrade, setSelectedGrade] = useState<string | null>(null);
-  const [branchesList] = useState<{ id: string; name: string }[]>(() =>
+  const [branchesList, setBranchesList] = useState<{ id: string; name: string }[]>(() =>
     ziqualaBranches.map(({ id, name }) => ({ id, name })),
   );
   const [selectedBranchName, setSelectedBranchName] = useState('');
   const [expandedAppIds, setExpandedAppIds] = useState<Record<string, boolean>>({});
+  const [credentialsModal, setCredentialsModal] = useState<{
+    studentName: string;
+    studentGrade: string;
+    studentDigitalId: string;
+    studentPin: string;
+    parentName: string;
+    parentDigitalId: string;
+    parentPin: string;
+    phone?: string;
+  } | null>(null);
+
+  // Approve Payment & Generate Credentials modal state
+  const [showApprovalModal, setShowApprovalModal] = useState(false);
+  const [appForApproval, setAppForApproval] = useState<PendingApp | null>(null);
+  const [approvalForm, setApprovalForm] = useState({ parentDigitalId: '', reference: '' });
+  const [approving, setApproving] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [copiedLabel, setCopiedLabel] = useState<string | null>(null);
+
+  const copyText = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedLabel(label);
+    setTimeout(() => setCopiedLabel(null), 2000);
+  };
+
+  // Sync branches from context when available
+  useEffect(() => {
+    if (branches && branches.length > 0) {
+      setBranchesList(branches.map(b => ({ id: b.id, name: b.name })));
+    }
+  }, [branches]);
 
   // Toggle registration open/closed — persists to backend
   const handleToggleRegistration = async (newValue: boolean) => {
@@ -239,17 +303,24 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
 
   // Automatically select branch for logged in School Admin / Super Admin
   useEffect(() => {
-    if (user && (user.role === 'school-admin' || user.role === 'super-admin')) {
-      if ((user as any).branchName && (user as any).branchName !== 'My Branch') {
-        setSelectedBranchName((user as any).branchName);
-      } else if (branchesList.length > 0 && (user as any).branchId) {
-        const adminBranch = branchesList.find(b => b.id === (user as any).branchId);
-        if (adminBranch) {
-          setSelectedBranchName(adminBranch.name);
+    if (user) {
+      const adminBranchName = (user as any).branchName || selectedBranch?.name;
+      const adminBranchId = (user as any).branchId || selectedBranch?.id;
+
+      if (adminBranchName && adminBranchName !== 'My Branch') {
+        setSelectedBranchName(adminBranchName);
+      } else if (adminBranchId) {
+        const found = (branchesList.length > 0 ? branchesList : (branches || [])).find(b => b.id === adminBranchId);
+        if (found) {
+          setSelectedBranchName(found.name);
+        } else if (branchesList.length > 0) {
+          setSelectedBranchName(branchesList[0].name);
         }
+      } else if (branchesList.length > 0) {
+        setSelectedBranchName(branchesList[0].name);
       }
     }
-  }, [user, branchesList]);
+  }, [user, selectedBranch, branches, branchesList]);
 
   useEffect(() => {
     if (isAdminView) {
@@ -342,11 +413,24 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
     const formData = new FormData(form);
     const currentStepData = {
       name: formData.get('name'),
-      digital_id: formData.get('digital_id'),
+      placeOfBirth: formData.get('placeOfBirth'),
+      religion: formData.get('religion'),
+      fatherName: formData.get('fatherName'),
+      fatherOccupation: formData.get('fatherOccupation'),
+      fatherPhone: formData.get('fatherPhone'),
+      motherName: formData.get('motherName'),
+      motherOccupation: formData.get('motherOccupation'),
+      motherPhone: formData.get('motherPhone'),
+      kebele: formData.get('kebele'),
+      ketena: formData.get('ketena'),
+      houseNo: formData.get('houseNo'),
+      dateRegistered: formData.get('dateRegistered'),
+      parentName: formData.get('fatherName') || formData.get('parentName'),
+      phone: formData.get('fatherPhone') || formData.get('phone'),
       dob: formData.get('dob'),
       gender: formData.get('gender'),
-      parentName: formData.get('parentName'),
-      phone: formData.get('phone'),
+
+
       address: formData.get('address'),
       previousSchool: formData.get('previousSchool'),
       grade: formData.get('grade'),
@@ -405,11 +489,24 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
     try {
       const formData = new FormData(e.currentTarget);
       const name = formData.get('name') as string;
-      const digital_id = formData.get('digital_id') as string;
+      const placeOfBirth = formData.get('placeOfBirth') as string;
+      const religion = formData.get('religion') as string;
+      const fatherName = formData.get('fatherName') as string;
+      const fatherOccupation = formData.get('fatherOccupation') as string;
+      const fatherPhone = formData.get('fatherPhone') as string;
+      const motherName = formData.get('motherName') as string;
+      const motherOccupation = formData.get('motherOccupation') as string;
+      const motherPhone = formData.get('motherPhone') as string;
+      const kebele = formData.get('kebele') as string;
+      const ketena = formData.get('ketena') as string;
+      const houseNo = formData.get('houseNo') as string;
+      const dateRegistered = formData.get('dateRegistered') as string;
+      const parentName = fatherName || (formData.get('parentName') as string);
+      const phone = fatherPhone || (formData.get('phone') as string);
       const dob = formData.get('dob') as string;
       const gender = formData.get('gender') as string;
-      const parentName = formData.get('parentName') as string;
-      const phone = formData.get('phone') as string;
+
+
       const address = formData.get('address') as string;
       const previousSchool = formData.get('previousSchool') as string;
       const grade = formData.get('grade') as string;
@@ -422,7 +519,18 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
       // Validate all required fields for final submission
       const allFormData = {
         name,
-        digital_id,
+        placeOfBirth,
+        religion,
+        fatherName,
+        fatherOccupation,
+        fatherPhone,
+        motherName,
+        motherOccupation,
+        motherPhone,
+        kebele,
+        ketena,
+        houseNo,
+        dateRegistered,
         dob,
         gender,
         parentName,
@@ -455,7 +563,19 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
       // Create FormData for file upload (only append non-empty values)
       const submitData = new FormData();
       submitData.append('name', toTitleCase(name) || '');
-      submitData.append('digital_id', digital_id?.trim() || '');
+      const formattedFatherPhone = formatPhoneNumber(fatherPhone || phone);
+      submitData.append('fatherName', toTitleCase(fatherName || parentName) || '');
+      submitData.append('fatherPhone', formattedFatherPhone);
+      if (fatherOccupation?.trim()) submitData.append('fatherOccupation', toTitleCase(fatherOccupation.trim()));
+      if (motherName?.trim()) submitData.append('motherName', toTitleCase(motherName.trim()));
+      if (motherOccupation?.trim()) submitData.append('motherOccupation', toTitleCase(motherOccupation.trim()));
+      if (motherPhone?.trim()) submitData.append('motherPhone', formatPhoneNumber(motherPhone));
+      if (placeOfBirth?.trim()) submitData.append('placeOfBirth', toTitleCase(placeOfBirth.trim()));
+      if (kebele?.trim()) submitData.append('kebele', kebele.trim());
+      if (ketena?.trim()) submitData.append('ketena', ketena.trim());
+      if (houseNo?.trim()) submitData.append('houseNo', houseNo.trim());
+      if (dateRegistered?.trim()) submitData.append('dateRegistered', dateRegistered.trim());
+      if (religion?.trim()) submitData.append('religion', toTitleCase(religion.trim()));
       submitData.append('dob', dob || '');
       submitData.append('gender', gender || '');
       submitData.append('parentName', toTitleCase(parentName) || '');
@@ -663,30 +783,66 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
 
 
 
+  const handleOpenApprovalModal = (app: PendingApp) => {
+    setAppForApproval(app);
+    setApprovalForm({ parentDigitalId: '', reference: '' });
+    setShowApprovalModal(true);
+  };
+
+  const handleConfirmApproval = async () => {
+    if (!appForApproval) return;
+    try {
+      setApproving(true);
+      setSubmitError(null);
+
+      const res = await completeEnrollment(appForApproval.id, {
+        parentDigitalId: approvalForm.parentDigitalId || undefined,
+        reference: approvalForm.reference || undefined,
+      });
+
+      if (res?.success && res.data) {
+        const { student, parent, phone } = res.data;
+        setCredentialsModal({
+          studentName: student.name,
+          studentGrade: student.grade,
+          studentDigitalId: student.digitalId,
+          studentPin: student.pin,
+          parentName: parent.name,
+          parentDigitalId: parent.digitalId,
+          parentPin: parent.pin || (parent.isExisting ? '(Linked to Existing Parent Account - Credentials Unchanged)' : 'N/A'),
+          phone: phone || appForApproval.phone || appForApproval.parentPhone || 'N/A',
+        });
+        const targetId = appForApproval.id;
+        setPendingApps(prev => prev.map(a => a.id === targetId ? { ...a, status: 'payment-confirmed' as AppStatus } : a));
+        setSuccessMessage(`${student.name} enrolled successfully.`);
+        if (appForApproval) showPhoneNotice(phone || appForApproval.phone, 'Application approved — officially enrolled');
+
+        setShowApprovalModal(false);
+        setAppForApproval(null);
+        setApprovalForm({ parentDigitalId: '', reference: '' });
+      }
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (err: any) {
+      console.error(err);
+      setSubmitError(err.response?.data?.error?.message || err.response?.data?.message || err.message || 'Failed to complete enrollment');
+      setTimeout(() => setSubmitError(null), 5000);
+    } finally {
+      setApproving(false);
+    }
+  };
+
   const handlePaymentResult = async (appId: string, paid: boolean) => {
     try {
       const app = pendingApps.find(a => a.id === appId);
-      if (paid) {
-        if (app) {
-          // Proactively register user
-          await registerUser({
-            name: app.name,
-            email: app.email,
-            role: 'student',
-            grade: app.lastGrade,
-          });
-        }
-        await updateApplicationStatus(appId, { status: 'payment-confirmed' });
-        setPendingApps(prev => prev.map(a => a.id === appId ? { ...a, status: 'payment-confirmed' as AppStatus } : a));
-        setSuccessMessage(`${app?.name} enrolled successfully.`);
-        if (app) showPhoneNotice(app.phone, 'Application approved — officially enrolled');
-      } else {
+      if (paid && app) {
+        handleOpenApprovalModal(app);
+      } else if (!paid) {
         await updateApplicationStatus(appId, { status: 'declined' });
         setPendingApps(prev => prev.map(a => a.id === appId ? { ...a, status: 'declined' as AppStatus } : a));
         setSuccessMessage(`${app?.name} application closed.`);
         if (app) showPhoneNotice(app.phone, 'Application closed by school administration');
+        setTimeout(() => setSuccessMessage(null), 3000);
       }
-      setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err: any) {
       console.error(err);
       setSubmitError(err.response?.data?.error?.message || err.message);
@@ -867,6 +1023,30 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                           <div><p className="text-[10px] font-bold text-slate-400 uppercase">Fayda ID</p><p className="font-bold dark:text-slate-200 font-mono text-[11px]">{displayValue(app.digitalId)}</p></div>
                         </div>
 
+                        {/* Father & Mother Details */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs pt-3 border-t border-slate-100 dark:border-slate-800">
+                          <div className="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl space-y-1">
+                            <p className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest mb-1">Father's Information</p>
+                            <p className="font-bold dark:text-slate-200">Name: {displayValue(app.fatherName)}</p>
+                            <p className="text-slate-600 dark:text-slate-400">Occupation: {displayValue(app.fatherOccupation)}</p>
+                            <p className="text-slate-600 dark:text-slate-400">Phone: {displayValue(app.fatherPhone)}</p>
+                          </div>
+                          <div className="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl space-y-1">
+                            <p className="text-[10px] font-black text-purple-600 dark:text-purple-400 uppercase tracking-widest mb-1">Mother's Information</p>
+                            <p className="font-bold dark:text-slate-200">Name: {displayValue(app.motherName)}</p>
+                            <p className="text-slate-600 dark:text-slate-400">Occupation: {displayValue(app.motherOccupation)}</p>
+                            <p className="text-slate-600 dark:text-slate-400">Phone: {displayValue(app.motherPhone)}</p>
+                          </div>
+                        </div>
+
+                        {/* Residence & Personal Details */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs pt-3 border-t border-slate-100 dark:border-slate-800">
+                          <div><p className="text-[10px] font-bold text-slate-400 uppercase">Place of Birth</p><p className="font-bold dark:text-slate-200">{displayValue(app.placeOfBirth)}</p></div>
+                          <div><p className="text-[10px] font-bold text-slate-400 uppercase">Card Age</p><p className="font-bold dark:text-slate-200">{displayValue(app.cardAge)}</p></div>
+                          <div><p className="text-[10px] font-bold text-slate-400 uppercase">Religion</p><p className="font-bold dark:text-slate-200">{displayValue(app.religion)}</p></div>
+                          <div><p className="text-[10px] font-bold text-slate-400 uppercase">Kebele / Ketena / House</p><p className="font-bold dark:text-slate-200">{[app.kebele, app.ketena, app.houseNo].filter(Boolean).join(' / ') || '—'}</p></div>
+                        </div>
+
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs pt-2 border-t border-slate-100 dark:border-slate-800">
                           <div><p className="text-[10px] font-bold text-slate-400 uppercase">Parent / Guardian</p><p className="font-bold dark:text-slate-200">{displayValue(app.parentName)}</p></div>
                           <div><p className="text-[10px] font-bold text-slate-400 uppercase">Contact Phone</p><p className="font-bold dark:text-slate-200">{displayValue(app.phone)}</p></div>
@@ -876,7 +1056,25 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs pt-2 border-t border-slate-100 dark:border-slate-800">
                           <div><p className="text-[10px] font-bold text-slate-400 uppercase">Previous School</p><p className="font-bold dark:text-slate-200">{displayValue(app.previousSchool)}</p></div>
                           <div><p className="text-[10px] font-bold text-slate-400 uppercase">Email</p><p className="font-bold dark:text-slate-200 break-all">{displayValue(app.email)}</p></div>
-                          <div className="md:col-span-2"><p className="text-[10px] font-bold text-slate-400 uppercase">Transcript</p><p className="font-bold dark:text-slate-200">{app.transcriptFileName ? `${app.transcriptFileName}${app.transcriptFileSize ? ` (${(app.transcriptFileSize / 1024).toFixed(0)} KB)` : ''}` : '—'}</p></div>
+                          <div className="md:col-span-2">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase">Transcript</p>
+                            {app.transcriptFileName ? (
+                              <div className="flex items-center gap-2 mt-1">
+                                <a
+                                  href={`${API_HOST_URL || ''}/api/school-admin/applications/${app.id}/transcript`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg text-xs font-bold hover:underline"
+                                >
+                                  <FileText size={14} />
+                                  {app.transcriptFileName} {app.transcriptFileSize ? `(${(app.transcriptFileSize / 1024).toFixed(0)} KB)` : ''}
+                                </a>
+                              </div>
+                            ) : (
+                              <p className="font-bold dark:text-slate-200">—</p>
+                            )}
+                          </div>
                         </div>
 
                         {(app.bloodGroup || app.allergies || app.chronicConditions || app.medications) && (
@@ -979,7 +1177,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                 </div>
               </div>
             </div>
-            <form ref={formRef} onSubmit={handleRegister} className="p-6 space-y-6">
+            <form ref={formRef} onSubmit={handleRegister} className="p-4 sm:p-6 space-y-6">
               {activeApplicationError && (
                 <div className="rounded-xl border border-rose-200 bg-rose-50 dark:bg-rose-950/30 dark:border-rose-900/50 p-4 flex gap-3">
                   <AlertTriangle className="text-rose-600 dark:text-rose-400 flex-shrink-0 mt-0.5" size={18} />
@@ -991,153 +1189,46 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                 </div>
               )}
               <div className={`space-y-6 animate-in fade-in slide-in-from-right-4 ${registrationStep !== 1 ? 'hidden' : ''}`}>
+                <h4 className="text-xs font-black text-slate-500 uppercase tracking-wider pb-2 border-b border-slate-100 dark:border-slate-800">
+                  1. Student Information / የተማሪዎች መረጃ
+                </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Row 1: Full Name & Place of Birth */}
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">Full Name <span className="text-rose-500">*</span></label>
-                    <input required name="name" type="text" placeholder="Enter student full name"
+                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
+                      Full Name <span className="text-rose-500">*</span> / የተማሪዎች ስም
+                    </label>
+                    <input
+                      required
+                      name="name"
+                      type="text"
+                      placeholder="Enter student full name"
                       onBlur={(e) => { e.target.value = toTitleCase(e.target.value); }}
                       className={`w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-sm outline-none focus:ring-2 ${validationErrors.name
                         ? 'border-rose-300 focus:ring-rose-500 dark:border-rose-700'
                         : 'border-slate-200 dark:border-slate-700 focus:ring-blue-500'
-                        }`} />
+                        }`}
+                    />
                     {validationErrors.name && <p className="text-[10px] text-rose-500 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {validationErrors.name}</p>}
                   </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">Fayda Alias Number (FAN) <span className="text-slate-400 font-medium">(optional)</span></label>
-                    <input
-                      name="digital_id"
-                      type="text"
-                      inputMode="numeric"
-                      maxLength={16}
-                      placeholder="16-digit number (e.g. 1234567890123456)"
-                      onKeyDown={(e) => {
-                        if (!/^\d$/.test(e.key) && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)) {
-                          e.preventDefault();
-                        }
-                      }}
-                      onChange={(e) => {
-                        e.target.value = e.target.value.replace(/\D/g, '').slice(0, 16);
-                      }}
-                      className={`w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-sm outline-none focus:ring-2 ${validationErrors.digital_id
-                        ? 'border-rose-300 focus:ring-rose-500 dark:border-rose-700'
-                        : 'border-slate-200 dark:border-slate-700 focus:ring-blue-500'
-                        }`} />
-                    <p className="text-[10px] text-slate-400 pl-1">Exactly 16 digits — numbers only (Ethiopia Fayda card alias)</p>
-                    {validationErrors.digital_id && <p className="text-[10px] text-rose-500 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {validationErrors.digital_id}</p>}
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">Date of Birth (Ethiopian Calendar) <span className="text-rose-500">*</span></label>
-                    <EthiopianDatePicker
-                      value={ethiopianDob}
-                      onChange={(val) => setEthiopianDob(val)}
-                      placeholder="e.g. 2010-01-01"
-                      className={validationErrors.dob ? 'border-rose-300 dark:border-rose-700 focus:ring-rose-500' : ''}
-                    />
-                    <input type="hidden" name="dob" value={ethiopianDob ? ethiopianToGregorianIso(ethiopianDob) : ''} />
-                    {validationErrors.dob && <p className="text-[10px] text-rose-500 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {validationErrors.dob}</p>}
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">Gender <span className="text-rose-500">*</span></label>
-                    <select name="gender" title="Gender" aria-label="Gender" className={`w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-sm outline-none focus:ring-2 ${validationErrors.gender
-                      ? 'border-rose-300 focus:ring-rose-500 dark:border-rose-700'
-                      : 'border-slate-200 dark:border-slate-700 focus:ring-blue-500'
-                      }`}>
-                      <option value="">Select Gender</option>
-                      <option>Male</option>
-                      <option>Female</option>
-                    </select>
-                    {validationErrors.gender && <p className="text-[10px] text-rose-500 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {validationErrors.gender}</p>}
-                  </div>
-                </div>
 
-                {/* Optional student wellbeing details */}
-                <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
-                  <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 mb-4">
-                    <HeartPulse size={16} />
-                    Medical Information (Optional)
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase">Blood Group</label>
-                      <select name="bloodGroup" title="Blood Group" aria-label="Blood Group" className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">Select Blood Group</option>
-                        <option>O+</option>
-                        <option>O-</option>
-                        <option>A+</option>
-                        <option>A-</option>
-                        <option>B+</option>
-                        <option>B-</option>
-                        <option>AB+</option>
-                        <option>AB-</option>
-                      </select>
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase">Known Allergies</label>
-                      <input type="text" name="allergies" placeholder="e.g. Peanuts, Dust, None" className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500" />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase">Chronic Conditions</label>
-                      <input type="text" name="chronicConditions" placeholder="e.g. Asthma, Diabetes, None" className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500" />
-                    </div>
-                    <div className="space-y-1 md:col-span-3">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase">Current Home Medications</label>
-                      <input type="text" name="medications" placeholder="List any medications taken at home..." className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className={`space-y-6 animate-in fade-in slide-in-from-right-4 ${registrationStep !== 2 ? 'hidden' : ''}`}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">Parent/Guardian Name <span className="text-rose-500">*</span></label>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
+                      {t('registration.placeOfBirth', 'Place of Birth')} / የትውልድ ቦታ
+                    </label>
                     <input
-                      required
-                      name="parentName"
+                      name="placeOfBirth"
                       type="text"
-                      placeholder="Enter parent name"
+                      placeholder="Place of Birth / የትውልድ ቦታ"
                       onBlur={(e) => { e.target.value = toTitleCase(e.target.value); }}
-                      className={`w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-sm outline-none focus:ring-2 ${validationErrors.parentName
-                        ? 'border-rose-300 focus:ring-rose-500 dark:border-rose-700'
-                        : 'border-slate-200 dark:border-slate-700 focus:ring-blue-500'
-                        }`} />
-                    {validationErrors.parentName && <p className="text-[10px] text-rose-500 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {validationErrors.parentName}</p>}
+                      className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                    />
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">Parent Phone <span className="text-rose-500">*</span></label>
-                    <div className="flex items-center gap-2">
-                      {/* Fixed country code box */}
-                      <div className="flex items-center justify-center px-4 py-2 bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl text-sm font-black text-slate-600 dark:text-slate-300 select-none whitespace-nowrap">
-                        +251
-                      </div>
-                      {/* Local phone number input */}
-                      <input
-                        required
-                        type="tel"
-                        inputMode="numeric"
-                        maxLength={9}
-                        placeholder="9xxxxxxxx"
-                        onChange={(e) => {
-                          e.target.value = e.target.value.replace(/[^\d]/g, '').slice(0, 9);
-                        }}
-                        onKeyDown={(e) => {
-                          if (!/^\d$/.test(e.key) && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)) {
-                            e.preventDefault();
-                          }
-                        }}
-                        name="phone"
-                        className={`flex-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-sm outline-none focus:ring-2 font-bold ${(validationErrors.phone || validationErrors.parentPhone)
-                          ? 'border-rose-300 focus:ring-rose-500 dark:border-rose-700'
-                          : 'border-slate-200 dark:border-slate-700 focus:ring-blue-500'
-                          }`} />
-                    </div>
-                    <p className="text-[10px] text-slate-400 pl-1">Must start with 9 or 7 — 9 digits only</p>
-                    {(validationErrors.phone || validationErrors.parentPhone) && <p className="text-[10px] text-rose-500 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {(validationErrors.phone || validationErrors.parentPhone)}</p>}
-                  </div>
-
-                  <div className="space-y-1 md:col-span-2">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">Address <span className="text-rose-500">*</span></label>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
+                      Current Address <span className="text-rose-500">*</span> / አሁን ያለበት አድራሻ
+                    </label>
                     <input
                       required
                       name="address"
@@ -1147,10 +1238,239 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                       className={`w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-sm outline-none focus:ring-2 ${validationErrors.address
                         ? 'border-rose-300 focus:ring-rose-500 dark:border-rose-700'
                         : 'border-slate-200 dark:border-slate-700 focus:ring-blue-500'
-                        }`} />
+                        }`}
+                    />
                     {validationErrors.address && <p className="text-[10px] text-rose-500 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {validationErrors.address}</p>}
                   </div>
+
+                  {/* Row 2: Date of Birth & Card Age */}
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
+                      Date of Birth (Ethiopian Calendar) <span className="text-rose-500">*</span> / የትውልድ ቀን
+                    </label>
+                    <EthiopianDatePicker
+                      value={ethiopianDob}
+                      onChange={(val) => setEthiopianDob(val)}
+                      placeholder="e.g. 2010-01-01"
+                      className={validationErrors.dob ? 'border-rose-300 dark:border-rose-700 focus:ring-rose-500' : ''}
+                    />
+                    <input type="hidden" name="dob" value={ethiopianDob ? ethiopianToGregorianIso(ethiopianDob) : ''} />
+                    {validationErrors.dob && <p className="text-[10px] text-rose-500 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {validationErrors.dob}</p>}
+                  </div>
+
+                  
+
+                  {/* Row 3: Religion (Dropdown) & Gender (Dropdown) */}
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
+                      {t('registration.religion', 'Religion')} / ሐይማኖት
+                    </label>
+                    <select
+                      name="religion"
+                      title="Religion"
+                      aria-label="Religion"
+                      className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">Select Religion / ሐይማኖት ይምረጡ</option>
+                      <option value="Orthodox">Orthodox / ኦርቶዶክስ</option>
+                      <option value="Muslim">Muslim / ሙስሊም</option>
+                      <option value="Protestant">Protestant / ፕሮቴስታንት</option>
+                      <option value="Catholic">Catholic / ካቶሊክ</option>
+                      <option value="Other">Other / ሌላ</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
+                      Gender <span className="text-rose-500">*</span> / ጾታ
+                    </label>
+                    <select
+                      name="gender"
+                      title="Gender"
+                      aria-label="Gender"
+                      className={`w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-sm outline-none focus:ring-2 ${validationErrors.gender
+                        ? 'border-rose-300 focus:ring-rose-500 dark:border-rose-700'
+                        : 'border-slate-200 dark:border-slate-700 focus:ring-blue-500'
+                        }`}
+                    >
+                      <option value="">Select Gender / ጾታ ይምረጡ</option>
+                      <option value="Male">Male / ወንድ</option>
+                      <option value="Female">Female / ሴት</option>
+                    </select>
+                    {validationErrors.gender && <p className="text-[10px] text-rose-500 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {validationErrors.gender}</p>}
+                  </div>
                 </div>
+              </div>
+
+              <div className={`space-y-6 animate-in fade-in slide-in-from-right-4 ${registrationStep !== 2 ? 'hidden' : ''}`}>
+                {/* Father's Information */}
+                <div className="p-4 rounded-2xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/40 space-y-4">
+                  <h4 className="text-xs font-bold text-blue-700 dark:text-blue-400 uppercase tracking-wider flex items-center gap-2">
+                    <User size={14} /> Father's Details / የአባት መረጃ
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
+                        Father's Full Name <span className="text-rose-500">*</span> / የአባት ሙሉ ስም
+                      </label>
+                      <input
+                        required
+                        name="fatherName"
+                        type="text"
+                        placeholder="Father's Full Name"
+                        onBlur={(e) => { e.target.value = toTitleCase(e.target.value); }}
+                        className={`w-full px-4 py-2 bg-white dark:bg-slate-800 border rounded-xl text-sm outline-none focus:ring-2 ${validationErrors.fatherName
+                          ? 'border-rose-300 focus:ring-rose-500 dark:border-rose-700'
+                          : 'border-slate-200 dark:border-slate-700 focus:ring-blue-500'
+                          }`}
+                      />
+                      {validationErrors.fatherName && <p className="text-[10px] text-rose-500 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {validationErrors.fatherName}</p>}
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase">
+                        Father's Occupation / የአባት ስራ
+                      </label>
+                      <input
+                        name="fatherOccupation"
+                        type="text"
+                        placeholder="e.g. Teacher, Merchant, Engineer"
+                        className="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
+                        Father's Phone / የአባት ስልክ
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center justify-center px-3 py-2 bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl text-xs font-black text-slate-600 dark:text-slate-300 select-none whitespace-nowrap">
+                          +251
+                        </div>
+                        <input
+                          type="tel"
+                          inputMode="numeric"
+                          maxLength={9}
+                          placeholder="9xxxxxxxx"
+                          name="fatherPhone"
+                          onChange={(e) => {
+                            e.target.value = e.target.value.replace(/[^\d]/g, '').slice(0, 9);
+                          }}
+                          className="flex-1 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 font-bold"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Mother's Information */}
+                <div className="p-4 rounded-2xl bg-purple-50/50 dark:bg-purple-950/20 border border-purple-100 dark:border-purple-900/40 space-y-4">
+                  <h4 className="text-xs font-bold text-purple-700 dark:text-purple-400 uppercase tracking-wider flex items-center gap-2">
+                    <User size={14} /> Mother's Details / የእናት መረጃ
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
+                        Mother's Full Name <span className="text-rose-500">*</span> / የእናት ሙሉ ስም
+                      </label>
+                      <input
+                        required
+                        name="motherName"
+                        type="text"
+                        placeholder="Mother's Full Name"
+                        onBlur={(e) => { e.target.value = toTitleCase(e.target.value); }}
+                        className={`w-full px-4 py-2 bg-white dark:bg-slate-800 border rounded-xl text-sm outline-none focus:ring-2 ${validationErrors.motherName
+                          ? 'border-rose-300 focus:ring-rose-500 dark:border-rose-700'
+                          : 'border-slate-200 dark:border-slate-700 focus:ring-blue-500'
+                          }`}
+                      />
+                      {validationErrors.motherName && <p className="text-[10px] text-rose-500 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {validationErrors.motherName}</p>}
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase">
+                        Mother's Occupation / የእናት ስራ
+                      </label>
+                      <input
+                        name="motherOccupation"
+                        type="text"
+                        placeholder="e.g. Accountant, Doctor, Housewife"
+                        className="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
+                        Mother's Phone / የእናት ስልክ
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center justify-center px-3 py-2 bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl text-xs font-black text-slate-600 dark:text-slate-300 select-none whitespace-nowrap">
+                          +251
+                        </div>
+                        <input
+                          type="tel"
+                          inputMode="numeric"
+                          maxLength={9}
+                          placeholder="9xxxxxxxx"
+                          name="motherPhone"
+                          onChange={(e) => {
+                            e.target.value = e.target.value.replace(/[^\d]/g, '').slice(0, 9);
+                          }}
+                          className="flex-1 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 font-bold"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
               </div>
 
               <div className={`space-y-6 animate-in fade-in slide-in-from-right-4 ${registrationStep !== 3 ? 'hidden' : ''}`}>
@@ -1183,6 +1503,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                         }`}
                     >
                       <option value="">Select Last Grade Completed</option>
+                      <option value="First Time">First Time / ትምህርት ያልጀመረ/ች</option>
                       <option value="KG 1">KG 1</option>
                       <option value="KG 2">KG 2</option>
                       <option value="KG 3">KG 3</option>
@@ -1227,48 +1548,56 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                 {/* Branch Selection Section */}
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">Branch <span className="text-rose-500">*</span></label>
-                  {user && (user.role === 'school-admin' || user.role === 'super-admin') ? (
-                    <div className="relative">
+                  {(() => {
+                    const displayBranches = [...branchesList];
+                    if (selectedBranchName && !displayBranches.some(b => b.name === selectedBranchName)) {
+                      displayBranches.unshift({ id: 'selected-branch-id', name: selectedBranchName });
+                    }
+                    if (user && (user.role === 'school-admin' || user.role === 'super-admin')) {
+                      return (
+                        <div className="relative">
+                          <select
+                            value={selectedBranchName}
+                            onChange={(e) => setSelectedBranchName(e.target.value)}
+                            disabled={user.role === 'school-admin'}
+                            className="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none text-slate-500 font-semibold cursor-not-allowed"
+                          >
+                            <option value="">Select Branch</option>
+                            {displayBranches.map(b => (
+                              <option key={b.id} value={b.name}>{b.name}</option>
+                            ))}
+                          </select>
+                          <input type="hidden" name="branchName" value={selectedBranchName} />
+                        </div>
+                      );
+                    }
+                    return (
                       <select
                         name="branchName"
+                        required
                         value={selectedBranchName}
-                        onChange={(e) => setSelectedBranchName(e.target.value)}
-                        disabled={user.role === 'school-admin'}
-                        className="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none text-slate-500 font-semibold cursor-not-allowed"
+                        onChange={(e) => {
+                          setSelectedBranchName(e.target.value);
+                          if (e.target.value) {
+                            setValidationErrors(prev => {
+                              const newErrors = { ...prev };
+                              delete newErrors.branchName;
+                              return newErrors;
+                            });
+                          }
+                        }}
+                        className={`w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-sm outline-none focus:ring-2 ${validationErrors.branchName
+                          ? 'border-rose-300 focus:ring-rose-500 dark:border-rose-700'
+                          : 'border-slate-200 dark:border-slate-700 focus:ring-blue-500'
+                          }`}
                       >
                         <option value="">Select Branch</option>
-                        {branchesList.map(b => (
+                        {displayBranches.map(b => (
                           <option key={b.id} value={b.name}>{b.name}</option>
                         ))}
                       </select>
-                      <input type="hidden" name="branchName" value={selectedBranchName} />
-                    </div>
-                  ) : (
-                    <select
-                      name="branchName"
-                      required
-                      value={selectedBranchName}
-                      onChange={(e) => {
-                        setSelectedBranchName(e.target.value);
-                        if (e.target.value) {
-                          setValidationErrors(prev => {
-                            const newErrors = { ...prev };
-                            delete newErrors.branchName;
-                            return newErrors;
-                          });
-                        }
-                      }}
-                      className={`w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-sm outline-none focus:ring-2 ${validationErrors.branchName
-                        ? 'border-rose-300 focus:ring-rose-500 dark:border-rose-700'
-                        : 'border-slate-200 dark:border-slate-700 focus:ring-blue-500'
-                        }`}
-                    >
-                      <option value="">Select Branch</option>
-                      {branchesList.map(b => (
-                        <option key={b.id} value={b.name}>{b.name}</option>
-                      ))}
-                    </select>
-                  )}
+                    );
+                  })()}
                   {validationErrors.branchName && (
                     <p className="text-[10px] text-rose-500 font-semibold flex items-center gap-1">
                       <AlertTriangle size={12} /> {validationErrors.branchName}
@@ -1581,51 +1910,311 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
           </div>
         </div>
       )}
-      {/* Fee Configuration Modal */}
-      {showGradeModal && selectedAppForGrade && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] w-full max-w-md overflow-hidden shadow-2xl border border-slate-100 dark:border-slate-800 animate-in zoom-in-95 duration-200">
-            <div className="p-8 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
-              <h3 className="text-xl font-black text-slate-800 dark:text-white tracking-tight">Assign Grade</h3>
-              <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">
-                Select the grade in which this student will be enrolled.
-              </p>
-            </div>
-            <div className="p-8 space-y-6">
-              <div className="space-y-3">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Grade</label>
-                <div className="grid grid-cols-3 gap-3">
-                  {gradeOptions.map((grade) => (
-                    <button
-                      key={grade}
-                      type="button"
-                      onClick={() => setSelectedGrade(grade)}
-                      className={`py-4 rounded-2xl border-2 text-sm font-black transition-all ${selectedGrade === grade
-                        ? 'border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300'
-                        : 'border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:border-blue-300'
-                        }`}
-                    >
-                      {grade.startsWith('KG') ? grade : `Grade ${grade}`}
-                    </button>
-                  ))}
+      {/* Generated Credentials Modal (Payment Approved) */}
+      {credentialsModal && (
+        <>
+          <style>{`
+            @media print {
+              body * { visibility: hidden !important; }
+              #credential-print-sheet,
+              #credential-print-sheet * { visibility: visible !important; }
+              #credential-print-sheet {
+                position: fixed !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 100% !important;
+                padding: 12mm 15mm !important;
+                background: white !important;
+                color: #0f172a !important;
+              }
+            }
+          `}</style>
+
+          {/* Printable A4 sheet */}
+          <div id="credential-print-sheet" className="hidden print:block fixed inset-0 z-[9999] bg-white text-slate-900">
+            <div className="max-w-[180mm] mx-auto pt-[8mm]">
+              <h1 className="text-lg font-bold tracking-tight border-b-2 border-slate-800 pb-2 mb-6">
+                Login Credentials
+              </h1>
+              <div className="grid grid-cols-2 gap-x-10 gap-y-5 text-sm">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">STUDENT ID</p>
+                  <p className="text-base font-mono font-bold">{credentialsModal.studentDigitalId}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">STUDENT PASSWORD</p>
+                  <p className="text-base font-mono font-bold">{credentialsModal.studentPin}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">PARENT ID</p>
+                  <p className="text-base font-mono font-bold">{credentialsModal.parentDigitalId}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">PARENT PASSWORD</p>
+                  <p className="text-base font-mono font-bold">{credentialsModal.parentPin}</p>
                 </div>
               </div>
             </div>
-            <div className="p-8 bg-slate-50/50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
+          </div>
+
+          {/* On-screen Modal */}
+          <div className="credential-modal-screen fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4 print:hidden animate-in fade-in duration-200">
+            <div className="bg-slate-900 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-800 text-white">
+              <h2 className="text-xl font-bold text-emerald-400 mb-5 flex items-center gap-2">
+                <Check size={24} className="text-emerald-400" />
+                Payment Approved
+              </h2>
+
+              <div className="space-y-4 mb-6 bg-slate-950/60 p-4 rounded-xl border border-slate-800/80">
+                {/* STUDENT ID */}
+                <div>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">STUDENT ID</p>
+                  <div className="flex items-center gap-2">
+                    <code className="text-base font-mono font-bold text-white flex-1 bg-slate-900 px-3 py-2 rounded-lg border border-slate-800">
+                      {credentialsModal.studentDigitalId}
+                    </code>
+                    <button
+                      type="button"
+                      onClick={() => copyText(credentialsModal.studentDigitalId, 'Student ID')}
+                      className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-sm font-semibold transition-colors shrink-0"
+                    >
+                      {copiedLabel === 'Student ID' ? 'Copied!' : 'Copy'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* STUDENT PASSWORD */}
+                <div>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">STUDENT PASSWORD</p>
+                  <div className="flex items-center gap-2">
+                    <code className="text-base font-mono font-bold text-white flex-1 bg-slate-900 px-3 py-2 rounded-lg border border-slate-800">
+                      {showPassword ? credentialsModal.studentPin : '••••••••'}
+                    </code>
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors shrink-0"
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => copyText(credentialsModal.studentPin, 'Student Password')}
+                      className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-sm font-semibold transition-colors shrink-0"
+                    >
+                      {copiedLabel === 'Student Password' ? 'Copied!' : 'Copy'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* PARENT ID */}
+                <div>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">PARENT ID</p>
+                  <div className="flex items-center gap-2">
+                    <code className="text-base font-mono font-bold text-white flex-1 bg-slate-900 px-3 py-2 rounded-lg border border-slate-800">
+                      {credentialsModal.parentDigitalId}
+                    </code>
+                    <button
+                      type="button"
+                      onClick={() => copyText(credentialsModal.parentDigitalId, 'Parent ID')}
+                      className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-sm font-semibold transition-colors shrink-0"
+                    >
+                      {copiedLabel === 'Parent ID' ? 'Copied!' : 'Copy'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* PARENT PASSWORD */}
+                <div>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">PARENT PASSWORD</p>
+                  <div className="flex items-center gap-2">
+                    <code className="text-base font-mono font-bold text-white flex-1 bg-slate-900 px-3 py-2 rounded-lg border border-slate-800">
+                      {showPassword ? credentialsModal.parentPin : '••••••••'}
+                    </code>
+                    <button
+                      type="button"
+                      onClick={() => copyText(credentialsModal.parentPin, 'Parent Password')}
+                      className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-sm font-semibold transition-colors shrink-0"
+                    >
+                      {copiedLabel === 'Parent Password' ? 'Copied!' : 'Copy'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Stacked Action Buttons */}
+              <div className="flex flex-col gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    copyText(
+                      `STUDENT ID: ${credentialsModal.studentDigitalId}\nSTUDENT PASSWORD: ${credentialsModal.studentPin}\nPARENT ID: ${credentialsModal.parentDigitalId}\nPARENT PASSWORD: ${credentialsModal.parentPin}`,
+                      'All credentials'
+                    );
+                  }}
+                  className="w-full px-4 py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl font-semibold transition-all text-sm"
+                >
+                  {copiedLabel === 'All credentials' ? '✓ Copied all credentials!' : 'Copy all credentials'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowPassword(true);
+                    setTimeout(() => window.print(), 150);
+                  }}
+                  className="w-full px-4 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-semibold transition-all text-sm shadow-lg shadow-blue-600/30 active:scale-[0.99]"
+                >
+                  Print credentials (A4)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCredentialsModal(null);
+                    setShowPassword(false);
+                  }}
+                  className="w-full px-4 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-semibold transition-all text-sm shadow-lg shadow-blue-600/30 active:scale-[0.99]"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Approval & Generate Credentials Modal */}
+      {showApprovalModal && appForApproval && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 dark:border-slate-800 animate-in zoom-in-95 duration-200">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-4">
+              Approve Payment & Generate Credentials
+            </h2>
+
+            <div className="space-y-4 mb-6">
+              <div>
+                <p className="text-sm font-semibold text-slate-600 dark:text-slate-400 mb-2">
+                  Student: <span className="font-bold text-slate-900 dark:text-white">{appForApproval.name}</span>
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">
+                  Parent ID (optional)
+                </label>
+                <input
+                  type="text"
+                  value={approvalForm.parentDigitalId}
+                  onChange={(e) =>
+                    setApprovalForm({ ...approvalForm, parentDigitalId: e.target.value.trim() })
+                  }
+                  placeholder="Enter existing Parent ID if available"
+                  className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                  If the student has a sibling already registered, enter the parent's existing digital ID here so the student links to the same account instead of creating a new one.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">
+                  Payment Reference (optional)
+                </label>
+                <input
+                  type="text"
+                  value={approvalForm.reference}
+                  onChange={(e) =>
+                    setApprovalForm({ ...approvalForm, reference: e.target.value })
+                  }
+                  placeholder="e.g., Receipt #12345"
+                  className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+              </div>
+
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/40 rounded-xl p-3.5">
+                <p className="text-xs text-blue-700 dark:text-blue-300 font-medium">
+                  ✓ This will generate Student ID, Password, Parent ID, and Password
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowApprovalModal(false);
+                  setAppForApproval(null);
+                }}
+                className="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-bold text-xs uppercase tracking-wider transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmApproval}
+                disabled={approving}
+                className="flex-1 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 active:scale-95"
+              >
+                {approving ? (
+                  <>
+                    <Clock size={16} className="animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <Check size={16} />
+                    Approve Payment
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Grade Assignment Modal */}
+      {showGradeModal && selectedAppForGrade && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl sm:rounded-[2.5rem] w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden shadow-2xl border border-slate-100 dark:border-slate-800 animate-in zoom-in-95 duration-200">
+            <div className="p-5 sm:p-8 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50 shrink-0">
+              <h3 className="text-lg sm:text-xl font-black text-slate-800 dark:text-white tracking-tight">Assign Grade</h3>
+              <p className="text-[11px] sm:text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">
+                Select the grade in which this student will be enrolled.
+              </p>
+            </div>
+            <div className="p-4 sm:p-8 overflow-y-auto flex-1 space-y-4">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Grade</label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-3">
+                {gradeOptions.map((grade) => (
+                  <button
+                    key={grade}
+                    type="button"
+                    onClick={() => setSelectedGrade(grade)}
+                    className={`py-3 sm:py-4 px-3 rounded-xl sm:rounded-2xl border-2 text-xs sm:text-sm font-black transition-all ${selectedGrade === grade
+                      ? 'border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300 shadow-md shadow-blue-500/10'
+                      : 'border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:border-blue-300'
+                      }`}
+                  >
+                    {grade.startsWith('KG') ? grade : `Grade ${grade}`}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="p-4 sm:p-6 bg-slate-50/50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-3 shrink-0">
               <button
                 onClick={() => {
                   setShowGradeModal(false);
                   setSelectedAppForGrade(null);
                   setSelectedGrade(null);
                 }}
-                className="px-6 py-3 text-xs font-black uppercase tracking-widest text-slate-500 hover:text-slate-700"
+                className="px-4 sm:px-6 py-2.5 sm:py-3 text-xs font-black uppercase tracking-widest text-slate-500 hover:text-slate-700 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleConfirmGradeAssignment}
                 disabled={!selectedGrade}
-                className="bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 shadow-xl shadow-blue-500/20 active:scale-95"
+                className="bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white px-5 sm:px-8 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 shadow-xl shadow-blue-500/20 active:scale-95 transition-all"
               >
                 Continue Enrollment
               </button>

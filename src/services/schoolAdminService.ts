@@ -21,10 +21,11 @@ export interface SchoolAdminDashboard {
 export interface RegisterUserData {
   name: string;
   email: string;
-  role: 'teacher' | 'student' | 'parent' | 'finance-clerk' | 'librarian' | 'clinic-admin' | 'driver';
+  role: 'teacher' | 'student' | 'parent' | 'librarian' | 'storekeeper';
   grade?: string; // Required for students
   password?: string; // Optional, auto-generated if not provided
   staffProfile?: Record<string, any>;
+  initialStatus?: string; // 'Approved' for enrollment accounts; omit for staff (defaults to Pending)
 }
 
 export interface RegisterUserResponse {
@@ -237,11 +238,14 @@ export const getPendingApplications = async (): Promise<Application[]> => {
 
 export interface AdmissionDocument {
   id: string;
-  type: string;
+  type?: string;
+  name?: string;
   file_name: string;
-  file_size: number | null;
-  mime_type: string | null;
-  uploaded_at: string | null;
+  file_size?: number | null;
+  mime_type?: string | null;
+  uploaded_at?: string | null;
+  applicationId?: string;
+  has_file?: boolean;
   source: string;
 }
 
@@ -282,6 +286,32 @@ export const createPublicPendingApplication = async (data: any) => {
 
 export const updateApplicationStatus = async (id: string, data: UpdateApplicationStatusData & { parentPhone?: string }) => {
   const response = await api.post(`/school-admin/applications/${id}/status`, data);
+  return response.data;
+};
+
+export interface CompleteEnrollmentResult {
+  student: {
+    name: string;
+    digitalId: string;
+    username: string;
+    pin: string;
+    grade: string;
+  };
+  parent: {
+    name: string;
+    digitalId: string;
+    username: string;
+    pin: string | null;
+    isExisting: boolean;
+  };
+  phone: string;
+}
+
+export const completeEnrollment = async (
+  id: string,
+  payload?: { parentDigitalId?: string; reference?: string }
+): Promise<{ success: boolean; data: CompleteEnrollmentResult; message?: string }> => {
+  const response = await api.post(`/school-admin/applications/${id}/complete-enrollment`, payload || {});
   return response.data;
 };
 
@@ -655,5 +685,10 @@ export const publishGradingConfigs = async (
   configs: Array<{ id: string; label: string; maxWeight: number }>
 ): Promise<any> => {
   const response = await api.post('/school-admin/grading-configs', { gradeLevel, configs });
+  return response.data;
+};
+
+export const linkParentStudent = async (parentUserId: string, studentUserId: string): Promise<any> => {
+  const response = await api.post('/school-admin/link-parent-student', { parentUserId, studentUserId });
   return response.data;
 };

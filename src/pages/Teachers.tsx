@@ -1,7 +1,8 @@
-import { UserPlus, X, Check, ArrowLeft, MoreVertical, CheckCircle, XCircle, Trash2, Printer, Eye, Edit2, Loader2, FileText, Download, Upload } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { UserPlus, X, Check, ArrowLeft, MoreVertical, CheckCircle, XCircle, Trash2, Printer, Eye, Edit2, Loader2, FileText, Download, Upload, Users } from 'lucide-react';
 import PhoneInput from '../components/PhoneInput';
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import { registerUser, getBranchTeachers, approveTeacher, revokeTeacher, deleteTeacher, promoteTeacher, updateUser, resetUserPIN, removeTeacherPromotion, replaceUserDocument } from '../services/schoolAdminService';
 import api from '../services/api';
@@ -75,10 +76,13 @@ const MultiSelectDropdown = ({
 };
 
 export const Teachers = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const { role } = useUser();
-  const isAdmin = role === 'school-admin' || role === 'super-admin';
+  const isAdmin = role === 'school-admin' || role === 'super-admin' || role === 'academic-manager';
   const isVP = role === 'vice-principal';
+  const isSuperviseRoute = location.pathname === '/teachers';
 
   const [teachers, setTeachers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -212,7 +216,7 @@ export const Teachers = () => {
   }, []);
 
   useEffect(() => {
-    if (activeTab === 'leaderboard' && isVP) {
+    if (activeTab === 'leaderboard') {
       fetchLeaderboardData();
     }
   }, [activeTab]);
@@ -652,16 +656,16 @@ export const Teachers = () => {
         Back
       </button>
 
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Teachers</h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">Manage teaching staff and assignments</p>
+          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{isSuperviseRoute ? t("teachers.supervise", "Supervise") : t("teachers.title", "Teachers")}</h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">{t("teachers.subtitle", "Manage teaching staff and assignments")}</p>
         </div>
 
         {isAdmin && (
           <button
             onClick={() => setShowAddModal(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-all text-sm font-bold shadow-lg shadow-blue-200 dark:shadow-none"
+            className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all text-sm font-bold shadow-lg shadow-blue-200 dark:shadow-none"
           >
             <UserPlus size={20} />
             Register Teacher
@@ -675,133 +679,229 @@ export const Teachers = () => {
         </div>
       )}
 
-      {isVP && (
+      {(isVP || isSuperviseRoute) && (
         <div className="flex border-b border-slate-200 dark:border-slate-700 mb-6 gap-4">
           <button
             onClick={() => setActiveTab('teachers')}
-            className={`pb-2 px-1 text-sm font-bold border-b-2 transition-colors ${activeTab === 'teachers'
-              ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-              : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
-              }`}
+            className={`pb-2 px-1 text-sm font-bold border-b-2 flex items-center gap-1 ${activeTab === 'teachers' ? 'border-blue-600 text-blue-600 dark:text-blue-400' : 'border-transparent text-slate-500'}`}
           >
-            All Teachers
+            <Users size={16} /> {t("teachers.teachersList", "Teachers")}
           </button>
           <button
             onClick={() => setActiveTab('leaderboard')}
-            className={`pb-2 px-1 text-sm font-bold border-b-2 transition-colors flex items-center gap-1 ${activeTab === 'leaderboard'
-              ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-              : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
-              }`}
+            className={`pb-2 px-1 text-sm font-bold border-b-2 flex items-center gap-1 ${activeTab === 'leaderboard' ? 'border-blue-600 text-blue-600 dark:text-blue-400' : 'border-transparent text-slate-500'}`}
           >
-            <Trophy size={16} /> Leaderboard
+            <Trophy size={16} /> {t("teachers.leaderboard", "Leaderboard")}
           </button>
         </div>
       )}
 
       {activeTab === 'teachers' ? (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
-                <tr>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Teacher</th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Email</th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Digital ID</th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Status</th>
-                  {isAdmin && <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Actions</th>}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {teachers.length === 0 ? (
-                  <tr>
-                    <td colSpan={isAdmin ? 5 : 4} className="px-6 py-12 text-center text-slate-500">
-                      No teachers found. Register your first teacher.
-                    </td>
-                  </tr>
-                ) : (
-                  teachers.map((teacher) => (
-                    <tr key={teacher.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30">
-                      <td className="px-6 py-4">
-                        <button type="button" onClick={() => setSelectedStaff(teacher)} className="flex items-center gap-3 text-left">
-                          <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 text-purple-600 rounded-xl flex items-center justify-center font-bold">
-                            {teacher.name?.split(' ').map((n: string) => n[0]).join('') || 'T'}
-                          </div>
-                          <span className="font-bold text-slate-800 dark:text-white">{teacher.name}</span>
+        <div className="space-y-4">
+          {/* Mobile Card View */}
+          <div className="grid grid-cols-1 gap-4 md:hidden">
+            {teachers.length === 0 ? (
+              <div className="bg-white dark:bg-slate-900 rounded-2xl p-8 text-center text-slate-500 border border-slate-100 dark:border-slate-800 shadow-sm">
+                {t("teachers.noTeachersFound", "No teachers found. Register your first teacher.")}
+              </div>
+            ) : (
+              teachers.map((teacher) => (
+                <div
+                  key={teacher.id}
+                  className="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-100 dark:border-slate-800 shadow-md space-y-3"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedStaff(teacher)}
+                      className="flex items-center gap-3 text-left min-w-0"
+                    >
+                      <div className="w-10 h-10 shrink-0 bg-purple-100 dark:bg-purple-900/30 text-purple-600 rounded-xl flex items-center justify-center font-bold">
+                        {teacher.name?.split(' ').map((n: string) => n[0]).join('') || 'T'}
+                      </div>
+                      <div className="truncate">
+                        <h4 className="font-bold text-slate-800 dark:text-white truncate">{teacher.name}</h4>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{teacher.email}</p>
+                      </div>
+                    </button>
+                    <div className="shrink-0">
+                      {isAdmin && teacher.status !== 'Pending' ? (
+                        <button
+                          type="button"
+                          onClick={() => setConfirmAction({ show: true, action: teacher.status === 'Approved' ? 'revoke' : 'approve', teacher })}
+                          className={`px-2.5 py-1 rounded-lg text-xs font-bold uppercase transition-colors ${teacher.status === 'Approved' ? 'bg-green-100 text-green-700 border border-green-200 hover:bg-green-200' : 'bg-red-100 text-red-700 border border-red-200 hover:bg-red-200'}`}
+                        >
+                          {teacher.status}
                         </button>
+                      ) : (
+                        <span className={`px-2.5 py-1 rounded-lg text-xs font-bold uppercase ${teacher.status === 'Approved' ? 'bg-green-100 text-green-700' : teacher.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>
+                          {teacher.status}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2">
+                      <span className="text-slate-400 uppercase font-semibold">{t("teachers.colDigitalId", "Digital ID")}:</span>
+                      <span className="font-mono text-slate-600 dark:text-slate-300 font-bold">{teacher.digitalId}</span>
+                      {teacher.zkDeviceId && (
+                        <span className="px-1.5 py-0.5 bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 rounded text-[10px] font-bold">
+                          ZK: {teacher.zkDeviceId}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {isAdmin && (
+                    <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2 flex-wrap">
+                      {teacher.status === 'Pending' && (
+                        <button
+                          onClick={() => setConfirmAction({ show: true, action: 'approve', teacher })}
+                          className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 transition-all"
+                        >
+                          <CheckCircle size={14} />
+                          Approve
+                        </button>
+                      )}
+                      <button
+                        onClick={async () => {
+                          setPromotionTarget(teacher);
+                          setPromotionForm(getPromotionFormFromProfile(teacher.staffProfile?.promotion));
+                          await fetchSubjects(teacher.branchId);
+                          await fetchClasses(teacher.branchId);
+                          setShowPromoteModal(true);
+                        }}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all ${isTeacherPromoted(teacher) ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-indigo-600 hover:bg-indigo-700 text-white'}`}
+                      >
+                        {isTeacherPromoted(teacher) ? 'Promoted' : 'Promote'}
+                      </button>
+                      <button
+                        onClick={() => openEditModal(teacher)}
+                        className="p-2 text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                        title="Edit User"
+                      >
+                        <Edit2 size={16} />
+                      </button>
+                      <button
+                        onClick={() => setConfirmAction({ show: true, action: 'delete', teacher })}
+                        className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors"
+                        title="Delete User"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Desktop Table View */}
+          <div className="hidden md:block bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
+                  <tr>
+                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("teachers.colTeacher", "Teacher")}</th>
+                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("teachers.colEmail", "Email")}</th>
+                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("teachers.colDigitalId", "Digital ID")}</th>
+                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("teachers.colStatus", "Status")}</th>
+                    {isAdmin && <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("teachers.colActions", "Actions")}</th>}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {teachers.length === 0 ? (
+                    <tr>
+                      <td colSpan={isAdmin ? 5 : 4} className="px-6 py-12 text-center text-slate-500">
+                        {t("teachers.noTeachersFound", "No teachers found. Register your first teacher.")}
                       </td>
-                      <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">{teacher.email}</td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <p className="text-sm font-mono text-slate-600 dark:text-slate-400">{teacher.digitalId}</p>
-                          {teacher.zkDeviceId && (
-                            <span className="px-1.5 py-0.5 bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 rounded text-[10px] font-bold tracking-wider">
-                              ZK: {teacher.zkDeviceId}
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        {isAdmin && teacher.status !== 'Pending' ? (
-                          <button
-                            type="button"
-                            onClick={() => setConfirmAction({ show: true, action: teacher.status === 'Approved' ? 'revoke' : 'approve', teacher })}
-                            className={`px-2 py-1 rounded text-xs font-bold uppercase transition-colors ${teacher.status === 'Approved' ? 'bg-green-100 text-green-700 border border-green-200 hover:bg-green-200' : 'bg-red-100 text-red-700 border border-red-200 hover:bg-red-200'}`}
-                          >
-                            {teacher.status}
+                    </tr>
+                  ) : (
+                    teachers.map((teacher) => (
+                      <tr key={teacher.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30">
+                        <td className="px-6 py-4">
+                          <button type="button" onClick={() => setSelectedStaff(teacher)} className="flex items-center gap-3 text-left">
+                            <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 text-purple-600 rounded-xl flex items-center justify-center font-bold">
+                              {teacher.name?.split(' ').map((n: string) => n[0]).join('') || 'T'}
+                            </div>
+                            <span className="font-bold text-slate-800 dark:text-white">{teacher.name}</span>
                           </button>
-                        ) : (
-                          <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${teacher.status === 'Approved' ? 'bg-green-100 text-green-700' : teacher.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>
-                            {teacher.status}
-                          </span>
-                        )}
                         </td>
-                      {isAdmin && (
+                        <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">{teacher.email}</td>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2">
-                            {teacher.status === 'Pending' ? (
-                              <button
-                                onClick={() => setConfirmAction({ show: true, action: 'approve', teacher })}
-                                className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 transition-all"
-                              >
-                                <CheckCircle size={14} />
-                                Approve
-                              </button>
-                            ) : null}
-                            <button
-                              onClick={async () => {
-                                setPromotionTarget(teacher);
-                                setPromotionForm(getPromotionFormFromProfile(teacher.staffProfile?.promotion));
-                                await fetchSubjects(teacher.branchId);
-                                await fetchClasses(teacher.branchId);
-                                setShowPromoteModal(true);
-                              }}
-                              className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all ${isTeacherPromoted(teacher) ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-indigo-600 hover:bg-indigo-700 text-white'}`}
-                              title={isTeacherPromoted(teacher) ? 'Edit promotion' : 'Promote'}
-                            >
-                              {isTeacherPromoted(teacher) ? 'Promoted' : 'Promote'}
-                            </button>
-                            <button
-                              onClick={() => openEditModal(teacher)}
-                              className="p-1.5 text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-950/30 rounded-lg transition-colors"
-                              title="Edit User"
-                            >
-                              <Edit2 size={16} />
-                            </button>
-                            <button
-                              onClick={() => setConfirmAction({ show: true, action: 'delete', teacher })}
-                              className="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors"
-                              title="Delete User"
-                            >
-                              <Trash2 size={16} />
-                            </button>
+                            <p className="text-sm font-mono text-slate-600 dark:text-slate-400">{teacher.digitalId}</p>
+                            {teacher.zkDeviceId && (
+                              <span className="px-1.5 py-0.5 bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 rounded text-[10px] font-bold tracking-wider">
+                                ZK: {teacher.zkDeviceId}
+                              </span>
+                            )}
                           </div>
                         </td>
-                      )}
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                        <td className="px-6 py-4">
+                          {isAdmin && teacher.status !== 'Pending' ? (
+                            <button
+                              type="button"
+                              onClick={() => setConfirmAction({ show: true, action: teacher.status === 'Approved' ? 'revoke' : 'approve', teacher })}
+                              className={`px-2 py-1 rounded text-xs font-bold uppercase transition-colors ${teacher.status === 'Approved' ? 'bg-green-100 text-green-700 border border-green-200 hover:bg-green-200' : 'bg-red-100 text-red-700 border border-red-200 hover:bg-red-200'}`}
+                            >
+                              {teacher.status}
+                            </button>
+                          ) : (
+                            <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${teacher.status === 'Approved' ? 'bg-green-100 text-green-700' : teacher.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>
+                              {teacher.status}
+                            </span>
+                          )}
+                        </td>
+                        {isAdmin && (
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-2">
+                              {teacher.status === 'Pending' ? (
+                                <button
+                                  onClick={() => setConfirmAction({ show: true, action: 'approve', teacher })}
+                                  className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 transition-all"
+                                >
+                                  <CheckCircle size={14} />
+                                  Approve
+                                </button>
+                              ) : null}
+                              <button
+                                onClick={async () => {
+                                  setPromotionTarget(teacher);
+                                  setPromotionForm(getPromotionFormFromProfile(teacher.staffProfile?.promotion));
+                                  await fetchSubjects(teacher.branchId);
+                                  await fetchClasses(teacher.branchId);
+                                  setShowPromoteModal(true);
+                                }}
+                                className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all ${isTeacherPromoted(teacher) ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-indigo-600 hover:bg-indigo-700 text-white'}`}
+                                title={isTeacherPromoted(teacher) ? 'Edit promotion' : 'Promote'}
+                              >
+                                {isTeacherPromoted(teacher) ? 'Promoted' : 'Promote'}
+                              </button>
+                              <button
+                                onClick={() => openEditModal(teacher)}
+                                className="p-1.5 text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-950/30 rounded-lg transition-colors"
+                                title="Edit User"
+                              >
+                                <Edit2 size={16} />
+                              </button>
+                              <button
+                                onClick={() => setConfirmAction({ show: true, action: 'delete', teacher })}
+                                className="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors"
+                                title="Delete User"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+                          </td>
+                        )}
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       ) : (
@@ -810,16 +910,16 @@ export const Teachers = () => {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <h3 className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                  <Trophy className="text-yellow-500" size={20} /> Semester Leaderboard
+                  <Trophy className="text-yellow-500" size={20} /> {t("teachers.semesterLeaderboard", "Semester Leaderboard")}
                 </h3>
-                <p className="text-xs text-slate-500 mt-1">Points = (Student Votes) + (VP Rating × 100) + (Weekly Plan Rating Points)</p>
+                <p className="text-xs text-slate-500 mt-1">{t("teachers.leaderboardFormula", "Points = (Student Votes) + (VP Rating × 100) + (Weekly Plan Rating Points)")}</p>
               </div>
               <button
                 type="button"
                 onClick={handleResetLeaderboard}
                 className="flex items-center gap-2 px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-900/20 dark:hover:bg-red-900/40 dark:text-red-400 rounded-lg text-sm font-bold transition-colors self-start sm:self-auto"
               >
-                <RefreshCcw size={16} /> Reset Semester
+                <RefreshCcw size={16} /> {t("teachers.resetSemester", "Reset Semester")}
               </button>
             </div>
             <div className="mt-3 flex flex-col sm:flex-row gap-2">
@@ -829,7 +929,7 @@ export const Teachers = () => {
                   type="text"
                   value={leaderboardSearch}
                   onChange={(e) => { setLeaderboardSearch(e.target.value); setLeaderboardPage(1); }}
-                  placeholder="Search teacher by name…"
+                  placeholder={t("teachers.searchTeacherByName", "Search teacher by name…")}
                   className="w-full pl-8 pr-4 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 transition"
                 />
               </div>
@@ -839,7 +939,7 @@ export const Teachers = () => {
                 onChange={(e) => { setLeaderboardGradeFilter(e.target.value); setLeaderboardPage(1); }}
                 className="py-2 px-3 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 transition text-slate-700 dark:text-slate-300"
               >
-                <option value="">All Grades</option>
+                <option value="">{t("teachers.allGrades", "All Grades")}</option>
                 {allLeaderboardGrades.map(grade => (
                   <option key={grade} value={grade}>{grade}</option>
                 ))}
@@ -858,26 +958,26 @@ export const Teachers = () => {
             <table className="w-full text-left">
               <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
                 <tr>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Rank</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("teachers.colRank", "Rank")}</th>
                   <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Teacher</th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Student Votes</th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Plan Rating</th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">VP Rating</th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Grades</th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Total Points</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("teachers.colStudentVotes", "Student Votes")}</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("teachers.colPlanRating", "Plan Rating")}</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("teachers.colAdminRating", "Admin Rating")}</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("teachers.colGrades", "Grades")}</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("teachers.colTotalPoints", "Total Points")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {leaderboardLoading ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-12 text-center text-slate-500">Loading leaderboard…</td>
+                    <td colSpan={7} className="px-6 py-12 text-center text-slate-500">{t("teachers.loadingLeaderboard", "Loading leaderboard…")}</td>
                   </tr>
                 ) : currentLeaderboardData.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="px-6 py-12 text-center text-slate-500">
                       {leaderboardSearch || leaderboardGradeFilter
                         ? `No teachers found${leaderboardGradeFilter ? ` teaching ${leaderboardGradeFilter}` : ''}${leaderboardSearch ? ` matching "${leaderboardSearch}"` : ''}.`
-                        : 'No data available for the leaderboard.'}
+                        : t("teachers.noLeaderboardData", "No data available for the leaderboard.")}
                     </td>
                   </tr>
                 ) : (
@@ -946,7 +1046,7 @@ export const Teachers = () => {
           {!leaderboardLoading && filteredLeaderboardData.length > LEADERBOARD_ITEMS_PER_PAGE && (
             <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-4">
               <p className="text-xs text-slate-500">
-                Showing {(leaderboardPage - 1) * LEADERBOARD_ITEMS_PER_PAGE + 1}–{Math.min(leaderboardPage * LEADERBOARD_ITEMS_PER_PAGE, filteredLeaderboardData.length)} of {filteredLeaderboardData.length} teachers
+                {t("teachers.showingTeachers", { from: (leaderboardPage - 1) * LEADERBOARD_ITEMS_PER_PAGE + 1, to: Math.min(leaderboardPage * LEADERBOARD_ITEMS_PER_PAGE, filteredLeaderboardData.length), total: filteredLeaderboardData.length, defaultValue: `Showing ${(leaderboardPage - 1) * LEADERBOARD_ITEMS_PER_PAGE + 1}–${Math.min(leaderboardPage * LEADERBOARD_ITEMS_PER_PAGE, filteredLeaderboardData.length)} of ${filteredLeaderboardData.length} teachers` })}
               </p>
               <div className="flex items-center gap-2">
                 <button
@@ -958,7 +1058,7 @@ export const Teachers = () => {
                 >
                   <ChevronLeft size={16} />
                 </button>
-                <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Page {leaderboardPage} of {totalLeaderboardPages}</span>
+                <span className="text-sm font-bold text-slate-700 dark:text-slate-300">{t("teachers.pageOf", { current: leaderboardPage, total: totalLeaderboardPages, defaultValue: `Page ${leaderboardPage} of ${totalLeaderboardPages}` })}</span>
                 <button
                   type="button"
                   title="Next page"
@@ -989,7 +1089,7 @@ export const Teachers = () => {
                 <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
                   <UserPlus size={20} />
                 </div>
-                <h3 className="font-bold text-slate-800 dark:text-slate-100">Register New Teacher</h3>
+                <h3 className="font-bold text-slate-800 dark:text-slate-100">{t("teachers.registerNewTeacher", "Register New Teacher")}</h3>
               </div>
               <button type="button" title="Close register teacher dialog" onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-slate-600">
                 <X size={20} />
@@ -998,7 +1098,7 @@ export const Teachers = () => {
 
             <form className="p-6 space-y-4" onSubmit={handleAddTeacher}>
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-500 uppercase">Full Name</label>
+                <label className="text-xs font-bold text-slate-500 uppercase">{t("teachers.fullName", "Full Name")}</label>
                 <input
                   type="text"
                   required
@@ -1006,12 +1106,12 @@ export const Teachers = () => {
                   onChange={(e) => setFormData({ ...formData, name: e.target.value.replace(/[^a-zA-Z\u00C0-\u024F\s'-]/g, '') })}
                   onBlur={(e) => { const c = e.target.value.trim().split(/\s+/).filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' '); setFormData({ ...formData, name: c }); }}
                   className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="e.g. Ato Bekele Tesfaye"
+                  placeholder={t("teachers.fullNamePlaceholder", "e.g. Ato Bekele Tesfaye")}
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-500 uppercase">Email Address</label>
+                <label className="text-xs font-bold text-slate-500 uppercase">{t("teachers.emailAddress", "Email Address")}</label>
                 <input
                   type="email"
                   required
@@ -1023,7 +1123,7 @@ export const Teachers = () => {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-500 uppercase">Role</label>
+                <label className="text-xs font-bold text-slate-500 uppercase">{t("teachers.role", "Role")}</label>
                 <select
                   required
                   title="Select staff role"
@@ -1031,20 +1131,20 @@ export const Teachers = () => {
                   onChange={(e) => setFormData({ ...formData, role: e.target.value as any })}
                   className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="teacher">Teacher</option>
-                  <option value="librarian">Librarian</option>
+                  <option value="teacher">{t("teachers.roleTeacher", "Teacher")}</option>
+                  <option value="librarian">{t("teachers.roleLibrarian", "Librarian")}</option>
                 </select>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <PhoneInput
-                  label="Phone Number"
+                  label={t("teachers.phoneNumber", "Phone Number")}
                   value={formData.phoneNumber}
                   onChange={(val) => setFormData({ ...formData, phoneNumber: val })}
                   error={phoneError}
                 />
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-500 uppercase">Emergency Contact Name</label>
+                  <label className="text-xs font-bold text-slate-500 uppercase">{t("teachers.emergencyContactName", "Emergency Contact Name")}</label>
                   <input
                     type="text"
                     required
@@ -1052,32 +1152,32 @@ export const Teachers = () => {
                     onChange={(e) => setFormData({ ...formData, emergencyContactName: e.target.value.replace(/[^a-zA-Z\u00C0-\u024F\s'-]/g, '') })}
                     onBlur={(e) => { const c = e.target.value.trim().split(/\s+/).filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' '); setFormData({ ...formData, emergencyContactName: c }); }}
                     className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Contact person"
+                    placeholder={t("teachers.emergencyContactPlaceholder", "Contact person")}
                   />
                 </div>
                 <PhoneInput
-                  label="Emergency Contact Phone"
+                  label={t("teachers.emergencyContactPhone", "Emergency Contact Phone")}
                   value={formData.emergencyContactPhone}
                   onChange={(val) => setFormData({ ...formData, emergencyContactPhone: val })}
                   error={emergencyPhoneError}
                 />
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-500 uppercase">Education Status</label>
+                  <label className="text-xs font-bold text-slate-500 uppercase">{t("teachers.educationStatus", "Education Status")}</label>
                   <select
                     title="Select education level"
                     value={formData.educationLevel}
                     onChange={(e) => setFormData({ ...formData, educationLevel: e.target.value })}
                     className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="">Select level</option>
-                    <option value="Diploma">Diploma</option>
-                    <option value="Degree">Degree</option>
-                    <option value="Master">Master</option>
-                    <option value="PhD">PhD</option>
+                    <option value="">{t("teachers.selectLevel", "Select level")}</option>
+                    <option value="Diploma">{t("teachers.diploma", "Diploma")}</option>
+                    <option value="Degree">{t("teachers.degree", "Degree")}</option>
+                    <option value="Master">{t("teachers.master", "Master")}</option>
+                    <option value="PhD">{t("teachers.phd", "PhD")}</option>
                   </select>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-500 uppercase">Specialty / Course</label>
+                  <label className="text-xs font-bold text-slate-500 uppercase">{t("teachers.specialtyCourse", "Specialty / Course")}</label>
                   <input
                     type="text"
                     title="Specialty or course taught"
@@ -1086,18 +1186,18 @@ export const Teachers = () => {
                     onChange={(e) => setFormData({ ...formData, specialty: e.target.value.replace(/[^a-zA-Z\u00C0-\u024F\s'-]/g, '') })}
                     onBlur={(e) => { const c = e.target.value.trim().split(/\s+/).filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' '); setFormData({ ...formData, specialty: c }); }}
                     className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Math, English, Biology..."
+                    placeholder={t("teachers.specialtyPlaceholder", "Math, English, Biology...")}
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-500 uppercase">Date of Birth</label>
+                  <label className="text-xs font-bold text-slate-500 uppercase">{t("teachers.dob", "Date of Birth")}</label>
                   <EthiopianDatePicker
                     value={formData.dob}
                     onChange={(val) => setFormData({ ...formData, dob: val })}
                   />
                 </div>
                 <div className="space-y-1 sm:col-span-2">
-                  <label className="text-xs font-bold text-slate-500 uppercase">Previous School</label>
+                  <label className="text-xs font-bold text-slate-500 uppercase">{t("teachers.previousSchool", "Previous School")}</label>
                   <input
                     type="text"
                     required
@@ -1105,11 +1205,11 @@ export const Teachers = () => {
                     onChange={(e) => setFormData({ ...formData, previousSchool: e.target.value.replace(/[^a-zA-Z\u00C0-\u024F\s'-]/g, '') })}
                     onBlur={(e) => { const c = e.target.value.trim().split(/\s+/).filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' '); setFormData({ ...formData, previousSchool: c }); }}
                     className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Previous School"
+                    placeholder={t("teachers.previousSchoolPlaceholder", "Previous School")}
                   />
                 </div>
                 <div className="space-y-1 sm:col-span-2">
-                  <label className="text-xs font-bold text-slate-500 uppercase">Experience (Years)</label>
+                  <label className="text-xs font-bold text-slate-500 uppercase">{t("teachers.experienceYears", "Experience (Years)")}</label>
                   <input
                     type="text"
                     inputMode="numeric"
@@ -1117,12 +1217,12 @@ export const Teachers = () => {
                     value={formData.experienceYears}
                     onChange={(e) => setFormData({ ...formData, experienceYears: e.target.value.replace(/[^0-9]/g, '') })}
                     className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="e.g. 5"
+                    placeholder={t("teachers.experiencePlaceholder", "e.g. 5")}
                   />
                 </div>
                 <div className="space-y-1 sm:col-span-2">
                   <label className="text-xs font-bold text-slate-500 uppercase">
-                    Staff Document (Mandatory, PDF or Image, max 2MB)
+                    {t("teachers.staffDocument", "Staff Document (Mandatory, PDF or Image, max 2MB)")}
                   </label>
                   <input
                     type="file"
@@ -1147,7 +1247,7 @@ export const Teachers = () => {
 
               <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
                 <p className="text-xs text-blue-700 dark:text-blue-300">
-                  <strong>Note:</strong> A 4-digit PIN will be auto-generated. Teacher will need School Admin approval to login.
+                  {t("teachers.pinGenerationNote", "Note: A 4-digit PIN will be auto-generated. Teacher will need School Admin approval to login.")}
                 </p>
               </div>
 
@@ -1158,7 +1258,7 @@ export const Teachers = () => {
                   className="flex-1 px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg font-bold text-sm text-slate-500 hover:bg-slate-50"
                   disabled={creating}
                 >
-                  Cancel
+                  {t("teachers.cancel", "Cancel")}
                 </button>
                 <button
                   type="submit"
@@ -1170,7 +1270,7 @@ export const Teachers = () => {
                   ) : (
                     <Check size={18} />
                   )}
-                  <span>{creating ? 'Creating...' : 'Create Teacher'}</span>
+                  <span>{creating ? t('teachers.creating', 'Creating...') : t('teachers.createTeacher', 'Create Teacher')}</span>
                 </button>
               </div>
             </form>

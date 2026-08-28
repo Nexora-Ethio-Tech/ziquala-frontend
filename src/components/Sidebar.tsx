@@ -3,6 +3,7 @@ import {
   BarChart3,
   BookOpen,
   Building2,
+  Calendar,
   CalendarCheck,
   ClipboardCheck,
   ClipboardList,
@@ -14,6 +15,7 @@ import {
   Megaphone,
   Package,
   Settings,
+  UserCheck,
   UserSquare2,
   Users,
   X,
@@ -48,12 +50,13 @@ const dashboardRoutes: Record<UserRole, string> = {
   student: '/dashboard/student',
   parent: '/dashboard/parent',
   librarian: '/dashboard/librarian',
+  storekeeper: '/dashboard/storekeeper',
 };
 
 export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
   const { role, logout, schoolName } = useUser();
   const { isExamLockedDown, selectedBranchId } = useStore();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -77,91 +80,91 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
     switch (role) {
       case 'super-admin': {
         const items: NavItem[] = [
-          { icon: LayoutDashboard, label: 'Overview', path: dashboardRoutes['super-admin'] },
-          { icon: Building2, label: 'Branches', path: '/branches' },
-          { icon: BarChart3, label: 'Analytics', path: '/analytics' },
+          { icon: LayoutDashboard, label: t('nav.overview', 'Overview'), path: dashboardRoutes['super-admin'] },
+          { icon: Building2, label: t('nav.branches', 'Branches'), path: '/branches' },
+          { icon: BarChart3, label: t('nav.analytics', 'Analytics'), path: '/analytics' },
         ];
         if (selectedBranchId) {
           items.push(
-            { icon: Users, label: 'Staff Management', path: '/staff' },
-            { icon: Package, label: 'Inventory', path: '/inventory' },
+            { icon: Users, label: t('nav.staffManagement', 'Staff Management'), path: '/staff' },
+            { icon: Package, label: t('nav.inventory', 'Inventory'), path: '/inventory' },
           );
         }
         items.push(
-          { icon: LibraryBig, label: 'eLearning Management', path: '/elearning-management' },
-          { icon: Megaphone, label: 'News & Events', path: '/website-posts' },
-          { icon: Settings, label: 'Settings', path: '/settings' },
+          { icon: LibraryBig, label: t('nav.elearningManagement', 'eLearning Management'), path: '/elearning-management' },
+          { icon: Megaphone, label: t('nav.newsEvents', 'News & Events'), path: '/website-posts' },
+          { icon: Settings, label: t('nav.settings', 'Settings'), path: '/settings' },
         );
         return items;
       }
       case 'academic-manager':
         return [
-          { icon: LayoutDashboard, label: 'Academic Overview', path: dashboardRoutes['academic-manager'] },
-          { icon: Building2, label: 'Branches', path: '/branches' },
-          { icon: BarChart3, label: 'Academic Analytics', path: '/analytics' },
-          { icon: Users, label: 'Students', path: '/students' },
-          { icon: UserSquare2, label: 'Teachers & Staff', path: '/staff' },
-          { icon: BookOpen, label: 'Classes', path: '/classes' },
-          { icon: GraduationCap, label: 'Subjects', path: '/subjects' },
-          { icon: CalendarCheck, label: 'Attendance Oversight', path: '/vp-attendance' },
-          { icon: ClipboardCheck, label: 'Grade & Point Editing', path: '/academic-grades' },
-          { icon: LibraryBig, label: 'eLearning Management', path: '/elearning-management' },
-          { icon: FileText, label: 'Transcripts', path: '/vp-transcripts' },
+          { icon: LayoutDashboard, label: t('nav.dashboard', 'Dashboard'), path: dashboardRoutes['academic-manager'] },
+          { icon: Users, label: t('nav.students', 'Students'), path: '/students' },
+          { icon: UserSquare2, label: t('nav.staffManagement', 'Staff Management'), path: '/staff' },
+          { icon: UserCheck, label: t('nav.supervise', 'Supervise'), path: '/teachers' },
+          { icon: CalendarCheck, label: t('nav.attendance', 'Attendance'), path: '/attendance' },
+          { icon: Package, label: t('nav.inventory', 'Inventory'), path: '/inventory' },
+          { icon: LibraryBig, label: t('nav.elearningLibrary', 'eLearning Library'), path: '/elearning-library' },
+          { icon: Settings, label: t('nav.settings', 'Settings'), path: '/settings' },
         ];
       case 'school-admin':
         return [
-          { icon: LayoutDashboard, label: 'Dashboard', path: dashboardRoutes['school-admin'] },
-          { icon: BookOpen, label: 'Classes', path: '/classes' },
-          { icon: GraduationCap, label: 'Subjects', path: '/subjects' },
-          { icon: Users, label: 'Students', path: '/students' },
-          { icon: UserSquare2, label: 'Staff Management', path: '/staff' },
-          { icon: CalendarCheck, label: 'Attendance', path: '/attendance' },
-          { icon: BookOpen, label: 'Schedule Builder', path: '/schedule-builder' },
-          { icon: Package, label: 'Inventory', path: '/inventory' },
-          { icon: LibraryBig, label: 'eLearning Library', path: '/elearning-library' },
-          { icon: Settings, label: 'Settings', path: '/settings' },
+          { icon: LayoutDashboard, label: t('nav.dashboard', 'Dashboard'), path: dashboardRoutes['school-admin'] },
+          { icon: BookOpen, label: t('nav.classes', 'Classes'), path: '/classes' },
+          { icon: Users, label: t('nav.students', 'Students'), path: '/students' },
+          { icon: UserSquare2, label: t('nav.staffManagement', 'Staff Management'), path: '/staff' },
+          { icon: CalendarCheck, label: t('nav.attendance', 'Attendance'), path: '/attendance' },
+          { icon: Calendar, label: t('nav.scheduleBuilder', 'Schedule Builder'), path: '/schedule-builder' },
+          { icon: LibraryBig, label: t('nav.elearningLibrary', 'eLearning Library'), path: '/elearning-library' },
+          { icon: Settings, label: t('nav.settings', 'Settings'), path: '/settings' },
         ];
       case 'vice-principal':
         return [
-          { icon: LayoutDashboard, label: 'Dashboard', path: dashboardRoutes['vice-principal'] },
-          { icon: UserSquare2, label: 'Teachers', path: '/teachers' },
-          { icon: CalendarCheck, label: 'Attendance Oversight', path: '/vp-attendance' },
-          { icon: ClipboardList, label: 'Grade Management', path: '/vp-grade-management' },
-          { icon: FileText, label: 'Transcripts', path: '/vp-transcripts' },
-          { icon: BookOpen, label: 'Communication Book', path: '/vp-communication' },
-          { icon: LibraryBig, label: 'eLearning Library', path: '/elearning-library' },
+          { icon: LayoutDashboard, label: t('nav.dashboard', 'Dashboard'), path: dashboardRoutes['vice-principal'] },
+          { icon: CalendarCheck, label: t('nav.attendanceOversight', 'Attendance Oversight'), path: '/vp-attendance' },
+          { icon: ClipboardList, label: t('nav.gradeManagement', 'Grade Management'), path: '/vp-grade-management' },
+          { icon: FileText, label: t('nav.transcripts', 'Transcripts'), path: '/vp-transcripts' },
+          { icon: BookOpen, label: t('nav.communicationBook', 'Communication Book'), path: '/vp-communication' },
+          { icon: LibraryBig, label: t('nav.elearningLibrary', 'eLearning Library'), path: '/elearning-library' },
         ];
       case 'teacher':
         return [
-          { icon: LayoutDashboard, label: 'Teacher Portal', path: dashboardRoutes.teacher },
-          { icon: BookOpen, label: 'Weekly Plans', path: '/dashboard/teacher?tab=plans' },
-          { icon: CalendarCheck, label: 'Attendance', path: '/attendance' },
-          { icon: BookOpen, label: 'My Schedule', path: '/schedule' },
-          { icon: ClipboardCheck, label: 'Grade Entry', path: '/grades' },
-          { icon: ClipboardList, label: 'Exams', path: '/exams' },
-          { icon: LibraryBig, label: 'eLearning Library', path: '/elearning-library' },
+          { icon: LayoutDashboard, label: t('nav.teacherPortal', 'Teacher Portal'), path: dashboardRoutes.teacher },
+          { icon: BookOpen, label: t('nav.weeklyPlans', 'Weekly Plans'), path: '/dashboard/teacher?tab=plans' },
+          { icon: CalendarCheck, label: t('nav.attendance', 'Attendance'), path: '/attendance' },
+          { icon: BookOpen, label: t('nav.mySchedule', 'My Schedule'), path: '/schedule' },
+          { icon: ClipboardCheck, label: t('nav.gradeEntry', 'Grade Entry'), path: '/grades' },
+          { icon: ClipboardList, label: t('nav.exams', 'Exams'), path: '/exams' },
+          { icon: LibraryBig, label: t('nav.elearningLibrary', 'eLearning Library'), path: '/elearning-library' },
         ];
       case 'student':
         return [
-          { icon: LayoutDashboard, label: 'My Dashboard', path: dashboardRoutes.student },
-          { icon: BookOpen, label: 'Grades & Courses', path: '/courses' },
-          { icon: CalendarCheck, label: 'Academic History', path: '/attendance' },
-          { icon: ClipboardList, label: 'Exams', path: '/exams' },
-          { icon: LibraryBig, label: 'eLearning Library', path: '/elearning-library' },
+          { icon: LayoutDashboard, label: t('nav.myDashboard', 'My Dashboard'), path: dashboardRoutes.student },
+          { icon: BookOpen, label: t('nav.gradesCourses', 'Grades & Courses'), path: '/courses' },
+          { icon: CalendarCheck, label: t('nav.academicHistory', 'Academic History'), path: '/attendance' },
+          { icon: ClipboardList, label: t('nav.exams', 'Exams'), path: '/exams' },
+          { icon: LibraryBig, label: t('nav.elearningLibrary', 'eLearning Library'), path: '/elearning-library' },
         ];
       case 'parent':
         return [
-          { icon: LayoutDashboard, label: 'Family Dashboard', path: parentPath('dashboard') },
-          { icon: BookOpen, label: 'Grades & Courses', path: parentPath('grades') },
-          { icon: GraduationCap, label: 'Academic History', path: parentPath('history') },
-          { icon: ClipboardList, label: 'Communication Book', path: parentPath('communication-book') },
-          { icon: LibraryBig, label: 'eLearning Library', path: '/elearning-library' },
+          { icon: LayoutDashboard, label: t('nav.familyDashboard', 'Family Dashboard'), path: parentPath('dashboard') },
+          { icon: BookOpen, label: t('nav.gradesCourses', 'Grades & Courses'), path: parentPath('grades') },
+          { icon: GraduationCap, label: t('nav.academicHistory', 'Academic History'), path: parentPath('history') },
+          { icon: ClipboardList, label: t('nav.communicationBook', 'Communication Book'), path: parentPath('communication-book') },
+          { icon: LibraryBig, label: t('nav.elearningLibrary', 'eLearning Library'), path: '/elearning-library' },
         ];
       case 'librarian':
         return [
-          { icon: LayoutDashboard, label: 'Librarian Portal', path: dashboardRoutes.librarian },
-          { icon: LibraryBig, label: 'Library', path: '/library' },
-          { icon: BookOpen, label: 'eLearning Library', path: '/elearning-library' },
+          { icon: LayoutDashboard, label: t('nav.librarianPortal', 'Librarian Portal'), path: dashboardRoutes.librarian },
+          { icon: LibraryBig, label: t('nav.library', 'Library'), path: '/library' },
+          { icon: BookOpen, label: t('nav.elearningLibrary', 'eLearning Library'), path: '/elearning-library' },
+        ];
+      case 'storekeeper':
+        return [
+          { icon: LayoutDashboard, label: t('nav.storekeeperPortal', 'Store Portal'), path: dashboardRoutes.storekeeper },
+          { icon: Package, label: t('nav.propertyRegister', 'Property Register'), path: '/dashboard/storekeeper?tab=inventory' },
+          { icon: ClipboardList, label: t('nav.addAsset', 'Add Asset'), path: '/dashboard/storekeeper?tab=add' },
         ];
       default:
         return [];
@@ -191,7 +194,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
           </div>
           <div className="min-w-0">
             <span className="block truncate text-base font-black leading-tight">{displaySchoolName}</span>
-            <span className="mt-1 block text-[10px] font-black uppercase tracking-[0.22em] text-school-secondary">Academic portal</span>
+            <span className="mt-1 block text-[10px] font-black uppercase tracking-[0.22em] text-school-secondary">{t('sidebar.academicPortal', 'Academic Portal')}</span>
           </div>
         </div>
         <button type="button" onClick={onClose} className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 lg:hidden" aria-label="Close menu">
@@ -229,7 +232,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
           className="flex w-full items-center gap-4 rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-500 transition hover:bg-rose-50 hover:text-rose-600 disabled:opacity-50 dark:hover:bg-rose-950/20"
         >
           <LogOut size={20} />
-          Sign out
+          {t('sidebar.signOut', 'Sign out')}
         </button>
       </div>
     </aside>

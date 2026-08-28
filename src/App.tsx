@@ -1,4 +1,4 @@
-
+import { useTranslation } from 'react-i18next';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Layout } from './layout/Layout';
 import { LandingPage } from './pages/LandingPage';
@@ -8,6 +8,15 @@ import { useUser, type UserRole } from './context/UserContext';
 import { Suspense, lazy, type ReactNode } from 'react';
 import ScrollToTop from './components/ScrollToTop';
 import { Chatbot } from './components/Chatbot';
+
+const StaffCategoryPlaceholder = () => {
+  const { t } = useTranslation();
+  return (
+    <div className="p-12 text-center">
+      <p className="text-slate-500">{t('staff.selectCategory')}</p>
+    </div>
+  );
+};
 //import LandingPage from './pages/LandingPage/LandingPage';
 
 const Dashboard = lazy(() => import('./pages/Dashboard').then((m) => ({ default: m.Dashboard })));
@@ -57,6 +66,7 @@ const ChatbotManagement = lazy(() => import('./pages/ChatbotManagement'));
 const ELearningLibrary = lazy(() => import('./pages/ELearningPage').then((m) => ({ default: m.ELearningPage })));
 const ELearningManagement = lazy(() => import('./pages/ELearningManagement').then((m) => ({ default: m.ELearningManagement })));
 const AcademicGradeManagement = lazy(() => import('./pages/AcademicGradeManagement').then((m) => ({ default: m.AcademicGradeManagement })));
+const StorekeeperPortal = lazy(() => import('./pages/StorekeeperPortal').then((m) => ({ default: m.StorekeeperPortal })));
 const PageLoader = () => (
   <div className="min-h-[40vh] flex items-center justify-center">
     <div className="text-sm font-bold text-slate-500">Loading page...</div>
@@ -78,6 +88,7 @@ const getDashboardRoute = (role: string | null) => {
     case 'parent': return '/dashboard/parent';
     case 'vice-principal': return '/dashboard/vice-principal';
     case 'librarian': return '/dashboard/librarian';
+    case 'storekeeper': return '/dashboard/storekeeper';
     default: return '/login';
   }
 };
@@ -148,7 +159,27 @@ function App() {
 
               {/* Explicit Dashboard Routes */}
               <Route path="dashboard/super-admin" element={<ProtectedRoute allowedRoles={['super-admin']}><Dashboard /></ProtectedRoute>} />
-              <Route path="dashboard/academic-manager" element={<ProtectedRoute allowedRoles={['academic-manager']}><AcademicManagerDashboard /></ProtectedRoute>} />
+              <Route path="dashboard/academic-manager" element={<ProtectedRoute allowedRoles={['academic-manager']}><Dashboard /></ProtectedRoute>} />
+              <Route path="dashboard/school-admin" element={<ProtectedRoute allowedRoles={['school-admin']}><Dashboard /></ProtectedRoute>} />
+              <Route path="dashboard/teacher" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherPortal /></ProtectedRoute>} />
+              <Route path="dashboard/student" element={<ProtectedRoute allowedRoles={['student']}><StudentPortal /></ProtectedRoute>} />
+              <Route path="dashboard/parent" element={<ProtectedRoute allowedRoles={['parent']}><ParentPortal /></ProtectedRoute>} />
+              <Route path="dashboard/vice-principal" element={<ProtectedRoute allowedRoles={['vice-principal']}><VicePrincipalDashboard /></ProtectedRoute>} />
+              <Route path="dashboard/librarian" element={<ProtectedRoute allowedRoles={['librarian']}><Library /></ProtectedRoute>} />
+              <Route path="dashboard/storekeeper" element={<ProtectedRoute allowedRoles={['storekeeper']}><StorekeeperPortal /></ProtectedRoute>} />
+
+              {/* Role specific routes */}
+              <Route path="branches" element={
+                <ProtectedRoute allowedRoles={['super-admin', 'academic-manager']}>
+                  <Branches />
+                </ProtectedRoute>
+              } />
+
+              <Route path="analytics" element={
+                <ProtectedRoute allowedRoles={['super-admin', 'academic-manager']}>
+                  <Analytics />
+                </ProtectedRoute>
+              } />
               <Route path="dashboard/school-admin" element={<ProtectedRoute allowedRoles={['school-admin']}><Dashboard /></ProtectedRoute>} />
               <Route path="dashboard/teacher" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherPortal /></ProtectedRoute>} />
               <Route path="dashboard/student" element={<ProtectedRoute allowedRoles={['student']}><StudentPortal /></ProtectedRoute>} />
@@ -174,11 +205,7 @@ function App() {
                   <Staff />
                 </ProtectedRoute>
               }>
-                <Route index element={
-                  <div className="p-12 text-center">
-                    <p className="text-slate-500">Select a staff category to continue.</p>
-                  </div>
-                } />
+                <Route index element={<Navigate to="teachers" replace />} />
                 <Route path="teachers" element={<Teachers />} />
                 <Route path="librarian" element={<LibrarianStaff />} />
               </Route>
@@ -202,7 +229,7 @@ function App() {
               } />
 
               <Route path="branch-users" element={
-                <ProtectedRoute allowedRoles={['school-admin']}>
+                <ProtectedRoute allowedRoles={['school-admin', 'super-admin', 'academic-manager']}>
                   <BranchUsers />
                 </ProtectedRoute>
               } />
@@ -261,6 +288,24 @@ function App() {
                 </ProtectedRoute>
               } />
 
+              <Route path="teacher-classes" element={
+                <ProtectedRoute allowedRoles={['teacher']}>
+                  <TeacherClasses />
+                </ProtectedRoute>
+              } />
+
+              <Route path="teacher-grades" element={
+                <ProtectedRoute allowedRoles={['teacher']}>
+                  <TeacherGrades />
+                </ProtectedRoute>
+              } />
+
+              <Route path="teacher-student-grades/:studentId" element={
+                <ProtectedRoute allowedRoles={['teacher']}>
+                  <TeacherStudentGrades />
+                </ProtectedRoute>
+              } />
+
               <Route path="vp-transcripts" element={
                 <ProtectedRoute allowedRoles={['vice-principal', 'super-admin', 'academic-manager']}>
                   <VPTranscripts />
@@ -286,14 +331,8 @@ function App() {
               } />
 
               <Route path="teachers" element={
-                <ProtectedRoute allowedRoles={['school-admin', 'super-admin', 'academic-manager', 'vice-principal']}>
+                <ProtectedRoute allowedRoles={['super-admin', 'academic-manager', 'vice-principal']}>
                   <Teachers />
-                </ProtectedRoute>
-              } />
-
-              <Route path="librarian-staff" element={
-                <ProtectedRoute allowedRoles={['school-admin', 'super-admin']}>
-                  <LibrarianStaff />
                 </ProtectedRoute>
               } />
 
@@ -304,15 +343,16 @@ function App() {
                       <Attendance />}
                 </ProtectedRoute>
               } />
-              <Route path="schedule-builder" element={
+
+              <Route path="inventory" element={
                 <ProtectedRoute allowedRoles={['school-admin', 'super-admin', 'academic-manager']}>
-                  <ScheduleBuilder />
+                  <Inventory />
                 </ProtectedRoute>
               } />
 
-              <Route path="inventory" element={
-                <ProtectedRoute allowedRoles={['school-admin', 'super-admin']}>
-                  <Inventory />
+              <Route path="schedule-builder" element={
+                <ProtectedRoute allowedRoles={['school-admin', 'super-admin', 'academic-manager', 'vice-principal']}>
+                  <ScheduleBuilder />
                 </ProtectedRoute>
               } />
 
@@ -377,11 +417,11 @@ function App() {
               } />
 
               <Route path="elearning-library" element={
-                <ProtectedRoute allowedRoles={['super-admin', 'academic-manager', 'school-admin', 'vice-principal', 'teacher', 'librarian', 'parent', 'student']}>
+                <ProtectedRoute allowedRoles={['super-admin', 'academic-manager', 'school-admin', 'vice-principal', 'teacher', 'librarian', 'storekeeper', 'parent', 'student']}>
                   <ELearningLibrary />
                 </ProtectedRoute>
               } />
-              <Route path="settings" element={<ProtectedRoute allowedRoles={['super-admin', 'school-admin']}><Settings /></ProtectedRoute>} />
+              <Route path="settings" element={<ProtectedRoute allowedRoles={['super-admin', 'school-admin', 'academic-manager']}><Settings /></ProtectedRoute>} />
               <Route path="change-password" element={<ChangePassword />} />
               <Route path="exam/:examId" element={<ExamSession />} />
 

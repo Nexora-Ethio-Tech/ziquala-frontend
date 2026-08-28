@@ -137,7 +137,7 @@ export const Dashboard = () => {
           if (response.success) {
             setDashboardStats(response.data);
           }
-        } else if (role === 'school-admin') {
+        } else if (role === 'school-admin' || role === 'academic-manager') {
           const [dashboardData, atRiskData, eventsData, noticesRes] = await Promise.all([
             getSchoolAdminDashboard(),
             getAtRiskStudents(),
@@ -158,9 +158,16 @@ export const Dashboard = () => {
               priority: n.priority || 'Normal',
               time: n.created_at || new Date().toISOString(),
               category: (n.category || 'Academic') as any,
-              audience: n.audience === 'all'
-                ? ['super-admin','academic-manager','school-admin','vice-principal','teacher','student','parent','librarian']
-                : String(n.audience || 'all').split(',').map((r: string) => r.trim()),
+                            audience: (() => {
+                const map: Record<string, string[]> = {
+                  all: ['super-admin', 'academic-manager', 'school-admin', 'vice-principal', 'teacher', 'student', 'parent', 'librarian', 'storekeeper'],
+                  teacher: ['teacher', 'school-admin', 'academic-manager', 'vice-principal', 'super-admin'],
+                  academic: ['academic-manager', 'school-admin', 'vice-principal', 'teacher', 'super-admin'],
+                  'parent-student': ['parent', 'student', 'school-admin', 'academic-manager', 'vice-principal', 'super-admin'],
+                };
+                const aud = n.audience || 'all';
+                return map[aud] || (String(aud).includes(',') ? String(aud).split(',').map((r: string) => r.trim()) : [aud]);
+              })(),
             }));
             _setNotices(mapped);
           }
@@ -370,7 +377,7 @@ export const Dashboard = () => {
             {loading ? (
               <div className="col-span-4 text-center py-8">
                 <div className="inline-block w-8 h-8 border-4 border-blue-600/30 border-t-blue-600 rounded-full animate-spin" />
-                <p className="text-sm text-slate-500 mt-2">Loading dashboard stats...</p>
+                <p className="text-sm text-slate-500 mt-2">{t("dashboard.loadingStats","Loading dashboard stats...")}</p>
               </div>
             ) : error ? (
               <div className="col-span-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
@@ -392,13 +399,13 @@ export const Dashboard = () => {
             />
             <StatCard
               icon={Clock}
-              label="Total Branches"
+              label={t("dashboard.totalBranches","Total Branches")}
               value={dashboardStats?.totalBranches?.toString() || "0"}
               color="bg-orange-500"
             />
             <StatCard
               icon={TrendingUp}
-              label="Pending Approvals"
+              label={t("dashboard.pendingApprovals","Pending Approvals")}
               value={dashboardStats?.pendingUsers?.toString() || "0"}
               color="bg-emerald-600"
               onClick={() => setShowPendingModal(true)}
@@ -409,28 +416,28 @@ export const Dashboard = () => {
             <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm p-6">
               <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                 <div>
-                  <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">Super Admin Snapshot</h3>
-                  <p className="text-sm text-slate-500">A clean, high-level view of all branches and network health.</p>
+                  <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">{t("dashboard.superAdminSnapshot","Super Admin Snapshot")}</h3>
+                  <p className="text-sm text-slate-500">{t('dashboard.snapshotSub', 'A clean, high-level view of all branches and network health.')}</p>
                 </div>
-                <span className="text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">{monitoredBranches} branches monitored</span>
+                <span className="text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">{t('dashboard.branchesMonitored', '{{count}} branches monitored', { count: monitoredBranches })}</span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mt-6">
                 <div className="rounded-3xl border border-slate-100 dark:border-slate-800 p-4 bg-slate-50 dark:bg-slate-950">
-                  <p className="text-[10px] uppercase tracking-widest text-slate-400 mb-2">Total Students</p>
+                  <p className="text-[10px] uppercase tracking-widest text-slate-400 mb-2">{t('dashboard.totalStudents', 'Total Students')}</p>
                   <p className="text-2xl font-black text-slate-900 dark:text-slate-100">{totalStudentsCount.toLocaleString()}</p>
                 </div>
                 <div className="rounded-3xl border border-slate-100 dark:border-slate-800 p-4 bg-slate-50 dark:bg-slate-950">
-                  <p className="text-[10px] uppercase tracking-widest text-slate-400 mb-2">Total Teachers</p>
+                  <p className="text-[10px] uppercase tracking-widest text-slate-400 mb-2">{t('dashboard.totalTeachers', 'Total Teachers')}</p>
                   <p className="text-2xl font-black text-slate-900 dark:text-slate-100">{teacherCount.toLocaleString()}</p>
                 </div>
                 <div className="rounded-3xl border border-slate-100 dark:border-slate-800 p-4 bg-slate-50 dark:bg-slate-950">
-                  <p className="text-[10px] uppercase tracking-widest text-slate-400 mb-2">Teacher Attendance</p>
+                  <p className="text-[10px] uppercase tracking-widest text-slate-400 mb-2">{t('dashboard.teacherAttendance', 'Teacher Attendance')}</p>
                   <p className={`text-2xl font-black ${Number(teacherAttendance) >= 80 ? 'text-emerald-600' : Number(teacherAttendance) >= 60 ? 'text-amber-600' : 'text-rose-600'}`}>
                     {loading ? '...' : `${teacherAttendance}%`}
                   </p>
                 </div>
                 <div className="rounded-3xl border border-slate-100 dark:border-slate-800 p-4 bg-slate-50 dark:bg-slate-950">
-                  <p className="text-[10px] uppercase tracking-widest text-slate-400 mb-2">Student Attendance</p>
+                  <p className="text-[10px] uppercase tracking-widest text-slate-400 mb-2">{t('dashboard.studentAttendance', 'Student Attendance')}</p>
                   <p className={`text-2xl font-black ${Number(studentAttendance) >= 80 ? 'text-emerald-600' : Number(studentAttendance) >= 60 ? 'text-amber-600' : 'text-rose-600'}`}>
                     {loading ? '...' : `${studentAttendance}%`}
                   </p>
@@ -463,7 +470,7 @@ export const Dashboard = () => {
                         <td colSpan={5} className="px-6 py-8 text-center">
                           <div className="flex flex-col items-center gap-2">
                             <div className="w-12 h-12 border-4 border-blue-600/30 border-t-blue-600 rounded-full animate-spin" />
-                            <p className="text-sm text-slate-500 mt-2">Loading branch reports...</p>
+                            <p className="text-sm text-slate-500 mt-2">{t("dashboard.loadingBranchReports","Loading branch reports...")}</p>
                           </div>
                         </td>
                       </tr>
@@ -562,7 +569,7 @@ export const Dashboard = () => {
                       <Clock size={20} />
                     </div>
                     <div>
-                      <h3 className="font-bold text-slate-800 dark:text-slate-100 text-lg">Pending Approvals</h3>
+                      <h3 className="font-bold text-slate-800 dark:text-slate-100 text-lg">{t("dashboard.pendingApprovals","Pending Approvals")}</h3>
                       <p className="text-xs text-slate-500">Academic Managers, School Admins, and Vice Principals waiting for activation.</p>
                     </div>
                   </div>
@@ -625,11 +632,11 @@ export const Dashboard = () => {
 
                             <div className="space-y-1.5 text-xs text-slate-500 dark:text-slate-400 border-t border-slate-50 dark:border-slate-800 pt-3">
                               <div className="flex justify-between">
-                                <span>Email:</span>
+                                <span>{t("dashboard.emailLabel","Email:")}</span>
                                 <span className="font-semibold text-slate-700 dark:text-slate-300 break-all">{pendingUser.email}</span>
                               </div>
                               <div className="flex justify-between">
-                                <span>Registered:</span>
+                                <span>{t("dashboard.registeredLabel","Registered:")}</span>
                                 <span className="font-semibold text-slate-700 dark:text-slate-300">
                                   {pendingUser.created_at ? new Date(pendingUser.created_at).toLocaleDateString() : '—'}
                                 </span>
@@ -719,7 +726,7 @@ export const Dashboard = () => {
               <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('dashboard.students')}</span>
             </div>
             <p className="text-3xl font-black text-slate-800 dark:text-slate-100">{selectedBranchReport?.totalStudents ?? 0}</p>
-            <p className="text-xs text-emerald-600 font-bold mt-1">Branch-wide student total</p>
+            <p className="text-xs text-emerald-600 font-bold mt-1">{t("dashboard.branchStudentTotal","Branch-wide student total")}</p>
           </div>
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-6 shadow-sm hover:shadow-md transition-all">
             <div className="flex items-center gap-3 mb-4">
@@ -727,7 +734,7 @@ export const Dashboard = () => {
               <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('dashboard.teachers')}</span>
             </div>
             <p className="text-3xl font-black text-slate-800 dark:text-slate-100">{selectedBranchTeacherCount}</p>
-            <p className="text-xs text-slate-500 font-bold mt-1">Teaching staff in branch</p>
+            <p className="text-xs text-slate-500 font-bold mt-1">{t("dashboard.teachingStaff","Teaching staff in branch")}</p>
           </div>
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-6 shadow-sm hover:shadow-md transition-all">
             <div className="flex items-center gap-3 mb-4">
@@ -735,7 +742,7 @@ export const Dashboard = () => {
               <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('dashboard.attendance')}</span>
             </div>
             <p className="text-3xl font-black text-slate-800 dark:text-slate-100">{selectedBranchReport?.attendance ? `${selectedBranchReport.attendance}%` : 'N/A'}</p>
-            <p className="text-xs text-emerald-600 font-bold mt-1">Branch attendance rate</p>
+            <p className="text-xs text-emerald-600 font-bold mt-1">{t("dashboard.branchAttendanceRate","Branch attendance rate")}</p>
           </div>
         </div>
 
@@ -746,11 +753,11 @@ export const Dashboard = () => {
   return (
     <div className="space-y-8">
       {/* Welcome Message for School Admin */}
-      {role === 'school-admin' && user && (
+      {(role === 'school-admin' || role === 'academic-manager') && user && (
         <section className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-2xl p-6 shadow-xl">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-blue-100 mb-1">Welcome back,</p>
+              <p className="text-sm font-medium text-blue-100 mb-1">{t("dashboard.welcomeBack","Welcome back,")}</p>
               <h2 className="text-2xl md:text-3xl font-black">{user.name}</h2>
               <p className="text-blue-100 mt-2 flex items-center gap-2">
                 <span className="font-semibold">
@@ -788,7 +795,7 @@ export const Dashboard = () => {
             </div>
             <div>
               <h3 className="font-bold text-slate-800 dark:text-slate-100">
-                Grade Insertion is {gradesLocked ? 'LOCKED' : 'OPEN'}
+                {gradesLocked ? t("dashboard.gradeLocked","Grade Insertion is LOCKED") : t("dashboard.gradeOpen","Grade Insertion is OPEN")}
               </h3>
               <p className="text-sm text-slate-600 dark:text-slate-400">
                 {gradesLocked
@@ -818,7 +825,7 @@ export const Dashboard = () => {
                     : 'bg-amber-600 hover:bg-amber-700 text-white'
                   }`}
               >
-                {gradesLocked ? 'Open Insertion' : 'Close Insertion'}
+                {gradesLocked ? t('dashboard.openInsertion','Open Insertion') : t('dashboard.closeInsertion','Close Insertion')}
               </button>
             )}
           </div>
@@ -858,26 +865,26 @@ export const Dashboard = () => {
           <>
             <StatCard
               icon={Users}
-              label="Total Students"
+              label={t("dashboard.totalStudents","Total Students")}
               value={schoolAdminStats.totalStudents?.toLocaleString() || '0'}
               trend="+4.3%"
               color="bg-blue-600"
             />
             <StatCard
               icon={GraduationCap}
-              label="Total Teachers"
+              label={t("dashboard.totalTeachers","Total Teachers")}
               value={schoolAdminStats.totalTeachers?.toString() || '0'}
               color="bg-purple-600"
             />
             <StatCard
               icon={Clock}
-              label="Total Classes"
+              label={t("dashboard.totalClasses","Total Classes")}
               value={schoolAdminStats.totalClasses?.toString() || '0'}
               color="bg-orange-500"
             />
             <StatCard
               icon={TrendingUp}
-              label="Pending Applications"
+              label={t("dashboard.pendingApplications","Pending Applications")}
               value={schoolAdminStats.pendingApplications?.toString() || '0'}
               color="bg-emerald-500"
             />
@@ -885,7 +892,7 @@ export const Dashboard = () => {
         ) : loading ? (
           <div className="col-span-4 text-center py-8">
             <div className="inline-block w-8 h-8 border-4 border-blue-600/30 border-t-blue-600 rounded-full animate-spin" />
-            <p className="text-sm text-slate-500 mt-2">Loading dashboard...</p>
+            <p className="text-sm text-slate-500 mt-2">{t("dashboard.loading","Loading dashboard...")}</p>
           </div>
         ) : null}
       </div>
@@ -896,7 +903,7 @@ export const Dashboard = () => {
             <div className="p-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 rounded-lg">
               <Megaphone size={20} />
             </div>
-            <h3 className="font-bold text-slate-800 dark:text-slate-100">School Notice Board</h3>
+            <h3 className="font-bold text-slate-800 dark:text-slate-100">{t("dashboard.noticeBoardTitle","School Notice Board")}</h3>
           </div>
           {isAdmin && (
             <button
@@ -904,8 +911,8 @@ export const Dashboard = () => {
               className="bg-blue-600 hover:bg-blue-700 text-white p-2 md:p-1.5 rounded-lg transition-colors flex items-center gap-1 text-[10px] md:text-xs font-bold"
             >
               <Plus size={14} className="md:w-4 md:h-4" />
-              <span className="hidden xs:inline">Post Notice</span>
-              <span className="xs:hidden">Post</span>
+              <span className="hidden xs:inline">{t("dashboard.postNotice","Post Notice")}</span>
+              <span className="xs:hidden">{t("dashboard.post","Post")}</span>
             </button>
           )}
         </div>
@@ -964,7 +971,7 @@ export const Dashboard = () => {
               </p>
               {isAdmin && notice.audience && notice.audience.length > 0 && (
                 <div className="mt-3 pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center gap-1.5 flex-wrap">
-                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Audience:</span>
+                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{t("dashboard.audienceLabel","Audience:")}</span>
                   {notice.audience.includes('all') || notice.audience.length >= 5 ? (
                     <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-violet-100 text-violet-700 uppercase">All Users</span>
                   ) : (
@@ -991,20 +998,20 @@ export const Dashboard = () => {
                 className="text-lg font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-2 hover:opacity-70 transition-opacity"
               >
                 <ShieldAlert size={20} className="text-rose-600" />
-                Priority Watchlist
+                {t('dashboard.priorityWatchlist')}
                 <div className={`transition-transform duration-300 ${watchlistExpanded ? 'rotate-90' : ''}`}>
                   <ArrowRight size={18} className="text-slate-400" />
                 </div>
               </button>
               <Link to="/analytics" className="text-xs font-bold text-blue-600 hover:underline uppercase tracking-widest">
-                Full Report
+                {t('dashboard.fullReport')}
               </Link>
             </div>
             {watchlistExpanded && (
               <div className="space-y-4 animate-in slide-in-from-top-2 duration-300">
                 {atRiskStudents.length === 0 ? (
                   <div className="text-center py-8">
-                    <p className="text-sm text-slate-500">No at-risk students at this time</p>
+                    <p className="text-sm text-slate-500">{t('dashboard.noAtRiskStudents')}</p>
                   </div>
                 ) : (
                   atRiskStudents.slice(0, 4).map((student) => (
@@ -1030,7 +1037,7 @@ export const Dashboard = () => {
 
         <div className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 transition-colors duration-300">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Upcoming Events</h3>
+            <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">{t("dashboard.upcomingEvents","Upcoming Events")}</h3>
             {role === 'school-admin' && (
               <button
                 onClick={() => {
@@ -1110,7 +1117,7 @@ export const Dashboard = () => {
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/50 shrink-0">
-              <h3 className="font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wider text-sm">Post New Notice</h3>
+              <h3 className="font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wider text-sm">{t('modals.postNoticeTitle', 'Post New Notice')}</h3>
               <button
                 type="button"
                 title="Close notice modal"
@@ -1176,12 +1183,12 @@ export const Dashboard = () => {
               setSelectedAudience('all');
             }}>
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-500 uppercase">Notice Title</label>
+                <label className="text-[10px] font-bold text-slate-500 uppercase">{t('modals.noticeTitle', 'Notice Title')}</label>
                 <input name="title" required type="text" placeholder="e.g. Public Holiday Announcement" className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 transition-all" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase">Category</label>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase">{t('modals.category', 'Category')}</label>
                   <select
                     name="category"
                     title="Select notice category"
@@ -1193,7 +1200,7 @@ export const Dashboard = () => {
                   </select>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase">Priority</label>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase">{t('modals.priority', 'Priority')}</label>
                   <select
                     name="priority"
                     title="Select notice priority level"
@@ -1209,14 +1216,14 @@ export const Dashboard = () => {
               <div className="space-y-2">
                 <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
                   <Users size={12} />
-                  Target Audience
+                  {t('modals.targetAudience', 'Target Audience')}
                 </label>
                 <div className="grid grid-cols-1 gap-2">
                   {[
-                    { value: 'all', label: '🌐 All Users', desc: 'Everyone receives this notice' },
-                    { value: 'teacher', label: '👨‍🏫 Teachers Only', desc: 'Only teachers see this' },
-                    { value: 'academic', label: '📚 Academic Team', desc: 'Academic managers, administrators, and teachers' },
-                    { value: 'parent-student', label: '👨‍👩‍👧 Parents & Students', desc: 'Parents and students see this' },
+                    { value: 'all', label: `🌐 ${t('modals.audienceAll','All Users')}`, desc: t('modals.audienceAllDesc','Everyone receives this notice') },
+                    { value: 'teacher', label: `👨‍🏫 ${t('modals.audienceTeachers','Teachers Only')}`, desc: t('modals.audienceTeachersDesc','Only teachers see this') },
+                    { value: 'academic', label: `📚 ${t('modals.audienceAcademic','Academic Team')}`, desc: t('modals.audienceAcademicDesc','Academic managers, administrators, and teachers') },
+                    { value: 'parent-student', label: `👨‍👩‍👧 ${t('modals.audienceParents','Parents & Students')}`, desc: t('modals.audienceParentsDesc','Parents and students see this') },
                   ].map(opt => (
                     <button
                       key={opt.value}
@@ -1238,11 +1245,11 @@ export const Dashboard = () => {
                 </div>
               </div>
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-500 uppercase">Content</label>
+                <label className="text-[10px] font-bold text-slate-500 uppercase">{t('modals.content', 'Content')}</label>
                 <textarea name="content" required rows={4} placeholder="Write the details of the notice here..." className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 transition-all" />
               </div>
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-500 uppercase">Expiry Date (Ethiopian Calendar)</label>
+                <label className="text-[10px] font-bold text-slate-500 uppercase">{t('modals.expiryDate', 'Expiry Date (Ethiopian Calendar)')}</label>
                 <EthiopianDatePicker
                   value={noticeExpiryEthDate}
                   onChange={(gregorianIso) => {
@@ -1264,7 +1271,7 @@ export const Dashboard = () => {
                   ) : (
                     <Bell size={18} />
                   )}
-                  <span>{postingNotice ? 'Publishing...' : 'Publish Notice'}</span>
+                  <span>{postingNotice ? t('modals.publishing', 'Publishing...') : t('modals.publishNotice', 'Publish Notice')}</span>
                 </button>
               </div>
             </form>
@@ -1288,7 +1295,7 @@ export const Dashboard = () => {
               <div className="p-2 bg-red-100 dark:bg-red-900/40 text-red-600 rounded-lg">
                 <AlertTriangle size={20} />
               </div>
-              <h3 className="font-bold text-slate-800 dark:text-slate-100">Delete Event</h3>
+              <h3 className="font-bold text-slate-800 dark:text-slate-100">{t('modals.deleteEvent', 'Delete Event')}</h3>
             </div>
             <div className="p-6">
               <p className="text-slate-600 dark:text-slate-400 mb-6">
@@ -1322,7 +1329,7 @@ export const Dashboard = () => {
           <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/50 shrink-0">
               <h3 className="font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wider text-sm">
-                {editingEvent ? 'Edit Event' : 'Create New Event'}
+                {editingEvent ? t('modals.editEventTitle','Edit Event') : t('modals.addEventTitle','Create New Event')}
               </h3>
               <button
                 type="button"
@@ -1339,7 +1346,7 @@ export const Dashboard = () => {
             </div>
             <form className="p-6 space-y-4 flex-1 overflow-y-auto" onSubmit={editingEvent ? handleUpdateEvent : handleCreateEvent}>
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-500 uppercase">Event Title</label>
+                <label className="text-[10px] font-bold text-slate-500 uppercase">{t('modals.eventTitle', 'Event Title')}</label>
                 <input
                   name="title"
                   required
@@ -1351,7 +1358,7 @@ export const Dashboard = () => {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase">Date (Ethiopian)</label>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase">{t('modals.dateEth', 'Date (Ethiopian)')}</label>
                   <EthiopianDatePicker
                     value={eventEthDate}
                     onChange={setEventEthDate}
@@ -1360,7 +1367,7 @@ export const Dashboard = () => {
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase">Type</label>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase">{t('modals.type', 'Type')}</label>
                   <select
                     name="type"
                     title="Select event type"
@@ -1376,7 +1383,7 @@ export const Dashboard = () => {
                 </div>
               </div>
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-500 uppercase">Description (Optional)</label>
+                <label className="text-[10px] font-bold text-slate-500 uppercase">{t('modals.description', 'Description (Optional)')}</label>
                 <textarea
                   name="description"
                   rows={3}
@@ -1388,7 +1395,7 @@ export const Dashboard = () => {
               <div className="pt-4">
                 <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-blue-200 dark:shadow-none flex items-center justify-center gap-2">
                   <Calendar size={18} />
-                  <span>{editingEvent ? 'Update Event' : 'Create Event'}</span>
+                  <span>{editingEvent ? t('modals.updateEvent', 'Update Event') : t('modals.createEvent', 'Create Event')}</span>
                 </button>
               </div>
             </form>

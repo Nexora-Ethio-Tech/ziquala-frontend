@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -77,6 +78,7 @@ const StudentExamCard = ({ exam, onStart }: { exam: PublishedExam; onStart: () =
 };
 
 const Exams = () => {
+  const { t } = useTranslation();
 
   const { role, user } = useUser();
   const navigate = useNavigate();
@@ -193,7 +195,7 @@ const Exams = () => {
         </div>
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Official Examinations</h1>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{t('examsPage.officialExaminations', 'Official Examinations')}</h1>
             <p className="text-slate-500 dark:text-slate-400">Access and attempt your scheduled examinations.</p>
           </div>
           <button onClick={fetchExams} disabled={loadingExams} className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
@@ -238,7 +240,7 @@ const Exams = () => {
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Official Examinations</h1>
           <p className="text-slate-500 dark:text-slate-400">
-            {isTeacher && "Manage official mid-term and final examinations for your courses."}
+            {isTeacher && t('examsPage.manageExamsSub', 'Manage official mid-term and final examinations for your courses.')}
           </p>
         </div>
         {isTeacher && (
@@ -279,7 +281,7 @@ const Exams = () => {
                 : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-800'
               }`}
           >
-            {cat}s
+            {cat === 'Mid-term' ? t('examsPage.midTerms', 'Mid-terms') : t('examsPage.finals', 'Finals')}
           </button>
         ))}
       </div>
@@ -339,18 +341,18 @@ const Exams = () => {
           {/* Drafts */}
           <div>
             <h2 className="text-base font-black text-slate-700 dark:text-slate-300 uppercase tracking-widest mb-3 flex items-center gap-2">
-              <Save size={16} className="text-amber-500" /> Draft Exams
+              <Save size={16} className="text-amber-500" /> {t('examsPage.draftExams', 'Draft Exams')}
               <span className="ml-1 text-xs font-bold bg-amber-100 dark:bg-amber-900/30 text-amber-700 px-2 py-0.5 rounded-full">{draftExams.length}</span>
             </h2>
             {draftExams.length === 0 ? (
-              <div className="py-10 text-center bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700 text-slate-400 text-sm font-medium">No drafts yet — create a new examination above.</div>
+              <div className="py-10 text-center bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700 text-slate-400 text-sm font-medium">{t('examsPage.noDraftsYet', 'No drafts yet — create a new examination above.')}</div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {draftExams.map((exam: any) => (
                   <div key={exam.id} className="bg-white dark:bg-slate-800 border border-amber-200 dark:border-amber-800/50 rounded-2xl p-5 space-y-3 hover:shadow-lg hover:shadow-amber-500/5 transition-all">
                     <div className="flex items-start justify-between gap-2">
                       <h3 className="font-bold text-slate-800 dark:text-white text-sm leading-tight">{exam.title}</h3>
-                      <span className="shrink-0 text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700">Draft</span>
+                      <span className="shrink-0 text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700">{t('examsPage.draft', 'Draft')}</span>
                     </div>
                     <div className="text-xs text-slate-500 dark:text-slate-400 space-y-1">
                       {exam.subject_name && <p><BookOpen size={10} className="inline mr-1" />{exam.subject_name}</p>}
@@ -371,13 +373,13 @@ const Exams = () => {
                         }}
                         className="flex-1 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-xs font-bold hover:bg-blue-100 transition-colors flex items-center justify-center gap-1"
                       >
-                        <FileText size={12} /> Edit
+                        <FileText size={12} /> {t('examsPage.edit', 'Edit')}
                       </button>
                       <button
                         onClick={async () => { try { await publishTeacherExam(exam.id); const td = await getTeacherExams(); setDraftExams(Array.isArray(td.draftExams) ? td.draftExams : []); setPublishedExams(Array.isArray(td.publishedExams) ? td.publishedExams : []); } catch(e: any) { alert(e?.message || 'Failed to publish'); } }}
                         className="flex-1 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold hover:bg-emerald-100 transition-colors flex items-center justify-center gap-1"
                       >
-                        <Eye size={12} /> Publish
+                        <Eye size={12} /> {t('examsPage.publish', 'Publish')}
                       </button>
                       <button
                         onClick={async () => { if (!confirm('Delete this draft?')) return; try { await deleteTeacherExam(exam.id); const td = await getTeacherExams(); setDraftExams(Array.isArray(td.draftExams) ? td.draftExams : []); } catch(e: any) { alert(e?.message || 'Failed to delete'); } }}
@@ -395,18 +397,18 @@ const Exams = () => {
           {/* Published */}
           <div>
             <h2 className="text-base font-black text-slate-700 dark:text-slate-300 uppercase tracking-widest mb-3 flex items-center gap-2">
-              <CheckCircle2 size={16} className="text-emerald-500" /> Published Exams
+              <CheckCircle2 size={16} className="text-emerald-500" /> {t('examsPage.publishedExams', 'Published Exams')}
               <span className="ml-1 text-xs font-bold bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 px-2 py-0.5 rounded-full">{publishedExams.length}</span>
             </h2>
             {publishedExams.length === 0 ? (
-              <div className="py-10 text-center bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700 text-slate-400 text-sm font-medium">No published exams yet.</div>
+              <div className="py-10 text-center bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700 text-slate-400 text-sm font-medium">{t('examsPage.noPublishedExamsYet', 'No published exams yet.')}</div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {publishedExams.map((exam: any) => (
                   <div key={exam.id} className="bg-white dark:bg-slate-800 border border-emerald-200 dark:border-emerald-800/50 rounded-2xl p-5 space-y-3 hover:shadow-lg hover:shadow-emerald-500/5 transition-all">
                     <div className="flex items-start justify-between gap-2">
                       <h3 className="font-bold text-slate-800 dark:text-white text-sm leading-tight">{exam.title}</h3>
-                      <span className="shrink-0 text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700">Live</span>
+                      <span className="shrink-0 text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700">{t('examsPage.live', 'Live')}</span>
                     </div>
                     <div className="text-xs text-slate-500 dark:text-slate-400 space-y-1">
                       {exam.subject_name && <p><BookOpen size={10} className="inline mr-1" />{exam.subject_name}</p>}

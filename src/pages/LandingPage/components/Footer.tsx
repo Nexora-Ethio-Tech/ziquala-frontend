@@ -14,17 +14,17 @@ export default function Footer() {
                         <img
                             src="/school.png"
                             className="rounded-full h-16 w-16 border border-zinc-200 dark:border-white/10"
-                            alt="Abdi Adama Logo"
+                            alt="Ziquala Abo Logo"
                         />
                         <div>
                             <h2 className="text-xl md:text-2xl font-serif font-medium tracking-tight text-zinc-900 dark:text-white leading-none">
-                                Abdi Adama
+                                Ziquala Abo
                             </h2>
                         </div>
                     </div>
 
                     <p className="text-zinc-600 dark:text-zinc-300 text-base font-sans leading-relaxed max-w-sm">
-                        Founded in 2005, Abdi Adama School is a premier educational institution in Ethiopia dedicated to producing competent, confident, and patriotic citizens.
+                        Founded in 2005, Ziquala Abo School is a premier educational institution in Ethiopia dedicated to producing competent, confident, and patriotic citizens.
                     </p>
                 </div>
 
@@ -108,7 +108,7 @@ export default function Footer() {
 
             {/* FOOTER METRICS */}
             <div className="max-w-7xl mx-auto w-full border-t border-zinc-200 dark:border-zinc-800 mt-20 pt-8 flex flex-col sm:flex-row justify-between items-center gap-4 text-zinc-500 dark:text-zinc-400 text-xs md:text-sm font-mono">
-                <p>© {new Date().getFullYear()} Abdi Adama School. All rights reserved.</p>
+                <p>© {new Date().getFullYear()} Ziquala Abo School. All rights reserved.</p>
                 <p className="tracking-widest font-semibold uppercase text-xs text-zinc-400 dark:text-zinc-500">
                     Knowledge • Culture • Discipline
                 </p>
