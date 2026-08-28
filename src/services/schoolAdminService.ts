@@ -25,6 +25,7 @@ export interface RegisterUserData {
   grade?: string; // Required for students
   password?: string; // Optional, auto-generated if not provided
   staffProfile?: Record<string, any>;
+  initialStatus?: string; // 'Approved' for enrollment accounts; omit for staff (defaults to Pending)
 }
 
 export interface RegisterUserResponse {
@@ -658,5 +659,10 @@ export const publishGradingConfigs = async (
   configs: Array<{ id: string; label: string; maxWeight: number }>
 ): Promise<any> => {
   const response = await api.post('/school-admin/grading-configs', { gradeLevel, configs });
+  return response.data;
+};
+
+export const linkParentStudent = async (parentUserId: string, studentUserId: string): Promise<any> => {
+  const response = await api.post('/school-admin/link-parent-student', { parentUserId, studentUserId });
   return response.data;
 };

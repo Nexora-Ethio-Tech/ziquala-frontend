@@ -10,6 +10,7 @@ import {
   createPendingApplication,
   createPublicPendingApplication,
   registerUser,
+  linkParentStudent,
   toggleRegistration
 } from '../services/schoolAdminService';
 import api from '../services/api';
@@ -782,6 +783,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
             email: validEmail,
             role: 'student',
             grade: app.lastGrade,
+            initialStatus: 'Approved',
           });
 
           const sDigitalId = studentRes?.data?.user?.digital_id || 'N/A';
@@ -798,11 +800,19 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
               name: parentName,
               email: parentEmail,
               role: 'parent',
+              initialStatus: 'Approved',
             });
             pDigitalId = parentRes?.data?.user?.digital_id || 'N/A';
             pPin = parentRes?.data?.temporaryPassword || 'N/A';
+
+            // 3. Link parent and student user accounts
+            const sUserId = studentRes?.data?.user?.id;
+            const pUserId = parentRes?.data?.user?.id;
+            if (pUserId && sUserId) {
+              await linkParentStudent(pUserId, sUserId);
+            }
           } catch (pErr) {
-            console.warn('Parent account creation warning:', pErr);
+            console.warn('Parent account creation / link warning:', pErr);
           }
 
           // 3. Show the credentials modal with both accounts
