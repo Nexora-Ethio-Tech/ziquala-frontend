@@ -16,7 +16,7 @@ export const Students = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { role, user, registrationOpen, setRegistrationOpen } = useUser();
   const isSchoolAdmin = role === 'school-admin';
-  const canViewStudentRecord = role === 'school-admin' || role === 'super-admin' || role === 'vice-principal';
+  const canViewStudentRecord = role === 'school-admin' || role === 'super-admin' || role === 'vice-principal' || role === 'academic-manager';
 
   const formatGradeDisplay = (grade?: string | null) => {
     const trimmed = String(grade || '').trim();
