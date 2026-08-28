@@ -779,12 +779,13 @@ export const Students = () => {
                         <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">{formatSectionDisplay(student.section)}</td>
                         <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">{formatGradeDisplay(student.grade)}</td>
                         <td className="px-6 py-4">
-                          <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${student.status === 'Active' ? 'bg-green-100 text-green-700' :
+                          <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${
+                            student.status === 'Active' || student.status === 'Approved' ? 'bg-green-100 text-green-700' :
                             student.status === 'Inactive' ? 'bg-slate-100 text-slate-600' :
-                              student.status === 'Suspended' ? 'bg-red-100 text-red-700' :
-                                'bg-blue-100 text-blue-700'
-                            }`}>
-                            {student.status}
+                            student.status === 'Suspended' ? 'bg-red-100 text-red-700' :
+                            'bg-blue-100 text-blue-700'
+                          }`}>
+                            {student.status === 'Approved' ? 'ACTIVE' : student.status}
                           </span>
                         </td>
                         {isSchoolAdmin && (
