@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import {
   ArrowRight,
@@ -20,6 +20,8 @@ import {
   Mountain,
   Music2,
   Newspaper,
+  Pause,
+  Play,
   PlayCircle,
   Phone,
   Send,
@@ -27,6 +29,8 @@ import {
   Sun,
   Trees,
   Users,
+  Volume2,
+  VolumeX,
   X,
 } from 'lucide-react';
 import { Link, NavLink, Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom';
@@ -919,18 +923,54 @@ const SchoolPage = () => (
 );
 
 const MonasteryHero = () => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isPaused, setIsPaused] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
   const reduceMotion = useReducedMotion();
+
+  const togglePlayback = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (video.paused) {
+      void video.play().then(() => setIsPaused(false));
+    } else {
+      video.pause();
+      setIsPaused(true);
+    }
+  };
+
+  const toggleSound = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.muted = !video.muted;
+    setIsMuted(video.muted);
+  };
 
   return (
     <section className="relative flex min-h-[680px] items-end overflow-hidden bg-slate-950 text-white">
-      <img
-        src="https://drive.google.com/thumbnail?id=1SXwy-EtzKvvq9RkYbB6fIKlGj-tHUGs6&sz=w2560"
-        alt="Ziquala Abo Monastery and its natural surroundings"
-        referrerPolicy="no-referrer"
-        fetchPriority="high"
+      <video
+        ref={videoRef}
+        src="/videos/monastery-forest-hero.mp4"
+        poster="https://drive.google.com/thumbnail?id=1SXwy-EtzKvvq9RkYbB6fIKlGj-tHUGs6&sz=w2560"
+        autoPlay
+        loop
+        muted={isMuted}
+        playsInline
+        preload="auto"
+        onPlay={() => setIsPaused(false)}
+        onPause={() => setIsPaused(true)}
         className="absolute inset-0 h-full w-full object-cover"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/45 to-slate-950/10" />
+
+      <div className="absolute right-5 top-5 z-20 flex gap-2 sm:right-8 sm:top-8">
+        <button type="button" onClick={togglePlayback} aria-label={isPaused ? 'Play monastery background video' : 'Pause monastery background video'} aria-pressed={isPaused} className="grid h-11 w-11 place-items-center rounded-full border border-white/35 bg-slate-950/35 text-white backdrop-blur transition hover:bg-white hover:text-emerald-950">
+          {isPaused ? <Play size={18} fill="currentColor" /> : <Pause size={18} fill="currentColor" />}
+        </button>
+        <button type="button" onClick={toggleSound} aria-label={isMuted ? 'Enable monastery video sound' : 'Mute monastery video sound'} aria-pressed={!isMuted} className="grid h-11 w-11 place-items-center rounded-full border border-white/35 bg-slate-950/35 text-white backdrop-blur transition hover:bg-white hover:text-emerald-950">
+          {isMuted ? <VolumeX size={19} /> : <Volume2 size={19} />}
+        </button>
+      </div>
 
       <motion.div
         initial={reduceMotion ? false : { opacity: 0, y: 42 }}
