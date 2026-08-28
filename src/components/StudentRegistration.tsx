@@ -1949,25 +1949,25 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
           </div>
 
           {/* On-screen Modal */}
-          <div className="credential-modal-screen fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4 print:hidden animate-in fade-in duration-200">
-            <div className="bg-slate-900 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-800 text-white">
-              <h2 className="text-xl font-bold text-emerald-400 mb-5 flex items-center gap-2">
+          <div className="credential-modal-screen fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4 sm:p-6 overflow-y-auto print:hidden animate-in fade-in duration-200">
+            <div className="bg-slate-900 rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-slate-800 text-white my-auto max-h-[92vh] flex flex-col">
+              <h2 className="text-xl font-bold text-emerald-400 mb-4 shrink-0 flex items-center gap-2">
                 <Check size={24} className="text-emerald-400" />
                 Payment Approved
               </h2>
 
-              <div className="space-y-4 mb-6 bg-slate-950/60 p-4 rounded-xl border border-slate-800/80">
+              <div className="space-y-4 mb-4 bg-slate-950/60 p-4 rounded-xl border border-slate-800/80 overflow-y-auto flex-1 max-h-[55vh] scrollbar-thin">
                 {/* STUDENT ID */}
                 <div>
                   <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">STUDENT ID</p>
                   <div className="flex items-center gap-2">
-                    <code className="text-base font-mono font-bold text-white flex-1 bg-slate-900 px-3 py-2 rounded-lg border border-slate-800">
+                    <code className="text-xs sm:text-sm font-mono font-bold text-white flex-1 bg-slate-900 px-3 py-2 rounded-lg border border-slate-800 break-all">
                       {credentialsModal.studentDigitalId}
                     </code>
                     <button
                       type="button"
                       onClick={() => copyText(credentialsModal.studentDigitalId, 'Student ID')}
-                      className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-sm font-semibold transition-colors shrink-0"
+                      className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs sm:text-sm font-semibold transition-colors shrink-0"
                     >
                       {copiedLabel === 'Student ID' ? 'Copied!' : 'Copy'}
                     </button>
@@ -1978,7 +1978,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                 <div>
                   <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">STUDENT PASSWORD</p>
                   <div className="flex items-center gap-2">
-                    <code className="text-base font-mono font-bold text-white flex-1 bg-slate-900 px-3 py-2 rounded-lg border border-slate-800">
+                    <code className="text-xs sm:text-sm font-mono font-bold text-white flex-1 bg-slate-900 px-3 py-2 rounded-lg border border-slate-800 break-all">
                       {showPassword ? credentialsModal.studentPin : '••••••••'}
                     </code>
                     <button
@@ -1992,7 +1992,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                     <button
                       type="button"
                       onClick={() => copyText(credentialsModal.studentPin, 'Student Password')}
-                      className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-sm font-semibold transition-colors shrink-0"
+                      className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs sm:text-sm font-semibold transition-colors shrink-0"
                     >
                       {copiedLabel === 'Student Password' ? 'Copied!' : 'Copy'}
                     </button>
@@ -2003,13 +2003,13 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                 <div>
                   <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">PARENT ID</p>
                   <div className="flex items-center gap-2">
-                    <code className="text-base font-mono font-bold text-white flex-1 bg-slate-900 px-3 py-2 rounded-lg border border-slate-800">
+                    <code className="text-xs sm:text-sm font-mono font-bold text-white flex-1 bg-slate-900 px-3 py-2 rounded-lg border border-slate-800 break-all">
                       {credentialsModal.parentDigitalId}
                     </code>
                     <button
                       type="button"
                       onClick={() => copyText(credentialsModal.parentDigitalId, 'Parent ID')}
-                      className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-sm font-semibold transition-colors shrink-0"
+                      className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs sm:text-sm font-semibold transition-colors shrink-0"
                     >
                       {copiedLabel === 'Parent ID' ? 'Copied!' : 'Copy'}
                     </button>
@@ -2020,13 +2020,13 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                 <div>
                   <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">PARENT PASSWORD</p>
                   <div className="flex items-center gap-2">
-                    <code className="text-base font-mono font-bold text-white flex-1 bg-slate-900 px-3 py-2 rounded-lg border border-slate-800">
+                    <code className="text-xs sm:text-sm font-mono font-bold text-white flex-1 bg-slate-900 px-3 py-2 rounded-lg border border-slate-800 break-all">
                       {showPassword ? credentialsModal.parentPin : '••••••••'}
                     </code>
                     <button
                       type="button"
                       onClick={() => copyText(credentialsModal.parentPin, 'Parent Password')}
-                      className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-sm font-semibold transition-colors shrink-0"
+                      className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs sm:text-sm font-semibold transition-colors shrink-0"
                     >
                       {copiedLabel === 'Parent Password' ? 'Copied!' : 'Copy'}
                     </button>
@@ -2035,7 +2035,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
               </div>
 
               {/* Stacked Action Buttons */}
-              <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-2.5 shrink-0 pt-2 border-t border-slate-800/80">
                 <button
                   type="button"
                   onClick={() => {
@@ -2044,7 +2044,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                       'All credentials'
                     );
                   }}
-                  className="w-full px-4 py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl font-semibold transition-all text-sm"
+                  className="w-full px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl font-semibold transition-all text-xs sm:text-sm"
                 >
                   {copiedLabel === 'All credentials' ? '✓ Copied all credentials!' : 'Copy all credentials'}
                 </button>
@@ -2054,7 +2054,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                     setShowPassword(true);
                     setTimeout(() => window.print(), 150);
                   }}
-                  className="w-full px-4 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-semibold transition-all text-sm shadow-lg shadow-blue-600/30 active:scale-[0.99]"
+                  className="w-full px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-semibold transition-all text-xs sm:text-sm shadow-lg shadow-blue-600/30 active:scale-[0.99]"
                 >
                   Print credentials (A4)
                 </button>
@@ -2064,7 +2064,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                     setCredentialsModal(null);
                     setShowPassword(false);
                   }}
-                  className="w-full px-4 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-semibold transition-all text-sm shadow-lg shadow-blue-600/30 active:scale-[0.99]"
+                  className="w-full px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-semibold transition-all text-xs sm:text-sm"
                 >
                   Close
                 </button>
@@ -2076,8 +2076,8 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
 
       {/* Approval & Generate Credentials Modal */}
       {showApprovalModal && appForApproval && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 dark:border-slate-800 animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 sm:p-6 overflow-y-auto">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-slate-100 dark:border-slate-800 animate-in zoom-in-95 duration-200 my-auto max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-4">
               Approve Payment & Generate Credentials
             </h2>
