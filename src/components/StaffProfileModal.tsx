@@ -60,10 +60,11 @@ export const StaffProfileModal = ({ open, title, staff, onClose, onRefresh }: St
       const res = await api.get(`/school-admin/users/${resolvedUserId}/document`, {
         responseType: 'blob'
       });
-      const url = URL.createObjectURL(res.data);
+      const contentType = String(res.headers['content-type'] || 'application/pdf');
+      const blob = new Blob([res.data], { type: contentType });
+      const url = URL.createObjectURL(blob);
       window.open(url, '_blank');
-      // Revoke after a short delay to allow the new tab to load
-      setTimeout(() => URL.revokeObjectURL(url), 10000);
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
     } catch (err) {
       alert('Failed to open document');
     }
@@ -74,12 +75,16 @@ export const StaffProfileModal = ({ open, title, staff, onClose, onRefresh }: St
       const res = await api.get(`/school-admin/users/${resolvedUserId}/document`, {
         responseType: 'blob'
       });
-      const url = URL.createObjectURL(res.data);
+      const contentType = String(res.headers['content-type'] || 'application/octet-stream');
+      const blob = new Blob([res.data], { type: contentType });
+      const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = staff.document_file_name || 'document';
+      a.download = staff.document_file_name || 'document.pdf';
+      document.body.appendChild(a);
       a.click();
-      URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
     } catch (err) {
       alert('Failed to download document');
     }
