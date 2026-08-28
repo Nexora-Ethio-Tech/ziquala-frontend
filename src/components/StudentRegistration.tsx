@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UserPlus, User, RefreshCw, Upload, Search, CheckCircle, AlertCircle, FileText, Info, Check, X, HeartPulse, Mail, MapPin, Shield, AlertTriangle, Clock, ChevronDown, ChevronUp } from 'lucide-react';
+import { UserPlus, User, RefreshCw, Upload, Search, CheckCircle, AlertCircle, FileText, Info, Check, X, HeartPulse, Mail, MapPin, Shield, AlertTriangle, Clock, ChevronDown, ChevronUp, Eye, EyeOff } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import { useTranslation } from 'react-i18next';
 import {
@@ -11,7 +11,8 @@ import {
   createPublicPendingApplication,
   registerUser,
   linkParentStudent,
-  toggleRegistration
+  toggleRegistration,
+  completeEnrollment
 } from '../services/schoolAdminService';
 import api from '../services/api';
 import { API_HOST_URL } from '../config/api';
@@ -264,6 +265,20 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
     parentPin: string;
     phone?: string;
   } | null>(null);
+
+  // Approve Payment & Generate Credentials modal state
+  const [showApprovalModal, setShowApprovalModal] = useState(false);
+  const [appForApproval, setAppForApproval] = useState<PendingApp | null>(null);
+  const [approvalForm, setApprovalForm] = useState({ parentDigitalId: '', reference: '' });
+  const [approving, setApproving] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [copiedLabel, setCopiedLabel] = useState<string | null>(null);
+
+  const copyText = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedLabel(label);
+    setTimeout(() => setCopiedLabel(null), 2000);
+  };
 
   // Sync branches from context when available
   useEffect(() => {
@@ -768,76 +783,66 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
 
 
 
+  const handleOpenApprovalModal = (app: PendingApp) => {
+    setAppForApproval(app);
+    setApprovalForm({ parentDigitalId: '', reference: '' });
+    setShowApprovalModal(true);
+  };
+
+  const handleConfirmApproval = async () => {
+    if (!appForApproval) return;
+    try {
+      setApproving(true);
+      setSubmitError(null);
+
+      const res = await completeEnrollment(appForApproval.id, {
+        parentDigitalId: approvalForm.parentDigitalId || undefined,
+        reference: approvalForm.reference || undefined,
+      });
+
+      if (res?.success && res.data) {
+        const { student, parent, phone } = res.data;
+        setCredentialsModal({
+          studentName: student.name,
+          studentGrade: student.grade,
+          studentDigitalId: student.digitalId,
+          studentPin: student.pin,
+          parentName: parent.name,
+          parentDigitalId: parent.digitalId,
+          parentPin: parent.pin || (parent.isExisting ? '(Linked to Existing Parent Account - Credentials Unchanged)' : 'N/A'),
+          phone: phone || appForApproval.phone || appForApproval.parentPhone || 'N/A',
+        });
+        const targetId = appForApproval.id;
+        setPendingApps(prev => prev.map(a => a.id === targetId ? { ...a, status: 'payment-confirmed' as AppStatus } : a));
+        setSuccessMessage(`${student.name} enrolled successfully.`);
+        if (appForApproval) showPhoneNotice(phone || appForApproval.phone, 'Application approved — officially enrolled');
+
+        setShowApprovalModal(false);
+        setAppForApproval(null);
+        setApprovalForm({ parentDigitalId: '', reference: '' });
+      }
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (err: any) {
+      console.error(err);
+      setSubmitError(err.response?.data?.error?.message || err.response?.data?.message || err.message || 'Failed to complete enrollment');
+      setTimeout(() => setSubmitError(null), 5000);
+    } finally {
+      setApproving(false);
+    }
+  };
+
   const handlePaymentResult = async (appId: string, paid: boolean) => {
     try {
       const app = pendingApps.find(a => a.id === appId);
-      if (paid) {
-        if (app) {
-          const validEmail = (app.email && app.email.includes('@'))
-            ? app.email
-            : `student.${app.id.replace(/[^a-zA-Z0-9]/g, '').slice(0, 8)}@ziquala.edu.et`;
-
-          // 1. Register Student User and capture credentials
-          const studentRes = await registerUser({
-            name: app.name,
-            email: validEmail,
-            role: 'student',
-            grade: app.lastGrade,
-            initialStatus: 'Approved',
-          });
-
-          const sDigitalId = studentRes?.data?.user?.digital_id || 'N/A';
-          const sPin = studentRes?.data?.temporaryPassword || 'N/A';
-
-          // 2. Register Parent/Guardian User and capture credentials
-          const parentName = app.parentName || app.fatherName || `Parent of ${app.name}`;
-          const parentEmail = `parent.${app.id.replace(/[^a-zA-Z0-9]/g, '').slice(0, 8)}@ziquala.edu.et`;
-
-          let pDigitalId = 'N/A';
-          let pPin = 'N/A';
-          try {
-            const parentRes = await registerUser({
-              name: parentName,
-              email: parentEmail,
-              role: 'parent',
-              initialStatus: 'Approved',
-            });
-            pDigitalId = parentRes?.data?.user?.digital_id || 'N/A';
-            pPin = parentRes?.data?.temporaryPassword || 'N/A';
-
-            // 3. Link parent and student user accounts
-            const sUserId = studentRes?.data?.user?.id;
-            const pUserId = parentRes?.data?.user?.id;
-            if (pUserId && sUserId) {
-              await linkParentStudent(pUserId, sUserId);
-            }
-          } catch (pErr) {
-            console.warn('Parent account creation / link warning:', pErr);
-          }
-
-          // 3. Show the credentials modal with both accounts
-          setCredentialsModal({
-            studentName: app.name,
-            studentGrade: app.lastGrade || 'N/A',
-            studentDigitalId: sDigitalId,
-            studentPin: sPin,
-            parentName: parentName,
-            parentDigitalId: pDigitalId,
-            parentPin: pPin,
-            phone: app.phone || app.parentPhone || 'N/A',
-          });
-        }
-        await updateApplicationStatus(appId, { status: 'payment-confirmed' });
-        setPendingApps(prev => prev.map(a => a.id === appId ? { ...a, status: 'payment-confirmed' as AppStatus } : a));
-        setSuccessMessage(`${app?.name} enrolled successfully.`);
-        if (app) showPhoneNotice(app.phone, 'Application approved — officially enrolled');
-      } else {
+      if (paid && app) {
+        handleOpenApprovalModal(app);
+      } else if (!paid) {
         await updateApplicationStatus(appId, { status: 'declined' });
         setPendingApps(prev => prev.map(a => a.id === appId ? { ...a, status: 'declined' as AppStatus } : a));
         setSuccessMessage(`${app?.name} application closed.`);
         if (app) showPhoneNotice(app.phone, 'Application closed by school administration');
+        setTimeout(() => setSuccessMessage(null), 3000);
       }
-      setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err: any) {
       console.error(err);
       setSubmitError(err.response?.data?.error?.message || err.message);
@@ -1905,107 +1910,262 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
           </div>
         </div>
       )}
-      {/* Generated Credentials Modal */}
+      {/* Generated Credentials Modal (Payment Approved) */}
       {credentialsModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-xl overflow-hidden shadow-2xl border border-slate-100 dark:border-slate-800 flex flex-col max-h-[90vh]">
-            <div className="p-6 bg-gradient-to-r from-blue-600 to-indigo-600 text-white flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-white/20 rounded-2xl backdrop-blur-sm">
-                  <Shield size={24} />
+        <>
+          <style>{`
+            @media print {
+              body * { visibility: hidden !important; }
+              #credential-print-sheet,
+              #credential-print-sheet * { visibility: visible !important; }
+              #credential-print-sheet {
+                position: fixed !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 100% !important;
+                padding: 12mm 15mm !important;
+                background: white !important;
+                color: #0f172a !important;
+              }
+            }
+          `}</style>
+
+          {/* Printable A4 sheet */}
+          <div id="credential-print-sheet" className="hidden print:block fixed inset-0 z-[9999] bg-white text-slate-900">
+            <div className="max-w-[180mm] mx-auto pt-[8mm]">
+              <h1 className="text-lg font-bold tracking-tight border-b-2 border-slate-800 pb-2 mb-6">
+                Login Credentials
+              </h1>
+              <div className="grid grid-cols-2 gap-x-10 gap-y-5 text-sm">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">STUDENT ID</p>
+                  <p className="text-base font-mono font-bold">{credentialsModal.studentDigitalId}</p>
                 </div>
                 <div>
-                  <h3 className="text-lg font-black tracking-tight">Digital IDs & Password Credentials</h3>
-                  <p className="text-xs text-blue-100 font-medium">Issued upon enrollment confirmation</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">STUDENT PASSWORD</p>
+                  <p className="text-base font-mono font-bold">{credentialsModal.studentPin}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">PARENT ID</p>
+                  <p className="text-base font-mono font-bold">{credentialsModal.parentDigitalId}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">PARENT PASSWORD</p>
+                  <p className="text-base font-mono font-bold">{credentialsModal.parentPin}</p>
                 </div>
               </div>
-              <button
-                onClick={() => setCredentialsModal(null)}
-                className="p-2 hover:bg-white/20 rounded-full transition-colors text-white"
-              >
-                <X size={18} />
-              </button>
             </div>
+          </div>
 
-            <div className="p-6 overflow-y-auto space-y-6 flex-1">
-              <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40 rounded-2xl flex items-center gap-3 text-xs text-amber-800 dark:text-amber-300 font-medium">
-                <Info size={18} className="shrink-0 text-amber-600" />
-                <span>Please save or print these unique Digital IDs and temporary 4-digit PIN passwords. Give them to the student and parent for portal login.</span>
-              </div>
+          {/* On-screen Modal */}
+          <div className="credential-modal-screen fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4 print:hidden animate-in fade-in duration-200">
+            <div className="bg-slate-900 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-800 text-white">
+              <h2 className="text-xl font-bold text-emerald-400 mb-5 flex items-center gap-2">
+                <Check size={24} className="text-emerald-400" />
+                Payment Approved
+              </h2>
 
-              {/* Student Credentials Box */}
-              <div className="p-5 rounded-2xl border-2 border-blue-100 dark:border-blue-900/40 bg-blue-50/40 dark:bg-blue-900/10 space-y-3">
-                <div className="flex items-center justify-between pb-2 border-b border-blue-100 dark:border-blue-900/30">
-                  <span className="text-xs font-black uppercase text-blue-700 dark:text-blue-400 flex items-center gap-2">
-                    <User size={16} /> Student Credentials
-                  </span>
-                  <span className="text-[10px] font-bold px-2.5 py-0.5 bg-blue-200/60 dark:bg-blue-800/60 text-blue-800 dark:text-blue-200 rounded-full">
-                    {credentialsModal.studentGrade}
-                  </span>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                  <div>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase block">Full Name</span>
-                    <span className="font-bold text-slate-800 dark:text-slate-100">{credentialsModal.studentName}</span>
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase block">Digital ID</span>
-                    <span className="font-mono font-black text-sm text-blue-600 dark:text-blue-400 bg-white dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700 inline-block">
+              <div className="space-y-4 mb-6 bg-slate-950/60 p-4 rounded-xl border border-slate-800/80">
+                {/* STUDENT ID */}
+                <div>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">STUDENT ID</p>
+                  <div className="flex items-center gap-2">
+                    <code className="text-base font-mono font-bold text-white flex-1 bg-slate-900 px-3 py-2 rounded-lg border border-slate-800">
                       {credentialsModal.studentDigitalId}
-                    </span>
+                    </code>
+                    <button
+                      type="button"
+                      onClick={() => copyText(credentialsModal.studentDigitalId, 'Student ID')}
+                      className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-sm font-semibold transition-colors shrink-0"
+                    >
+                      {copiedLabel === 'Student ID' ? 'Copied!' : 'Copy'}
+                    </button>
                   </div>
-                  <div className="sm:col-span-2">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase block">Temporary PIN / Password</span>
-                    <span className="font-mono font-black text-base tracking-widest text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-3 py-1 rounded border border-emerald-200 dark:border-emerald-800 inline-block">
-                      {credentialsModal.studentPin}
-                    </span>
+                </div>
+
+                {/* STUDENT PASSWORD */}
+                <div>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">STUDENT PASSWORD</p>
+                  <div className="flex items-center gap-2">
+                    <code className="text-base font-mono font-bold text-white flex-1 bg-slate-900 px-3 py-2 rounded-lg border border-slate-800">
+                      {showPassword ? credentialsModal.studentPin : '••••••••'}
+                    </code>
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors shrink-0"
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => copyText(credentialsModal.studentPin, 'Student Password')}
+                      className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-sm font-semibold transition-colors shrink-0"
+                    >
+                      {copiedLabel === 'Student Password' ? 'Copied!' : 'Copy'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* PARENT ID */}
+                <div>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">PARENT ID</p>
+                  <div className="flex items-center gap-2">
+                    <code className="text-base font-mono font-bold text-white flex-1 bg-slate-900 px-3 py-2 rounded-lg border border-slate-800">
+                      {credentialsModal.parentDigitalId}
+                    </code>
+                    <button
+                      type="button"
+                      onClick={() => copyText(credentialsModal.parentDigitalId, 'Parent ID')}
+                      className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-sm font-semibold transition-colors shrink-0"
+                    >
+                      {copiedLabel === 'Parent ID' ? 'Copied!' : 'Copy'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* PARENT PASSWORD */}
+                <div>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">PARENT PASSWORD</p>
+                  <div className="flex items-center gap-2">
+                    <code className="text-base font-mono font-bold text-white flex-1 bg-slate-900 px-3 py-2 rounded-lg border border-slate-800">
+                      {showPassword ? credentialsModal.parentPin : '••••••••'}
+                    </code>
+                    <button
+                      type="button"
+                      onClick={() => copyText(credentialsModal.parentPin, 'Parent Password')}
+                      className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-sm font-semibold transition-colors shrink-0"
+                    >
+                      {copiedLabel === 'Parent Password' ? 'Copied!' : 'Copy'}
+                    </button>
                   </div>
                 </div>
               </div>
 
-              {/* Parent Credentials Box */}
-              <div className="p-5 rounded-2xl border-2 border-purple-100 dark:border-purple-900/40 bg-purple-50/40 dark:bg-purple-900/10 space-y-3">
-                <div className="flex items-center justify-between pb-2 border-b border-purple-100 dark:border-purple-900/30">
-                  <span className="text-xs font-black uppercase text-purple-700 dark:text-purple-400 flex items-center gap-2">
-                    <User size={16} /> Parent Credentials
-                  </span>
-                  <span className="text-[10px] font-bold text-slate-400">Linked Guardian</span>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                  <div>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase block">Guardian Name</span>
-                    <span className="font-bold text-slate-800 dark:text-slate-100">{credentialsModal.parentName}</span>
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase block">Parent Digital ID</span>
-                    <span className="font-mono font-black text-sm text-purple-600 dark:text-purple-400 bg-white dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700 inline-block">
-                      {credentialsModal.parentDigitalId}
-                    </span>
-                  </div>
-                  <div className="sm:col-span-2">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase block">Temporary PIN / Password</span>
-                    <span className="font-mono font-black text-base tracking-widest text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-3 py-1 rounded border border-emerald-200 dark:border-emerald-800 inline-block">
-                      {credentialsModal.parentPin}
-                    </span>
-                  </div>
-                </div>
+              {/* Stacked Action Buttons */}
+              <div className="flex flex-col gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    copyText(
+                      `STUDENT ID: ${credentialsModal.studentDigitalId}\nSTUDENT PASSWORD: ${credentialsModal.studentPin}\nPARENT ID: ${credentialsModal.parentDigitalId}\nPARENT PASSWORD: ${credentialsModal.parentPin}`,
+                      'All credentials'
+                    );
+                  }}
+                  className="w-full px-4 py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl font-semibold transition-all text-sm"
+                >
+                  {copiedLabel === 'All credentials' ? '✓ Copied all credentials!' : 'Copy all credentials'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowPassword(true);
+                    setTimeout(() => window.print(), 150);
+                  }}
+                  className="w-full px-4 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-semibold transition-all text-sm shadow-lg shadow-blue-600/30 active:scale-[0.99]"
+                >
+                  Print credentials (A4)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCredentialsModal(null);
+                    setShowPassword(false);
+                  }}
+                  className="w-full px-4 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-semibold transition-all text-sm shadow-lg shadow-blue-600/30 active:scale-[0.99]"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Approval & Generate Credentials Modal */}
+      {showApprovalModal && appForApproval && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 dark:border-slate-800 animate-in zoom-in-95 duration-200">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-4">
+              Approve Payment & Generate Credentials
+            </h2>
+
+            <div className="space-y-4 mb-6">
+              <div>
+                <p className="text-sm font-semibold text-slate-600 dark:text-slate-400 mb-2">
+                  Student: <span className="font-bold text-slate-900 dark:text-white">{appForApproval.name}</span>
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">
+                  Parent ID (optional)
+                </label>
+                <input
+                  type="text"
+                  value={approvalForm.parentDigitalId}
+                  onChange={(e) =>
+                    setApprovalForm({ ...approvalForm, parentDigitalId: e.target.value.trim() })
+                  }
+                  placeholder="Enter existing Parent ID if available"
+                  className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                  If the student has a sibling already registered, enter the parent's existing digital ID here so the student links to the same account instead of creating a new one.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">
+                  Payment Reference (optional)
+                </label>
+                <input
+                  type="text"
+                  value={approvalForm.reference}
+                  onChange={(e) =>
+                    setApprovalForm({ ...approvalForm, reference: e.target.value })
+                  }
+                  placeholder="e.g., Receipt #12345"
+                  className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+              </div>
+
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/40 rounded-xl p-3.5">
+                <p className="text-xs text-blue-700 dark:text-blue-300 font-medium">
+                  ✓ This will generate Student ID, Password, Parent ID, and Password
+                </p>
               </div>
             </div>
 
-            <div className="p-5 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
               <button
                 type="button"
-                onClick={() => window.print()}
-                className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 dark:bg-slate-700 dark:hover:bg-slate-600 text-white rounded-xl font-bold text-xs flex items-center gap-2 transition-all shadow-md"
+                onClick={() => {
+                  setShowApprovalModal(false);
+                  setAppForApproval(null);
+                }}
+                className="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-bold text-xs uppercase tracking-wider transition-all"
               >
-                <FileText size={15} /> Print Credential Slip
+                Cancel
               </button>
               <button
                 type="button"
-                onClick={() => setCredentialsModal(null)}
-                className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xs transition-all shadow-lg shadow-blue-500/20"
+                onClick={handleConfirmApproval}
+                disabled={approving}
+                className="flex-1 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 active:scale-95"
               >
-                Done
+                {approving ? (
+                  <>
+                    <Clock size={16} className="animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <Check size={16} />
+                    Approve Payment
+                  </>
+                )}
               </button>
             </div>
           </div>

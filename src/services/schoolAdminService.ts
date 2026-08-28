@@ -289,6 +289,32 @@ export const updateApplicationStatus = async (id: string, data: UpdateApplicatio
   return response.data;
 };
 
+export interface CompleteEnrollmentResult {
+  student: {
+    name: string;
+    digitalId: string;
+    username: string;
+    pin: string;
+    grade: string;
+  };
+  parent: {
+    name: string;
+    digitalId: string;
+    username: string;
+    pin: string | null;
+    isExisting: boolean;
+  };
+  phone: string;
+}
+
+export const completeEnrollment = async (
+  id: string,
+  payload?: { parentDigitalId?: string; reference?: string }
+): Promise<{ success: boolean; data: CompleteEnrollmentResult; message?: string }> => {
+  const response = await api.post(`/school-admin/applications/${id}/complete-enrollment`, payload || {});
+  return response.data;
+};
+
 // Financial Policies
 export const createFinancialPolicy = async (data: CreateFinancialPolicyData): Promise<FinancialPolicy> => {
   const response = await api.post('/school-admin/financial-policies', data);
