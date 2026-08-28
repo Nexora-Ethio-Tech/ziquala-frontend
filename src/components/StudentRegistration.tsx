@@ -622,17 +622,20 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
       setSuccessMessage(isAdminView ? 'Student registered successfully!' : 'Your application has been submitted successfully! We will contact you soon.');
       setValidationErrors({});
 
+      if (formRef.current) {
+        formRef.current.reset();
+      }
+      setEthiopianDob('');
+      setRegistrationStep(1);
+      setValidationErrors({});
+      setActiveApplicationError(null);
+
       if (isAdminView) {
         const res = await getPendingApplications();
         const applications = Array.isArray(res) ? res : (res || []);
         if (Array.isArray(applications)) {
           const mapped = applications.map(mapApiApplicationToPendingApp);
           setPendingApps(mapped);
-
-          if (onCreated) {
-            onCreated();
-            return;
-          }
         }
       }
 
@@ -642,14 +645,6 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
       }
 
       if (!isAdminView) {
-        // Reset form for external applicants
-        if (formRef.current) {
-          formRef.current.reset();
-        }
-        setEthiopianDob('');
-        setRegistrationStep(1);
-        setValidationErrors({});
-        setActiveApplicationError(null);
         setTimeout(() => {
           setSuccessMessage(null);
           navigate('/');
