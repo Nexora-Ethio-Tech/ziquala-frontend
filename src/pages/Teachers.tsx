@@ -15,6 +15,16 @@ import { TeacherAttendanceModal } from '../components/TeacherAttendanceModal';
 import { formatEthiopianLabel } from '../utils/ethiopianCalendar';
 import { EthiopianDatePicker } from '../components/EthiopianDatePicker';
 
+const isTeacherActive = (status?: string | null) => {
+  const s = String(status || '').toLowerCase();
+  return s === 'active' || s === 'approved';
+};
+
+const isTeacherPending = (status?: string | null) => {
+  const s = String(status || '').toLowerCase();
+  return s === 'pending';
+};
+
 const MultiSelectDropdown = ({
   options,
   selectedValues,
@@ -725,16 +735,28 @@ export const Teachers = () => {
                       </div>
                     </button>
                     <div className="shrink-0">
-                      {isAdmin && teacher.status !== 'Pending' ? (
+                      {isAdmin && !isTeacherPending(teacher.status) ? (
                         <button
                           type="button"
-                          onClick={() => setConfirmAction({ show: true, action: teacher.status === 'Approved' ? 'revoke' : 'approve', teacher })}
-                          className={`px-2.5 py-1 rounded-lg text-xs font-bold uppercase transition-colors ${teacher.status === 'Approved' ? 'bg-green-100 text-green-700 border border-green-200 hover:bg-green-200' : 'bg-red-100 text-red-700 border border-red-200 hover:bg-red-200'}`}
+                          onClick={() => setConfirmAction({ show: true, action: isTeacherActive(teacher.status) ? 'revoke' : 'approve', teacher })}
+                          className={`px-2.5 py-1 rounded-lg text-xs font-bold uppercase transition-colors ${
+                            isTeacherActive(teacher.status)
+                              ? 'bg-emerald-100 text-emerald-700 border border-emerald-200 hover:bg-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800/60'
+                              : 'bg-rose-100 text-rose-700 border border-rose-200 hover:bg-rose-200 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-800/60'
+                          }`}
                         >
                           {teacher.status}
                         </button>
                       ) : (
-                        <span className={`px-2.5 py-1 rounded-lg text-xs font-bold uppercase ${teacher.status === 'Approved' ? 'bg-green-100 text-green-700' : teacher.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>
+                        <span
+                          className={`px-2.5 py-1 rounded-lg text-xs font-bold uppercase ${
+                            isTeacherActive(teacher.status)
+                              ? 'bg-emerald-100 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800/60'
+                              : isTeacherPending(teacher.status)
+                              ? 'bg-amber-100 text-amber-700 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800/60'
+                              : 'bg-rose-100 text-rose-700 border border-rose-200 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-800/60'
+                          }`}
+                        >
                           {teacher.status}
                         </span>
                       )}
@@ -840,16 +862,28 @@ export const Teachers = () => {
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          {isAdmin && teacher.status !== 'Pending' ? (
+                          {isAdmin && !isTeacherPending(teacher.status) ? (
                             <button
                               type="button"
-                              onClick={() => setConfirmAction({ show: true, action: teacher.status === 'Approved' ? 'revoke' : 'approve', teacher })}
-                              className={`px-2 py-1 rounded text-xs font-bold uppercase transition-colors ${teacher.status === 'Approved' ? 'bg-green-100 text-green-700 border border-green-200 hover:bg-green-200' : 'bg-red-100 text-red-700 border border-red-200 hover:bg-red-200'}`}
+                              onClick={() => setConfirmAction({ show: true, action: isTeacherActive(teacher.status) ? 'revoke' : 'approve', teacher })}
+                              className={`px-2.5 py-1 rounded-lg text-xs font-bold uppercase transition-colors ${
+                                isTeacherActive(teacher.status)
+                                  ? 'bg-emerald-100 text-emerald-700 border border-emerald-200 hover:bg-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800/60'
+                                  : 'bg-rose-100 text-rose-700 border border-rose-200 hover:bg-rose-200 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-800/60'
+                              }`}
                             >
                               {teacher.status}
                             </button>
                           ) : (
-                            <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${teacher.status === 'Approved' ? 'bg-green-100 text-green-700' : teacher.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>
+                            <span
+                              className={`px-2.5 py-1 rounded-lg text-xs font-bold uppercase ${
+                                isTeacherActive(teacher.status)
+                                  ? 'bg-emerald-100 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800/60'
+                                  : isTeacherPending(teacher.status)
+                                  ? 'bg-amber-100 text-amber-700 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800/60'
+                                  : 'bg-rose-100 text-rose-700 border border-rose-200 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-800/60'
+                              }`}
+                            >
                               {teacher.status}
                             </span>
                           )}
