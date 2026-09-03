@@ -442,7 +442,7 @@ export const GradeEntry = () => {
               className="px-6 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-60 text-slate-800 dark:text-white rounded-xl flex items-center gap-2 font-bold transition-all"
             >
               {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
-              <span>{saving ? 'Saving…' : 'Save Draft'}</span>
+              <span>{saving ? 'Saving…' : 'Save Grades'}</span>
             </button>
             <button
               onClick={handleSubmitGrades}
