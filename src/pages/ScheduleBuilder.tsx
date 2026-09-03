@@ -473,7 +473,7 @@ export const ScheduleBuilder = () => {
                                 {entry.subject.length > 8 ? entry.subject.substring(0, 8) + '…' : entry.subject}
                               </span>
                               <span className="text-[7px] text-slate-400 dark:text-slate-500 truncate max-w-full px-1">
-                                {entry.teacher.split(' ').pop()}
+                                {entry.teacher.split(' ')[0]}
                               </span>
                             </>
                           ) : (
