@@ -372,7 +372,10 @@ export const TeacherPortal = () => {
           { id: 'c-3', name: 'Calculus', code: 'MATH-12', class_name: 'Grade 12A' }
         ]);
       } else {
-        setMyCourses(rawCourses);
+        const uniqueCourses = rawCourses.filter((course: any, index: number, self: any[]) =>
+          index === self.findIndex((c: any) => (c.name || '').toLowerCase() === (course.name || '').toLowerCase())
+        );
+        setMyCourses(uniqueCourses);
       }
 
       // Load exams from backend
