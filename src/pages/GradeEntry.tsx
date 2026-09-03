@@ -463,10 +463,10 @@ export const GradeEntry = () => {
                     return (
                       <tr key={student.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
                         <td className="px-6 py-4">
-                          <p className="text-sm font-bold text-slate-800 dark:text-white">{student.firstName} {student.lastName}</p>
+                          <p className="text-sm font-bold text-slate-800 dark:text-white">{(student.firstName || student.lastName) ? `${student.firstName || ''} ${student.lastName || ''}`.trim() : ((student as any).name || 'Student')}</p>
                         </td>
                         <td className="px-6 py-4">
-                          <p className="text-xs font-mono text-slate-500">{student.digitalId}</p>
+                          <p className="text-xs font-mono text-slate-500">{student.digitalId || (student as any).digital_id || '—'}</p>
                         </td>
                         {gradingMethods.map((method) => {
                           const isLocked = lockedMethods.has(method.id);
