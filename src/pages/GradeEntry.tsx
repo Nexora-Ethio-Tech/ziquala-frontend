@@ -47,6 +47,7 @@ export const GradeEntry = () => {
   const [submittingGrades, setSubmittingGrades] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [saveError, setSaveError] = useState('');
+  const [showValidationErrors, setShowValidationErrors] = useState(false);
   const [selectedYear, setSelectedYear] = useState<string>(() => ecYearToGregorian(getCurrentECYear()));
   const [selectedSemester, setSelectedSemester] = useState<'First Semester' | 'Second Semester'>(
     () => formatSemester(getCurrentSemester()) as 'First Semester' | 'Second Semester'
@@ -160,8 +161,57 @@ export const GradeEntry = () => {
     }, 0);
   };
 
+  const getInvalidEntries = useCallback(() => {
+    const invalidList: Array<{
+      studentId: string;
+      studentName: string;
+      methodId: string;
+      methodLabel: string;
+      score: number;
+      maxWeight: number;
+    }> = [];
+
+    for (const student of students) {
+      const studentScores = scores[student.id] || {};
+      const fullName = (student.firstName || student.lastName)
+        ? `${student.firstName || ''} ${student.lastName || ''}`.trim()
+        : ((student as any).name || 'Student');
+
+      for (const method of gradingMethods) {
+        if (lockedMethods.has(method.id)) continue;
+        const val = studentScores[method.id];
+        if (val !== '' && val !== undefined && val !== null) {
+          const numScore = Number(val);
+          if (numScore > method.maxWeight || numScore < 0) {
+            invalidList.push({
+              studentId: student.id,
+              studentName: fullName,
+              methodId: method.id,
+              methodLabel: method.label,
+              score: numScore,
+              maxWeight: method.maxWeight,
+            });
+          }
+        }
+      }
+    }
+
+    return invalidList;
+  }, [students, scores, gradingMethods, lockedMethods]);
+
   const handleSave = async () => {
     if (gradesLocked || !selectedCourseId || periodBlocked) return;
+    const invalidEntries = getInvalidEntries();
+    if (invalidEntries.length > 0) {
+      setShowValidationErrors(true);
+      const firstErr = invalidEntries[0];
+      setSaveError(
+        `⚠️ Cannot Save: Score for ${firstErr.studentName} on "${firstErr.methodLabel}" is ${firstErr.score}, which exceeds the maximum allowed weight of ${firstErr.maxWeight}. Please correct the highlighted red field(s) below.`
+      );
+      return;
+    }
+    setShowValidationErrors(false);
+
     setSaving(true);
     setSaveError('');
     try {
@@ -202,6 +252,17 @@ export const GradeEntry = () => {
 
   const handleSubmitGrades = async () => {
     if (gradesLocked || !selectedCourseId) return;
+    const invalidEntries = getInvalidEntries();
+    if (invalidEntries.length > 0) {
+      setShowValidationErrors(true);
+      const firstErr = invalidEntries[0];
+      setSaveError(
+        `⚠️ Cannot Submit: Score for ${firstErr.studentName} on "${firstErr.methodLabel}" is ${firstErr.score}, which exceeds the maximum allowed weight of ${firstErr.maxWeight}. Please correct the highlighted red field(s) below.`
+      );
+      return;
+    }
+    setShowValidationErrors(false);
+
     // Confirm with user
     if (!window.confirm('Are you sure you want to Submit? Once submitted, these grades will be LOCKED and visible to the administration, parents, and students. You will not be able to edit them.')) return;
     
@@ -422,6 +483,8 @@ export const GradeEntry = () => {
         </div>
       )}
 
+
+
       {saveError && (
         <div className="flex gap-3 items-center p-4 bg-rose-50 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/30 rounded-xl text-rose-600 text-sm font-medium">
           <AlertCircle size={18} className="flex-shrink-0" />
@@ -470,6 +533,11 @@ export const GradeEntry = () => {
                         </td>
                         {gradingMethods.map((method) => {
                           const isLocked = lockedMethods.has(method.id);
+                          const val = scores[student.id]?.[method.id];
+                          const numVal = val !== '' && val !== undefined && val !== null ? Number(val) : null;
+                          const isExceeded = numVal !== null && numVal > method.maxWeight;
+                          const isNegative = numVal !== null && numVal < 0;
+                          const isInvalid = showValidationErrors && (isExceeded || isNegative);
                           return (
                             <td key={method.id} className="px-4 py-4">
                               <input
@@ -480,8 +548,24 @@ export const GradeEntry = () => {
                                 placeholder="0"
                                 value={scores[student.id]?.[method.id] ?? ''}
                                 onChange={(e) => handleScoreChange(student.id, method.id, e.target.value)}
-                                className={`w-full text-center p-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-70 font-bold ${isLocked ? 'text-slate-500 dark:text-slate-500' : 'text-blue-600 dark:text-blue-400'}`}
+                                className={`w-full text-center p-2 rounded-lg text-sm outline-none transition-all font-bold ${
+                                  isInvalid
+                                    ? 'bg-rose-50 dark:bg-rose-950/60 border-2 border-rose-500 text-rose-600 dark:text-rose-300 focus:ring-2 focus:ring-rose-500 animate-pulse shadow-sm shadow-rose-200'
+                                    : isLocked
+                                    ? 'bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-500 disabled:opacity-70'
+                                    : 'bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-blue-600 dark:text-blue-400 focus:ring-2 focus:ring-blue-500'
+                                }`}
                               />
+                              {showValidationErrors && isExceeded && (
+                                <span className="block text-[10px] font-black text-rose-600 dark:text-rose-400 text-center mt-1 uppercase tracking-tight">
+                                  Exceeds {method.maxWeight}!
+                                </span>
+                              )}
+                              {showValidationErrors && isNegative && (
+                                <span className="block text-[10px] font-black text-rose-600 dark:text-rose-400 text-center mt-1 uppercase tracking-tight">
+                                  Negative!
+                                </span>
+                              )}
                             </td>
                           );
                         })}
