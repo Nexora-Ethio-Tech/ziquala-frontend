@@ -408,22 +408,33 @@ export const removeStudentFromClass = async (studentId: string) => {
 };
 
 // At-Risk Students Interface
+export interface AtRiskStudentCourse {
+  course_id: string;
+  course_name: string;
+  course_code?: string;
+  score: number;
+  total: number;
+  percentage: number;
+  status: 'Passing' | 'Needs Improvement';
+}
+
 export interface AtRiskStudent {
   student_id: string;
   user_id: string;
-  digital_id: string;
+  digital_id?: string;
   name: string;
-  email: string;
+  email?: string;
   grade: string;
-  risk_level: 'High' | 'Medium';
+  risk_level: 'High' | 'Medium' | 'Low';
   risk_factor: string;
-  absence_count: string;
-  average_grade: string;
-  monthly_fee: string;
-  bus_fee: string;
-  penalty_fee: string;
-  fee_status: 'standard' | 'reduced';
-  created_at: string;
+  absence_count?: string | number;
+  average_grade: string | number;
+  courses?: AtRiskStudentCourse[];
+  monthly_fee?: string;
+  bus_fee?: string;
+  penalty_fee?: string;
+  fee_status?: 'standard' | 'reduced';
+  created_at?: string;
 }
 
 export interface AtRiskStudentsResponse {
