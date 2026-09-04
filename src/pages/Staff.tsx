@@ -49,7 +49,7 @@ export const Staff = () => {
   const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({ show: false, message: '', type: 'success' });
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingStaff, setEditingStaff] = useState<any | null>(null);
-  const [editFormData, setEditFormData] = useState({ name: '', email: '' });
+  const [editFormData, setEditFormData] = useState({ name: '', email: '', status: 'Active' });
   const [resettingPassword, setResettingPassword] = useState(false);
   const [generatedPassword, setGeneratedPassword] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -209,7 +209,8 @@ export const Staff = () => {
     setEditingStaff(staff);
     setEditFormData({
       name: staff.name || '',
-      email: staff.email || ''
+      email: staff.email || '',
+      status: staff.status || 'Active'
     });
     setGeneratedPassword(null);
     setShowEditModal(true);
@@ -224,6 +225,9 @@ export const Staff = () => {
         name: editFormData.name,
         email: editFormData.email
       });
+      if (editFormData.status !== editingStaff.status) {
+        await userService.updateUserStatus(editingStaff.id, editFormData.status as any);
+      }
       setShowEditModal(false);
       setEditingStaff(null);
       const branchList = await fetchBranches();
@@ -402,7 +406,7 @@ export const Staff = () => {
                       <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">{t("staff.colEmployee","Employee")}</th>
                       <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">{t("staff.colRole","Current Role")}</th>
                       <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">{t("staff.colBranch", "Branch")}</th>
-                      <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">{t("staff.colFlags","Special Flags")}</th>
+                      <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">{t("staff.colStatus","Status")}</th>
                       <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">{t("staff.colActions", "Actions")}</th>
                     </tr>
                   </thead>
@@ -414,74 +418,87 @@ export const Staff = () => {
                         </td>
                       </tr>
                     ) : (
-                      staffList.map((staff) => (
-                        <tr key={staff.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-all">
-                          <td className="px-6 py-4">
-                            <div>
-                              <p className="font-bold text-slate-800 dark:text-white">{staff.name}</p>
-                              <p className="text-xs text-slate-500">{staff.email}</p>
-                              <div className="flex items-center gap-2 mt-1">
-                                <p className="text-xs font-mono text-slate-400">{staff.digitalId || '—'}</p>
-                                {staff.zkDeviceId && (
-                                  <span className="text-[10px] bg-purple-50 text-purple-600 dark:bg-purple-900/30 dark:text-purple-300 px-1.5 py-0.5 rounded font-mono">
-                                    Biometric: {staff.zkDeviceId}
-                                  </span>
-                                )}
+                      staffList.map((staff) => {
+                        const statusLower = (staff.status || '').toLowerCase();
+                        const isActive = statusLower === 'active' || statusLower === 'approved';
+                        const isPending = statusLower === 'pending';
+
+                        let statusBadgeClass = 'bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400 border border-rose-200 dark:border-rose-800';
+                        if (isActive) {
+                          statusBadgeClass = 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800';
+                        } else if (isPending) {
+                          statusBadgeClass = 'bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400 border border-amber-200 dark:border-amber-800';
+                        }
+
+                        return (
+                          <tr key={staff.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-all">
+                            <td className="px-6 py-4">
+                              <div>
+                                <p className="font-bold text-slate-800 dark:text-white">{staff.name}</p>
+                                <p className="text-xs text-slate-500">{staff.email}</p>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <p className="text-xs font-mono text-slate-400">{staff.digitalId || '—'}</p>
+                                  {staff.zkDeviceId && (
+                                    <span className="text-[10px] bg-purple-50 text-purple-600 dark:bg-purple-900/30 dark:text-purple-300 px-1.5 py-0.5 rounded font-mono">
+                                      Biometric: {staff.zkDeviceId}
+                                    </span>
+                                  )}
+                                </div>
                               </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4">
-                            <span className="px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-full text-xs font-bold capitalize">
-                              {staff.role}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4">
-                            <span className="text-sm font-semibold text-slate-600 dark:text-slate-400">
-                              {staff.branchName}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4">
-                            <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${(staff.status === 'Approved' || staff.status === 'active') ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400' : 'bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400'}`}>
-                              {staff.status}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 text-right">
-                            <div className="flex items-center justify-end gap-2">
-                              {(staff.status === 'Approved' || staff.status === 'active') ? (
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className="px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-full text-xs font-bold capitalize">
+                                {staff.role}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className="text-sm font-semibold text-slate-600 dark:text-slate-400">
+                                {staff.branchName}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${statusBadgeClass}`}>
+                                {staff.status}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                              <div className="flex items-center justify-end gap-2">
+                                {isActive ? (
+                                  <button
+                                    onClick={() => handleUpdateStatus(staff.id, 'Revoked')}
+                                    className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-colors"
+                                    title="Revoke Access"
+                                  >
+                                    <UserCheck size={16} />
+                                  </button>
+                                ) : (
+                                  <button
+                                    onClick={() => handleUpdateStatus(staff.id, 'Active')}
+                                    className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-colors"
+                                    title="Activate Access"
+                                  >
+                                    <UserCheck size={16} />
+                                  </button>
+                                )}
                                 <button
-                                  onClick={() => handleUpdateStatus(staff.id, 'Revoked')}
-                                  className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg transition-colors"
-                                  title="Deactivate User"
+                                  onClick={() => openEditModal(staff)}
+                                  className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                                  title="Edit User"
                                 >
-                                  <UserCheck size={16} />
+                                  <Edit2 size={16} />
                                 </button>
-                              ) : (
                                 <button
-                                  onClick={() => handleUpdateStatus(staff.id, 'Approved')}
-                                  className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-colors"
-                                  title="Activate User"
+                                  onClick={() => setDeleteModal({ show: true, userId: staff.id, userName: staff.name })}
+                                  className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-colors"
+                                  title="Delete User"
                                 >
-                                  <UserCheck size={16} />
+                                  <Trash2 size={16} />
                                 </button>
-                              )}
-                              <button
-                                onClick={() => openEditModal(staff)}
-                                className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                                title="Edit User"
-                              >
-                                <Edit2 size={16} />
-                              </button>
-                              <button
-                                onClick={() => setDeleteModal({ show: true, userId: staff.id, userName: staff.name })}
-                                className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-colors"
-                                title="Delete User"
-                              >
-                                <Trash2 size={16} />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })
                     )}
                   </tbody>
                 </table>
@@ -881,6 +898,19 @@ export const Staff = () => {
                   onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })}
                   className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
                 />
+              </div>
+              <div>
+                <label htmlFor="edit-status" className="text-xs font-bold text-slate-500 uppercase">Account Status</label>
+                <select
+                  id="edit-status"
+                  value={editFormData.status}
+                  onChange={(e) => setEditFormData({ ...editFormData, status: e.target.value })}
+                  className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold text-slate-800 dark:text-slate-100 outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="Active">Active / Approved</option>
+                  <option value="Revoked">Revoked</option>
+                  <option value="Pending">Pending</option>
+                </select>
               </div>
               <div className="flex flex-col gap-3 border-t border-b border-slate-100 dark:border-slate-800 py-4 my-2">
                 <div className="flex items-center justify-between gap-4">

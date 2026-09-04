@@ -398,38 +398,49 @@ export const LibrarianStaff = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold ${staff.status === 'Approved'
-                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
-                        : staff.status === 'Pending'
-                          ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300'
-                          : 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300'
-                        }`}>
-                        {staff.status === 'Approved' && <CheckCircle size={12} />}
-                        {staff.status === 'Pending' && <Clock size={12} />}
-                        {staff.status === 'Revoked' && <XCircle size={12} />}
-                        {staff.status}
-                      </span>
+                      {(() => {
+                        const s = (staff.status || '').toLowerCase();
+                        const isApproved = s === 'approved' || s === 'active';
+                        const isPending = s === 'pending';
+                        return (
+                          <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold ${isApproved
+                            ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
+                            : isPending
+                              ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300'
+                              : 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300'
+                            }`}>
+                            {isApproved && <CheckCircle size={12} />}
+                            {isPending && <Clock size={12} />}
+                            {!isApproved && !isPending && <XCircle size={12} />}
+                            {staff.status}
+                          </span>
+                        );
+                      })()}
                     </td>
                     <td className="px-6 py-4">
                       {isAdmin && (
                         <div className="flex items-center gap-2 justify-center">
-                          {(staff.status === 'Pending' || staff.status === 'Revoked') ? (
-                            <button
-                              onClick={() => setConfirmAction({ show: true, action: 'approve', staff })}
-                              className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 transition-all"
-                            >
-                              <CheckCircle size={14} />
-                              Approve
-                            </button>
-                          ) : staff.status === 'Approved' ? (
-                            <button
-                              onClick={() => setConfirmAction({ show: true, action: 'revoke', staff })}
-                              className="px-3 py-1.5 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 transition-all"
-                            >
-                              <XCircle size={14} />
-                              Revoke
-                            </button>
-                          ) : null}
+                          {(() => {
+                            const s = (staff.status || '').toLowerCase();
+                            const isApproved = s === 'approved' || s === 'active';
+                            return !isApproved ? (
+                              <button
+                                onClick={() => setConfirmAction({ show: true, action: 'approve', staff })}
+                                className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 transition-all"
+                              >
+                                <CheckCircle size={14} />
+                                Approve
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => setConfirmAction({ show: true, action: 'revoke', staff })}
+                                className="px-3 py-1.5 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 transition-all"
+                              >
+                                <XCircle size={14} />
+                                Revoke
+                              </button>
+                            );
+                          })()}
                           <button
                             onClick={() => openEditModal(staff)}
                             className="p-1.5 text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-950/30 rounded-lg transition-colors"
