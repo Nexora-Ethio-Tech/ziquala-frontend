@@ -1299,6 +1299,20 @@ export const Teachers = () => {
                 );
               })}
             </div>
+
+            {(annualPlanFilter !== 'all' || annualPlanSearch) && (
+              <button
+                type="button"
+                onClick={() => {
+                  setAnnualPlanFilter('all');
+                  setAnnualPlanSearch('');
+                }}
+                className="px-3 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shrink-0"
+                title="Reset Filters"
+              >
+                <RefreshCcw size={13} /> Reset
+              </button>
+            )}
           </div>
 
           {/* Summary Chips */}
@@ -1515,6 +1529,20 @@ export const Teachers = () => {
                 );
               })}
             </div>
+
+            {(weeklyPlanFilter !== 'all' || weeklyPlanSearch) && (
+              <button
+                type="button"
+                onClick={() => {
+                  setWeeklyPlanFilter('all');
+                  setWeeklyPlanSearch('');
+                }}
+                className="px-3 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shrink-0"
+                title="Reset Filters"
+              >
+                <RefreshCcw size={13} /> Reset
+              </button>
+            )}
           </div>
 
           {/* Summary Chips */}
