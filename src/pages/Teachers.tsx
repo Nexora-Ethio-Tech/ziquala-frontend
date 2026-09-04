@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { UserPlus, X, Check, ArrowLeft, MoreVertical, CheckCircle, XCircle, Trash2, Printer, Eye, Edit2, Loader2, FileText, Download, Upload, Users } from 'lucide-react';
+import { Plus, UserPlus, X, Check, ArrowLeft, MoreVertical, CheckCircle, XCircle, Trash2, Printer, Eye, Edit2, Loader2, FileText, Download, Upload, Users } from 'lucide-react';
 import PhoneInput from '../components/PhoneInput';
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -166,6 +166,7 @@ export const Teachers = () => {
     },
   });
   const [promoting, setPromoting] = useState(false);
+  const [customSubjectInput, setCustomSubjectInput] = useState('');
   const [allGrades, setAllGrades] = useState<string[]>([]);
   const [sectionsMap, setSectionsMap] = useState<Record<string, string[]>>({});
   const [allSubjects, setAllSubjects] = useState<any[]>([]);
@@ -840,8 +841,8 @@ export const Teachers = () => {
                       </td>
                     </tr>
                   ) : (
-                    teachers.map((teacher) => (
-                      <tr key={teacher.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30">
+                    teachers.map((teacher, idx) => (
+                      <tr key={teacher.id ? `${teacher.id}-${idx}` : `teacher-${idx}`} className="hover:bg-slate-50 dark:hover:bg-slate-800/30">
                         <td className="px-6 py-4">
                           <button type="button" onClick={() => setSelectedStaff(teacher)} className="flex items-center gap-3 text-left">
                             <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 text-purple-600 rounded-xl flex items-center justify-center font-bold">
@@ -1405,12 +1406,7 @@ export const Teachers = () => {
                       onChange={(g, checked) => {
                         setPromotionForm(prev => {
                           const nextGrades = checked ? [...prev.hodGrades, g] : prev.hodGrades.filter(x => x !== g);
-                          const allowed = new Set(nextGrades);
-                          const nextSubjects = prev.hodSubjects.filter(sname => {
-                            const s = allSubjects.find(sub => sub.name === sname);
-                            return s ? allowed.has(s.gradeLevel) : false;
-                          });
-                          return { ...prev, hodGrades: nextGrades, hodSubjects: nextSubjects };
+                          return { ...prev, hodGrades: nextGrades };
                         });
                       }}
                     />
@@ -1425,67 +1421,107 @@ export const Teachers = () => {
                     )}
                   </div>
 
-                  {promotionForm.hodGrades.length > 0 && (() => {
+                  {(() => {
                     const normalizeGrade = (g: string) => {
                       const trimmed = g.trim();
                       return /^\d+$/.test(trimmed) ? `Grade ${trimmed}` : trimmed;
                     };
                     const selectedGradeSet = new Set(promotionForm.hodGrades.map(normalizeGrade));
-                    const filteredCourseNames = Array.from(
-                      new Set(
-                        allCoursesWithGrade
-                          .filter(c => selectedGradeSet.has(normalizeGrade(c.grade_level)))
-                          .map(c => c.name)
-                      )
-                    ).sort();
-                    const gradeSet = new Set(promotionForm.hodGrades);
-                    const fallbackNames = Array.from(
-                      new Set(
-                        allSubjects
-                          .filter((s: any) => gradeSet.has(s.gradeLevel))
-                          .map((s: any) => s.name)
-                      )
-                    );
-                    const courseNames = filteredCourseNames.length > 0 ? filteredCourseNames : fallbackNames;
-                    const usingFallback = filteredCourseNames.length === 0 && fallbackNames.length > 0;
+                    
+                    const matchingCourses = selectedGradeSet.size > 0
+                      ? allCoursesWithGrade.filter(c => selectedGradeSet.has(normalizeGrade(c.grade_level)))
+                      : allCoursesWithGrade;
+
+                    const courseNamesFromCourses = Array.from(new Set(matchingCourses.map(c => c.name))).sort();
+                    const courseNamesFromSubjects = Array.from(new Set(allSubjects.map((s: any) => s.name))).sort();
+                    
+                    const combinedOptions = Array.from(new Set([
+                      ...courseNamesFromCourses,
+                      ...courseNamesFromSubjects
+                    ])).sort();
+
+                    const handleAddCustomSubject = () => {
+                      if (!customSubjectInput.trim()) return;
+                      const newSub = customSubjectInput.trim();
+                      setPromotionForm(prev => {
+                        const next = new Set(prev.hodSubjects || []);
+                        next.add(newSub);
+                        return { ...prev, hodSubjects: Array.from(next) };
+                      });
+                      setCustomSubjectInput('');
+                    };
 
                     return (
-                      <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-500 uppercase">Step 2 — Select Courses / Subjects</label>
-                        <p className="text-xs text-slate-500">
-                          {usingFallback
-                            ? 'Showing subjects (no courses found in course management for selected grades).'
-                            : 'Only courses taught in the selected grades are shown.'}
-                        </p>
-                        {courseNames.length === 0 ? (
-                          <div className="px-4 py-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-lg text-sm text-amber-700 dark:text-amber-300">
-                            No courses found for the selected grades. Please add courses via Course Management (Classes → select class → add course) first.
+                      <div className="space-y-3">
+                        <div className="space-y-1">
+                          <label className="text-xs font-bold text-slate-500 uppercase">Step 2 — Select Courses / Subjects</label>
+                          <p className="text-xs text-slate-500">
+                            Choose or add the subjects/courses this department head will supervise.
+                          </p>
+                        </div>
+
+                        {combinedOptions.length > 0 && (
+                          <MultiSelectDropdown
+                            options={combinedOptions}
+                            selectedValues={promotionForm.hodSubjects}
+                            placeholder="Select Courses / Subjects"
+                            shortDisplay={false}
+                            onChange={(subName, checked) => {
+                              setPromotionForm(prev => {
+                                const next = new Set(prev.hodSubjects || []);
+                                if (checked) next.add(subName); else next.delete(subName);
+                                return { ...prev, hodSubjects: Array.from(next) };
+                              });
+                            }}
+                          />
+                        )}
+
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={customSubjectInput}
+                            onChange={(e) => setCustomSubjectInput(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                handleAddCustomSubject();
+                              }
+                            }}
+                            placeholder="Add custom subject/course name (e.g. Physics)"
+                            className="flex-1 px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 dark:text-slate-200"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleAddCustomSubject}
+                            className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg text-xs flex items-center gap-1 transition"
+                          >
+                            <Plus size={14} /> Add
+                          </button>
+                        </div>
+
+                        {promotionForm.hodSubjects.length > 0 && (
+                          <div className="space-y-1">
+                            <span className="text-xs text-slate-400 font-medium">Assigned Subjects ({promotionForm.hodSubjects.length}):</span>
+                            <div className="flex flex-wrap gap-2">
+                              {promotionForm.hodSubjects.map(s => (
+                                <span key={s} className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-xs font-semibold rounded-full border border-emerald-200 dark:border-emerald-700">
+                                  {s}
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setPromotionForm(prev => ({
+                                        ...prev,
+                                        hodSubjects: prev.hodSubjects.filter(x => x !== s)
+                                      }));
+                                    }}
+                                    className="hover:text-emerald-900 dark:hover:text-emerald-100 font-bold ml-0.5"
+                                  >
+                                    ×
+                                  </button>
+                                </span>
+                              ))}
+                            </div>
                           </div>
-                        ) : (
-                          <>
-                            <MultiSelectDropdown
-                              options={courseNames as string[]}
-                              selectedValues={promotionForm.hodSubjects}
-                              placeholder="Select Courses / Subjects"
-                              shortDisplay={true}
-                              onChange={(subName, checked) => {
-                                setPromotionForm(prev => {
-                                  const next = new Set(prev.hodSubjects || []);
-                                  if (checked) next.add(subName); else next.delete(subName);
-                                  return { ...prev, hodSubjects: Array.from(next) };
-                                });
-                              }}
-                            />
-                            {promotionForm.hodSubjects.length > 0 && (
-                              <div className="flex flex-wrap gap-2 pt-1">
-                                {promotionForm.hodSubjects.map(s => (
-                                  <span key={s} className="px-2.5 py-1 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-xs font-semibold rounded-full border border-emerald-200 dark:border-emerald-700">
-                                    {s}
-                                  </span>
-                                ))}
-                              </div>
-                            )}
-                          </>
                         )}
                       </div>
                     );
@@ -1655,10 +1691,11 @@ export const Teachers = () => {
               {promotionTarget?.staffProfile?.promotion && (
                 <button
                   onClick={async () => {
+                    const targetUserId = promotionTarget.user_id || promotionTarget.userId || promotionTarget.id;
                     if (window.confirm('Are you sure you want to remove this teacher\'s promotion?')) {
                       setPromoting(true);
                       try {
-                        await removeTeacherPromotion(promotionTarget.userId);
+                        await removeTeacherPromotion(targetUserId);
                         setShowPromoteModal(false);
                         setPromotionTarget(null);
                         fetchTeachers();
@@ -1680,7 +1717,8 @@ export const Teachers = () => {
                 onClick={async () => {
                   setPromoting(true);
                   try {
-                    await promoteTeacher(promotionTarget.userId, {
+                    const targetUserId = promotionTarget.user_id || promotionTarget.userId || promotionTarget.id;
+                    await promoteTeacher(targetUserId, {
                       roles: promotionForm.roles,
                       headOfDepartment: {
                         grades: promotionForm.hodGrades,
@@ -1696,7 +1734,9 @@ export const Teachers = () => {
                         endTime: promotionForm.beforeSchool.endTime,
                         useConfiguredRate: promotionForm.beforeSchool.useConfiguredRate,
                         extraPayAmount: promotionForm.beforeSchool.extraPayAmount ? Number(promotionForm.beforeSchool.extraPayAmount) : undefined
-                      }
+                      },
+                      subjects: promotionForm.hodSubjects,
+                      grades: promotionForm.hodGrades
                     });
                     setShowPromoteModal(false);
                     setPromotionTarget(null);
