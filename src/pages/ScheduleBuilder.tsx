@@ -15,6 +15,7 @@ import {
   saveScheduleStructure,
   getScheduleStructure,
   generateTimetable,
+  getLatestScheduleRun,
   approveScheduleCandidate,
   type ScheduleCandidate,
   type GenerateTimetableResult,
@@ -212,6 +213,34 @@ export const ScheduleBuilder = () => {
     loadConstraints();
   }, []);
 
+  // Load latest schedule run on mount
+  useEffect(() => {
+    const loadLatestRun = async () => {
+      try {
+        const latest = await getLatestScheduleRun();
+        if (latest && Array.isArray(latest.candidates) && latest.candidates.length > 0) {
+          if (latest.status === 'approved') {
+            let approvedIdx = latest.candidates.findIndex((c: any) => c.isApproved);
+            if (approvedIdx === -1) approvedIdx = 0;
+            latest.candidates = latest.candidates.map((c: any, idx: number) => ({
+              ...c,
+              isApproved: idx === approvedIdx
+            }));
+            setExpandedCandidate(approvedIdx);
+            setApprovalSuccess('Approved timetable is currently published and active.');
+          } else {
+            setExpandedCandidate(0);
+          }
+          setGenerationResult(latest);
+          setIsResultsExpanded(true);
+        }
+      } catch (err) {
+        // No schedule generated yet
+      }
+    };
+    loadLatestRun();
+  }, []);
+
   const filteredTeachers = teachers.filter(t =>
     t.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -405,7 +434,23 @@ export const ScheduleBuilder = () => {
     try {
       setIsApproving(true);
       const result = await approveScheduleCandidate(generationResult.runId, candidateIndex);
-      setApprovalSuccess(result.message || 'Schedule approved and published!');
+
+      setGenerationResult(prev => {
+        if (!prev) return prev;
+        const updatedCandidates = prev.candidates.map((c, idx) => ({
+          ...c,
+          isApproved: idx === candidateIndex
+        }));
+        return {
+          ...prev,
+          status: 'approved',
+          candidates: updatedCandidates
+        };
+      });
+
+      setApprovalSuccess(result.message || 'Schedule candidate approved and published!');
+      setIsResultsExpanded(true);
+      setExpandedCandidate(candidateIndex);
     } catch (err: any) {
       const msg = err.response?.data?.error?.message || err.message || 'Approval failed';
       setGenerationError(msg);
@@ -543,99 +588,138 @@ export const ScheduleBuilder = () => {
         )}
 
         {/* SECTION 4: Generated Results (Collapsible) — shown at top when available */}
-        {(generationResult || generationError) && (
-          <div className="bg-slate-50/30 dark:bg-slate-900/10 rounded-3xl border border-slate-100 dark:border-slate-800/80 overflow-hidden transition-all duration-300">
-            <button
-              onClick={() => toggleSection('results')}
-              className="w-full flex items-center justify-between p-6 hover:bg-slate-100/50 dark:hover:bg-slate-800/30 text-left transition-colors outline-none"
-            >
-              <div className="flex items-center gap-4">
-                <div className={`p-3 rounded-2xl ${generationError ? 'bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400' : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'}`}>
-                  {generationError ? <AlertTriangle size={22} /> : <CheckCircle2 size={22} />}
-                </div>
-                <div>
-                  <h3 className="text-lg font-black text-slate-800 dark:text-white">
-                    {generationError ? 'Generation Failed' : `${generationResult!.candidateCount} Candidate${generationResult!.candidateCount !== 1 ? 's' : ''} Generated`}
-                  </h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-0.5">
-                    {generationError ? 'Review constraints and try again' : 'Select a timetable to approve and publish'}
-                  </p>
-                </div>
-              </div>
-              <ChevronDown
-                size={20}
-                className={`text-slate-400 transform transition-transform duration-300 ${isResultsExpanded ? 'rotate-180' : ''}`}
-              />
-            </button>
+        {(generationResult || generationError) && (() => {
+          const isApprovedRun = generationResult?.status === 'approved' || generationResult?.candidates.some(c => c.isApproved);
+          const displayCandidates = generationResult 
+            ? (isApprovedRun 
+                ? (generationResult.candidates.filter(c => c.isApproved).length > 0 
+                    ? generationResult.candidates.filter(c => c.isApproved) 
+                    : [generationResult.candidates[0]])
+                : generationResult.candidates)
+            : [];
 
-            <div
-              className={`transition-all duration-500 ease-in-out overflow-hidden ${isResultsExpanded ? 'max-h-[3000px] opacity-100 border-t border-slate-100 dark:border-slate-800 p-6 md:p-8' : 'max-h-0 opacity-0'
-                }`}
-            >
-              {generationError ? (
-                <div className="flex items-center gap-3 p-6 bg-rose-50 dark:bg-rose-900/10 border border-rose-200 dark:border-rose-800 rounded-2xl">
-                  <AlertTriangle className="text-rose-500 flex-shrink-0" size={24} />
-                  <p className="text-sm font-bold text-rose-700 dark:text-rose-300">{generationError}</p>
+          return (
+            <div className="bg-slate-50/30 dark:bg-slate-900/10 rounded-3xl border border-slate-100 dark:border-slate-800/80 overflow-hidden transition-all duration-300">
+              <button
+                onClick={() => toggleSection('results')}
+                className="w-full flex items-center justify-between p-6 hover:bg-slate-100/50 dark:hover:bg-slate-800/30 text-left transition-colors outline-none"
+              >
+                <div className="flex items-center gap-4">
+                  <div className={`p-3 rounded-2xl ${generationError ? 'bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400' : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'}`}>
+                    {generationError ? <AlertTriangle size={22} /> : <CheckCircle2 size={22} />}
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black text-slate-800 dark:text-white">
+                      {generationError 
+                        ? 'Generation Failed' 
+                        : isApprovedRun 
+                          ? 'Active Approved Timetable' 
+                          : `${generationResult!.candidateCount} Candidate${generationResult!.candidateCount !== 1 ? 's' : ''} Generated`}
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-0.5">
+                      {generationError 
+                        ? 'Review constraints and try again' 
+                        : isApprovedRun 
+                          ? 'Currently published and active for all teachers and classes' 
+                          : 'Select a timetable option to approve and publish'}
+                    </p>
+                  </div>
                 </div>
-              ) : generationResult && (
-                <div className="space-y-4">
-                  {generationResult.candidates.map((candidate, idx) => (
-                    <div
-                      key={idx}
-                      className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-150 dark:border-slate-800 overflow-hidden shadow-sm"
-                    >
-                      {/* Candidate header */}
-                      <div
-                        className="flex items-center justify-between p-5 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors"
-                        onClick={() => setExpandedCandidate(expandedCandidate === idx ? null : idx)}
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-black flex items-center justify-center text-lg">
-                            {idx + 1}
+                <ChevronDown
+                  size={20}
+                  className={`text-slate-400 transform transition-transform duration-300 ${isResultsExpanded ? 'rotate-180' : ''}`}
+                />
+              </button>
+
+              <div
+                className={`transition-all duration-500 ease-in-out overflow-hidden ${isResultsExpanded ? 'max-h-[3000px] opacity-100 border-t border-slate-100 dark:border-slate-800 p-6 md:p-8' : 'max-h-0 opacity-0'
+                  }`}
+              >
+                {generationError ? (
+                  <div className="flex items-center gap-3 p-6 bg-rose-50 dark:bg-rose-900/10 border border-rose-200 dark:border-rose-800 rounded-2xl">
+                    <AlertTriangle className="text-rose-500 flex-shrink-0" size={24} />
+                    <p className="text-sm font-bold text-rose-700 dark:text-rose-300">{generationError}</p>
+                  </div>
+                ) : generationResult && (
+                  <div className="space-y-4">
+                    {displayCandidates.map((candidate, displayIdx) => {
+                      const realIdx = candidate.candidateIndex ?? generationResult.candidates.indexOf(candidate);
+                      const isExpanded = isApprovedRun || expandedCandidate === realIdx || (expandedCandidate === null && displayIdx === 0);
+
+                      return (
+                        <div
+                          key={realIdx}
+                          className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-150 dark:border-slate-800 overflow-hidden shadow-sm"
+                        >
+                          {/* Candidate header */}
+                          <div
+                            className="flex items-center justify-between p-5 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors"
+                            onClick={() => setExpandedCandidate(expandedCandidate === realIdx ? null : realIdx)}
+                          >
+                            <div className="flex items-center gap-4">
+                              <div className={`w-10 h-10 rounded-xl font-black flex items-center justify-center text-lg ${
+                                candidate.isApproved || isApprovedRun
+                                  ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400' 
+                                  : 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                              }`}>
+                                {isApprovedRun ? '✓' : realIdx + 1}
+                              </div>
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <h4 className="font-black text-slate-800 dark:text-white">
+                                    {isApprovedRun ? 'Approved Timetable' : `Option ${realIdx + 1}`}
+                                  </h4>
+                                  {(candidate.isApproved || isApprovedRun) && (
+                                    <span className="px-2.5 py-0.5 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-[10px] font-black uppercase rounded-full tracking-wider border border-emerald-300 dark:border-emerald-700">
+                                      Approved & Published
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-xs text-slate-400 font-bold">
+                                  {candidate.slotsFilled}/{candidate.totalSlots} slots filled • {candidate.fillRate} coverage
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              {candidate.isApproved || isApprovedRun ? (
+                                <span className="flex items-center gap-1.5 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 px-4 py-2 rounded-xl font-black text-xs uppercase tracking-wider">
+                                  <CheckCircle2 size={16} /> Active Timetable
+                                </span>
+                              ) : (
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); handleApprove(realIdx); }}
+                                  disabled={isApproving}
+                                  className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white px-5 py-2.5 rounded-xl font-bold text-xs uppercase transition-all hover:scale-105 active:scale-95 shadow-md shadow-emerald-600/20"
+                                >
+                                  {isApproving ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
+                                  Approve & Publish
+                                </button>
+                              )}
+                              <button className="p-2 text-slate-400 hover:text-blue-500 transition-colors">
+                                <Eye size={18} />
+                              </button>
+                              <ChevronDown
+                                size={18}
+                                className={`text-slate-400 transform transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                              />
+                            </div>
                           </div>
-                          <div>
-                            <h4 className="font-black text-slate-800 dark:text-white">
-                              Option {idx + 1}
-                            </h4>
-                            <p className="text-xs text-slate-400 font-bold">
-                              {candidate.slotsFilled}/{candidate.totalSlots} slots filled • {candidate.fillRate} coverage
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          {!approvalSuccess && (
-                            <button
-                              onClick={(e) => { e.stopPropagation(); handleApprove(idx); }}
-                              disabled={isApproving}
-                              className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white px-5 py-2.5 rounded-xl font-bold text-xs uppercase transition-all hover:scale-105 active:scale-95"
-                            >
-                              {isApproving ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
-                              Approve & Publish
-                            </button>
+
+                          {/* Expanded candidate view */}
+                          {isExpanded && (
+                            <div className="border-t border-slate-100 dark:border-slate-800 p-5 bg-slate-50/30 dark:bg-slate-800/10">
+                              {renderCandidatePreview(candidate)}
+                            </div>
                           )}
-                          <button className="p-2 text-slate-400 hover:text-blue-500 transition-colors">
-                            <Eye size={18} />
-                          </button>
-                          <ChevronDown
-                            size={18}
-                            className={`text-slate-400 transform transition-transform ${expandedCandidate === idx ? 'rotate-180' : ''}`}
-                          />
                         </div>
-                      </div>
-
-                      {/* Expanded candidate view */}
-                      {expandedCandidate === idx && (
-                        <div className="border-t border-slate-100 dark:border-slate-800 p-5 bg-slate-50/30 dark:bg-slate-800/10">
-                          {renderCandidatePreview(candidate)}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         {/* SECTION 1: Core Parameters (Collapsible) */}
         <div className="bg-slate-50/30 dark:bg-slate-900/10 rounded-3xl border border-slate-100 dark:border-slate-800/80 overflow-hidden transition-all duration-300">

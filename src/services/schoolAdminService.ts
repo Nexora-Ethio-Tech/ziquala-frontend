@@ -552,10 +552,12 @@ export interface StructureRowInput {
 }
 
 export interface ScheduleCandidate {
-  index: number;
+  index?: number;
+  candidateIndex?: number;
   slotsFilled: number;
   totalSlots: number;
   fillRate: string;
+  isApproved?: boolean;
   entries: Array<{
     teacherId: string;
     teacherName: string;
@@ -571,6 +573,7 @@ export interface ScheduleCandidate {
 
 export interface GenerateTimetableResult {
   runId: string;
+  status?: string;
   candidateCount: number;
   totalSlotsPossible: number;
   candidates: ScheduleCandidate[];
@@ -660,6 +663,12 @@ export const getScheduleStructure = async (academicYear?: string) => {
 // Timetable Generation
 export const generateTimetable = async (academicYear?: string): Promise<GenerateTimetableResult> => {
   const response = await api.post('/schedule/generate', { academicYear });
+  return response.data.data;
+};
+
+export const getLatestScheduleRun = async (academicYear?: string) => {
+  const params = academicYear ? { academicYear } : {};
+  const response = await api.get('/schedule/latest', { params });
   return response.data.data;
 };
 
