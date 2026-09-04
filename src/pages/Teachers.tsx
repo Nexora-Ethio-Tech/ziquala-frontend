@@ -659,27 +659,30 @@ export const Teachers = () => {
   );
 
   return (
-    <div className="space-y-6">
-      <button
-        onClick={() => navigate(-1)}
-        className="flex items-center gap-1 text-blue-600 hover:underline text-xs font-bold uppercase tracking-widest"
-      >
-        <ArrowLeft size={14} />
-        Back
-      </button>
-
+    <div className="p-4 sm:p-6 md:p-8 space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{isSuperviseRoute ? t("teachers.supervise", "Supervise") : t("teachers.title", "Teachers")}</h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">{t("teachers.subtitle", "Manage teaching staff and assignments")}</p>
+        <div className="space-y-1">
+          <button
+            onClick={() => navigate(-1)}
+            className="inline-flex items-center gap-1.5 text-blue-600 dark:text-blue-400 hover:text-blue-700 text-xs font-bold uppercase tracking-wider transition-colors mb-2"
+          >
+            <ArrowLeft size={14} />
+            Back
+          </button>
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+            {isSuperviseRoute ? t("teachers.supervise", "Supervise") : t("teachers.title", "Teachers")}
+          </h1>
+          <p className="text-slate-500 dark:text-slate-400 text-sm">
+            {t("teachers.subtitle", "Manage teaching staff and assignments")}
+          </p>
         </div>
 
         {canRegisterTeacher && (
           <button
             onClick={() => setShowAddModal(true)}
-            className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all text-sm font-bold shadow-lg shadow-blue-200 dark:shadow-none"
+            className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all text-sm font-bold shadow-lg shadow-blue-500/20 dark:shadow-none hover:shadow-blue-500/30 active:scale-[0.98] shrink-0"
           >
-            <UserPlus size={20} />
+            <UserPlus size={18} />
             Register Teacher
           </button>
         )}
