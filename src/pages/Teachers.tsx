@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Plus, UserPlus, X, Check, ArrowLeft, MoreVertical, CheckCircle, XCircle, Trash2, Printer, Eye, Edit2, Loader2, FileText, Download, Upload, Users } from 'lucide-react';
+import { Plus, UserPlus, X, Check, ArrowLeft, MoreVertical, CheckCircle, XCircle, Trash2, Printer, Eye, Edit2, Loader2, FileText, Download, Upload, Users, Calendar, Clock, BookOpen, FileCheck, AlertCircle, CheckCircle2, MessageSquare } from 'lucide-react';
 import PhoneInput from '../components/PhoneInput';
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -9,7 +9,7 @@ import api from '../services/api';
 import classService from '../services/classService';
 import { StaffProfileModal } from '../components/StaffProfileModal';
 import subjectService, { CourseWithGrade } from '../services/subjectService';
-import { getVPTeachers, getLeaderboard, rateTeacher, resetLeaderboard } from '../services/vicePrincipalService';
+import { getVPTeachers, getLeaderboard, rateTeacher, resetLeaderboard, getVPAnnualPlans, reviewVPAnnualPlan, getWeeklyPlans, reviewWeeklyPlan } from '../services/vicePrincipalService';
 import { Star, Trophy, RefreshCcw, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { TeacherAttendanceModal } from '../components/TeacherAttendanceModal';
 import { formatEthiopianLabel } from '../utils/ethiopianCalendar';
@@ -90,10 +90,10 @@ export const Teachers = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { role } = useUser();
-  const isAdmin = role === 'school-admin' || role === 'super-admin' || role === 'academic-manager';
-  const canRegisterTeacher = role === 'school-admin' || role === 'super-admin' || role === 'academic-manager';
-  const isVP = role === 'vice-principal';
   const isSuperviseRoute = location.pathname === '/teachers';
+  const isAdmin = role === 'school-admin' || role === 'super-admin' || role === 'academic-manager';
+  const canRegisterTeacher = !isSuperviseRoute && (role === 'school-admin' || role === 'super-admin' || role === 'academic-manager');
+  const isVP = role === 'vice-principal';
 
   const [teachers, setTeachers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -103,7 +103,22 @@ export const Teachers = () => {
   const [successModal, setSuccessModal] = useState<{ show: boolean; data: any }>({ show: false, data: null });
   const [selectedStaff, setSelectedStaff] = useState<any | null>(null);
   const [attendanceTeacher, setAttendanceTeacher] = useState<any | null>(null);
-  const [activeTab, setActiveTab] = useState<'teachers' | 'leaderboard'>('teachers');
+  const [activeTab, setActiveTab] = useState<'annual-plans' | 'weekly-plans' | 'teachers' | 'leaderboard'>(
+    isSuperviseRoute ? 'annual-plans' : 'teachers'
+  );
+  const [annualPlans, setAnnualPlans] = useState<any[]>([]);
+  const [weeklyPlans, setWeeklyPlans] = useState<any[]>([]);
+  const [plansLoading, setPlansLoading] = useState(false);
+  const [selectedAnnualPlan, setSelectedAnnualPlan] = useState<any | null>(null);
+  const [selectedWeeklyPlan, setSelectedWeeklyPlan] = useState<any | null>(null);
+  const [reviewModal, setReviewModal] = useState<{
+    show: boolean;
+    planId: string;
+    planType: 'annual' | 'weekly';
+    status: 'Approved' | 'Revision Required';
+    feedback: string;
+  }>({ show: false, planId: '', planType: 'annual', status: 'Approved', feedback: '' });
+
   const [leaderboardData, setLeaderboardData] = useState<any[]>([]);
   const [leaderboardLoading, setLeaderboardLoading] = useState(false);
   const [leaderboardSearch, setLeaderboardSearch] = useState('');
@@ -230,8 +245,64 @@ export const Teachers = () => {
   useEffect(() => {
     if (activeTab === 'leaderboard') {
       fetchLeaderboardData();
+    } else if (activeTab === 'annual-plans') {
+      fetchAnnualPlansData();
+    } else if (activeTab === 'weekly-plans') {
+      fetchWeeklyPlansData();
     }
-  }, [activeTab]);
+  }, [activeTab, isSuperviseRoute]);
+
+  const fetchAnnualPlansData = async () => {
+    try {
+      setPlansLoading(true);
+      const res = await getVPAnnualPlans();
+      setAnnualPlans(res.data || res || []);
+    } catch (err) {
+      console.error('Error fetching annual plans:', err);
+    } finally {
+      setPlansLoading(false);
+    }
+  };
+
+  const fetchWeeklyPlansData = async () => {
+    try {
+      setPlansLoading(true);
+      const res = await getWeeklyPlans();
+      setWeeklyPlans(res.data || res || []);
+    } catch (err) {
+      console.error('Error fetching weekly plans:', err);
+    } finally {
+      setPlansLoading(false);
+    }
+  };
+
+  const handleReviewPlanSubmit = async (status: 'Approved' | 'Revision Required', customFeedback?: string) => {
+    const { planId, planType, feedback } = reviewModal;
+    const finalFeedback = customFeedback !== undefined ? customFeedback : feedback;
+    try {
+      setProcessing(true);
+      if (planType === 'annual') {
+        await reviewVPAnnualPlan(planId, {
+          status,
+          feedback: finalFeedback || (status === 'Approved' ? 'Accepted by Academic Manager' : 'Revision Required')
+        });
+        await fetchAnnualPlansData();
+      } else {
+        await reviewWeeklyPlan(planId, {
+          status,
+          deanFeedback: finalFeedback || (status === 'Approved' ? 'Accepted by Academic Manager' : 'Revision Required')
+        });
+        await fetchWeeklyPlansData();
+      }
+      setReviewModal({ show: false, planId: '', planType: 'annual', status: 'Approved', feedback: '' });
+      if (selectedAnnualPlan?.id === planId) setSelectedAnnualPlan(null);
+      if (selectedWeeklyPlan?.id === planId) setSelectedWeeklyPlan(null);
+    } catch (err: any) {
+      alert(err?.response?.data?.message || err?.message || 'Failed to review plan');
+    } finally {
+      setProcessing(false);
+    }
+  };
 
   const fetchLeaderboardData = async () => {
     try {
@@ -673,7 +744,9 @@ export const Teachers = () => {
             {isSuperviseRoute ? t("teachers.supervise", "Supervise") : t("teachers.title", "Teachers")}
           </h1>
           <p className="text-slate-500 dark:text-slate-400 text-sm">
-            {t("teachers.subtitle", "Manage teaching staff and assignments")}
+            {isSuperviseRoute
+              ? t("teachers.superviseSubtitle", "Review and accept Annual and Weekly Lesson Plans submitted by teachers")
+              : t("teachers.subtitle", "Manage teaching staff and assignments")}
           </p>
         </div>
 
@@ -694,24 +767,85 @@ export const Teachers = () => {
         </div>
       )}
 
-      {(isVP || isSuperviseRoute) && (
-        <div className="flex border-b border-slate-200 dark:border-slate-700 mb-6 gap-4">
-          <button
-            onClick={() => setActiveTab('teachers')}
-            className={`pb-2 px-1 text-sm font-bold border-b-2 flex items-center gap-1 ${activeTab === 'teachers' ? 'border-blue-600 text-blue-600 dark:text-blue-400' : 'border-transparent text-slate-500'}`}
-          >
-            <Users size={16} /> {t("teachers.teachersList", "Teachers")}
-          </button>
-          <button
-            onClick={() => setActiveTab('leaderboard')}
-            className={`pb-2 px-1 text-sm font-bold border-b-2 flex items-center gap-1 ${activeTab === 'leaderboard' ? 'border-blue-600 text-blue-600 dark:text-blue-400' : 'border-transparent text-slate-500'}`}
-          >
-            <Trophy size={16} /> {t("teachers.leaderboard", "Leaderboard")}
-          </button>
-        </div>
-      )}
+      <div className="flex border-b border-slate-200 dark:border-slate-700 mb-6 gap-2 sm:gap-4 overflow-x-auto">
+        {isSuperviseRoute ? (
+          <>
+            <button
+              onClick={() => setActiveTab('annual-plans')}
+              className={`pb-2.5 px-3 text-sm font-bold border-b-2 flex items-center gap-2 whitespace-nowrap transition-colors ${
+                activeTab === 'annual-plans'
+                  ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400'
+              }`}
+            >
+              <Calendar size={16} />
+              <span>Annual Plans</span>
+              {annualPlans.filter(p => p.status === 'Pending').length > 0 && (
+                <span className="bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 text-xs px-2 py-0.5 rounded-full font-bold">
+                  {annualPlans.filter(p => p.status === 'Pending').length}
+                </span>
+              )}
+            </button>
 
-      {activeTab === 'teachers' ? (
+            <button
+              onClick={() => setActiveTab('weekly-plans')}
+              className={`pb-2.5 px-3 text-sm font-bold border-b-2 flex items-center gap-2 whitespace-nowrap transition-colors ${
+                activeTab === 'weekly-plans'
+                  ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400'
+              }`}
+            >
+              <Clock size={16} />
+              <span>Weekly Plans</span>
+              {weeklyPlans.filter(p => p.status === 'Pending').length > 0 && (
+                <span className="bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 text-xs px-2 py-0.5 rounded-full font-bold">
+                  {weeklyPlans.filter(p => p.status === 'Pending').length}
+                </span>
+              )}
+            </button>
+
+            <button
+              onClick={() => setActiveTab('leaderboard')}
+              className={`pb-2.5 px-3 text-sm font-bold border-b-2 flex items-center gap-2 whitespace-nowrap transition-colors ${
+                activeTab === 'leaderboard'
+                  ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400'
+              }`}
+            >
+              <Trophy size={16} />
+              <span>{t("teachers.leaderboard", "Leaderboard")}</span>
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              onClick={() => setActiveTab('teachers')}
+              className={`pb-2.5 px-3 text-sm font-bold border-b-2 flex items-center gap-2 whitespace-nowrap transition-colors ${
+                activeTab === 'teachers'
+                  ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400'
+              }`}
+            >
+              <Users size={16} />
+              <span>{t("teachers.teachersList", "Teachers")}</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('leaderboard')}
+              className={`pb-2.5 px-3 text-sm font-bold border-b-2 flex items-center gap-2 whitespace-nowrap transition-colors ${
+                activeTab === 'leaderboard'
+                  ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400'
+              }`}
+            >
+              <Trophy size={16} />
+              <span>{t("teachers.leaderboard", "Leaderboard")}</span>
+            </button>
+          </>
+        )}
+      </div>
+
+      {activeTab === 'teachers' && (
         <div className="space-y-4">
           {/* Mobile Card View */}
           <div className="grid grid-cols-1 gap-4 md:hidden">
@@ -943,7 +1077,9 @@ export const Teachers = () => {
             </div>
           </div>
         </div>
-      ) : (
+      )}
+
+      {activeTab === 'leaderboard' && (
         <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 overflow-hidden">
           <div className="p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/30">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -1110,6 +1246,556 @@ export const Teachers = () => {
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Annual Plans View */}
+      {activeTab === 'annual-plans' && (
+        <div className="space-y-6">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm">
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Total Plans</p>
+              <p className="text-2xl font-black text-slate-900 dark:text-white mt-1">{annualPlans.length}</p>
+            </div>
+            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40 rounded-2xl p-4 shadow-sm">
+              <p className="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">Pending Review</p>
+              <p className="text-2xl font-black text-amber-700 dark:text-amber-300 mt-1">
+                {annualPlans.filter(p => p.status === 'Pending').length}
+              </p>
+            </div>
+            <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/40 rounded-2xl p-4 shadow-sm">
+              <p className="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Accepted</p>
+              <p className="text-2xl font-black text-emerald-700 dark:text-emerald-300 mt-1">
+                {annualPlans.filter(p => p.status === 'Approved').length}
+              </p>
+            </div>
+            <div className="bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800/40 rounded-2xl p-4 shadow-sm">
+              <p className="text-xs font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">Revision Required</p>
+              <p className="text-2xl font-black text-rose-700 dark:text-rose-300 mt-1">
+                {annualPlans.filter(p => p.status === 'Revision Required').length}
+              </p>
+            </div>
+          </div>
+
+          {plansLoading ? (
+            <div className="flex justify-center p-12">
+              <Loader2 className="animate-spin text-blue-600" size={32} />
+            </div>
+          ) : annualPlans.length === 0 ? (
+            <div className="bg-white dark:bg-slate-900 rounded-2xl p-12 text-center border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+              <Calendar className="mx-auto text-slate-400" size={40} />
+              <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">No Annual Plans Submitted</h3>
+              <p className="text-sm text-slate-500 max-w-md mx-auto">
+                Teachers' annual plan submissions will appear here for review and acceptance.
+              </p>
+            </div>
+          ) : (
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-700 text-xs font-bold uppercase tracking-wider text-slate-500">
+                    <tr>
+                      <th className="px-6 py-4">Teacher</th>
+                      <th className="px-6 py-4">Subject / Grade</th>
+                      <th className="px-6 py-4">Academic Year</th>
+                      <th className="px-6 py-4">Workload</th>
+                      <th className="px-6 py-4">Status</th>
+                      <th className="px-6 py-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {annualPlans.map((plan) => {
+                      const isApproved = plan.status === 'Approved';
+                      return (
+                        <tr key={plan.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                          <td className="px-6 py-4">
+                            <div className="font-bold text-slate-900 dark:text-white">{plan.teacher_name || 'Teacher'}</div>
+                            <div className="text-xs text-slate-500">{plan.teacher_email} {plan.teacher_digital_id && `• ${plan.teacher_digital_id}`}</div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className="font-semibold text-slate-800 dark:text-slate-200">{plan.subject || 'Subject'}</span>
+                            <span className="text-xs text-slate-500 block">{plan.grade || 'Grade'}</span>
+                          </td>
+                          <td className="px-6 py-4 font-medium text-slate-700 dark:text-slate-300">
+                            {plan.academic_year || '2018 E.C.'}
+                          </td>
+                          <td className="px-6 py-4 text-xs text-slate-600 dark:text-slate-400">
+                            <div><span className="font-bold text-slate-800 dark:text-slate-200">{plan.working_days_year || 180}</span> Days/Yr</div>
+                            <div><span className="font-bold text-slate-800 dark:text-slate-200">{plan.periods_year || 160}</span> Periods ({plan.periods_week || 4}/wk)</div>
+                          </td>
+                          <td className="px-6 py-4">
+                            {isApproved ? (
+                              <span className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-xs font-bold rounded-full">
+                                <CheckCircle2 size={13} /> Accepted
+                              </span>
+                            ) : plan.status === 'Revision Required' ? (
+                              <span className="inline-flex items-center gap-1 px-3 py-1 bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 text-xs font-bold rounded-full">
+                                <AlertCircle size={13} /> Revision Required
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-3 py-1 bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 text-xs font-bold rounded-full">
+                                <Clock size={13} /> Pending Review
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              <button
+                                type="button"
+                                onClick={() => setSelectedAnnualPlan(plan)}
+                                className="p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                                title="View Details"
+                              >
+                                <Eye size={16} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  reviewModal.planId = plan.id;
+                                  reviewModal.planType = 'annual';
+                                  handleReviewPlanSubmit('Approved', 'Accepted by Academic Manager');
+                                }}
+                                disabled={processing || isApproved}
+                                className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all ${
+                                  isApproved
+                                    ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 cursor-default opacity-80'
+                                    : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm'
+                                }`}
+                              >
+                                <Check size={14} /> Accept
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setReviewModal({
+                                  show: true,
+                                  planId: plan.id,
+                                  planType: 'annual',
+                                  status: 'Revision Required',
+                                  feedback: ''
+                                })}
+                                disabled={processing}
+                                className="px-3 py-1.5 bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-100 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/40 rounded-lg text-xs font-bold flex items-center gap-1 transition-all"
+                              >
+                                <X size={14} /> Revision
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Weekly Plans View */}
+      {activeTab === 'weekly-plans' && (
+        <div className="space-y-6">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm">
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Total Plans</p>
+              <p className="text-2xl font-black text-slate-900 dark:text-white mt-1">{weeklyPlans.length}</p>
+            </div>
+            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40 rounded-2xl p-4 shadow-sm">
+              <p className="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">Pending Review</p>
+              <p className="text-2xl font-black text-amber-700 dark:text-amber-300 mt-1">
+                {weeklyPlans.filter(p => p.status === 'Pending').length}
+              </p>
+            </div>
+            <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/40 rounded-2xl p-4 shadow-sm">
+              <p className="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Accepted</p>
+              <p className="text-2xl font-black text-emerald-700 dark:text-emerald-300 mt-1">
+                {weeklyPlans.filter(p => p.status === 'Approved').length}
+              </p>
+            </div>
+            <div className="bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800/40 rounded-2xl p-4 shadow-sm">
+              <p className="text-xs font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">Revision Required</p>
+              <p className="text-2xl font-black text-rose-700 dark:text-rose-300 mt-1">
+                {weeklyPlans.filter(p => p.status === 'Revision Required').length}
+              </p>
+            </div>
+          </div>
+
+          {plansLoading ? (
+            <div className="flex justify-center p-12">
+              <Loader2 className="animate-spin text-blue-600" size={32} />
+            </div>
+          ) : weeklyPlans.length === 0 ? (
+            <div className="bg-white dark:bg-slate-900 rounded-2xl p-12 text-center border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+              <Clock className="mx-auto text-slate-400" size={40} />
+              <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">No Weekly Plans Submitted</h3>
+              <p className="text-sm text-slate-500 max-w-md mx-auto">
+                Teachers' weekly lesson plans will appear here for review and acceptance.
+              </p>
+            </div>
+          ) : (
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-700 text-xs font-bold uppercase tracking-wider text-slate-500">
+                    <tr>
+                      <th className="px-6 py-4">Teacher</th>
+                      <th className="px-6 py-4">Course / Topic</th>
+                      <th className="px-6 py-4">Date / Periods</th>
+                      <th className="px-6 py-4">Status</th>
+                      <th className="px-6 py-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {weeklyPlans.map((plan) => {
+                      const isApproved = plan.status === 'Approved';
+                      return (
+                        <tr key={plan.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                          <td className="px-6 py-4">
+                            <div className="font-bold text-slate-900 dark:text-white">{plan.teacher_name || 'Teacher'}</div>
+                            <div className="text-xs text-slate-500">{plan.teacher_email} {plan.teacher_digital_id && `• ${plan.teacher_digital_id}`}</div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className="font-semibold text-slate-800 dark:text-slate-200">{plan.subject || plan.course_name || 'Weekly Lesson Plan'}</span>
+                            <span className="text-xs text-slate-500 block">{plan.topic || plan.chapter || 'Plan Details'}</span>
+                          </td>
+                          <td className="px-6 py-4 text-xs text-slate-600 dark:text-slate-400">
+                            <div><span className="font-bold text-slate-800 dark:text-slate-200">{plan.date ? new Date(plan.date).toLocaleDateString() : 'N/A'}</span></div>
+                            <div>{plan.periods_week || plan.period_count || 1} Period(s)</div>
+                          </td>
+                          <td className="px-6 py-4">
+                            {isApproved ? (
+                              <span className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-xs font-bold rounded-full">
+                                <CheckCircle2 size={13} /> Accepted
+                              </span>
+                            ) : plan.status === 'Revision Required' ? (
+                              <span className="inline-flex items-center gap-1 px-3 py-1 bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 text-xs font-bold rounded-full">
+                                <AlertCircle size={13} /> Revision Required
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-3 py-1 bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 text-xs font-bold rounded-full">
+                                <Clock size={13} /> Pending Review
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              <button
+                                type="button"
+                                onClick={() => setSelectedWeeklyPlan(plan)}
+                                className="p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                                title="View Details"
+                              >
+                                <Eye size={16} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  reviewModal.planId = plan.id;
+                                  reviewModal.planType = 'weekly';
+                                  handleReviewPlanSubmit('Approved', 'Accepted by Academic Manager');
+                                }}
+                                disabled={processing || isApproved}
+                                className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all ${
+                                  isApproved
+                                    ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 cursor-default opacity-80'
+                                    : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm'
+                                }`}
+                              >
+                                <Check size={14} /> Accept
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setReviewModal({
+                                  show: true,
+                                  planId: plan.id,
+                                  planType: 'weekly',
+                                  status: 'Revision Required',
+                                  feedback: ''
+                                })}
+                                disabled={processing}
+                                className="px-3 py-1.5 bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-100 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/40 rounded-lg text-xs font-bold flex items-center gap-1 transition-all"
+                              >
+                                <X size={14} /> Revision
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Modals for Plan Review */}
+      {selectedAnnualPlan && (
+        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
+            <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+              <div>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Annual Plan Details</h3>
+                <p className="text-xs text-slate-500">{selectedAnnualPlan.teacher_name} • {selectedAnnualPlan.subject} ({selectedAnnualPlan.grade})</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedAnnualPlan(null)}
+                className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto space-y-6 flex-1 text-slate-800 dark:text-slate-200">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl text-xs">
+                <div>
+                  <span className="text-slate-500 block font-medium">Academic Year</span>
+                  <span className="font-bold text-sm text-slate-900 dark:text-white">{selectedAnnualPlan.academic_year || '2018 E.C.'}</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 block font-medium">Working Days / Year</span>
+                  <span className="font-bold text-sm text-slate-900 dark:text-white">{selectedAnnualPlan.working_days_year || 180} Days</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 block font-medium">Periods / Year</span>
+                  <span className="font-bold text-sm text-slate-900 dark:text-white">{selectedAnnualPlan.periods_year || 160} Periods</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 block font-medium">Periods / Week</span>
+                  <span className="font-bold text-sm text-slate-900 dark:text-white">{selectedAnnualPlan.periods_week || 4} Periods</span>
+                </div>
+              </div>
+
+              {selectedAnnualPlan.feedback && (
+                <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40 rounded-xl text-xs space-y-1">
+                  <span className="font-bold text-amber-800 dark:text-amber-300">Feedback / Remarks:</span>
+                  <p className="text-amber-900 dark:text-amber-200">{selectedAnnualPlan.feedback}</p>
+                </div>
+              )}
+
+              <div className="space-y-3">
+                <h4 className="font-bold text-sm text-slate-900 dark:text-white">Plan Breakdown / Items</h4>
+                {(!selectedAnnualPlan.items || selectedAnnualPlan.items.length === 0) ? (
+                  <p className="text-xs text-slate-500 italic">No plan items provided in this submission.</p>
+                ) : (
+                  <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden text-xs">
+                    <table className="w-full text-left">
+                      <thead className="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 font-bold text-slate-500">
+                        <tr>
+                          <th className="p-3">Unit / Chapter</th>
+                          <th className="p-3">Topic / Content</th>
+                          <th className="p-3">Periods</th>
+                          <th className="p-3">Objectives</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                        {selectedAnnualPlan.items.map((item: any, idx: number) => (
+                          <tr key={idx}>
+                            <td className="p-3 font-semibold text-slate-800 dark:text-slate-200">{item.unit || item.chapter || `Unit ${idx+1}`}</td>
+                            <td className="p-3 text-slate-700 dark:text-slate-300">{item.topic || item.content || '-'}</td>
+                            <td className="p-3 font-medium text-slate-600 dark:text-slate-400">{item.periods || '-'}</td>
+                            <td className="p-3 text-slate-600 dark:text-slate-400">{item.objectives || '-'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="p-4 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+              <button
+                type="button"
+                onClick={() => setSelectedAnnualPlan(null)}
+                className="px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 rounded-xl text-xs font-bold"
+              >
+                Close
+              </button>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setReviewModal({
+                      show: true,
+                      planId: selectedAnnualPlan.id,
+                      planType: 'annual',
+                      status: 'Revision Required',
+                      feedback: ''
+                    });
+                  }}
+                  className="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold flex items-center gap-1"
+                >
+                  <X size={14} /> Request Revision
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    reviewModal.planId = selectedAnnualPlan.id;
+                    reviewModal.planType = 'annual';
+                    handleReviewPlanSubmit('Approved', 'Accepted by Academic Manager');
+                  }}
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1 shadow-sm"
+                >
+                  <Check size={14} /> Accept & Approve
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {selectedWeeklyPlan && (
+        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
+            <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+              <div>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Weekly Plan Details</h3>
+                <p className="text-xs text-slate-500">{selectedWeeklyPlan.teacher_name} • {selectedWeeklyPlan.subject || 'Lesson Plan'}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedWeeklyPlan(null)}
+                className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto space-y-4 flex-1 text-xs text-slate-800 dark:text-slate-200">
+              <div className="grid grid-cols-2 gap-4 p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl">
+                <div>
+                  <span className="text-slate-500 block font-medium">Submitted Date</span>
+                  <span className="font-bold text-slate-900 dark:text-white">{selectedWeeklyPlan.date ? new Date(selectedWeeklyPlan.date).toLocaleDateString() : 'N/A'}</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 block font-medium">Status</span>
+                  <span className="font-bold text-slate-900 dark:text-white">{selectedWeeklyPlan.status}</span>
+                </div>
+              </div>
+
+              {selectedWeeklyPlan.dean_feedback && (
+                <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40 rounded-xl space-y-1">
+                  <span className="font-bold text-amber-800 dark:text-amber-300">Feedback / Remarks:</span>
+                  <p className="text-amber-900 dark:text-amber-200">{selectedWeeklyPlan.dean_feedback}</p>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <span className="font-bold text-slate-900 dark:text-white block">Topic / Unit:</span>
+                <p className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-800">{selectedWeeklyPlan.topic || selectedWeeklyPlan.chapter || 'N/A'}</p>
+              </div>
+
+              {selectedWeeklyPlan.objectives && (
+                <div className="space-y-2">
+                  <span className="font-bold text-slate-900 dark:text-white block">Objectives:</span>
+                  <p className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-800">{selectedWeeklyPlan.objectives}</p>
+                </div>
+              )}
+
+              {selectedWeeklyPlan.teacher_activity && (
+                <div className="space-y-2">
+                  <span className="font-bold text-slate-900 dark:text-white block">Teacher Activity:</span>
+                  <p className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-800">{selectedWeeklyPlan.teacher_activity}</p>
+                </div>
+              )}
+
+              {selectedWeeklyPlan.student_activity && (
+                <div className="space-y-2">
+                  <span className="font-bold text-slate-900 dark:text-white block">Student Activity:</span>
+                  <p className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-800">{selectedWeeklyPlan.student_activity}</p>
+                </div>
+              )}
+            </div>
+
+            <div className="p-4 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+              <button
+                type="button"
+                onClick={() => setSelectedWeeklyPlan(null)}
+                className="px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 rounded-xl text-xs font-bold"
+              >
+                Close
+              </button>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setReviewModal({
+                      show: true,
+                      planId: selectedWeeklyPlan.id,
+                      planType: 'weekly',
+                      status: 'Revision Required',
+                      feedback: ''
+                    });
+                  }}
+                  className="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold flex items-center gap-1"
+                >
+                  <X size={14} /> Request Revision
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    reviewModal.planId = selectedWeeklyPlan.id;
+                    reviewModal.planType = 'weekly';
+                    handleReviewPlanSubmit('Approved', 'Accepted by Academic Manager');
+                  }}
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1 shadow-sm"
+                >
+                  <Check size={14} /> Accept & Approve
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {reviewModal.show && (
+        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-md p-6 space-y-4">
+            <div className="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3">
+              <h3 className="font-bold text-slate-900 dark:text-white text-base">Request Plan Revision</h3>
+              <button
+                type="button"
+                onClick={() => setReviewModal({ show: false, planId: '', planType: 'annual', status: 'Approved', feedback: '' })}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                Reason for Revision / Feedback for Teacher:
+              </label>
+              <textarea
+                value={reviewModal.feedback}
+                onChange={(e) => setReviewModal({ ...reviewModal, feedback: e.target.value })}
+                placeholder="Please state what needs to be revised or corrected in this plan..."
+                rows={4}
+                className="w-full p-3 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-rose-500 text-slate-800 dark:text-slate-200"
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setReviewModal({ show: false, planId: '', planType: 'annual', status: 'Approved', feedback: '' })}
+                className="px-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={processing}
+                onClick={() => handleReviewPlanSubmit('Revision Required')}
+                className="px-4 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow-sm flex items-center gap-1"
+              >
+                {processing ? <Loader2 size={14} className="animate-spin" /> : <MessageSquare size={14} />}
+                Submit Revision Request
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

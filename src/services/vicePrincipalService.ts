@@ -36,6 +36,24 @@ export const reviewWeeklyPlan = async (planId: string, data: {
   return response.data;
 };
 
+// Annual Plans
+export const getVPAnnualPlans = async (status?: string, teacherId?: string) => {
+  const params = new URLSearchParams();
+  if (status) params.append('status', status);
+  if (teacherId) params.append('teacherId', teacherId);
+  const response = await api.get(`/vice-principal/annual-plans?${params}`);
+  return response.data;
+};
+
+export const reviewVPAnnualPlan = async (planId: string, data: {
+  status: 'Approved' | 'Revision Required';
+  feedback?: string;
+  rating?: number;
+}) => {
+  const response = await api.post(`/vice-principal/annual-plans/${planId}/review`, data);
+  return response.data;
+};
+
 // Grade Locks
 export const getGradeLocks = async () => {
   const response = await api.get('/vice-principal/grade-locks');
