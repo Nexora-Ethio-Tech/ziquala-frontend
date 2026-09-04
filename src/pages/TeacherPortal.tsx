@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { BookOpen, Users, Calendar, ArrowRight, ArrowLeft, ClipboardList, FileText, Plus, X, CheckCircle2, XCircle, Loader2, Star, Save, Send, Search, ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react';
+import { BookOpen, Users, Calendar, ArrowRight, ArrowLeft, ClipboardList, FileText, Plus, X, CheckCircle2, XCircle, Loader2, Star, Save, Send, Search, ChevronLeft, ChevronRight, AlertCircle, ShieldCheck } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useCallback } from 'react';
 import { useUser } from '../context/UserContext';
@@ -397,7 +397,7 @@ export const TeacherPortal = () => {
         setDeptHeads(rawDeptHeads);
       }
 
-      if (dash?.teacherInfo?.is_dean || dash?.teacherInfo?.is_hod || simulateDeanMode) {
+      if (dash?.teacherInfo?.is_dean || dash?.teacherInfo?.is_hod || dash?.teacherInfo?.promotion?.promotion_type === 'head-of-department' || (Array.isArray(dash?.teacherInfo?.promotion?.roles) && dash?.teacherInfo?.promotion?.roles.includes('head-of-department')) || (user as any)?.role === 'head-of-department' || (user as any)?.staff_profile?.is_hod) {
         const dPlans = await getDeptPlans().catch(() => []);
         setDeptPlans(Array.isArray(dPlans) ? dPlans : []);
       }
@@ -796,7 +796,7 @@ export const TeacherPortal = () => {
 
   const todaySchedule = dashboard?.todaySchedule || [];
   const pendingPlans = plans.filter(p => p.status === 'Pending').length;
-  const isDean = dashboard?.teacherInfo?.is_dean === true || dashboard?.teacherInfo?.is_hod === true || simulateDeanMode === true;
+  const isDean = dashboard?.teacherInfo?.is_dean === true || dashboard?.teacherInfo?.is_hod === true || (user as any)?.role === 'head-of-department' || (user as any)?.staff_profile?.is_hod === true || (dashboard?.teacherInfo?.promotion && (dashboard?.teacherInfo?.promotion?.promotion_type === 'head-of-department' || (Array.isArray(dashboard?.teacherInfo?.promotion?.roles) && dashboard?.teacherInfo?.promotion?.roles.includes('head-of-department'))));
 
   // Exam Handlers
   const handlePublishExam = async (examId: string) => {
@@ -1092,24 +1092,12 @@ export const TeacherPortal = () => {
               </button>
             </div>
 
-            {/* Elegant simulation toggle to facilitate testing both states easily */}
-            <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-800 p-2.5 rounded-2xl border border-slate-200/50 dark:border-slate-700/50">
-              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
-                🧪 Promote to Department Head (Simulation)
-              </span>
-              <input
-                title="Toggle Department Head simulation"
-                type="checkbox"
-                checked={simulateDeanMode}
-                onChange={e => {
-                  setSimulateDeanMode(e.target.checked);
-                  if (!e.target.checked) {
-                    setWeeklyPlanSubTab('my-plans');
-                  }
-                }}
-                className="w-4 h-4 text-blue-600 bg-slate-100 border-slate-300 rounded focus:ring-blue-500 cursor-pointer"
-              />
-            </div>
+            {isDean && (
+              <div className="flex items-center gap-2 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-3.5 py-1.5 rounded-xl border border-purple-200 dark:border-purple-800 text-xs font-bold shadow-sm">
+                <ShieldCheck size={14} className="text-purple-600 dark:text-purple-400" />
+                Department Head
+              </div>
+            )}
           </div>
 
           {(weeklyPlanSubTab as any) === 'annual-plans' ? (
