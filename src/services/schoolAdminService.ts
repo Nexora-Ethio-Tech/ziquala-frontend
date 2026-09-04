@@ -21,7 +21,7 @@ export interface SchoolAdminDashboard {
 export interface RegisterUserData {
   name: string;
   email: string;
-  role: 'teacher' | 'student' | 'parent' | 'librarian' | 'storekeeper';
+  role: 'teacher' | 'student' | 'parent' | 'librarian' | 'storekeeper' | 'vice-principal' | string;
   grade?: string; // Required for students
   password?: string; // Optional, auto-generated if not provided
   staffProfile?: Record<string, any>;

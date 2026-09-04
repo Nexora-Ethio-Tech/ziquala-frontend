@@ -91,6 +91,7 @@ export const Teachers = () => {
   const location = useLocation();
   const { role } = useUser();
   const isAdmin = role === 'school-admin' || role === 'super-admin' || role === 'academic-manager';
+  const canRegisterTeacher = role === 'school-admin' || role === 'super-admin' || role === 'academic-manager';
   const isVP = role === 'vice-principal';
   const isSuperviseRoute = location.pathname === '/teachers';
 
@@ -120,7 +121,7 @@ export const Teachers = () => {
     dob: '',
     previousSchool: '',
     experienceYears: '',
-    role: 'teacher' as 'teacher' | 'librarian'
+    role: 'teacher' as 'teacher' | 'librarian' | 'vice-principal'
   });
   const [phoneError, setPhoneError] = useState('');
   const [emergencyPhoneError, setEmergencyPhoneError] = useState('');
@@ -673,7 +674,7 @@ export const Teachers = () => {
           <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">{t("teachers.subtitle", "Manage teaching staff and assignments")}</p>
         </div>
 
-        {isAdmin && (
+        {canRegisterTeacher && (
           <button
             onClick={() => setShowAddModal(true)}
             className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all text-sm font-bold shadow-lg shadow-blue-200 dark:shadow-none"
@@ -1124,7 +1125,13 @@ export const Teachers = () => {
                 <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
                   <UserPlus size={20} />
                 </div>
-                <h3 className="font-bold text-slate-800 dark:text-slate-100">{t("teachers.registerNewTeacher", "Register New Teacher")}</h3>
+                <h3 className="font-bold text-slate-800 dark:text-slate-100">
+                  {formData.role === 'vice-principal'
+                    ? 'Register Vice Principal'
+                    : formData.role === 'librarian'
+                    ? 'Register Librarian'
+                    : t("teachers.registerNewTeacher", "Register New Teacher")}
+                </h3>
               </div>
               <button type="button" title="Close register teacher dialog" onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-slate-600">
                 <X size={20} />
@@ -1132,6 +1139,21 @@ export const Teachers = () => {
             </div>
 
             <form className="p-6 space-y-4" onSubmit={handleAddTeacher}>
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-500 uppercase">{t("teachers.role", "Role")}</label>
+                <select
+                  required
+                  title="Select staff role"
+                  value={formData.role}
+                  onChange={(e) => setFormData({ ...formData, role: e.target.value as any })}
+                  className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+                >
+                  <option value="vice-principal">Vice Principal</option>
+                  <option value="teacher">{t("teachers.roleTeacher", "Teacher")}</option>
+                  <option value="librarian">{t("teachers.roleLibrarian", "Librarian")}</option>
+                </select>
+              </div>
+
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-500 uppercase">{t("teachers.fullName", "Full Name")}</label>
                 <input
@@ -1155,20 +1177,6 @@ export const Teachers = () => {
                   className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="teacher@school.com"
                 />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-500 uppercase">{t("teachers.role", "Role")}</label>
-                <select
-                  required
-                  title="Select staff role"
-                  value={formData.role}
-                  onChange={(e) => setFormData({ ...formData, role: e.target.value as any })}
-                  className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="teacher">{t("teachers.roleTeacher", "Teacher")}</option>
-                  <option value="librarian">{t("teachers.roleLibrarian", "Librarian")}</option>
-                </select>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
