@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Plus, UserPlus, X, Check, ArrowLeft, MoreVertical, CheckCircle, XCircle, Trash2, Printer, Eye, Edit2, Loader2, FileText, Download, Upload, Users, Calendar, Clock, BookOpen, FileCheck, AlertCircle, CheckCircle2, MessageSquare } from 'lucide-react';
+import { Plus, UserPlus, X, Check, ArrowLeft, MoreVertical, CheckCircle, XCircle, Trash2, Printer, Eye, Edit2, Loader2, FileText, Download, Upload, Users, Calendar, Clock, BookOpen, FileCheck, AlertCircle, CheckCircle2, MessageSquare, Filter, Lock, Unlock, AlertTriangle } from 'lucide-react';
 import PhoneInput from '../components/PhoneInput';
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -9,7 +9,7 @@ import api from '../services/api';
 import classService from '../services/classService';
 import { StaffProfileModal } from '../components/StaffProfileModal';
 import subjectService, { CourseWithGrade } from '../services/subjectService';
-import { getVPTeachers, getLeaderboard, rateTeacher, resetLeaderboard, getVPAnnualPlans, reviewVPAnnualPlan, getWeeklyPlans, reviewWeeklyPlan } from '../services/vicePrincipalService';
+import { getVPTeachers, getLeaderboard, rateTeacher, resetLeaderboard, getVPAnnualPlans, reviewVPAnnualPlan, getWeeklyPlans } from '../services/vicePrincipalService';
 import { Star, Trophy, RefreshCcw, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { TeacherAttendanceModal } from '../components/TeacherAttendanceModal';
 import { formatEthiopianLabel } from '../utils/ethiopianCalendar';
@@ -111,6 +111,13 @@ export const Teachers = () => {
   const [plansLoading, setPlansLoading] = useState(false);
   const [selectedAnnualPlan, setSelectedAnnualPlan] = useState<any | null>(null);
   const [selectedWeeklyPlan, setSelectedWeeklyPlan] = useState<any | null>(null);
+
+  // Filters matching Grade Management structure
+  const [weeklyPlanFilter, setWeeklyPlanFilter] = useState<'all' | 'submitted' | 'not_submitted' | 'unlocked'>('all');
+  const [weeklyPlanSearch, setWeeklyPlanSearch] = useState('');
+
+  const [annualPlanFilter, setAnnualPlanFilter] = useState<'all' | 'submitted' | 'not_submitted' | 'unlocked'>('all');
+  const [annualPlanSearch, setAnnualPlanSearch] = useState('');
   const [reviewModal, setReviewModal] = useState<{
     show: boolean;
     planId: string;
@@ -287,12 +294,6 @@ export const Teachers = () => {
           feedback: finalFeedback || (status === 'Approved' ? 'Accepted by Academic Manager' : 'Revision Required')
         });
         await fetchAnnualPlansData();
-      } else {
-        await reviewWeeklyPlan(planId, {
-          status,
-          deanFeedback: finalFeedback || (status === 'Approved' ? 'Accepted by Academic Manager' : 'Revision Required')
-        });
-        await fetchWeeklyPlansData();
       }
       setReviewModal({ show: false, planId: '', planType: 'annual', status: 'Approved', feedback: '' });
       if (selectedAnnualPlan?.id === planId) setSelectedAnnualPlan(null);
@@ -1252,280 +1253,398 @@ export const Teachers = () => {
       {/* Annual Plans View */}
       {activeTab === 'annual-plans' && (
         <div className="space-y-6">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm">
-              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Total Plans</p>
-              <p className="text-2xl font-black text-slate-900 dark:text-white mt-1">{annualPlans.length}</p>
+          {/* Search and Status Filter Bar */}
+          <div className="flex flex-col lg:flex-row gap-3">
+            {/* Search */}
+            <div className="relative flex-1">
+              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search annual plans by teacher, subject, grade..."
+                value={annualPlanSearch}
+                onChange={(e) => setAnnualPlanSearch(e.target.value)}
+                className="w-full pl-9 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-slate-800 dark:text-slate-200"
+              />
             </div>
-            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40 rounded-2xl p-4 shadow-sm">
-              <p className="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">Pending Review</p>
-              <p className="text-2xl font-black text-amber-700 dark:text-amber-300 mt-1">
-                {annualPlans.filter(p => p.status === 'Pending').length}
-              </p>
+
+            {/* Status Filter Tabs */}
+            <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl shrink-0 overflow-x-auto">
+              <Filter size={13} className="text-slate-400 ml-1 shrink-0" />
+              {([
+                { key: 'all',           label: 'All' },
+                { key: 'submitted',     label: 'Submitted' },
+                { key: 'not_submitted', label: 'Not Submitted' },
+                { key: 'unlocked',      label: 'Unlocked' },
+              ] as const).map(({ key, label }) => {
+                const submittedCount = annualPlans.filter(p => p.status === 'Approved').length;
+                const notSubmittedCount = annualPlans.filter(p => p.status === 'Not Submitted' || p.status === 'Pending').length;
+                const unlockedCount = annualPlans.filter(p => p.status === 'Revision Required').length;
+                const count = key === 'submitted' ? submittedCount : key === 'not_submitted' ? notSubmittedCount : key === 'unlocked' ? unlockedCount : annualPlans.length;
+
+                return (
+                  <button
+                    key={key}
+                    onClick={() => setAnnualPlanFilter(key)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wide transition-all whitespace-nowrap ${
+                      annualPlanFilter === key
+                        ? 'bg-white dark:bg-slate-700 text-indigo-600 shadow-sm'
+                        : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                    }`}
+                  >
+                    {label}
+                    <span className="ml-1 opacity-70">
+                      ({count})
+                    </span>
+                  </button>
+                );
+              })}
             </div>
-            <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/40 rounded-2xl p-4 shadow-sm">
-              <p className="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Accepted</p>
-              <p className="text-2xl font-black text-emerald-700 dark:text-emerald-300 mt-1">
-                {annualPlans.filter(p => p.status === 'Approved').length}
-              </p>
-            </div>
-            <div className="bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800/40 rounded-2xl p-4 shadow-sm">
-              <p className="text-xs font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">Revision Required</p>
-              <p className="text-2xl font-black text-rose-700 dark:text-rose-300 mt-1">
-                {annualPlans.filter(p => p.status === 'Revision Required').length}
-              </p>
-            </div>
+          </div>
+
+          {/* Summary Chips */}
+          <div className="flex flex-wrap gap-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-full text-[11px] font-bold text-slate-600 dark:text-slate-300">
+              <span className="w-2 h-2 rounded-full bg-slate-400" />
+              Total Annual Plans: {annualPlans.length}
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 dark:bg-emerald-900/20 rounded-full text-[11px] font-bold text-emerald-700 dark:text-emerald-400">
+              <CheckCircle2 size={11} />
+              Submitted &amp; Approved: {annualPlans.filter(p => p.status === 'Approved').length}
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 dark:bg-amber-900/20 rounded-full text-[11px] font-bold text-amber-700 dark:text-amber-400">
+              <AlertTriangle size={11} />
+              Not Submitted / Pending: {annualPlans.filter(p => p.status === 'Not Submitted' || p.status === 'Pending').length}
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-50 dark:bg-rose-900/20 rounded-full text-[11px] font-bold text-rose-700 dark:text-rose-400">
+              <Unlock size={11} />
+              Unlocked / Revision Required: {annualPlans.filter(p => p.status === 'Revision Required').length}
+            </span>
           </div>
 
           {plansLoading ? (
             <div className="flex justify-center p-12">
               <Loader2 className="animate-spin text-blue-600" size={32} />
             </div>
-          ) : annualPlans.length === 0 ? (
-            <div className="bg-white dark:bg-slate-900 rounded-2xl p-12 text-center border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
-              <Calendar className="mx-auto text-slate-400" size={40} />
-              <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">No Annual Plans Submitted</h3>
-              <p className="text-sm text-slate-500 max-w-md mx-auto">
-                Teachers' annual plan submissions will appear here for review and acceptance.
-              </p>
-            </div>
-          ) : (
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm">
-                  <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-700 text-xs font-bold uppercase tracking-wider text-slate-500">
-                    <tr>
-                      <th className="px-6 py-4">Teacher</th>
-                      <th className="px-6 py-4">Subject / Grade</th>
-                      <th className="px-6 py-4">Academic Year</th>
-                      <th className="px-6 py-4">Workload</th>
-                      <th className="px-6 py-4">Status</th>
-                      <th className="px-6 py-4 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                    {annualPlans.map((plan) => {
-                      const isApproved = plan.status === 'Approved';
-                      return (
-                        <tr key={plan.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
-                          <td className="px-6 py-4">
-                            <div className="font-bold text-slate-900 dark:text-white">{plan.teacher_name || 'Teacher'}</div>
-                            <div className="text-xs text-slate-500">{plan.teacher_email} {plan.teacher_digital_id && `• ${plan.teacher_digital_id}`}</div>
-                          </td>
-                          <td className="px-6 py-4">
-                            <span className="font-semibold text-slate-800 dark:text-slate-200">{plan.subject || 'Subject'}</span>
-                            <span className="text-xs text-slate-500 block">{plan.grade || 'Grade'}</span>
-                          </td>
-                          <td className="px-6 py-4 font-medium text-slate-700 dark:text-slate-300">
-                            {plan.academic_year || '2018 E.C.'}
-                          </td>
-                          <td className="px-6 py-4 text-xs text-slate-600 dark:text-slate-400">
-                            <div><span className="font-bold text-slate-800 dark:text-slate-200">{plan.working_days_year || 180}</span> Days/Yr</div>
-                            <div><span className="font-bold text-slate-800 dark:text-slate-200">{plan.periods_year || 160}</span> Periods ({plan.periods_week || 4}/wk)</div>
-                          </td>
-                          <td className="px-6 py-4">
-                            {isApproved ? (
-                              <span className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-xs font-bold rounded-full">
-                                <CheckCircle2 size={13} /> Accepted
-                              </span>
-                            ) : plan.status === 'Revision Required' ? (
-                              <span className="inline-flex items-center gap-1 px-3 py-1 bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 text-xs font-bold rounded-full">
-                                <AlertCircle size={13} /> Revision Required
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1 px-3 py-1 bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 text-xs font-bold rounded-full">
-                                <Clock size={13} /> Pending Review
-                              </span>
-                            )}
-                          </td>
-                          <td className="px-6 py-4 text-right">
-                            <div className="flex items-center justify-end gap-2">
-                              <button
-                                type="button"
-                                onClick={() => setSelectedAnnualPlan(plan)}
-                                className="p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
-                                title="View Details"
-                              >
-                                <Eye size={16} />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  reviewModal.planId = plan.id;
-                                  reviewModal.planType = 'annual';
-                                  handleReviewPlanSubmit('Approved', 'Accepted by Academic Manager');
-                                }}
-                                disabled={processing || isApproved}
-                                className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all ${
-                                  isApproved
-                                    ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 cursor-default opacity-80'
-                                    : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm'
-                                }`}
-                              >
-                                <Check size={14} /> Accept
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setReviewModal({
-                                  show: true,
-                                  planId: plan.id,
-                                  planType: 'annual',
-                                  status: 'Revision Required',
-                                  feedback: ''
-                                })}
-                                disabled={processing}
-                                className="px-3 py-1.5 bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-100 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/40 rounded-lg text-xs font-bold flex items-center gap-1 transition-all"
-                              >
-                                <X size={14} /> Revision
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+          ) : (() => {
+            const filteredAnnualPlans = annualPlans
+              .filter(plan => {
+                if (annualPlanFilter === 'submitted') return plan.status === 'Approved';
+                if (annualPlanFilter === 'not_submitted') return plan.status === 'Not Submitted' || plan.status === 'Pending';
+                if (annualPlanFilter === 'unlocked') return plan.status === 'Revision Required';
+                return true;
+              })
+              .filter(plan => {
+                const q = annualPlanSearch.toLowerCase();
+                if (!q) return true;
+                return (
+                  (plan.teacher_name && plan.teacher_name.toLowerCase().includes(q)) ||
+                  (plan.subject && plan.subject.toLowerCase().includes(q)) ||
+                  (plan.grade && plan.grade.toLowerCase().includes(q)) ||
+                  (plan.academic_year && plan.academic_year.toLowerCase().includes(q))
+                );
+              });
+
+            return filteredAnnualPlans.length === 0 ? (
+              <div className="bg-white dark:bg-slate-900 rounded-2xl p-12 text-center border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+                <Calendar className="mx-auto text-slate-400" size={40} />
+                <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">No Annual Plans Found</h3>
+                <p className="text-sm text-slate-500 max-w-md mx-auto">
+                  {annualPlans.length === 0
+                    ? "Teachers' annual plan submissions will appear here."
+                    : 'No annual plans match your current search or filter criteria.'}
+                </p>
               </div>
-            </div>
-          )}
+            ) : (
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm">
+                    <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-700 text-xs font-bold uppercase tracking-wider text-slate-500">
+                      <tr>
+                        <th className="px-6 py-4">Teacher</th>
+                        <th className="px-6 py-4">Subject / Grade</th>
+                        <th className="px-6 py-4">Academic Year</th>
+                        <th className="px-6 py-4">Workload</th>
+                        <th className="px-6 py-4">Status</th>
+                        <th className="px-6 py-4 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                      {filteredAnnualPlans.map((plan) => {
+                        const isApproved = plan.status === 'Approved';
+                        const isNotSubmitted = plan.status === 'Not Submitted';
+                        return (
+                          <tr key={plan.id} className={`hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors ${isNotSubmitted ? 'bg-amber-50/30 dark:bg-amber-900/10' : ''}`}>
+                            <td className="px-6 py-4">
+                              <div className="font-bold text-slate-900 dark:text-white">{plan.teacher_name || 'Teacher'}</div>
+                              <div className="text-xs text-slate-500">{plan.teacher_email} {plan.teacher_digital_id && `• ${plan.teacher_digital_id}`}</div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className="font-semibold text-slate-800 dark:text-slate-200">{plan.subject || 'Subject'}</span>
+                              <span className="text-xs text-slate-500 block">{plan.grade || 'Grade'}</span>
+                            </td>
+                            <td className="px-6 py-4 font-medium text-slate-700 dark:text-slate-300">
+                              {plan.academic_year || '2018 E.C.'}
+                            </td>
+                            <td className="px-6 py-4 text-xs text-slate-600 dark:text-slate-400">
+                              <div><span className="font-bold text-slate-800 dark:text-slate-200">{plan.working_days_year || 180}</span> Days/Yr</div>
+                              <div><span className="font-bold text-slate-800 dark:text-slate-200">{plan.periods_year || 160}</span> Periods ({plan.periods_week || 4}/wk)</div>
+                            </td>
+                            <td className="px-6 py-4">
+                              {isApproved ? (
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full text-xs font-extrabold border border-emerald-200 dark:border-emerald-800">
+                                  <CheckCircle2 size={12} /> Accepted &amp; Approved
+                                </span>
+                              ) : plan.status === 'Revision Required' ? (
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 rounded-full text-xs font-extrabold border border-rose-200 dark:border-rose-800">
+                                  <Unlock size={12} /> Unlocked (Revision)
+                                </span>
+                              ) : isNotSubmitted ? (
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-full text-xs font-extrabold border border-amber-200 dark:border-amber-800">
+                                  <AlertTriangle size={12} /> Not Submitted
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-sky-50 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400 rounded-full text-xs font-extrabold border border-sky-200 dark:border-sky-800">
+                                  <Clock size={12} /> Pending Review
+                                </span>
+                              )}
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                              {isNotSubmitted ? (
+                                <span className="text-xs text-amber-600 dark:text-amber-400 font-bold italic">No Plan Received</span>
+                              ) : (
+                                <div className="flex items-center justify-end gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => setSelectedAnnualPlan(plan)}
+                                    className="p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                                    title="View Details"
+                                  >
+                                    <Eye size={16} />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      reviewModal.planId = plan.id;
+                                      reviewModal.planType = 'annual';
+                                      handleReviewPlanSubmit('Approved', 'Accepted by Academic Manager');
+                                    }}
+                                    disabled={processing || isApproved}
+                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all ${
+                                      isApproved
+                                        ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 cursor-default opacity-80'
+                                        : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm'
+                                    }`}
+                                  >
+                                    <Check size={14} /> Accept
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setReviewModal({
+                                      show: true,
+                                      planId: plan.id,
+                                      planType: 'annual',
+                                      status: 'Revision Required',
+                                      feedback: ''
+                                    })}
+                                    disabled={processing}
+                                    className="px-3 py-1.5 bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-100 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/40 rounded-lg text-xs font-bold flex items-center gap-1 transition-all"
+                                  >
+                                    <X size={14} /> Revision
+                                  </button>
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            );
+          })()}
         </div>
       )}
 
       {/* Weekly Plans View */}
       {activeTab === 'weekly-plans' && (
         <div className="space-y-6">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm">
-              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Total Plans</p>
-              <p className="text-2xl font-black text-slate-900 dark:text-white mt-1">{weeklyPlans.length}</p>
+          {/* Search and Status Filter Bar */}
+          <div className="flex flex-col lg:flex-row gap-3">
+            {/* Search */}
+            <div className="relative flex-1">
+              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search weekly plans by teacher, course, topic..."
+                value={weeklyPlanSearch}
+                onChange={(e) => setWeeklyPlanSearch(e.target.value)}
+                className="w-full pl-9 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-slate-800 dark:text-slate-200"
+              />
             </div>
-            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40 rounded-2xl p-4 shadow-sm">
-              <p className="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">Pending Review</p>
-              <p className="text-2xl font-black text-amber-700 dark:text-amber-300 mt-1">
-                {weeklyPlans.filter(p => p.status === 'Pending').length}
-              </p>
+
+            {/* Status Filter Tabs */}
+            <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl shrink-0 overflow-x-auto">
+              <Filter size={13} className="text-slate-400 ml-1 shrink-0" />
+              {([
+                { key: 'all',           label: 'All' },
+                { key: 'submitted',     label: 'Submitted' },
+                { key: 'not_submitted', label: 'Not Submitted' },
+                { key: 'unlocked',      label: 'Unlocked' },
+              ] as const).map(({ key, label }) => {
+                const submittedCount = weeklyPlans.filter(p => p.status === 'Approved').length;
+                const notSubmittedCount = weeklyPlans.filter(p => p.status === 'Not Submitted' || p.status === 'Pending').length;
+                const unlockedCount = weeklyPlans.filter(p => p.status === 'Revision Required').length;
+                const count = key === 'submitted' ? submittedCount : key === 'not_submitted' ? notSubmittedCount : key === 'unlocked' ? unlockedCount : weeklyPlans.length;
+
+                return (
+                  <button
+                    key={key}
+                    onClick={() => setWeeklyPlanFilter(key)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wide transition-all whitespace-nowrap ${
+                      weeklyPlanFilter === key
+                        ? 'bg-white dark:bg-slate-700 text-indigo-600 shadow-sm'
+                        : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                    }`}
+                  >
+                    {label}
+                    <span className="ml-1 opacity-70">
+                      ({count})
+                    </span>
+                  </button>
+                );
+              })}
             </div>
-            <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/40 rounded-2xl p-4 shadow-sm">
-              <p className="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Accepted</p>
-              <p className="text-2xl font-black text-emerald-700 dark:text-emerald-300 mt-1">
-                {weeklyPlans.filter(p => p.status === 'Approved').length}
-              </p>
-            </div>
-            <div className="bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800/40 rounded-2xl p-4 shadow-sm">
-              <p className="text-xs font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">Revision Required</p>
-              <p className="text-2xl font-black text-rose-700 dark:text-rose-300 mt-1">
-                {weeklyPlans.filter(p => p.status === 'Revision Required').length}
-              </p>
-            </div>
+          </div>
+
+          {/* Summary Chips */}
+          <div className="flex flex-wrap gap-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-full text-[11px] font-bold text-slate-600 dark:text-slate-300">
+              <span className="w-2 h-2 rounded-full bg-slate-400" />
+              Total Weekly Plans: {weeklyPlans.length}
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 dark:bg-emerald-900/20 rounded-full text-[11px] font-bold text-emerald-700 dark:text-emerald-400">
+              <CheckCircle2 size={11} />
+              Submitted &amp; Approved (Dept Head): {weeklyPlans.filter(p => p.status === 'Approved').length}
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 dark:bg-amber-900/20 rounded-full text-[11px] font-bold text-amber-700 dark:text-amber-400">
+              <AlertTriangle size={11} />
+              Not Submitted / Pending Dept Head: {weeklyPlans.filter(p => p.status === 'Not Submitted' || p.status === 'Pending').length}
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-50 dark:bg-rose-900/20 rounded-full text-[11px] font-bold text-rose-700 dark:text-rose-400">
+              <Unlock size={11} />
+              Unlocked / Revision Required: {weeklyPlans.filter(p => p.status === 'Revision Required').length}
+            </span>
           </div>
 
           {plansLoading ? (
             <div className="flex justify-center p-12">
               <Loader2 className="animate-spin text-blue-600" size={32} />
             </div>
-          ) : weeklyPlans.length === 0 ? (
-            <div className="bg-white dark:bg-slate-900 rounded-2xl p-12 text-center border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
-              <Clock className="mx-auto text-slate-400" size={40} />
-              <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">No Weekly Plans Submitted</h3>
-              <p className="text-sm text-slate-500 max-w-md mx-auto">
-                Teachers' weekly lesson plans will appear here for review and acceptance.
-              </p>
-            </div>
-          ) : (
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm">
-                  <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-700 text-xs font-bold uppercase tracking-wider text-slate-500">
-                    <tr>
-                      <th className="px-6 py-4">Teacher</th>
-                      <th className="px-6 py-4">Course / Topic</th>
-                      <th className="px-6 py-4">Date / Periods</th>
-                      <th className="px-6 py-4">Status</th>
-                      <th className="px-6 py-4 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                    {weeklyPlans.map((plan) => {
-                      const isApproved = plan.status === 'Approved';
-                      return (
-                        <tr key={plan.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
-                          <td className="px-6 py-4">
-                            <div className="font-bold text-slate-900 dark:text-white">{plan.teacher_name || 'Teacher'}</div>
-                            <div className="text-xs text-slate-500">{plan.teacher_email} {plan.teacher_digital_id && `• ${plan.teacher_digital_id}`}</div>
-                          </td>
-                          <td className="px-6 py-4">
-                            <span className="font-semibold text-slate-800 dark:text-slate-200">{plan.subject || plan.course_name || 'Weekly Lesson Plan'}</span>
-                            <span className="text-xs text-slate-500 block">{plan.topic || plan.chapter || 'Plan Details'}</span>
-                          </td>
-                          <td className="px-6 py-4 text-xs text-slate-600 dark:text-slate-400">
-                            <div><span className="font-bold text-slate-800 dark:text-slate-200">{plan.date ? new Date(plan.date).toLocaleDateString() : 'N/A'}</span></div>
-                            <div>{plan.periods_week || plan.period_count || 1} Period(s)</div>
-                          </td>
-                          <td className="px-6 py-4">
-                            {isApproved ? (
-                              <span className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-xs font-bold rounded-full">
-                                <CheckCircle2 size={13} /> Accepted
-                              </span>
-                            ) : plan.status === 'Revision Required' ? (
-                              <span className="inline-flex items-center gap-1 px-3 py-1 bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 text-xs font-bold rounded-full">
-                                <AlertCircle size={13} /> Revision Required
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1 px-3 py-1 bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 text-xs font-bold rounded-full">
-                                <Clock size={13} /> Pending Review
-                              </span>
-                            )}
-                          </td>
-                          <td className="px-6 py-4 text-right">
-                            <div className="flex items-center justify-end gap-2">
-                              <button
-                                type="button"
-                                onClick={() => setSelectedWeeklyPlan(plan)}
-                                className="p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
-                                title="View Details"
-                              >
-                                <Eye size={16} />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  reviewModal.planId = plan.id;
-                                  reviewModal.planType = 'weekly';
-                                  handleReviewPlanSubmit('Approved', 'Accepted by Academic Manager');
-                                }}
-                                disabled={processing || isApproved}
-                                className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all ${
-                                  isApproved
-                                    ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 cursor-default opacity-80'
-                                    : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm'
-                                }`}
-                              >
-                                <Check size={14} /> Accept
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setReviewModal({
-                                  show: true,
-                                  planId: plan.id,
-                                  planType: 'weekly',
-                                  status: 'Revision Required',
-                                  feedback: ''
-                                })}
-                                disabled={processing}
-                                className="px-3 py-1.5 bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-100 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/40 rounded-lg text-xs font-bold flex items-center gap-1 transition-all"
-                              >
-                                <X size={14} /> Revision
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+          ) : (() => {
+            const filteredWeeklyPlans = weeklyPlans
+              .filter(plan => {
+                if (weeklyPlanFilter === 'submitted') return plan.status === 'Approved';
+                if (weeklyPlanFilter === 'not_submitted') return plan.status === 'Not Submitted' || plan.status === 'Pending';
+                if (weeklyPlanFilter === 'unlocked') return plan.status === 'Revision Required';
+                return true;
+              })
+              .filter(plan => {
+                const q = weeklyPlanSearch.toLowerCase();
+                if (!q) return true;
+                return (
+                  (plan.teacher_name && plan.teacher_name.toLowerCase().includes(q)) ||
+                  (plan.subject && plan.subject.toLowerCase().includes(q)) ||
+                  (plan.course_name && plan.course_name.toLowerCase().includes(q)) ||
+                  (plan.topic && plan.topic.toLowerCase().includes(q)) ||
+                  (plan.chapter && plan.chapter.toLowerCase().includes(q)) ||
+                  (plan.grade && plan.grade.toLowerCase().includes(q))
+                );
+              });
+
+            return filteredWeeklyPlans.length === 0 ? (
+              <div className="bg-white dark:bg-slate-900 rounded-2xl p-12 text-center border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+                <Clock className="mx-auto text-slate-400" size={40} />
+                <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">No Weekly Plans Found</h3>
+                <p className="text-sm text-slate-500 max-w-md mx-auto">
+                  {weeklyPlans.length === 0
+                    ? 'Weekly lesson plans submitted by teachers will appear here.'
+                    : 'No weekly plans match your current search or filter criteria.'}
+                </p>
               </div>
-            </div>
-          )}
+            ) : (
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm">
+                    <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-700 text-xs font-bold uppercase tracking-wider text-slate-500">
+                      <tr>
+                        <th className="px-6 py-4">Teacher</th>
+                        <th className="px-6 py-4">Course / Topic</th>
+                        <th className="px-6 py-4">Date / Periods</th>
+                        <th className="px-6 py-4">Status</th>
+                        <th className="px-6 py-4 text-right">View</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                      {filteredWeeklyPlans.map((plan) => {
+                        const isApproved = plan.status === 'Approved';
+                        const isNotSubmitted = plan.status === 'Not Submitted';
+                        return (
+                          <tr key={plan.id} className={`hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors ${isNotSubmitted ? 'bg-amber-50/30 dark:bg-amber-900/10' : ''}`}>
+                            <td className="px-6 py-4">
+                              <div className="font-bold text-slate-900 dark:text-white">{plan.teacher_name || 'Teacher'}</div>
+                              <div className="text-xs text-slate-500">{plan.teacher_email} {plan.teacher_digital_id && `• ${plan.teacher_digital_id}`}</div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className="font-semibold text-slate-800 dark:text-slate-200">{plan.subject || plan.course_name || 'Weekly Lesson Plan'}</span>
+                              <span className="text-xs text-slate-500 block">{plan.topic || plan.chapter || 'Plan Details'}</span>
+                            </td>
+                            <td className="px-6 py-4 text-xs text-slate-600 dark:text-slate-400">
+                              <div><span className="font-bold text-slate-800 dark:text-slate-200">{plan.date ? new Date(plan.date).toLocaleDateString() : 'N/A'}</span></div>
+                              <div>{plan.periods_week || plan.period_count || 1} Period(s)</div>
+                            </td>
+                            <td className="px-6 py-4">
+                              {isApproved ? (
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full text-xs font-extrabold border border-emerald-200 dark:border-emerald-800">
+                                  <CheckCircle2 size={12} /> Submitted &amp; Approved
+                                </span>
+                              ) : plan.status === 'Revision Required' ? (
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 rounded-full text-xs font-extrabold border border-rose-200 dark:border-rose-800">
+                                  <Unlock size={12} /> Unlocked (Revision)
+                                </span>
+                              ) : isNotSubmitted ? (
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-full text-xs font-extrabold border border-amber-200 dark:border-amber-800">
+                                  <AlertTriangle size={12} /> Not Submitted
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-sky-50 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400 rounded-full text-xs font-extrabold border border-sky-200 dark:border-sky-800">
+                                  <Clock size={12} /> Pending Dept Head
+                                </span>
+                              )}
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                              {isNotSubmitted ? (
+                                <span className="text-xs text-amber-600 dark:text-amber-400 font-bold italic">No Plan Received</span>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedWeeklyPlan(plan)}
+                                  className="p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                                  title="View Details"
+                                >
+                                  <Eye size={16} />
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            );
+          })()}
         </div>
       )}
 
@@ -1710,41 +1829,17 @@ export const Teachers = () => {
             </div>
 
             <div className="p-4 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+              <p className="text-xs text-slate-500 italic flex items-center gap-1.5">
+                <span className="inline-block w-2 h-2 rounded-full bg-blue-400"></span>
+                View only — approval is managed by the Department Head
+              </p>
               <button
                 type="button"
                 onClick={() => setSelectedWeeklyPlan(null)}
-                className="px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 rounded-xl text-xs font-bold"
+                className="px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-800 rounded-xl text-xs font-bold"
               >
                 Close
               </button>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setReviewModal({
-                      show: true,
-                      planId: selectedWeeklyPlan.id,
-                      planType: 'weekly',
-                      status: 'Revision Required',
-                      feedback: ''
-                    });
-                  }}
-                  className="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold flex items-center gap-1"
-                >
-                  <X size={14} /> Request Revision
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    reviewModal.planId = selectedWeeklyPlan.id;
-                    reviewModal.planType = 'weekly';
-                    handleReviewPlanSubmit('Approved', 'Accepted by Academic Manager');
-                  }}
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1 shadow-sm"
-                >
-                  <Check size={14} /> Accept & Approve
-                </button>
-              </div>
             </div>
           </div>
         </div>

@@ -43,6 +43,23 @@ const normalizeGrade = (grade: any): string => {
   return /^\d+$/.test(trimmed) ? `Grade ${trimmed}` : trimmed;
 };
 
+export const cleanSubjectName = (name: string): string => {
+  if (!name) return '';
+  return name
+    .replace(/\s*[\-\–\—\(]\s*grade[- ]*\d+.*$/i, '')
+    .replace(/\s*[\-\–\—\(]\s*class[- ]*\d+.*$/i, '')
+    .replace(/\s*[\-\–\—\(]\s*g\d+.*$/i, '')
+    .trim();
+};
+
+export const capitalizeWords = (str: string): string => {
+  if (!str) return str;
+  return str
+    .split(' ')
+    .map(word => word ? word.charAt(0).toUpperCase() + word.slice(1) : '')
+    .join(' ');
+};
+
 const matchGrade = (hodGrades: any[], courseGrade: any): boolean => {
   if (!hodGrades || !Array.isArray(hodGrades)) return false;
   if (!courseGrade) return true;
@@ -1873,7 +1890,7 @@ export const TeacherPortal = () => {
                       type="text"
                       placeholder="Teacher Name"
                       value={planForm.teacherName || (user as any)?.name || ''}
-                      onChange={e => setPlanForm({ ...planForm, teacherName: e.target.value })}
+                      onChange={e => setPlanForm({ ...planForm, teacherName: capitalizeWords(e.target.value) })}
                       className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
@@ -1884,16 +1901,16 @@ export const TeacherPortal = () => {
                       onChange={e => {
                         const selectedCourseId = e.target.value;
                         const selectedCourse = myCourses.find((c: any) => c.id === selectedCourseId);
-                        const newSubject = selectedCourse?.name || '';
+                        const cleanName = capitalizeWords(cleanSubjectName(selectedCourse?.name || ''));
                         const matchingHods = filterDeptHeadsForCourse(selectedCourseId);
                         let newDeptHeadId = matchingHods.length > 0 ? (matchingHods[0].teacher_id || matchingHods[0].id) : '';
-                        setPlanForm({ ...planForm, courseId: selectedCourseId, subject: newSubject, deptHeadId: newDeptHeadId });
+                        setPlanForm({ ...planForm, courseId: selectedCourseId, subject: cleanName, deptHeadId: newDeptHeadId });
                       }}
                       className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="">Select Course / Subject</option>
                       {myCourses.map((c: any) => (
-                        <option key={c.id} value={c.id}>{c.name}{c.code ? ` (${c.code})` : ''}</option>
+                        <option key={c.id} value={c.id}>{capitalizeWords(cleanSubjectName(c.name))}</option>
                       ))}
                     </select>
                   </div>
@@ -1903,7 +1920,7 @@ export const TeacherPortal = () => {
                       type="text"
                       placeholder="e.g. Unit 3: Linear Equations"
                       value={planForm.chapterUnit || ''}
-                      onChange={e => setPlanForm({ ...planForm, chapterUnit: e.target.value })}
+                      onChange={e => setPlanForm({ ...planForm, chapterUnit: capitalizeWords(e.target.value) })}
                       className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-white"
                     />
                   </div>
@@ -1913,7 +1930,7 @@ export const TeacherPortal = () => {
                       type="text"
                       placeholder="e.g. Solving 2-step equations"
                       value={planForm.topicTitle || ''}
-                      onChange={e => setPlanForm({ ...planForm, topicTitle: e.target.value })}
+                      onChange={e => setPlanForm({ ...planForm, topicTitle: capitalizeWords(e.target.value) })}
                       className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-white"
                     />
                   </div>
@@ -1923,7 +1940,7 @@ export const TeacherPortal = () => {
                       type="text"
                       placeholder="e.g. Grade 7 Section A"
                       value={planForm.gradeSection || ''}
-                      onChange={e => setPlanForm({ ...planForm, gradeSection: e.target.value })}
+                      onChange={e => setPlanForm({ ...planForm, gradeSection: capitalizeWords(e.target.value) })}
                       className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-white"
                     />
                   </div>
@@ -2029,11 +2046,12 @@ export const TeacherPortal = () => {
                     };
 
                     const updateDayAct = (field: string, val: string) => {
+                      const formattedVal = field === 'timeDuration' ? val : capitalizeWords(val);
                       const newArr = [...planForm.dailyActivities];
                       if (dayActIndex >= 0) {
-                        newArr[dayActIndex] = { ...newArr[dayActIndex], [field]: val };
+                        newArr[dayActIndex] = { ...newArr[dayActIndex], [field]: formattedVal };
                       } else {
-                        newArr.push({ day: activePlanDay, [field]: val } as any);
+                        newArr.push({ day: activePlanDay, [field]: formattedVal } as any);
                       }
                       setPlanForm({ ...planForm, dailyActivities: newArr });
                     };
@@ -2242,11 +2260,12 @@ export const TeacherPortal = () => {
                         };
 
                         const updateDayAct = (field: string, val: string) => {
+                          const formattedVal = field === 'timeDuration' ? val : capitalizeWords(val);
                           const newArr = [...planForm.dailyActivities];
                           if (dayActIndex >= 0) {
-                            newArr[dayActIndex] = { ...newArr[dayActIndex], [field]: val };
+                            newArr[dayActIndex] = { ...newArr[dayActIndex], [field]: formattedVal };
                           } else {
-                            newArr.push({ day: dayName, [field]: val } as any);
+                            newArr.push({ day: dayName, [field]: formattedVal } as any);
                           }
                           setPlanForm({ ...planForm, dailyActivities: newArr });
                         };
@@ -2410,7 +2429,7 @@ export const TeacherPortal = () => {
               <div>
                 <label htmlFor="examTitle" className="text-xs font-bold text-slate-500 uppercase">Exam Title</label>
                 <input id="examTitle" type="text" placeholder="e.g., Mid Exam - Mathematics"
-                  value={examForm.title} onChange={e => setExamForm({ ...examForm, title: e.target.value })}
+                  value={examForm.title} onChange={e => setExamForm({ ...examForm, title: capitalizeWords(e.target.value) })}
                   className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
 
@@ -2507,7 +2526,7 @@ export const TeacherPortal = () => {
               <div>
                 <label htmlFor="examInstructions" className="text-xs font-bold text-slate-500 uppercase">Instructions for Students</label>
                 <textarea id="examInstructions" rows={3} placeholder="e.g., Answer all questions. No calculators allowed. Duration: 1 hour"
-                  value={examForm.instructions} onChange={e => setExamForm({ ...examForm, instructions: e.target.value })}
+                  value={examForm.instructions} onChange={e => setExamForm({ ...examForm, instructions: capitalizeWords(e.target.value) })}
                   className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
               </div>
 
@@ -2810,9 +2829,7 @@ export const TeacherPortal = () => {
                   </button>
                 </div>
               </div>
-
             </div>
-
           </div>
         </div>
       )}
@@ -2820,8 +2837,7 @@ export const TeacherPortal = () => {
       {/* Toast */}
       {toast.show && (
         <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-top-2 duration-300">
-          <div className={`flex items-center gap-3 px-6 py-4 rounded-xl shadow-2xl border ${toast.type === 'success' ? 'bg-green-50 dark:bg-green-900/20 border-green-200' : 'bg-red-50 dark:bg-red-900/20 border-red-200'
-            }`}>
+          <div className={`flex items-center gap-3 px-6 py-4 rounded-xl shadow-2xl border ${toast.type === 'success' ? 'bg-green-50 dark:bg-green-900/20 border-green-200' : 'bg-red-50 dark:bg-red-900/20 border-red-200'}`}>
             {toast.type === 'success' ? <CheckCircle2 className="text-green-600" size={20} /> : <XCircle className="text-red-600" size={20} />}
             <p className={`text-sm font-bold ${toast.type === 'success' ? 'text-green-800' : 'text-red-800'}`}>{toast.message}</p>
           </div>
@@ -2870,31 +2886,32 @@ export const TeacherPortal = () => {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div>
                     <label className="text-[10px] font-black uppercase text-slate-500">Academic Year</label>
-                    <input value={annualForm.academicYear} onChange={e => setAnnualForm(f => ({ ...f, academicYear: e.target.value }))}
+                    <input value={annualForm.academicYear} onChange={e => setAnnualForm(f => ({ ...f, academicYear: capitalizeWords(e.target.value) }))}
                       className="w-full mt-1 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-violet-500" />
                   </div>
                   <div>
                     <label className="text-[10px] font-black uppercase text-slate-500">Subject</label>
                     <select value={annualForm.courseId} onChange={e => {
                       const c = myCourses.find((x: any) => x.id === e.target.value);
-                      setAnnualForm(f => ({ ...f, courseId: e.target.value, subject: c?.name || f.subject }));
+                      const cleanName = capitalizeWords(cleanSubjectName(c?.name || ''));
+                      setAnnualForm(f => ({ ...f, courseId: e.target.value, subject: cleanName || f.subject }));
                     }} className="w-full mt-1 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-violet-500">
                       <option value="">Select course…</option>
-                      {myCourses.map((c: any) => <option key={c.id} value={c.id}>{c.name}{c.class_name ? ` — ${c.class_name}` : ''}</option>)}
+                      {myCourses.map((c: any) => <option key={c.id} value={c.id}>{capitalizeWords(cleanSubjectName(c.name))}</option>)}
                     </select>
                     {!annualForm.courseId && (
-                      <input placeholder="Or type subject…" value={annualForm.subject} onChange={e => setAnnualForm(f => ({ ...f, subject: e.target.value }))}
+                      <input placeholder="Or type subject…" value={annualForm.subject} onChange={e => setAnnualForm(f => ({ ...f, subject: capitalizeWords(e.target.value) }))}
                         className="w-full mt-1 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-violet-500" />
                     )}
                   </div>
                   <div>
                     <label className="text-[10px] font-black uppercase text-slate-500">Grade</label>
-                    <input value={annualForm.grade} onChange={e => setAnnualForm(f => ({ ...f, grade: e.target.value }))}
+                    <input value={annualForm.grade} onChange={e => setAnnualForm(f => ({ ...f, grade: capitalizeWords(e.target.value) }))}
                       placeholder="e.g. Grade 9" className="w-full mt-1 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-violet-500" />
                   </div>
                   <div>
                     <label className="text-[10px] font-black uppercase text-slate-500">Duration / Period</label>
-                    <input value={annualForm.durationPeriod} onChange={e => setAnnualForm(f => ({ ...f, durationPeriod: e.target.value }))}
+                    <input value={annualForm.durationPeriod} onChange={e => setAnnualForm(f => ({ ...f, durationPeriod: capitalizeWords(e.target.value) }))}
                       className="w-full mt-1 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-violet-500" />
                   </div>
                   <div>
@@ -2946,7 +2963,7 @@ export const TeacherPortal = () => {
                                   value={(item as any)[field]}
                                   onChange={e => {
                                     const newItems = [...annualForm.items];
-                                    (newItems[idx] as any)[field] = e.target.value;
+                                    (newItems[idx] as any)[field] = field === 'noOfPeriods' ? e.target.value : capitalizeWords(e.target.value);
                                     setAnnualForm(f => ({ ...f, items: newItems }));
                                   }}
                                   className="w-full px-2 py-1.5 bg-transparent border border-transparent hover:border-violet-300 focus:border-violet-500 focus:bg-white dark:focus:bg-slate-800 rounded-lg outline-none transition-all text-slate-800 dark:text-slate-200 min-w-[80px]"
