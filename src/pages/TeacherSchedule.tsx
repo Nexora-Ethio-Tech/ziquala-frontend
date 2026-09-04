@@ -5,27 +5,29 @@ import { getTeacherSchedule } from '../services/teacherService';
 
 const WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'] as const;
 
-// Subject-based color themes for instant visual recognition
-const SUBJECT_THEMES: Record<string, { bg: string; border: string; text: string; subText: string }> = {
-  chem: { bg: 'bg-emerald-50 dark:bg-emerald-950/40', border: 'border-emerald-200 dark:border-emerald-800/60', text: 'text-emerald-800 dark:text-emerald-300', subText: 'text-emerald-600 dark:text-emerald-400' },
-  chemistry: { bg: 'bg-emerald-50 dark:bg-emerald-950/40', border: 'border-emerald-200 dark:border-emerald-800/60', text: 'text-emerald-800 dark:text-emerald-300', subText: 'text-emerald-600 dark:text-emerald-400' },
-  phys: { bg: 'bg-indigo-50 dark:bg-indigo-950/40', border: 'border-indigo-200 dark:border-indigo-800/60', text: 'text-indigo-800 dark:text-indigo-300', subText: 'text-indigo-600 dark:text-indigo-400' },
-  physics: { bg: 'bg-indigo-50 dark:bg-indigo-950/40', border: 'border-indigo-200 dark:border-indigo-800/60', text: 'text-indigo-800 dark:text-indigo-300', subText: 'text-indigo-600 dark:text-indigo-400' },
-  bio: { bg: 'bg-rose-50 dark:bg-rose-950/40', border: 'border-rose-200 dark:border-rose-800/60', text: 'text-rose-800 dark:text-rose-300', subText: 'text-rose-600 dark:text-rose-400' },
-  biology: { bg: 'bg-rose-50 dark:bg-rose-950/40', border: 'border-rose-200 dark:border-rose-800/60', text: 'text-rose-800 dark:text-rose-300', subText: 'text-rose-600 dark:text-rose-400' },
-  maths: { bg: 'bg-blue-50 dark:bg-blue-950/40', border: 'border-blue-200 dark:border-blue-800/60', text: 'text-blue-800 dark:text-blue-300', subText: 'text-blue-600 dark:text-blue-400' },
-  math: { bg: 'bg-blue-50 dark:bg-blue-950/40', border: 'border-blue-200 dark:border-blue-800/60', text: 'text-blue-800 dark:text-blue-300', subText: 'text-blue-600 dark:text-blue-400' },
-  mathematics: { bg: 'bg-blue-50 dark:bg-blue-950/40', border: 'border-blue-200 dark:border-blue-800/60', text: 'text-blue-800 dark:text-blue-300', subText: 'text-blue-600 dark:text-blue-400' },
-  english: { bg: 'bg-amber-50 dark:bg-amber-950/40', border: 'border-amber-200 dark:border-amber-800/60', text: 'text-amber-800 dark:text-amber-300', subText: 'text-amber-600 dark:text-amber-400' },
-  amharic: { bg: 'bg-violet-50 dark:bg-violet-950/40', border: 'border-violet-200 dark:border-violet-800/60', text: 'text-violet-800 dark:text-violet-300', subText: 'text-violet-600 dark:text-violet-400' },
+const GREEN_THEME = {
+  bg: 'bg-emerald-50 dark:bg-emerald-950/40',
+  border: 'border-emerald-200 dark:border-emerald-800/60',
+  text: 'text-emerald-800 dark:text-emerald-300',
+  subText: 'text-emerald-600 dark:text-emerald-400'
 };
 
-const DEFAULT_THEME = {
-  bg: 'bg-cyan-50 dark:bg-cyan-950/40',
-  border: 'border-cyan-200 dark:border-cyan-800/60',
-  text: 'text-cyan-800 dark:text-cyan-300',
-  subText: 'text-cyan-600 dark:text-cyan-400'
+// Subject-based color themes set to green palette
+const SUBJECT_THEMES: Record<string, { bg: string; border: string; text: string; subText: string }> = {
+  chem: GREEN_THEME,
+  chemistry: GREEN_THEME,
+  phys: GREEN_THEME,
+  physics: GREEN_THEME,
+  bio: GREEN_THEME,
+  biology: GREEN_THEME,
+  maths: GREEN_THEME,
+  math: GREEN_THEME,
+  mathematics: GREEN_THEME,
+  english: GREEN_THEME,
+  amharic: GREEN_THEME,
 };
+
+const DEFAULT_THEME = GREEN_THEME;
 
 const getSubjectTheme = (subjectName: string) => {
   const key = (subjectName || '').toLowerCase().trim();
@@ -94,10 +96,10 @@ export const TeacherSchedule = () => {
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* Header Banner & Quick Stats */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-6 rounded-2xl shadow-lg border border-slate-800">
+      <div className="relative overflow-hidden bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 text-white p-6 rounded-2xl shadow-lg border border-slate-800">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-indigo-600/30 border border-indigo-500/30 text-indigo-300 rounded-xl flex items-center justify-center shrink-0">
+            <div className="w-12 h-12 bg-emerald-600/30 border border-emerald-500/30 text-emerald-300 rounded-xl flex items-center justify-center shrink-0">
               <Calendar size={24} />
             </div>
             <div>
@@ -170,7 +172,7 @@ export const TeacherSchedule = () => {
                   <tr key={periodName} className={pIdx % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-slate-50/50 dark:bg-slate-800/30'}>
                     {/* Period Label Column */}
                     <td className="px-3 py-3 border-r border-slate-200 dark:border-slate-700 text-center align-middle font-extrabold text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/40 whitespace-nowrap">
-                      <span className="block text-xs uppercase tracking-tight text-indigo-600 dark:text-indigo-400">{periodName}</span>
+                      <span className="block text-xs uppercase tracking-tight text-emerald-600 dark:text-emerald-400">{periodName}</span>
                     </td>
 
                     {/* Day Columns */}

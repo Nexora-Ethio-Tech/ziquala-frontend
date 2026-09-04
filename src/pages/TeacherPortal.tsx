@@ -993,8 +993,8 @@ export const TeacherPortal = () => {
           {/* Stats */}
           <div className="grid grid-cols-1 gap-6">
             
-            <Link to="/schedule" className="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-xl hover:border-purple-300 dark:hover:border-purple-700 transition-colors block">
-              <div className="bg-purple-50 dark:bg-purple-900/20 text-purple-600 w-14 h-14 rounded-2xl flex items-center justify-center mb-6"><Calendar size={28} /></div>
+            <Link to="/schedule" className="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-xl hover:border-emerald-300 dark:hover:border-emerald-700 transition-colors block">
+              <div className="bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 w-14 h-14 rounded-2xl flex items-center justify-center mb-6"><Calendar size={28} /></div>
               <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">My Schedule</p>
               <h3 className="text-3xl font-black text-slate-800 dark:text-white">{todaySchedule.length}</h3>
               <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-4">Classes today · View full schedule →</p>
