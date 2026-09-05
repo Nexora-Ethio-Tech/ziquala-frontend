@@ -12,7 +12,7 @@ import subjectService, { CourseWithGrade } from '../services/subjectService';
 import { getVPTeachers, getLeaderboard, rateTeacher, resetLeaderboard, getVPAnnualPlans, reviewVPAnnualPlan, getWeeklyPlans } from '../services/vicePrincipalService';
 import { Star, Trophy, RefreshCcw, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { TeacherAttendanceModal } from '../components/TeacherAttendanceModal';
-import { formatEthiopianLabel } from '../utils/ethiopianCalendar';
+import { formatEthiopianLabel, gregorianToEthiopian, ethiopianToGregorianIso } from '../utils/ethiopianCalendar';
 import { EthiopianDatePicker } from '../components/EthiopianDatePicker';
 
 const isTeacherActive = (status?: string | null) => {
@@ -113,9 +113,51 @@ export const Teachers = () => {
   const [selectedWeeklyPlan, setSelectedWeeklyPlan] = useState<any | null>(null);
 
   // Filters matching Grade Management structure
+  const [selectedWeekDate, setSelectedWeekDate] = useState<Date>(new Date());
   const [weeklyPlanFilter, setWeeklyPlanFilter] = useState<'all' | 'submitted' | 'not_submitted' | 'unlocked'>('all');
   const [weeklyPlanSearch, setWeeklyPlanSearch] = useState('');
   const [weeklyGradeFilter, setWeeklyGradeFilter] = useState<string>('all');
+
+  const getWeekRange = (date: Date) => {
+    const d = new Date(date);
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(d.setDate(diff));
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    return { monday, sunday };
+  };
+
+  const formatEthWeekRangeStr = (date: Date) => {
+    const { monday, sunday } = getWeekRange(date);
+    const ethMon = gregorianToEthiopian(monday);
+    const ethSun = gregorianToEthiopian(sunday);
+    const monthNames = [
+      'Meskerem', 'Tikimt', 'Hidar', 'Tahsas', 'Tir', 'Yekatit',
+      'Megabit', 'Miazia', 'Ginbot', 'Sene', 'Hamle', 'Nehase', 'Pagume'
+    ];
+    if (ethMon.month === ethSun.month) {
+      return `${ethMon.day} - ${ethSun.day} ${monthNames[ethMon.month - 1]} ${ethMon.year} E.C.`;
+    } else {
+      return `${ethMon.day} ${monthNames[ethMon.month - 1]} - ${ethSun.day} ${monthNames[ethSun.month - 1]} ${ethMon.year === ethSun.year ? `${ethMon.year} E.C.` : `${ethMon.year} / ${ethSun.year} E.C.`}`;
+    }
+  };
+
+  const isCurrentWeek = (date: Date) => {
+    const { monday: m1 } = getWeekRange(date);
+    const { monday: m2 } = getWeekRange(new Date());
+    return m1.toDateString() === m2.toDateString();
+  };
+
+  const navigateWeek = (direction: 'prev' | 'next' | 'today') => {
+    if (direction === 'today') {
+      setSelectedWeekDate(new Date());
+    } else {
+      const newDate = new Date(selectedWeekDate);
+      newDate.setDate(newDate.getDate() + (direction === 'next' ? 7 : -7));
+      setSelectedWeekDate(newDate);
+    }
+  };
 
   const [annualPlanFilter, setAnnualPlanFilter] = useState<'all' | 'submitted' | 'not_submitted' | 'unlocked'>('all');
   const [annualPlanSearch, setAnnualPlanSearch] = useState('');
@@ -289,9 +331,9 @@ export const Teachers = () => {
     } else if (activeTab === 'annual-plans') {
       fetchAnnualPlansData();
     } else if (activeTab === 'weekly-plans') {
-      fetchWeeklyPlansData();
+      fetchWeeklyPlansData(selectedWeekDate);
     }
-  }, [activeTab, isSuperviseRoute]);
+  }, [activeTab, isSuperviseRoute, selectedWeekDate]);
 
   const fetchAnnualPlansData = async () => {
     try {
@@ -305,10 +347,12 @@ export const Teachers = () => {
     }
   };
 
-  const fetchWeeklyPlansData = async () => {
+  const fetchWeeklyPlansData = async (targetWeekDate?: Date) => {
     try {
       setPlansLoading(true);
-      const res = await getWeeklyPlans();
+      const dateToUse = targetWeekDate || selectedWeekDate;
+      const dateStr = dateToUse.toISOString().split('T')[0];
+      const res = await getWeeklyPlans(undefined, undefined, dateStr);
       setWeeklyPlans(res.data || res || []);
     } catch (err) {
       console.error('Error fetching weekly plans:', err);
@@ -1545,6 +1589,74 @@ export const Teachers = () => {
       {/* Weekly Plans View */}
       {activeTab === 'weekly-plans' && (
         <div className="space-y-6">
+          {/* Week Calendar Navigation Banner (Ethiopian Calendar) */}
+          <div className="bg-gradient-to-r from-indigo-950 via-slate-900 to-indigo-900 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-4 rounded-2xl border border-indigo-800/40 shadow-md text-white flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-indigo-600/30 border border-indigo-400/30 flex items-center justify-center shrink-0">
+                <Calendar className="w-5 h-5 text-indigo-300" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-bold text-base text-white">Academic Calendar Week (Ethiopian)</h3>
+                  {isCurrentWeek(selectedWeekDate) && (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                      Current Week
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-indigo-200/90 font-bold mt-0.5">
+                  {formatEthWeekRangeStr(selectedWeekDate)}
+                </p>
+              </div>
+            </div>
+
+            {/* Week Control Navigation with Ethiopian Date Picker */}
+            <div className="flex items-center gap-2 bg-slate-950/40 p-1.5 rounded-xl border border-indigo-500/20">
+              <button
+                type="button"
+                onClick={() => navigateWeek('prev')}
+                title="Previous Week"
+                className="p-2 hover:bg-white/10 rounded-lg transition-colors text-indigo-200 hover:text-white"
+              >
+                <ChevronLeft size={18} />
+              </button>
+
+              <div className="w-36">
+                <EthiopianDatePicker
+                  value={(() => {
+                    const eth = gregorianToEthiopian(selectedWeekDate);
+                    return `${eth.year}-${String(eth.month).padStart(2, '0')}-${String(eth.day).padStart(2, '0')}`;
+                  })()}
+                  onChange={(ethVal) => {
+                    if (ethVal) {
+                      const gregIso = ethiopianToGregorianIso(ethVal);
+                      if (gregIso) setSelectedWeekDate(new Date(gregIso));
+                    }
+                  }}
+                  className="py-1 px-2 text-xs font-bold bg-slate-900/80 border-indigo-500/30 text-indigo-100"
+                />
+              </div>
+
+              <button
+                type="button"
+                onClick={() => navigateWeek('next')}
+                title="Next Week"
+                className="p-2 hover:bg-white/10 rounded-lg transition-colors text-indigo-200 hover:text-white"
+              >
+                <ChevronRight size={18} />
+              </button>
+
+              {!isCurrentWeek(selectedWeekDate) && (
+                <button
+                  type="button"
+                  onClick={() => navigateWeek('today')}
+                  className="ml-1 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition-all shadow-sm"
+                >
+                  This Week
+                </button>
+              )}
+            </div>
+          </div>
           {/* Search and Status Filter Bar */}
           <div className="flex flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between">
             <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center flex-1">

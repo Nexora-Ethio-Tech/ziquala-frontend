@@ -19,10 +19,11 @@ export const updateAbsenceStatus = async (id: string, status: 'pending' | 'excus
 };
 
 // Weekly Plans
-export const getWeeklyPlans = async (status?: string, teacherId?: string) => {
+export const getWeeklyPlans = async (status?: string, teacherId?: string, weekDate?: string) => {
   const params = new URLSearchParams();
   if (status) params.append('status', status);
   if (teacherId) params.append('teacherId', teacherId);
+  if (weekDate) params.append('weekDate', weekDate);
   const response = await api.get(`/vice-principal/weekly-plans?${params}`);
   return response.data;
 };
