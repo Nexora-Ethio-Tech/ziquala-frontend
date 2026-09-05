@@ -1376,7 +1376,8 @@ export const Teachers = () => {
                           <tr key={plan.id} className={`hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors ${isNotSubmitted ? 'bg-amber-50/30 dark:bg-amber-900/10' : ''}`}>
                             <td className="px-6 py-4">
                               <div className="font-bold text-slate-900 dark:text-white">{plan.teacher_name || 'Teacher'}</div>
-                              <div className="text-xs text-slate-500">{plan.teacher_email} {plan.teacher_digital_id && `• ${plan.teacher_digital_id}`}</div>
+                              <div className="text-xs text-slate-500">{plan.teacher_digital_id || 'N/A'}</div>
+                              <div className="text-xs text-slate-400 dark:text-slate-500">{plan.teacher_email || 'N/A'}</div>
                             </td>
                             <td className="px-6 py-4">
                               <span className="font-semibold text-slate-800 dark:text-slate-200">{plan.subject || 'Subject'}</span>
@@ -1586,7 +1587,8 @@ export const Teachers = () => {
                           <tr key={plan.id} className={`hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors ${isNotSubmitted ? 'bg-amber-50/30 dark:bg-amber-900/10' : ''}`}>
                             <td className="px-6 py-4">
                               <div className="font-bold text-slate-900 dark:text-white">{plan.teacher_name || 'Teacher'}</div>
-                              <div className="text-xs text-slate-500">{plan.teacher_email} {plan.teacher_digital_id && `• ${plan.teacher_digital_id}`}</div>
+                              <div className="text-xs text-slate-500">{plan.teacher_digital_id || 'N/A'}</div>
+                              <div className="text-xs text-slate-400 dark:text-slate-500">{plan.teacher_email || 'N/A'}</div>
                             </td>
                             <td className="px-6 py-4">
                               <span className="font-semibold text-slate-800 dark:text-slate-200">{plan.subject || plan.course_name || 'Weekly Lesson Plan'}</span>
@@ -1599,7 +1601,7 @@ export const Teachers = () => {
                             <td className="px-6 py-4">
                               {isApproved ? (
                                 <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full text-xs font-extrabold border border-emerald-200 dark:border-emerald-800">
-                                  <CheckCircle2 size={12} /> Approved by Dept Head
+                                  <CheckCircle2 size={12} /> Approved by {plan.reviewer_name || 'Dept Head'}
                                 </span>
                               ) : isNotSubmitted ? (
                                 <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-full text-xs font-extrabold border border-amber-200 dark:border-amber-800">
