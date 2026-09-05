@@ -16,6 +16,7 @@ interface AbsentStudent {
   studentId: string;
   roomTeacher: string;
   status: string;
+  totalAbsences?: number;
 }
 
 interface SMSMessage {
@@ -30,7 +31,7 @@ export const VPAttendanceOversight = () => {
   const { user } = useUser();
 
   // Default to today's Ethiopian date for Student Attendance
-  const [selectedDate] = useState<string>(getTodayEthiopianDate());
+  const [selectedDate, setSelectedDate] = useState<string>(getTodayEthiopianDate());
   const [absentStudents, setAbsentStudents] = useState<AbsentStudent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -365,7 +366,37 @@ export const VPAttendanceOversight = () => {
       </div>
 
       {activeSubTab === 'students' && (
-        <>
+        <div className="space-y-6">
+          {/* Calendar Selector Bar for Student Attendance */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm">
+            <div className="space-y-1">
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+                {t("vp.studentAttendanceOversightTitle", "Student Attendance Oversight")}
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                {t("vp.studentAttendanceOversightDesc", "Daily absent/excused records and limit-exceeded alerts strictly after home teacher submission.")}
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-2">
+                <Calendar className="text-slate-400" size={16} />
+                <label htmlFor="studentDatePicker" className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">{t("vp.datePicker", "Date Picker:")}</label>
+              </div>
+              <div className="w-52">
+                <EthiopianDatePicker
+                  id="studentDatePicker"
+                  value={selectedDate}
+                  onChange={setSelectedDate}
+                  placeholder="YYYY-MM-DD"
+                  title="Choose date to review student attendance"
+                />
+              </div>
+              <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 px-3 py-2 rounded-xl border border-indigo-100 dark:border-indigo-900/30">
+                {formatEthiopianLabel(selectedDate)}
+              </span>
+            </div>
+          </div>
+
           {/* Status Summary Cards */}
           {!loading && (
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -399,24 +430,14 @@ export const VPAttendanceOversight = () => {
 
               <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-lg transition-shadow">
                 <div className="flex items-center gap-4">
-                  <div className="p-3 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl">
-                    <Users className="text-indigo-600 dark:text-indigo-400" size={24} />
+                  <div className="p-3 bg-amber-100 dark:bg-amber-900/30 rounded-xl">
+                    <AlertCircle className="text-amber-600 dark:text-amber-400" size={24} />
                   </div>
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">{t("vp.selected", "Selected")}</p>
-                    <p className="text-3xl font-black text-slate-900 dark:text-white mt-1">{selectedStudents.size}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-lg transition-shadow">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-xl">
-                    <Phone className="text-purple-600 dark:text-purple-400" size={24} />
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">{t("vp.parentsNotified", "Parents Notified")}</p>
-                    <p className="text-3xl font-black text-slate-900 dark:text-white mt-1">{notifiedStudents.size}</p>
+                    <p className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">{t("vp.exceededLimit", "Limit Exceeded")}</p>
+                    <p className="text-3xl font-black text-slate-900 dark:text-white mt-1">
+                      {absentStudents.filter(s => s.status === 'exceeded' || (s.totalAbsences && s.totalAbsences >= 3)).length}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -443,14 +464,14 @@ export const VPAttendanceOversight = () => {
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20">
               <div className="w-16 h-16 border-4 border-indigo-200 dark:border-indigo-900 border-t-indigo-600 dark:border-t-indigo-400 rounded-full animate-spin mb-4" />
-              <p className="text-slate-600 dark:text-slate-300 font-medium">{t("vp.loadingAbsences", "Loading today's absences...")}</p>
+              <p className="text-slate-600 dark:text-slate-300 font-medium">{t("vp.loadingAbsences", "Loading absences for selected date...")}</p>
             </div>
           ) : absentStudents.length === 0 ? (
             <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700 p-12 text-center shadow-sm">
               <CheckCircle className="mx-auto mb-4 text-emerald-500" size={48} />
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{t("vp.perfectAttendance", "Perfect Attendance")}</h3>
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{t("vp.noAbsencesRecorded", "No Attendance Issues / Perfect Attendance")}</h3>
               <p className="text-slate-600 dark:text-slate-300 max-w-md mx-auto">
-                {t("vp.perfectAttendanceDesc", "No absences recorded for today. Try checking again later or make sure attendance has been saved by a teacher.")}
+                {t("vp.perfectAttendanceDesc", "No absent or limit-exceeded students found for this date. Records appear only after homeroom teachers submit attendance.")}
               </p>
             </div>
           ) : (
@@ -504,11 +525,15 @@ export const VPAttendanceOversight = () => {
                             </span>
                             {student.status && (
                               <span className={`px-2 py-1 rounded text-xs font-bold uppercase tracking-widest ${
-                                student.status === 'absent' 
+                                student.status === 'exceeded' || (student.totalAbsences && student.totalAbsences >= 3)
+                                  ? 'bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-900/40'
+                                  : student.status === 'absent'
                                   ? 'bg-rose-100 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-900/40' 
                                   : 'bg-blue-100 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-900/40'
                               }`}>
-                                {student.status}
+                                {student.status === 'exceeded' || (student.totalAbsences && student.totalAbsences >= 3)
+                                  ? `Exceeded Limit (${student.totalAbsences || 0} Absences)`
+                                  : student.status}
                               </span>
                             )}
                             {notifiedStudents.has(student.id) && (
@@ -529,8 +554,11 @@ export const VPAttendanceOversight = () => {
                             <p className="text-slate-700 dark:text-slate-300 font-medium">{student.parentPhone}</p>
                           </div>
                         </div>
-                        <div className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                        <div className="mt-2 text-xs text-slate-500 dark:text-slate-400 flex flex-wrap items-center gap-4">
                           <p>{t("vp.roomTeacherLabel", "Room Teacher:")} <span className="font-medium text-slate-700 dark:text-slate-300">{student.roomTeacher}</span></p>
+                          {student.totalAbsences !== undefined && (
+                            <p>Total Absences Traced: <span className="font-bold text-rose-600 dark:text-rose-400">{student.totalAbsences} days</span></p>
+                          )}
                         </div>
                       </div>
                       {selectedStudents.has(student.id) && (
@@ -542,12 +570,11 @@ export const VPAttendanceOversight = () => {
               </div>
             </div>
           )}
-        </>
+        </div>
       )}
 
       {activeSubTab === 'teachers' && (
         <div className="space-y-6">
-          {/* Calendar Selector Bar */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm">
             <div className="space-y-1">
               <h2 className="text-xl font-bold text-slate-900 dark:text-white">
