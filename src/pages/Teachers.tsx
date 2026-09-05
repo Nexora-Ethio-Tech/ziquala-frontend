@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Plus, UserPlus, X, Check, ArrowLeft, MoreVertical, CheckCircle, XCircle, Trash2, Printer, Eye, Edit2, Loader2, FileText, Download, Upload, Users, Calendar, Clock, BookOpen, FileCheck, AlertCircle, CheckCircle2, MessageSquare, Filter, Lock, Unlock, AlertTriangle } from 'lucide-react';
 import PhoneInput from '../components/PhoneInput';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import { registerUser, getBranchTeachers, approveTeacher, revokeTeacher, deleteTeacher, promoteTeacher, updateUser, resetUserPIN, removeTeacherPromotion, replaceUserDocument } from '../services/schoolAdminService';
@@ -115,9 +115,43 @@ export const Teachers = () => {
   // Filters matching Grade Management structure
   const [weeklyPlanFilter, setWeeklyPlanFilter] = useState<'all' | 'submitted' | 'not_submitted' | 'unlocked'>('all');
   const [weeklyPlanSearch, setWeeklyPlanSearch] = useState('');
+  const [weeklyGradeFilter, setWeeklyGradeFilter] = useState<string>('all');
 
   const [annualPlanFilter, setAnnualPlanFilter] = useState<'all' | 'submitted' | 'not_submitted' | 'unlocked'>('all');
   const [annualPlanSearch, setAnnualPlanSearch] = useState('');
+  const [annualGradeFilter, setAnnualGradeFilter] = useState<string>('all');
+
+  const availableAnnualGrades = useMemo(() => {
+    const gradesSet = new Set<string>();
+    annualPlans.forEach(p => {
+      if (p.grade_statuses && Array.isArray(p.grade_statuses)) {
+        p.grade_statuses.forEach((g: any) => { if (g.grade) gradesSet.add(g.grade); });
+      } else if (p.grade) {
+        p.grade.split(',').forEach((g: string) => { if (g.trim()) gradesSet.add(g.trim()); });
+      }
+    });
+    return Array.from(gradesSet).sort((a, b) => {
+      const numA = parseInt(a.replace(/\D/g, '')) || 0;
+      const numB = parseInt(b.replace(/\D/g, '')) || 0;
+      return numA - numB;
+    });
+  }, [annualPlans]);
+
+  const availableWeeklyGrades = useMemo(() => {
+    const gradesSet = new Set<string>();
+    weeklyPlans.forEach(p => {
+      if (p.grade_statuses && Array.isArray(p.grade_statuses)) {
+        p.grade_statuses.forEach((g: any) => { if (g.grade) gradesSet.add(g.grade); });
+      } else if (p.grade_section || p.grade) {
+        (p.grade_section || p.grade).split(',').forEach((g: string) => { if (g.trim()) gradesSet.add(g.trim()); });
+      }
+    });
+    return Array.from(gradesSet).sort((a, b) => {
+      const numA = parseInt(a.replace(/\D/g, '')) || 0;
+      const numB = parseInt(b.replace(/\D/g, '')) || 0;
+      return numA - numB;
+    });
+  }, [weeklyPlans]);
   const [reviewModal, setReviewModal] = useState<{
     show: boolean;
     planId: string;
@@ -1254,17 +1288,33 @@ export const Teachers = () => {
       {activeTab === 'annual-plans' && (
         <div className="space-y-6">
           {/* Search and Status Filter Bar */}
-          <div className="flex flex-col lg:flex-row gap-3">
-            {/* Search */}
-            <div className="relative flex-1">
-              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Search annual plans by teacher, subject, grade..."
-                value={annualPlanSearch}
-                onChange={(e) => setAnnualPlanSearch(e.target.value)}
-                className="w-full pl-9 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-slate-800 dark:text-slate-200"
-              />
+          <div className="flex flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between">
+            <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center flex-1">
+              {/* Search */}
+              <div className="relative w-full sm:w-64">
+                <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Search annual plans..."
+                  value={annualPlanSearch}
+                  onChange={(e) => setAnnualPlanSearch(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-slate-800 dark:text-slate-200"
+                />
+              </div>
+
+              {/* Grade Filter */}
+              <div className="relative">
+                <select
+                  value={annualGradeFilter}
+                  onChange={(e) => setAnnualGradeFilter(e.target.value)}
+                  className="w-full sm:w-auto px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-slate-800 dark:text-slate-200 cursor-pointer shadow-sm"
+                >
+                  <option value="all">All Grades</option>
+                  {availableAnnualGrades.map(g => (
+                    <option key={g} value={g}>{g}</option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             {/* Status Filter Tabs */}
@@ -1328,6 +1378,14 @@ export const Teachers = () => {
           ) : (() => {
             const filteredAnnualPlans = annualPlans
               .filter(plan => {
+                if (annualGradeFilter === 'all') return true;
+                const statuses: Array<{ grade: string; submitted: boolean }> = plan.grade_statuses || [];
+                if (statuses.length > 0) {
+                  return statuses.some(g => g.grade.toLowerCase() === annualGradeFilter.toLowerCase());
+                }
+                return plan.grade && plan.grade.toLowerCase().includes(annualGradeFilter.toLowerCase());
+              })
+              .filter(plan => {
                 const statuses: Array<{ grade: string; submitted: boolean }> = plan.grade_statuses || [];
                 if (annualPlanFilter === 'submitted') {
                   return statuses.length > 0 ? statuses.some(g => g.submitted) : plan.status === 'Approved';
@@ -1380,11 +1438,15 @@ export const Teachers = () => {
                         const isApproved = plan.status === 'Approved';
                         const isNotSubmitted = plan.status === 'Not Submitted';
                         const gradeStatuses: Array<{ grade: string; submitted: boolean; status: string; plan_id?: string }> = plan.grade_statuses || [];
-                        const displayGrades = annualPlanFilter === 'submitted'
+                        let displayGrades = annualPlanFilter === 'submitted'
                           ? gradeStatuses.filter(g => g.submitted)
                           : annualPlanFilter === 'not_submitted'
                           ? gradeStatuses.filter(g => !g.submitted)
                           : gradeStatuses;
+
+                        if (annualGradeFilter !== 'all') {
+                          displayGrades = displayGrades.filter(g => g.grade.toLowerCase() === annualGradeFilter.toLowerCase());
+                        }
                         return (
                           <tr key={plan.id} className={`hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors ${isNotSubmitted ? 'bg-amber-50/30 dark:bg-amber-900/10' : ''}`}>
                             <td className="px-6 py-4">
@@ -1484,17 +1546,33 @@ export const Teachers = () => {
       {activeTab === 'weekly-plans' && (
         <div className="space-y-6">
           {/* Search and Status Filter Bar */}
-          <div className="flex flex-col lg:flex-row gap-3">
-            {/* Search */}
-            <div className="relative flex-1">
-              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Search weekly plans by teacher, course, topic..."
-                value={weeklyPlanSearch}
-                onChange={(e) => setWeeklyPlanSearch(e.target.value)}
-                className="w-full pl-9 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-slate-800 dark:text-slate-200"
-              />
+          <div className="flex flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between">
+            <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center flex-1">
+              {/* Search */}
+              <div className="relative w-full sm:w-64">
+                <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Search weekly plans..."
+                  value={weeklyPlanSearch}
+                  onChange={(e) => setWeeklyPlanSearch(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-slate-800 dark:text-slate-200"
+                />
+              </div>
+
+              {/* Grade Filter */}
+              <div className="relative">
+                <select
+                  value={weeklyGradeFilter}
+                  onChange={(e) => setWeeklyGradeFilter(e.target.value)}
+                  className="w-full sm:w-auto px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-slate-800 dark:text-slate-200 cursor-pointer shadow-sm"
+                >
+                  <option value="all">All Grades</option>
+                  {availableWeeklyGrades.map(g => (
+                    <option key={g} value={g}>{g}</option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             {/* Status Filter Tabs */}
@@ -1552,6 +1630,14 @@ export const Teachers = () => {
           ) : (() => {
             const filteredWeeklyPlans = weeklyPlans
               .filter(plan => {
+                if (weeklyGradeFilter === 'all') return true;
+                const statuses: Array<{ grade: string; submitted: boolean }> = plan.grade_statuses || [];
+                if (statuses.length > 0) {
+                  return statuses.some(g => g.grade.toLowerCase() === weeklyGradeFilter.toLowerCase());
+                }
+                return (plan.grade_section || plan.grade || '').toLowerCase().includes(weeklyGradeFilter.toLowerCase());
+              })
+              .filter(plan => {
                 const statuses: Array<{ grade: string; submitted: boolean }> = plan.grade_statuses || [];
                 if (weeklyPlanFilter === 'submitted') {
                   return statuses.length > 0 ? statuses.some(g => g.submitted) : plan.status === 'Approved';
@@ -1602,11 +1688,15 @@ export const Teachers = () => {
                         const isApproved = plan.status === 'Approved';
                         const isNotSubmitted = plan.status === 'Not Submitted';
                         const gradeStatuses: Array<{ grade: string; submitted: boolean; status: string; plan_id?: string }> = plan.grade_statuses || [];
-                        const displayGrades = weeklyPlanFilter === 'submitted'
+                        let displayGrades = weeklyPlanFilter === 'submitted'
                           ? gradeStatuses.filter(g => g.submitted)
                           : weeklyPlanFilter === 'not_submitted'
                           ? gradeStatuses.filter(g => !g.submitted)
                           : gradeStatuses;
+
+                        if (weeklyGradeFilter !== 'all') {
+                          displayGrades = displayGrades.filter(g => g.grade.toLowerCase() === weeklyGradeFilter.toLowerCase());
+                        }
                         return (
                           <tr key={plan.id} className={`hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors ${isNotSubmitted ? 'bg-amber-50/30 dark:bg-amber-900/10' : ''}`}>
                             <td className="px-6 py-4">
