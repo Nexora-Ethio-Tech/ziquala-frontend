@@ -1328,9 +1328,16 @@ export const Teachers = () => {
           ) : (() => {
             const filteredAnnualPlans = annualPlans
               .filter(plan => {
-                if (annualPlanFilter === 'submitted') return plan.status === 'Approved';
-                if (annualPlanFilter === 'not_submitted') return plan.status === 'Not Submitted' || plan.status === 'Pending';
-                if (annualPlanFilter === 'unlocked') return plan.status === 'Revision Required';
+                const statuses: Array<{ grade: string; submitted: boolean }> = plan.grade_statuses || [];
+                if (annualPlanFilter === 'submitted') {
+                  return statuses.length > 0 ? statuses.some(g => g.submitted) : plan.status === 'Approved';
+                }
+                if (annualPlanFilter === 'not_submitted') {
+                  return statuses.length > 0 ? statuses.some(g => !g.submitted) : (plan.status === 'Not Submitted' || plan.status === 'Pending');
+                }
+                if (annualPlanFilter === 'unlocked') {
+                  return plan.status === 'Revision Required';
+                }
                 return true;
               })
               .filter(plan => {
@@ -1372,6 +1379,12 @@ export const Teachers = () => {
                       {filteredAnnualPlans.map((plan) => {
                         const isApproved = plan.status === 'Approved';
                         const isNotSubmitted = plan.status === 'Not Submitted';
+                        const gradeStatuses: Array<{ grade: string; submitted: boolean; status: string; plan_id?: string }> = plan.grade_statuses || [];
+                        const displayGrades = annualPlanFilter === 'submitted'
+                          ? gradeStatuses.filter(g => g.submitted)
+                          : annualPlanFilter === 'not_submitted'
+                          ? gradeStatuses.filter(g => !g.submitted)
+                          : gradeStatuses;
                         return (
                           <tr key={plan.id} className={`hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors ${isNotSubmitted ? 'bg-amber-50/30 dark:bg-amber-900/10' : ''}`}>
                             <td className="px-6 py-4">
@@ -1380,8 +1393,40 @@ export const Teachers = () => {
                               <div className="text-xs text-slate-400 dark:text-slate-500">{plan.teacher_email || 'N/A'}</div>
                             </td>
                             <td className="px-6 py-4">
-                              <span className="font-semibold text-slate-800 dark:text-slate-200">{plan.subject || 'Subject'}</span>
-                              <span className="text-xs text-slate-500 block">{plan.grade || 'Grade'}</span>
+                              <div className="font-semibold text-slate-800 dark:text-slate-200 mb-1">
+                                {plan.subject || 'Subject'}
+                              </div>
+                              {displayGrades.length > 0 ? (
+                                <div className="flex flex-col gap-1 text-xs">
+                                  {displayGrades.map((g, idx) => (
+                                    <div key={idx} className="flex items-center gap-1.5 whitespace-nowrap">
+                                      <span className={g.submitted ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-slate-500 dark:text-slate-400 font-medium'}>
+                                        {g.grade}
+                                      </span>
+                                      {g.submitted ? (
+                                        <CheckCircle2 size={13} className="text-emerald-500 shrink-0" />
+                                      ) : (
+                                        <XCircle size={13} className="text-rose-400 shrink-0" />
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : plan.grade ? (
+                                <div className="flex flex-col gap-1 text-xs">
+                                  {plan.grade.split(',').map((g: string, idx: number) => (
+                                    <div key={idx} className="flex items-center gap-1.5 whitespace-nowrap">
+                                      <span className={!isNotSubmitted ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-slate-500 dark:text-slate-400 font-medium'}>
+                                        {g.trim()}
+                                      </span>
+                                      {!isNotSubmitted ? (
+                                        <CheckCircle2 size={13} className="text-emerald-500 shrink-0" />
+                                      ) : (
+                                        <XCircle size={13} className="text-rose-400 shrink-0" />
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : null}
                             </td>
                             <td className="px-6 py-4 font-medium text-slate-700 dark:text-slate-300">
                               {plan.academic_year || '2018 E.C.'}
@@ -1393,7 +1438,7 @@ export const Teachers = () => {
                             <td className="px-6 py-4">
                               {isApproved ? (
                                 <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full text-xs font-extrabold border border-emerald-200 dark:border-emerald-800">
-                                  <CheckCircle2 size={12} /> Accepted &amp; Approved
+                                  <CheckCircle2 size={12} /> Approved by {plan.reviewer_name || 'Dept Head'}
                                 </span>
                               ) : plan.status === 'Revision Required' ? (
                                 <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 rounded-full text-xs font-extrabold border border-rose-200 dark:border-rose-800">
@@ -1413,46 +1458,14 @@ export const Teachers = () => {
                               {isNotSubmitted ? (
                                 <span className="text-xs text-amber-600 dark:text-amber-400 font-bold italic">No Plan Received</span>
                               ) : (
-                                <div className="flex items-center justify-end gap-2">
-                                  <button
-                                    type="button"
-                                    onClick={() => setSelectedAnnualPlan(plan)}
-                                    className="p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
-                                    title="View Details"
-                                  >
-                                    <Eye size={16} />
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      reviewModal.planId = plan.id;
-                                      reviewModal.planType = 'annual';
-                                      handleReviewPlanSubmit('Approved', 'Accepted by Academic Manager');
-                                    }}
-                                    disabled={processing || isApproved}
-                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all ${
-                                      isApproved
-                                        ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 cursor-default opacity-80'
-                                        : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm'
-                                    }`}
-                                  >
-                                    <Check size={14} /> Accept
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => setReviewModal({
-                                      show: true,
-                                      planId: plan.id,
-                                      planType: 'annual',
-                                      status: 'Revision Required',
-                                      feedback: ''
-                                    })}
-                                    disabled={processing}
-                                    className="px-3 py-1.5 bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-100 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/40 rounded-lg text-xs font-bold flex items-center gap-1 transition-all"
-                                  >
-                                    <X size={14} /> Revision
-                                  </button>
-                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedAnnualPlan(plan)}
+                                  className="p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                                  title="View Details"
+                                >
+                                  <Eye size={16} />
+                                </button>
                               )}
                             </td>
                           </tr>
@@ -1539,8 +1552,13 @@ export const Teachers = () => {
           ) : (() => {
             const filteredWeeklyPlans = weeklyPlans
               .filter(plan => {
-                if (weeklyPlanFilter === 'submitted') return plan.status === 'Approved';
-                if (weeklyPlanFilter === 'not_submitted') return plan.status === 'Not Submitted';
+                const statuses: Array<{ grade: string; submitted: boolean }> = plan.grade_statuses || [];
+                if (weeklyPlanFilter === 'submitted') {
+                  return statuses.length > 0 ? statuses.some(g => g.submitted) : plan.status === 'Approved';
+                }
+                if (weeklyPlanFilter === 'not_submitted') {
+                  return statuses.length > 0 ? statuses.some(g => !g.submitted) : (plan.status === 'Not Submitted' || plan.status === 'Pending');
+                }
                 return true;
               })
               .filter(plan => {
@@ -1583,6 +1601,12 @@ export const Teachers = () => {
                       {filteredWeeklyPlans.map((plan) => {
                         const isApproved = plan.status === 'Approved';
                         const isNotSubmitted = plan.status === 'Not Submitted';
+                        const gradeStatuses: Array<{ grade: string; submitted: boolean; status: string; plan_id?: string }> = plan.grade_statuses || [];
+                        const displayGrades = weeklyPlanFilter === 'submitted'
+                          ? gradeStatuses.filter(g => g.submitted)
+                          : weeklyPlanFilter === 'not_submitted'
+                          ? gradeStatuses.filter(g => !g.submitted)
+                          : gradeStatuses;
                         return (
                           <tr key={plan.id} className={`hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors ${isNotSubmitted ? 'bg-amber-50/30 dark:bg-amber-900/10' : ''}`}>
                             <td className="px-6 py-4">
@@ -1591,8 +1615,45 @@ export const Teachers = () => {
                               <div className="text-xs text-slate-400 dark:text-slate-500">{plan.teacher_email || 'N/A'}</div>
                             </td>
                             <td className="px-6 py-4">
-                              <span className="font-semibold text-slate-800 dark:text-slate-200">{plan.subject || plan.course_name || 'Weekly Lesson Plan'}</span>
-                              <span className="text-xs text-slate-500 block">{plan.topic || plan.chapter || 'Plan Details'}</span>
+                              <div className="font-semibold text-slate-800 dark:text-slate-200 mb-0.5">
+                                {plan.subject || plan.course_name || 'Weekly Lesson Plan'}
+                              </div>
+                              {plan.topic && (
+                                <div className="text-xs text-slate-500 mb-1">
+                                  {plan.topic || plan.chapter || 'Plan Details'}
+                                </div>
+                              )}
+                              {displayGrades.length > 0 ? (
+                                <div className="flex flex-col gap-1 text-xs">
+                                  {displayGrades.map((g, idx) => (
+                                    <div key={idx} className="flex items-center gap-1.5 whitespace-nowrap">
+                                      <span className={g.submitted ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-slate-500 dark:text-slate-400 font-medium'}>
+                                        {g.grade}
+                                      </span>
+                                      {g.submitted ? (
+                                        <CheckCircle2 size={13} className="text-emerald-500 shrink-0" />
+                                      ) : (
+                                        <XCircle size={13} className="text-rose-400 shrink-0" />
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (plan.grade_section || plan.grade) ? (
+                                <div className="flex flex-col gap-1 text-xs">
+                                  {(plan.grade_section || plan.grade).split(',').map((g: string, idx: number) => (
+                                    <div key={idx} className="flex items-center gap-1.5 whitespace-nowrap">
+                                      <span className={!isNotSubmitted ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-slate-500 dark:text-slate-400 font-medium'}>
+                                        {g.trim()}
+                                      </span>
+                                      {!isNotSubmitted ? (
+                                        <CheckCircle2 size={13} className="text-emerald-500 shrink-0" />
+                                      ) : (
+                                        <XCircle size={13} className="text-rose-400 shrink-0" />
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : null}
                             </td>
                             <td className="px-6 py-4 text-xs text-slate-600 dark:text-slate-400">
                               <div><span className="font-bold text-slate-800 dark:text-slate-200">{plan.date ? new Date(plan.date).toLocaleDateString() : 'N/A'}</span></div>
