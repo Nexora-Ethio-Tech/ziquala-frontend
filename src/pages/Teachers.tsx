@@ -1299,20 +1299,6 @@ export const Teachers = () => {
                 );
               })}
             </div>
-
-            {(annualPlanFilter !== 'all' || annualPlanSearch) && (
-              <button
-                type="button"
-                onClick={() => {
-                  setAnnualPlanFilter('all');
-                  setAnnualPlanSearch('');
-                }}
-                className="px-3 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shrink-0"
-                title="Reset Filters"
-              >
-                <RefreshCcw size={13} /> Reset
-              </button>
-            )}
           </div>
 
           {/* Summary Chips */}
@@ -1502,14 +1488,12 @@ export const Teachers = () => {
               <Filter size={13} className="text-slate-400 ml-1 shrink-0" />
               {([
                 { key: 'all',           label: 'All' },
-                { key: 'submitted',     label: 'Submitted' },
+                { key: 'submitted',     label: 'Approved' },
                 { key: 'not_submitted', label: 'Not Submitted' },
-                { key: 'unlocked',      label: 'Unlocked' },
               ] as const).map(({ key, label }) => {
-                const submittedCount = weeklyPlans.filter(p => p.status === 'Approved').length;
-                const notSubmittedCount = weeklyPlans.filter(p => p.status === 'Not Submitted' || p.status === 'Pending').length;
-                const unlockedCount = weeklyPlans.filter(p => p.status === 'Revision Required').length;
-                const count = key === 'submitted' ? submittedCount : key === 'not_submitted' ? notSubmittedCount : key === 'unlocked' ? unlockedCount : weeklyPlans.length;
+                const approvedCount = weeklyPlans.filter(p => p.status === 'Approved').length;
+                const notSubmittedCount = weeklyPlans.filter(p => p.status === 'Not Submitted').length;
+                const count = key === 'submitted' ? approvedCount : key === 'not_submitted' ? notSubmittedCount : weeklyPlans.length;
 
                 return (
                   <button
@@ -1529,39 +1513,21 @@ export const Teachers = () => {
                 );
               })}
             </div>
-
-            {(weeklyPlanFilter !== 'all' || weeklyPlanSearch) && (
-              <button
-                type="button"
-                onClick={() => {
-                  setWeeklyPlanFilter('all');
-                  setWeeklyPlanSearch('');
-                }}
-                className="px-3 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shrink-0"
-                title="Reset Filters"
-              >
-                <RefreshCcw size={13} /> Reset
-              </button>
-            )}
           </div>
 
           {/* Summary Chips */}
           <div className="flex flex-wrap gap-2">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-full text-[11px] font-bold text-slate-600 dark:text-slate-300">
               <span className="w-2 h-2 rounded-full bg-slate-400" />
-              Total Weekly Plans: {weeklyPlans.length}
+              Total: {weeklyPlans.length}
             </span>
             <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 dark:bg-emerald-900/20 rounded-full text-[11px] font-bold text-emerald-700 dark:text-emerald-400">
               <CheckCircle2 size={11} />
-              Submitted &amp; Approved (Dept Head): {weeklyPlans.filter(p => p.status === 'Approved').length}
+              Approved by Dept Head: {weeklyPlans.filter(p => p.status === 'Approved').length}
             </span>
             <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 dark:bg-amber-900/20 rounded-full text-[11px] font-bold text-amber-700 dark:text-amber-400">
               <AlertTriangle size={11} />
-              Not Submitted / Pending Dept Head: {weeklyPlans.filter(p => p.status === 'Not Submitted' || p.status === 'Pending').length}
-            </span>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-50 dark:bg-rose-900/20 rounded-full text-[11px] font-bold text-rose-700 dark:text-rose-400">
-              <Unlock size={11} />
-              Unlocked / Revision Required: {weeklyPlans.filter(p => p.status === 'Revision Required').length}
+              Not Submitted: {weeklyPlans.filter(p => p.status === 'Not Submitted').length}
             </span>
           </div>
 
@@ -1573,8 +1539,7 @@ export const Teachers = () => {
             const filteredWeeklyPlans = weeklyPlans
               .filter(plan => {
                 if (weeklyPlanFilter === 'submitted') return plan.status === 'Approved';
-                if (weeklyPlanFilter === 'not_submitted') return plan.status === 'Not Submitted' || plan.status === 'Pending';
-                if (weeklyPlanFilter === 'unlocked') return plan.status === 'Revision Required';
+                if (weeklyPlanFilter === 'not_submitted') return plan.status === 'Not Submitted';
                 return true;
               })
               .filter(plan => {
@@ -1634,21 +1599,13 @@ export const Teachers = () => {
                             <td className="px-6 py-4">
                               {isApproved ? (
                                 <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full text-xs font-extrabold border border-emerald-200 dark:border-emerald-800">
-                                  <CheckCircle2 size={12} /> Submitted &amp; Approved
-                                </span>
-                              ) : plan.status === 'Revision Required' ? (
-                                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 rounded-full text-xs font-extrabold border border-rose-200 dark:border-rose-800">
-                                  <Unlock size={12} /> Unlocked (Revision)
+                                  <CheckCircle2 size={12} /> Approved by Dept Head
                                 </span>
                               ) : isNotSubmitted ? (
                                 <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-full text-xs font-extrabold border border-amber-200 dark:border-amber-800">
                                   <AlertTriangle size={12} /> Not Submitted
                                 </span>
-                              ) : (
-                                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-sky-50 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400 rounded-full text-xs font-extrabold border border-sky-200 dark:border-sky-800">
-                                  <Clock size={12} /> Pending Dept Head
-                                </span>
-                              )}
+                              ) : null}
                             </td>
                             <td className="px-6 py-4 text-right">
                               {isNotSubmitted ? (
