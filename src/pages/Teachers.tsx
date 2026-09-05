@@ -10,7 +10,7 @@ import classService from '../services/classService';
 import { StaffProfileModal } from '../components/StaffProfileModal';
 import subjectService, { CourseWithGrade } from '../services/subjectService';
 import { getVPTeachers, getLeaderboard, rateTeacher, resetLeaderboard, getVPAnnualPlans, reviewVPAnnualPlan, getWeeklyPlans } from '../services/vicePrincipalService';
-import { Star, Trophy, RefreshCcw, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Star, Trophy, RefreshCcw, Search, ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
 import { TeacherAttendanceModal } from '../components/TeacherAttendanceModal';
 import { formatEthiopianLabel, gregorianToEthiopian, ethiopianToGregorianIso } from '../utils/ethiopianCalendar';
 import { EthiopianDatePicker } from '../components/EthiopianDatePicker';
@@ -157,6 +157,29 @@ export const Teachers = () => {
       newDate.setDate(newDate.getDate() + (direction === 'next' ? 7 : -7));
       setSelectedWeekDate(newDate);
     }
+  };
+
+  // Dynamic week generator starting from Current Week (auto-advances dynamically as weeks pass)
+  const getRecentWeekEndings = () => {
+    const list: string[] = [];
+    const today = new Date();
+    const day = today.getDay();
+    let diff = 4 - day; // 4 is Thursday (Week Ending day in Ethiopian academic calendar)
+    if (diff < 0) diff += 7;
+    const currentThursday = new Date(today);
+    currentThursday.setDate(today.getDate() + diff);
+
+    // [0] = Current Week (top item), [-1..-4] = Upcoming weeks, [1] = Previous Week
+    const offsets = [0, -1, -2, -3, -4, 1];
+    for (const i of offsets) {
+      const d = new Date(currentThursday);
+      d.setDate(currentThursday.getDate() - i * 7);
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      list.push(`${yyyy}-${mm}-${dd}`);
+    }
+    return list;
   };
 
   const [annualPlanFilter, setAnnualPlanFilter] = useState<'all' | 'submitted' | 'not_submitted' | 'unlocked'>('all');
@@ -1589,72 +1612,81 @@ export const Teachers = () => {
       {/* Weekly Plans View */}
       {activeTab === 'weekly-plans' && (
         <div className="space-y-6">
-          {/* Week Calendar Navigation Banner (Ethiopian Calendar) */}
-          <div className="bg-gradient-to-r from-indigo-950 via-slate-900 to-indigo-900 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-4 rounded-2xl border border-indigo-800/40 shadow-md text-white flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-indigo-600/30 border border-indigo-400/30 flex items-center justify-center shrink-0">
-                <Calendar className="w-5 h-5 text-indigo-300" />
+          {/* VP Communication Style: Weekly Report (Week Ending) Navigation Banner */}
+          <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-950 p-5 rounded-[2rem] border border-indigo-800/40 shadow-xl text-white flex flex-col lg:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-indigo-600/30 border border-indigo-400/30 flex items-center justify-center shrink-0 shadow-inner">
+                <Calendar className="w-6 h-6 text-indigo-300" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="font-bold text-base text-white">Academic Calendar Week (Ethiopian)</h3>
+                  <h3 className="font-extrabold text-lg text-white">Weekly Academic Plan Oversight</h3>
                   {isCurrentWeek(selectedWeekDate) && (
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 tracking-wider">
                       Current Week
                     </span>
                   )}
                 </div>
                 <p className="text-xs text-indigo-200/90 font-bold mt-0.5">
-                  {formatEthWeekRangeStr(selectedWeekDate)}
+                  Academic Week: {formatEthWeekRangeStr(selectedWeekDate)}
                 </p>
               </div>
             </div>
 
-            {/* Week Control Navigation with Ethiopian Date Picker */}
-            <div className="flex items-center gap-2 bg-slate-950/40 p-1.5 rounded-xl border border-indigo-500/20">
-              <button
-                type="button"
-                onClick={() => navigateWeek('prev')}
-                title="Previous Week"
-                className="p-2 hover:bg-white/10 rounded-lg transition-colors text-indigo-200 hover:text-white"
-              >
-                <ChevronLeft size={18} />
-              </button>
-
-              <div className="w-36">
-                <EthiopianDatePicker
-                  value={(() => {
-                    const eth = gregorianToEthiopian(selectedWeekDate);
-                    return `${eth.year}-${String(eth.month).padStart(2, '0')}-${String(eth.day).padStart(2, '0')}`;
-                  })()}
-                  onChange={(ethVal) => {
-                    if (ethVal) {
-                      const gregIso = ethiopianToGregorianIso(ethVal);
-                      if (gregIso) setSelectedWeekDate(new Date(gregIso));
-                    }
-                  }}
-                  className="py-1 px-2 text-xs font-bold bg-slate-900/80 border-indigo-500/30 text-indigo-100"
-                />
+            {/* VP Communication Book Style "Weekly Report (Week Ending)" Selector */}
+            <div className="flex items-center gap-3 w-full lg:w-auto">
+              <div className="flex-1 lg:flex-initial flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                <label htmlFor="weekly-report-week-select" className="text-xs font-black text-indigo-300 uppercase tracking-wider shrink-0 hidden sm:inline">
+                  Weekly Report (Week Ending):
+                </label>
+                <div className="relative flex-1 sm:w-72">
+                  <select
+                    id="weekly-report-week-select"
+                    value={(() => {
+                      const iso = selectedWeekDate.toISOString().split('T')[0];
+                      const recent = getRecentWeekEndings();
+                      return recent.includes(iso) ? iso : iso;
+                    })()}
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        setSelectedWeekDate(new Date(e.target.value));
+                      }
+                    }}
+                    className="w-full appearance-none px-4 py-2.5 bg-slate-900/90 dark:bg-slate-800/90 border-2 border-indigo-500/40 rounded-xl text-xs font-bold text-white outline-none focus:border-indigo-400 transition-all cursor-pointer pr-9 shadow-inner"
+                  >
+                    {getRecentWeekEndings().map((weekIso) => {
+                      const isCurrent = isCurrentWeek(new Date(weekIso));
+                      const ethLabel = formatEthiopianLabel(weekIso);
+                      return (
+                        <option key={weekIso} value={weekIso} className="bg-slate-900 text-white font-bold py-1">
+                          {ethLabel} {isCurrent ? '★ (Current Week)' : '(Week Ending)'}
+                        </option>
+                      );
+                    })}
+                  </select>
+                  <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-indigo-300 pointer-events-none" />
+                </div>
               </div>
 
-              <button
-                type="button"
-                onClick={() => navigateWeek('next')}
-                title="Next Week"
-                className="p-2 hover:bg-white/10 rounded-lg transition-colors text-indigo-200 hover:text-white"
-              >
-                <ChevronRight size={18} />
-              </button>
-
-              {!isCurrentWeek(selectedWeekDate) && (
+              {/* Prev / Next 1-click week navigation */}
+              <div className="flex items-center gap-1 bg-slate-950/60 p-1 rounded-xl border border-indigo-500/30 shrink-0">
                 <button
                   type="button"
-                  onClick={() => navigateWeek('today')}
-                  className="ml-1 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition-all shadow-sm"
+                  onClick={() => navigateWeek('prev')}
+                  title="Previous Week"
+                  className="p-2 hover:bg-white/10 rounded-lg transition-colors text-indigo-200 hover:text-white"
                 >
-                  This Week
+                  <ChevronLeft size={18} />
                 </button>
-              )}
+                <button
+                  type="button"
+                  onClick={() => navigateWeek('next')}
+                  title="Next Week"
+                  className="p-2 hover:bg-white/10 rounded-lg transition-colors text-indigo-200 hover:text-white"
+                >
+                  <ChevronRight size={18} />
+                </button>
+              </div>
             </div>
           </div>
           {/* Search and Status Filter Bar */}
