@@ -210,49 +210,81 @@ export const TeacherPortal = () => {
     return `${ethMonStr} – ${ethThuStr}`;
   };
 
+  const isPlanInWeek = (plan: any, weekThuDate: Date) => {
+    if (!plan) return false;
+
+    const selectedWeekIso = weekThuDate.toISOString().split('T')[0];
+
+    const mon = new Date(weekThuDate);
+    mon.setDate(weekThuDate.getDate() - 3);
+    mon.setHours(0, 0, 0, 0);
+
+    const sun = new Date(weekThuDate);
+    sun.setDate(weekThuDate.getDate() + 3);
+    sun.setHours(23, 59, 59, 999);
+
+    const ethThuStr = formatEthiopianLabel(weekThuDate);
+    const ethMonStr = formatEthiopianLabel(mon);
+
+    const candidateDates = [
+      plan.date_from, plan.dateFrom, plan.date,
+      plan.date_to, plan.dateTo,
+      plan.created_at, plan.createdAt, plan.updated_at
+    ].filter(Boolean);
+
+    for (const cand of candidateDates) {
+      if (typeof cand === 'string') {
+        if (cand.includes(ethThuStr) || cand.includes(ethMonStr)) return true;
+
+        if (cand.match(/^\d{4}-\d{2}-\d{2}/) || cand.includes('T')) {
+          const parsed = new Date(cand);
+          if (!isNaN(parsed.getTime())) {
+            if (parsed >= mon && parsed <= sun) return true;
+
+            const pDay = parsed.getDay();
+            let pDiff = 4 - pDay;
+            if (pDiff < 0) pDiff += 7;
+            const pThu = new Date(parsed);
+            pThu.setDate(parsed.getDate() + pDiff);
+            if (pThu.toISOString().split('T')[0] === selectedWeekIso) return true;
+          }
+        }
+      } else if (cand instanceof Date && !isNaN(cand.getTime())) {
+        if (cand >= mon && cand <= sun) return true;
+        const pDay = cand.getDay();
+        let pDiff = 4 - pDay;
+        if (pDiff < 0) pDiff += 7;
+        const pThu = new Date(cand);
+        pThu.setDate(cand.getDate() + pDiff);
+        if (pThu.toISOString().split('T')[0] === selectedWeekIso) return true;
+      }
+    }
+
+    // Fallback for active/current week if dates are missing or freshly created
+    const now = new Date();
+    const nowDay = now.getDay();
+    let nowDiff = 4 - nowDay;
+    if (nowDiff < 0) nowDiff += 7;
+    const nowThu = new Date(now);
+    nowThu.setDate(now.getDate() + nowDiff);
+    if (selectedWeekIso === nowThu.toISOString().split('T')[0]) {
+      if (candidateDates.length === 0) return true;
+    }
+
+    return false;
+  };
+
   const filteredDeptPlans = deptPlans.filter(plan => {
     const teacherName = plan.teacher_name || plan.teacherName || '';
     const subject = plan.subject || '';
     const matchesSearch = teacherName.toLowerCase().includes(deptSearch.toLowerCase()) || subject.toLowerCase().includes(deptSearch.toLowerCase());
     const matchesFilter = deptFilter === 'All' || plan.status === deptFilter;
-
-    let matchesWeek = true;
-    const planDateStr = plan.date_from || plan.date || plan.created_at;
-    if (planDateStr) {
-      const planDate = new Date(planDateStr);
-      if (!isNaN(planDate.getTime())) {
-        const selectedWeekIso = selectedWeekDate.toISOString().split('T')[0];
-        const pDay = planDate.getDay();
-        let pDiff = 4 - pDay;
-        if (pDiff < 0) pDiff += 7;
-        const pThu = new Date(planDate);
-        pThu.setDate(planDate.getDate() + pDiff);
-        const planWeekIso = pThu.toISOString().split('T')[0];
-        matchesWeek = (planWeekIso === selectedWeekIso);
-      }
-    }
+    const matchesWeek = isPlanInWeek(plan, selectedWeekDate);
 
     return matchesSearch && matchesFilter && matchesWeek;
   });
 
-  const filteredMyPlans = plans.filter(plan => {
-    let matchesWeek = true;
-    const planDateStr = plan.date_from || plan.date || plan.created_at;
-    if (planDateStr) {
-      const planDate = new Date(planDateStr);
-      if (!isNaN(planDate.getTime())) {
-        const selectedWeekIso = selectedWeekDate.toISOString().split('T')[0];
-        const pDay = planDate.getDay();
-        let pDiff = 4 - pDay;
-        if (pDiff < 0) pDiff += 7;
-        const pThu = new Date(planDate);
-        pThu.setDate(planDate.getDate() + pDiff);
-        const planWeekIso = pThu.toISOString().split('T')[0];
-        matchesWeek = (planWeekIso === selectedWeekIso);
-      }
-    }
-    return matchesWeek;
-  });
+  const filteredMyPlans = plans.filter(plan => isPlanInWeek(plan, selectedWeekDate));
 
   const handleApproveDeptPlan = async (id: string, rating: number, feedback: string) => {
     const defaultFeedback = feedback.trim() || 'Approved by Department Head';
@@ -1662,9 +1694,10 @@ export const TeacherPortal = () => {
                 <div className="flex gap-4 flex-wrap">
                   <button onClick={() => {
                     setEditingPlan(null);
-                    // Restore locally-saved draft if one exists
                     const draft = loadLocalDraft();
-                    setPlanForm(draft ?? emptyPlan);
+                    const targetIso = selectedWeekDate.toISOString().split('T')[0];
+                    const baseForm = draft ?? emptyPlan;
+                    setPlanForm({ ...baseForm, dateFrom: targetIso, dateTo: targetIso, date: targetIso });
                     setIsPlanModalOpen(true);
                   }}
                     className="flex items-center gap-3 px-8 py-4 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-700 transition-all shadow-xl shadow-blue-500/20">
@@ -1672,7 +1705,8 @@ export const TeacherPortal = () => {
                   </button>
                   <button onClick={() => {
                     setEditingPlan(null);
-                    setPlanForm({ ...emptyPlan, status: 'Pending' });
+                    const targetIso = selectedWeekDate.toISOString().split('T')[0];
+                    setPlanForm({ ...emptyPlan, dateFrom: targetIso, dateTo: targetIso, date: targetIso, status: 'Pending' });
                     setIsPlanModalOpen(true);
                   }}
                     className="flex items-center gap-3 px-8 py-4 bg-emerald-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-500/20">
@@ -1681,109 +1715,154 @@ export const TeacherPortal = () => {
                 </div>
               </div>
 
-              <div className="overflow-x-auto">
-                <table className="w-full text-left min-w-[900px]">
-                  <thead>
-                    <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
-                      {['Date', 'Subject', 'Content', 'Objectives', 'Method', 'Duration', 'Status', 'Feedback', 'Actions'].map(h => (
-                        <th key={h} className="px-4 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                    {filteredMyPlans.length === 0 ? (
-                      <tr><td colSpan={9} className="px-6 py-12 text-center text-slate-500">No plans for this selected week. Create or submit a plan for this week!</td></tr>
-                    ) : (
-                      filteredMyPlans.map((plan: any) => (
-                        <tr key={plan.id} className="hover:bg-blue-50/30 dark:hover:bg-blue-900/5 transition-colors">
-                          <td className="px-4 py-4 text-xs font-bold text-slate-800 dark:text-slate-200">{plan.date?.slice(0, 10)}</td>
-                          <td className="px-4 py-4 text-xs font-semibold text-blue-600 dark:text-blue-400">{plan.subject || '—'}</td>
-                          <td className="px-4 py-4 text-xs text-slate-600 dark:text-slate-400 max-w-[120px] truncate">{plan.content}</td>
-                          <td className="px-4 py-4 text-xs text-slate-600 dark:text-slate-400 max-w-[120px] truncate">{plan.objectives}</td>
-                          <td className="px-4 py-4 text-xs text-slate-600 dark:text-slate-400 max-w-[100px] truncate">{plan.teaching_method || plan.teachingMethod}</td>
-                          <td className="px-4 py-4 text-xs text-slate-600 dark:text-slate-400">{plan.time_duration || plan.timeDuration}</td>
-                          <td className="px-4 py-4">
-                            <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase ${plan.status === 'Approved' ? 'bg-emerald-100 text-emerald-600' :
-                              plan.status === 'Revision Required' ? 'bg-orange-100 text-orange-600' :
-                                plan.status === 'Draft' ? 'bg-slate-100 text-slate-600' :
-                                  'bg-amber-100 text-amber-600'
-                              }`}>{plan.status}</span>
-                          </td>
-                          <td className="px-4 py-4">
-                            {plan.dean_feedback ? (
-                              <div>
-                                <p className="text-xs text-slate-600 dark:text-slate-400 max-w-[120px] truncate">{plan.dean_feedback}</p>
-                                {plan.dean_rating && (
-                                  <div className="flex gap-0.5 mt-1">
-                                    {[1, 2, 3].map(n => (
-                                      <Star key={n} size={10} className={n <= plan.dean_rating ? 'text-amber-500 fill-amber-500' : 'text-slate-300'} />
-                                    ))}
-                                  </div>
-                                )}
-                              </div>
-                            ) : <span className="text-xs text-slate-400">—</span>}
-                          </td>
-                          <td className="px-4 py-4 flex gap-2">
-                            {(plan.status === 'Draft' || plan.status === 'Revision Required') && (
-                              <>
-                                <button onClick={() => openEditModal(plan)}
-                                  className="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-xs font-bold hover:bg-blue-200 transition-colors">
-                                  Edit
-                                </button>
-                                <button onClick={async () => {
-                                  // Guard: sim-IDs mean the plan was never saved to DB — user must open modal and save properly
-                                  if (!plan.id || String(plan.id).startsWith('sim-')) {
-                                    showToast('Please open and re-save the plan as a Draft first before submitting.', 'error');
-                                    return;
-                                  }
-                                  const submittedPlan = { ...plan, status: 'Pending', teacher_name: user?.name || 'Assigned Teacher', teacherName: user?.name || 'Assigned Teacher' };
-                                  try {
-                                    const payload = {
-                                      date: plan.date ? new Date(plan.date).toISOString() : new Date().toISOString(),
-                                      content: plan.content || '',
-                                      objectives: plan.objectives || '',
-                                      teacherActivity: plan.teacher_activity || plan.teacherActivity || '',
-                                      timeDuration: plan.time_duration || plan.timeDuration || '',
-                                      studentActivity: plan.student_activity || plan.studentActivity || '',
-                                      teachingMethod: plan.teaching_method || plan.teachingMethod || '',
-                                      teachingAids: plan.teaching_aids || plan.teachingAids || '',
-                                      evaluation: plan.evaluation || '',
-                                      remark: plan.remark || '',
-                                      status: 'Pending' as const,
-                                      courseId: plan.course_id || plan.courseId || '',
-                                      subject: plan.subject || '',
-                                      deptHeadId: plan.dept_head_id || plan.deptHeadId || '',
-                                      weekNumber: plan.week_number || plan.weekNumber || 1
-                                    };
-                                    await updateWeeklyPlan(plan.id, payload);
-                                    showToast('Plan submitted to Department Head!', 'success');
-                                    const updatedPlans = await getMyWeeklyPlans();
-                                    setPlans(Array.isArray(updatedPlans) ? updatedPlans : []);
-                                  } catch (err: any) {
-                                    const msg = err?.message || 'Submission failed. Please try again.';
-                                    showToast(msg, 'error');
-                                    console.error('Submission error:', err);
-                                  }
-                                  // Optimistically update local state regardless of API result
-                                  setPlans(prev => prev.map(p => p.id === plan.id ? submittedPlan : p));
-                                  setDeptPlans(prev => {
-                                    const exists = prev.some(p => p.id === plan.id);
-                                    if (exists) return prev.map(p => p.id === plan.id ? submittedPlan : p);
-                                    return [submittedPlan, ...prev];
-                                  });
-                                }}
-                                  className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-lg text-xs font-bold hover:bg-emerald-200 transition-colors flex items-center gap-1">
-                                  <CheckCircle2 size={14} /> Submit
-                                </button>
-                              </>
-                            )}
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
+              {/* Submitted and Drafted Plans Card Grid */}
+              {filteredMyPlans.length === 0 ? (
+                <div className="bg-slate-50 dark:bg-slate-800/40 rounded-3xl p-10 border-2 border-dashed border-slate-200 dark:border-slate-700/80 text-center space-y-4">
+                  <div className="w-16 h-16 bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-2xl flex items-center justify-center mx-auto">
+                    <FileText size={32} />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black text-slate-800 dark:text-white uppercase tracking-tight">No Weekly Plans Found</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto mt-1 font-semibold">
+                      Use the "+ Create New Plan" or "Submit New Plan" buttons above to draft or submit your lesson plans.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filteredMyPlans.map((plan: any) => (
+                    <div
+                      key={plan.id}
+                      className="bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-3xl p-6 shadow-sm hover:shadow-lg transition-all flex flex-col justify-between gap-5 relative overflow-hidden group"
+                    >
+                      <div className="space-y-3">
+                        <div className="flex items-start justify-between gap-3 border-b border-slate-200 dark:border-slate-700/60 pb-3">
+                          <div>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-indigo-500 dark:text-indigo-400 block mb-0.5">
+                              {plan.grade_section || plan.gradeSection || 'Assigned Class'}
+                            </span>
+                            <h4 className="font-extrabold text-base text-slate-900 dark:text-white uppercase tracking-tight">
+                              {plan.subject || 'Weekly Lesson Plan'}
+                            </h4>
+                          </div>
+                          <span
+                            className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                              plan.status === 'Approved'
+                                ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
+                                : plan.status === 'Revision Required'
+                                ? 'bg-orange-500/15 text-orange-600 dark:text-orange-400 border border-orange-500/30'
+                                : plan.status === 'Draft'
+                                ? 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
+                                : 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30'
+                            }`}
+                          >
+                            {plan.status === 'Approved' ? 'Approved ✔' : plan.status === 'Draft' ? 'Draft 📝' : plan.status}
+                          </span>
+                        </div>
+
+                        {/* Plan Content Summary */}
+                        <div className="space-y-2 text-xs">
+                          {(plan.chapter_unit || plan.topic_title) && (
+                            <p className="text-slate-700 dark:text-slate-300 font-bold">
+                              📖 <span className="text-slate-500 dark:text-slate-400 font-medium">Topic/Unit:</span> {plan.chapter_unit ? `${plan.chapter_unit} — ` : ''}{plan.topic_title || ''}
+                            </p>
+                          )}
+                          {plan.content && (
+                            <p className="text-slate-600 dark:text-slate-400 line-clamp-2">
+                              <span className="font-bold text-slate-700 dark:text-slate-300">Content:</span> {plan.content}
+                            </p>
+                          )}
+                          {plan.objectives && (
+                            <p className="text-slate-600 dark:text-slate-400 line-clamp-2">
+                              <span className="font-bold text-slate-700 dark:text-slate-300">Objectives:</span> {plan.objectives}
+                            </p>
+                          )}
+                          <div className="flex items-center gap-4 text-[11px] text-slate-500 dark:text-slate-400 pt-1">
+                            {plan.teaching_method || plan.teachingMethod ? (
+                              <span>💡 <strong className="text-slate-700 dark:text-slate-300">{plan.teaching_method || plan.teachingMethod}</strong></span>
+                            ) : null}
+                            {plan.time_duration || plan.timeDuration ? (
+                              <span>⏱️ <strong className="text-slate-700 dark:text-slate-300">{plan.time_duration || plan.timeDuration}</strong></span>
+                            ) : null}
+                          </div>
+                        </div>
+
+                        {/* Feedback from Department Head */}
+                        {plan.dean_feedback || plan.feedback ? (
+                          <div className="bg-amber-500/10 dark:bg-amber-950/30 border border-amber-500/30 rounded-2xl p-3 text-xs space-y-1">
+                            <p className="font-extrabold text-amber-700 dark:text-amber-400 uppercase text-[10px] tracking-wider">
+                              Department Head Feedback:
+                            </p>
+                            <p className="text-slate-700 dark:text-slate-300 font-medium">{plan.dean_feedback || plan.feedback}</p>
+                          </div>
+                        ) : null}
+                      </div>
+
+                      {/* Card Action Controls */}
+                      <div className="pt-3 border-t border-slate-200 dark:border-slate-700/60 flex items-center justify-between gap-2">
+                        <span className="text-[10px] font-bold text-slate-400">
+                          {plan.date ? `Date: ${plan.date.slice(0, 10)}` : 'Weekly Plan'}
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => openEditModal(plan)}
+                            className="px-3 py-1.5 bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-100 rounded-xl text-xs font-bold hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
+                          >
+                            Edit
+                          </button>
+                          {(plan.status === 'Draft' || plan.status === 'Revision Required') && (
+                            <button
+                              onClick={async () => {
+                                if (!plan.id || String(plan.id).startsWith('sim-')) {
+                                  showToast('Please open and re-save the plan as a Draft first before submitting.', 'error');
+                                  return;
+                                }
+                                const submittedPlan = { ...plan, status: 'Pending', teacher_name: user?.name || 'Assigned Teacher', teacherName: user?.name || 'Assigned Teacher' };
+                                try {
+                                  const payload = {
+                                    date: plan.date ? new Date(plan.date).toISOString() : new Date().toISOString(),
+                                    content: plan.content || '',
+                                    objectives: plan.objectives || '',
+                                    teacherActivity: plan.teacher_activity || plan.teacherActivity || '',
+                                    timeDuration: plan.time_duration || plan.timeDuration || '',
+                                    studentActivity: plan.student_activity || plan.studentActivity || '',
+                                    teachingMethod: plan.teaching_method || plan.teachingMethod || '',
+                                    teachingAids: plan.teaching_aids || plan.teachingAids || '',
+                                    evaluation: plan.evaluation || '',
+                                    remark: plan.remark || '',
+                                    status: 'Pending' as const,
+                                    courseId: plan.course_id || plan.courseId || '',
+                                    subject: plan.subject || '',
+                                    deptHeadId: plan.dept_head_id || plan.deptHeadId || '',
+                                    weekNumber: plan.week_number || plan.weekNumber || 1
+                                  };
+                                  await updateWeeklyPlan(plan.id, payload);
+                                  showToast('Plan submitted to Department Head!', 'success');
+                                  const updatedPlans = await getMyWeeklyPlans();
+                                  setPlans(Array.isArray(updatedPlans) ? updatedPlans : []);
+                                } catch (err: any) {
+                                  const msg = err?.message || 'Submission failed. Please try again.';
+                                  showToast(msg, 'error');
+                                  console.error('Submission error:', err);
+                                }
+                                setPlans(prev => prev.map(p => p.id === plan.id ? submittedPlan : p));
+                                setDeptPlans(prev => {
+                                  const exists = prev.some(p => p.id === plan.id);
+                                  if (exists) return prev.map(p => p.id === plan.id ? submittedPlan : p);
+                                  return [submittedPlan, ...prev];
+                                });
+                              }}
+                              className="px-3.5 py-1.5 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 transition-colors flex items-center gap-1.5 shadow-md"
+                            >
+                              <CheckCircle2 size={14} /> Submit
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
