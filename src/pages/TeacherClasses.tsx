@@ -1,3 +1,4 @@
+import { uiError, uiText } from "../localization";
 import { useState, useEffect } from 'react';
 import { Users, BookOpen, ChevronRight, ArrowLeft, Award } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -22,7 +23,7 @@ export const TeacherClasses = () => {
       const data = await teacherService.getMyClasses();
       setClasses(data);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to fetch classes');
+      setError(uiError(err.response?.data?.message || 'Failed to fetch classes'));
     } finally {
       setLoading(false);
     }
@@ -34,7 +35,7 @@ export const TeacherClasses = () => {
       const data = await teacherService.getClassStudents(classId);
       setStudents(data);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to fetch students');
+      setError(uiError(err.response?.data?.message || 'Failed to fetch students'));
     } finally {
       setLoading(false);
     }
@@ -60,66 +61,62 @@ export const TeacherClasses = () => {
           onClick={() => setSelectedClass(null)}
           className="flex items-center gap-2 mb-6 text-blue-600 hover:text-blue-700 font-medium"
         >
-          <ArrowLeft className="w-5 h-5" />
-          Back to Classes
-        </button>
+          <ArrowLeft className="w-5 h-5" />{uiText("Back to Classes")}</button>
 
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">{selectedClass.name} - {selectedClass.section}</h1>
-          <p className="text-gray-600">{selectedClass.subject} • {selectedClass.enrolledStudents} students</p>
+          <h1 className="text-2xl font-bold text-gray-900">{selectedClass.name}{uiText(" - ")}{uiText(selectedClass.section)}</h1>
+          <p className="text-gray-600">{uiText(selectedClass.subject)}{uiText(" • ")}{selectedClass.enrolledStudents}{uiText(" students")}</p>
         </div>
 
-        {error && (
+        {uiText(error && (
           <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-            {error}
+            {uiError(error)}
           </div>
-        )}
+        ))}
 
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <table className="w-full">
             <thead className="bg-gray-50 border-b">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Student ID</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Grade</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Attendance</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{uiText("Student ID")}</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{uiText("Name")}</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{uiText("Email")}</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{uiText("Grade")}</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{uiText("Status")}</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{uiText("Attendance")}</th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">{uiText("Actions")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {students.map((student) => (
                 <tr key={student.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 text-sm text-gray-900">{student.digitalId}</td>
+                  <td className="px-6 py-4 text-sm text-gray-900">{uiText(student.digitalId)}</td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-bold">
-                        {student.firstName[0]}{student.lastName[0]}
+                        {uiText(student.firstName[0])}{uiText(student.lastName[0])}
                       </div>
-                      <span className="font-medium text-gray-900">{student.firstName} {student.lastName}</span>
+                      <span className="font-medium text-gray-900">{uiText(student.firstName)} {uiText(student.lastName)}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600">{student.email}</td>
-                  <td className="px-6 py-4 text-sm text-gray-900">{student.grade}</td>
+                  <td className="px-6 py-4 text-sm text-gray-900">{uiText(student.grade)}</td>
                   <td className="px-6 py-4">
                     <span className={`px-2 py-1 text-xs rounded-full ${
                       student.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
                     }`}>
-                      {student.status}
+                      {uiText(student.status)}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-900">
-                    {student.attendanceRate ? `${student.attendanceRate}%` : 'N/A'}
+                    {uiText(student.attendanceRate ? `${student.attendanceRate}%` : 'N/A')}
                   </td>
                   <td className="px-6 py-4 text-right">
                     <button
                       onClick={() => navigate(`/teacher-student-grades/${student.id}`)}
                       className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 font-medium text-sm"
                     >
-                      <Award className="w-4 h-4" />
-                      View Grades
-                    </button>
+                      <Award className="w-4 h-4" />{uiText("View Grades")}</button>
                   </td>
                 </tr>
               ))}
@@ -130,7 +127,7 @@ export const TeacherClasses = () => {
         {students.length === 0 && !loading && (
           <div className="text-center py-12">
             <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600">No students found in this class.</p>
+            <p className="text-gray-600">{uiText("No students found in this class.")}</p>
           </div>
         )}
       </div>
@@ -140,15 +137,15 @@ export const TeacherClasses = () => {
   return (
     <div className="p-6">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">My Classes</h1>
-        <p className="text-gray-600">View your assigned classes and students</p>
+        <h1 className="text-2xl font-bold text-gray-900">{uiText("My Classes")}</h1>
+        <p className="text-gray-600">{uiText("View your assigned classes and students")}</p>
       </div>
 
-      {error && (
+      {uiText(error && (
         <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-          {error}
+          {uiError(error)}
         </div>
-      )}
+      ))}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {classes.map((cls) => (
@@ -164,32 +161,32 @@ export const TeacherClasses = () => {
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-900">{cls.name}</h3>
-                  <p className="text-sm text-gray-500">{cls.section}</p>
+                  <p className="text-sm text-gray-500">{uiText(cls.section)}</p>
                 </div>
               </div>
               <ChevronRight className="w-5 h-5 text-gray-400" />
             </div>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Subject:</span>
-                <span className="font-medium text-gray-900">{cls.subject}</span>
+                <span className="text-gray-600">{uiText("Subject:")}</span>
+                <span className="font-medium text-gray-900">{uiText(cls.subject)}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Students:</span>
-                <span className="font-medium text-gray-900">{cls.enrolledStudents}/{cls.capacity}</span>
+                <span className="text-gray-600">{uiText("Students:")}</span>
+                <span className="font-medium text-gray-900">{cls.enrolledStudents}{uiText("/")}{cls.capacity}</span>
               </div>
-              {cls.schedule && (
+              {uiText(cls.schedule && (
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Schedule:</span>
-                  <span className="font-medium text-gray-900">{cls.schedule}</span>
+                  <span className="text-gray-600">{uiText("Schedule:")}</span>
+                  <span className="font-medium text-gray-900">{uiText(cls.schedule)}</span>
                 </div>
-              )}
-              {cls.room && (
+              ))}
+              {uiText(cls.room && (
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Room:</span>
-                  <span className="font-medium text-gray-900">{cls.room}</span>
+                  <span className="text-gray-600">{uiText("Room:")}</span>
+                  <span className="font-medium text-gray-900">{uiText(cls.room)}</span>
                 </div>
-              )}
+              ))}
             </div>
           </button>
         ))}
@@ -198,7 +195,7 @@ export const TeacherClasses = () => {
       {classes.length === 0 && !loading && (
         <div className="text-center py-12">
           <BookOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-600">No classes assigned yet.</p>
+          <p className="text-gray-600">{uiText("No classes assigned yet.")}</p>
         </div>
       )}
     </div>

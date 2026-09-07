@@ -1,3 +1,4 @@
+import { uiError, localizeHtml, uiText } from "../localization";
 import { useTranslation } from 'react-i18next';
 import { UserPlus, X, Check, ArrowLeft, MoreVertical, CheckCircle, XCircle, Trash2, Printer, Clock, Edit2, Loader2, FileText, Download, Upload } from 'lucide-react';
 import PhoneInput from '../components/PhoneInput';
@@ -80,7 +81,7 @@ export const LibrarianStaff = () => {
       return staff;
     } catch (err: any) {
       console.error('Failed to fetch librarian staff:', err);
-      setError(err.response?.data?.error?.message || 'Failed to load librarian staff');
+      setError(uiError(err.response?.data?.error?.message || 'Failed to load librarian staff'));
     } finally {
       setLoading(false);
     }
@@ -106,7 +107,7 @@ export const LibrarianStaff = () => {
       fetchLibrarianStaff();
     } catch (err: any) {
       console.error('Action failed:', err);
-      alert(err.response?.data?.error?.message || 'Action failed');
+      alert(uiError(err.response?.data?.error?.message || 'Action failed'));
     } finally {
       setProcessing(false);
     }
@@ -131,12 +132,12 @@ export const LibrarianStaff = () => {
         name: editFormData.name,
         email: editFormData.email
       });
-      alert('Librarian details updated successfully!');
+      alert(uiText("Librarian details updated successfully!"));
       setShowEditModal(false);
       setEditingStaff(null);
       fetchLibrarianStaff();
     } catch (err: any) {
-      alert(err.response?.data?.error?.message || 'Failed to update librarian');
+      alert(uiError(err.response?.data?.error?.message || 'Failed to update librarian'));
     } finally {
       setSubmitting(false);
     }
@@ -151,10 +152,10 @@ export const LibrarianStaff = () => {
       if (newPIN) {
         setGeneratedPassword(newPIN);
       } else {
-        alert('Password reset succeeded');
+        alert(uiText("Password reset succeeded"));
       }
     } catch (err: any) {
-      alert(err.response?.data?.error?.message || 'Failed to reset password');
+      alert(uiError(err.response?.data?.error?.message || 'Failed to reset password'));
     } finally {
       setResettingPassword(false);
     }
@@ -164,7 +165,7 @@ export const LibrarianStaff = () => {
     const { user, temporaryPassword } = successModal.data;
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
-    printWindow.document.write(`
+    printWindow.document.write(localizeHtml(`
       <html>
         <head>
           <title>Librarian Credentials - ${user.name}</title>
@@ -189,19 +190,19 @@ export const LibrarianStaff = () => {
           </div>
           <div class="field">
             <div class="label">Full Name</div>
-            <div class="value">${user.name}</div>
+            <div class="value" data-user-content>${user.name}</div>
           </div>
           <div class="field">
             <div class="label">Email</div>
-            <div class="value">${user.email}</div>
+            <div class="value" data-user-content>${user.email}</div>
           </div>
           <div class="field">
             <div class="label">Digital ID (Username)</div>
-            <div class="value" style="font-family: monospace; color: #2563eb;">${user.digitalId}</div>
+            <div class="value" data-user-content style="font-family: monospace; color: #2563eb;">${user.digitalId}</div>
           </div>
           <div class="pin-box">
             <div class="label">🔑 4-Digit PIN</div>
-            <div class="pin">${temporaryPassword}</div>
+            <div class="pin" data-user-content>${temporaryPassword}</div>
             <div class="warning">⚠️ Change this PIN after first login</div>
           </div>
           <div class="field">
@@ -213,7 +214,7 @@ export const LibrarianStaff = () => {
           </div>
         </body>
       </html>
-    `);
+    `));
     printWindow.document.close();
     printWindow.print();
   };
@@ -222,7 +223,7 @@ export const LibrarianStaff = () => {
     e.preventDefault();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email.trim())) {
-      alert('Please enter a valid email address (e.g. name@school.com)');
+      alert(uiText("Please enter a valid email address (e.g. name@school.com)"));
       return;
     }
 
@@ -247,7 +248,7 @@ export const LibrarianStaff = () => {
     }
 
     if (!selectedFile) {
-      alert('Please upload a document. Document upload is mandatory for staff registration.');
+      alert(uiText("Please upload a document. Document upload is mandatory for staff registration."));
       return;
     }
 
@@ -298,7 +299,7 @@ export const LibrarianStaff = () => {
       fetchLibrarianStaff();
     } catch (err: any) {
       const serverMsg = err.response?.data?.error?.details || err.response?.data?.error?.message || 'Failed to create librarian account';
-      alert(`Registration Error: ${serverMsg}`);
+      alert(uiError("Registration Error: {{value0}}", { value0: serverMsg }));
     } finally {
       setCreating(false);
     }
@@ -308,8 +309,8 @@ export const LibrarianStaff = () => {
     return (
       <div className="p-8 text-center text-rose-500">
         <XCircle className="mx-auto mb-4" size={48} />
-        <h2 className="text-2xl font-bold">Access Denied</h2>
-        <p>You do not have permission to manage staff.</p>
+        <h2 className="text-2xl font-bold">{uiText("Access Denied")}</h2>
+        <p>{uiText("You do not have permission to manage staff.")}</p>
       </div>
     );
   }
@@ -322,7 +323,7 @@ export const LibrarianStaff = () => {
           <button
             onClick={() => navigate(-1)}
             className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
-            aria-label="Go back"
+            aria-label={uiText("Go back")}
           >
             <ArrowLeft size={20} />
           </button>
@@ -340,24 +341,22 @@ export const LibrarianStaff = () => {
             onClick={() => setShowAddModal(true)}
             className="w-full sm:w-auto flex items-center justify-center gap-2 bg-emerald-600 text-white px-4 py-2.5 rounded-xl hover:bg-emerald-700 transition-colors font-medium shadow-md"
           >
-            <UserPlus size={18} />
-            Add Librarian
-          </button>
+            <UserPlus size={18} />{uiText("Add Librarian")}</button>
         )}
       </div>
 
       {/* Error Message */}
-      {error && (
+      {uiText(error && (
         <div className="bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 px-4 py-3 rounded-lg">
-          {error}
+          {uiError(error)}
         </div>
-      )}
+      ))}
 
       {/* Staff List */}
       <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center p-8">
-            <div className="text-slate-500">Loading...</div>
+            <div className="text-slate-500">{uiText("Loading...")}</div>
           </div>
         ) : librarianStaff.length === 0 ? (
           <div className="flex items-center justify-center p-8 text-center">
@@ -389,12 +388,11 @@ export const LibrarianStaff = () => {
                     <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{staff.email}</td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <p className="text-sm font-mono text-slate-600 dark:text-slate-400">{staff.digitalId}</p>
-                        {staff.zkDeviceId && (
-                          <span className="px-1.5 py-0.5 bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 rounded text-[10px] font-bold tracking-wider">
-                            ZK: {staff.zkDeviceId}
+                        <p className="text-sm font-mono text-slate-600 dark:text-slate-400">{uiText(staff.digitalId)}</p>
+                        {uiText(staff.zkDeviceId && (
+                          <span className="px-1.5 py-0.5 bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 rounded text-[10px] font-bold tracking-wider">{uiText("ZK: ")}{uiText(staff.zkDeviceId)}
                           </span>
-                        )}
+                        ))}
                       </div>
                     </td>
                     <td className="px-6 py-4">
@@ -407,7 +405,7 @@ export const LibrarianStaff = () => {
                         {staff.status === 'Approved' && <CheckCircle size={12} />}
                         {staff.status === 'Pending' && <Clock size={12} />}
                         {staff.status === 'Revoked' && <XCircle size={12} />}
-                        {staff.status}
+                        {uiText(staff.status)}
                       </span>
                     </td>
                     <td className="px-6 py-4">
@@ -418,29 +416,25 @@ export const LibrarianStaff = () => {
                               onClick={() => setConfirmAction({ show: true, action: 'approve', staff })}
                               className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 transition-all"
                             >
-                              <CheckCircle size={14} />
-                              Approve
-                            </button>
+                              <CheckCircle size={14} />{uiText("Approve")}</button>
                           ) : staff.status === 'Approved' ? (
                             <button
                               onClick={() => setConfirmAction({ show: true, action: 'revoke', staff })}
                               className="px-3 py-1.5 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 transition-all"
                             >
-                              <XCircle size={14} />
-                              Revoke
-                            </button>
+                              <XCircle size={14} />{uiText("Revoke")}</button>
                           ) : null}
                           <button
                             onClick={() => openEditModal(staff)}
                             className="p-1.5 text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-950/30 rounded-lg transition-colors"
-                            title="Edit User"
+                            title={uiText("Edit User")}
                           >
                             <Edit2 size={16} />
                           </button>
                           <button
                             onClick={() => setConfirmAction({ show: true, action: 'delete', staff })}
                             className="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors"
-                            title="Delete User"
+                            title={uiText("Delete User")}
                           >
                             <Trash2 size={16} />
                           </button>
@@ -468,7 +462,7 @@ export const LibrarianStaff = () => {
               </div>
               <button
                 type="button"
-                title="Close add librarian modal"
+                title={uiText("Close add librarian modal")}
                 onClick={() => setShowAddModal(false)}
                 className="text-slate-400 hover:text-slate-600"
               >
@@ -481,7 +475,7 @@ export const LibrarianStaff = () => {
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{t("librarian.fullName", "Full Name")}</label>
                 <input
                   type="text"
-                  title="Librarian full name"
+                  title={uiText("Librarian full name")}
                   required
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value.replace(/[^a-zA-Z\u00C0-\u024F\s'-]/g, '') })}
@@ -512,7 +506,7 @@ export const LibrarianStaff = () => {
                   <label className="block text-xs font-bold text-slate-500 uppercase mb-1">{t("librarian.emergencyContactName", "Emergency Contact Name")}</label>
                   <input
                     type="text"
-                    title="Emergency contact person's name"
+                    title={uiText("Emergency contact person's name")}
                     placeholder={t("teachers.emergencyContactPlaceholderLib", "Emergency contact name")}
                     required
                     value={formData.emergencyContactName}
@@ -529,7 +523,7 @@ export const LibrarianStaff = () => {
                 />
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{t("librarian.educationStatus", "Education Status")}</label>
-                  <select title="Select education level" value={formData.educationLevel} onChange={(e) => setFormData({ ...formData, educationLevel: e.target.value })} className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none">
+                  <select title={uiText("Select education level")} value={formData.educationLevel} onChange={(e) => setFormData({ ...formData, educationLevel: e.target.value })} className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none">
                     <option value="">{t("librarian.selectLevel", "Select level")}</option>
                     <option value="Diploma">{t("teachers.diploma", "Diploma")}</option>
                     <option value="Degree">{t("teachers.degree", "Degree")}</option>
@@ -541,7 +535,7 @@ export const LibrarianStaff = () => {
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{t("librarian.specialtyCourse", "Specialty / Course")}</label>
                   <input
                     type="text"
-                    title="Librarian specialty or course"
+                    title={uiText("Librarian specialty or course")}
                     placeholder={t("teachers.specialtyPlaceholderLib", "Enter specialty or course")}
                     required
                     value={formData.specialty}
@@ -561,7 +555,7 @@ export const LibrarianStaff = () => {
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{t("librarian.previousSchool", "Previous School")}</label>
                   <input
                     type="text"
-                    title="Previous educational institution"
+                    title={uiText("Previous educational institution")}
                     placeholder={t("teachers.previousSchoolPlaceholder", "Previous school name")}
                     required
                     value={formData.previousSchool}
@@ -575,7 +569,7 @@ export const LibrarianStaff = () => {
                   <input
                     type="text"
                     inputMode="numeric"
-                    title="Years of professional experience"
+                    title={uiText("Years of professional experience")}
                     placeholder={t("teachers.experiencePlaceholderLib", "Years of experience")}
                     required
                     value={formData.experienceYears}
@@ -595,7 +589,7 @@ export const LibrarianStaff = () => {
                       const file = e.target.files?.[0];
                       if (file) {
                         if (file.size > 2 * 1024 * 1024) {
-                          alert('File size exceeds the 2MB limit.');
+                          alert(uiText("File size exceeds the 2MB limit."));
                           e.target.value = '';
                           setSelectedFile(null);
                         } else {
@@ -612,15 +606,13 @@ export const LibrarianStaff = () => {
                   type="button"
                   onClick={() => setShowAddModal(false)}
                   className="flex-1 px-4 py-2 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 font-medium transition-colors"
-                >
-                  Cancel
-                </button>
+                >{uiText("Cancel")}</button>
                 <button
                   type="submit"
                   disabled={creating}
                   className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-medium transition-colors disabled:opacity-50"
                 >
-                  {creating ? t('librarian.creating', 'Creating...') : t('librarian.create', 'Create')}
+                  {uiText(creating ? t('librarian.creating', 'Creating...') : t('librarian.create', 'Create'))}
                 </button>
               </div>
             </form>
@@ -630,7 +622,7 @@ export const LibrarianStaff = () => {
 
       <StaffProfileModal
         open={!!selectedStaff}
-        title="Librarian Details"
+        title={uiText("Librarian Details")}
         staff={selectedStaff}
         onClose={() => setSelectedStaff(null)}
         onRefresh={async () => {
@@ -646,17 +638,17 @@ export const LibrarianStaff = () => {
       {successModal.show && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-slate-900 rounded-xl shadow-lg p-6 max-w-md w-full">
-            <h2 className="text-xl font-bold text-emerald-600 dark:text-emerald-400 mb-4">✓ Librarian Created Successfully</h2>
+            <h2 className="text-xl font-bold text-emerald-600 dark:text-emerald-400 mb-4">{uiText("✓ Librarian Created Successfully")}</h2>
             <div className="space-y-3 mb-6 text-sm">
               <div>
-                <span className="text-slate-600 dark:text-slate-400">Name:</span>
+                <span className="text-slate-600 dark:text-slate-400">{uiText("Name:")}</span>
                 <span className="float-right font-medium text-slate-900 dark:text-white">{successModal.data?.user.name}</span>
               </div>
               <div>
-                <span className="text-slate-600 dark:text-slate-400">Digital ID:</span>
+                <span className="text-slate-600 dark:text-slate-400">{uiText("Digital ID:")}</span>
                 <div className="flex items-center gap-2 mt-1">
                   <code className="flex-1 bg-slate-50 dark:bg-slate-800 px-3 py-2 rounded font-mono text-blue-600 dark:text-blue-400">
-                    {successModal.data?.user.digitalId}
+                    {uiText(successModal.data?.user.digitalId)}
                   </code>
                   <button
                     onClick={() => {
@@ -666,15 +658,15 @@ export const LibrarianStaff = () => {
                     }}
                     className="px-3 py-2 bg-slate-100 dark:bg-slate-800 rounded hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
                   >
-                    {copied === 'digitalId' ? '✓' : 'Copy'}
+                    {uiText(copied === 'digitalId' ? '✓' : 'Copy')}
                   </button>
                 </div>
               </div>
               <div>
-                <span className="text-slate-600 dark:text-slate-400">4-Digit PIN:</span>
+                <span className="text-slate-600 dark:text-slate-400">{uiText("4-Digit PIN:")}</span>
                 <div className="flex items-center gap-2 mt-1">
                   <code className="flex-1 bg-yellow-50 dark:bg-yellow-900/30 px-3 py-2 rounded font-mono text-lg font-bold text-yellow-700 dark:text-yellow-400">
-                    {successModal.data?.temporaryPassword}
+                    {uiText(successModal.data?.temporaryPassword)}
                   </code>
                   <button
                     onClick={() => {
@@ -684,7 +676,7 @@ export const LibrarianStaff = () => {
                     }}
                     className="px-3 py-2 bg-slate-100 dark:bg-slate-800 rounded hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
                   >
-                    {copied === 'password' ? '✓' : 'Copy'}
+                    {uiText(copied === 'password' ? '✓' : 'Copy')}
                   </button>
                 </div>
               </div>
@@ -693,16 +685,12 @@ export const LibrarianStaff = () => {
               <button
                 onClick={() => setSuccessModal({ show: false, data: null })}
                 className="flex-1 px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 font-medium transition-colors"
-              >
-                Close
-              </button>
+              >{uiText("Close")}</button>
               <button
                 onClick={handlePrintCredentials}
                 className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-medium transition-colors flex items-center justify-center gap-2"
               >
-                <Printer size={16} />
-                Print
-              </button>
+                <Printer size={16} />{uiText("Print")}</button>
             </div>
           </div>
         </div>
@@ -713,22 +701,20 @@ export const LibrarianStaff = () => {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-slate-900 rounded-xl shadow-lg p-6 max-w-md w-full">
             <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
-              {confirmAction.action === 'approve' && 'Approve Librarian?'}
-              {confirmAction.action === 'revoke' && 'Revoke Access?'}
-              {confirmAction.action === 'delete' && 'Delete Librarian?'}
+              {uiText(confirmAction.action === 'approve' && 'Approve Librarian?')}
+              {uiText(confirmAction.action === 'revoke' && 'Revoke Access?')}
+              {uiText(confirmAction.action === 'delete' && 'Delete Librarian?')}
             </h2>
             <p className="text-slate-600 dark:text-slate-400 text-sm mb-6">
-              {confirmAction.action === 'approve' && `Approve ${confirmAction.staff?.name} to access the librarian portal?`}
-              {confirmAction.action === 'revoke' && `Revoke ${confirmAction.staff?.name}'s access?`}
-              {confirmAction.action === 'delete' && `Permanently delete ${confirmAction.staff?.name}'s account?`}
+              {uiText(confirmAction.action === 'approve' && `Approve ${confirmAction.staff?.name} to access the librarian portal?`)}
+              {uiText(confirmAction.action === 'revoke' && `Revoke ${confirmAction.staff?.name}'s access?`)}
+              {uiText(confirmAction.action === 'delete' && `Permanently delete ${confirmAction.staff?.name}'s account?`)}
             </p>
             <div className="flex gap-2">
               <button
                 onClick={() => setConfirmAction({ show: false, action: 'approve', staff: null })}
                 className="flex-1 px-4 py-2 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 font-medium transition-colors"
-              >
-                Cancel
-              </button>
+              >{uiText("Cancel")}</button>
               <button
                 onClick={handleAction}
                 disabled={processing}
@@ -737,11 +723,11 @@ export const LibrarianStaff = () => {
                     'bg-rose-600 hover:bg-rose-700'
                   }`}
               >
-                {processing ? 'Processing...' : (
+                {uiText(processing ? 'Processing...' : (
                   confirmAction.action === 'approve' ? 'Approve' :
                     confirmAction.action === 'revoke' ? 'Revoke' :
                       'Delete'
-                )}
+                ))}
               </button>
             </div>
           </div>
@@ -749,7 +735,7 @@ export const LibrarianStaff = () => {
       )}
 
       {/* Edit Modal */}
-      {showEditModal && editingStaff && (
+      {uiText(showEditModal && editingStaff && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 w-full max-w-md">
             <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
@@ -761,13 +747,13 @@ export const LibrarianStaff = () => {
                 type="button"
                 onClick={() => setShowEditModal(false)}
                 className="text-slate-400 hover:text-slate-600"
-                title="Close edit modal"
-                aria-label="Close edit modal"
+                title={uiText("Close edit modal")}
+                aria-label={uiText("Close edit modal")}
               ><X size={20} /></button>
             </div>
             <form onSubmit={handleEdit} className="p-6 space-y-4">
               <div>
-                <label htmlFor="edit-name" className="text-xs font-bold text-slate-500 uppercase">Full Name</label>
+                <label htmlFor="edit-name" className="text-xs font-bold text-slate-500 uppercase">{uiText("Full Name")}</label>
                 <input
                   id="edit-name"
                   type="text"
@@ -778,7 +764,7 @@ export const LibrarianStaff = () => {
                 />
               </div>
               <div>
-                <label htmlFor="edit-email" className="text-xs font-bold text-slate-500 uppercase">Email Address</label>
+                <label htmlFor="edit-email" className="text-xs font-bold text-slate-500 uppercase">{uiText("Email Address")}</label>
                 <input
                   id="edit-email"
                   type="email"
@@ -791,8 +777,8 @@ export const LibrarianStaff = () => {
               <div className="flex flex-col gap-3 border-t border-b border-slate-100 dark:border-slate-800 py-4 my-2">
                 <div className="flex items-center justify-between gap-4">
                   <div>
-                    <label className="text-xs font-bold text-slate-500 uppercase">Password Reset</label>
-                    <p className="text-xs text-slate-500">Generate a new 4-digit PIN for this staff member.</p>
+                    <label className="text-xs font-bold text-slate-500 uppercase">{uiText("Password Reset")}</label>
+                    <p className="text-xs text-slate-500">{uiText("Generate a new 4-digit PIN for this staff member.")}</p>
                   </div>
                   <button
                     type="button"
@@ -800,34 +786,31 @@ export const LibrarianStaff = () => {
                     disabled={resettingPassword}
                     className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-xs font-bold disabled:opacity-50 whitespace-nowrap"
                   >
-                    {resettingPassword ? 'Generating...' : 'Reset Password'}
+                    {uiText(resettingPassword ? 'Generating...' : 'Reset Password')}
                   </button>
                 </div>
-                {generatedPassword && (
+                {uiText(generatedPassword && (
                   <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 text-center">
-                    <p className="text-xs text-amber-700 dark:text-amber-300">
-                      New password generated: <span className="font-mono text-base font-bold text-slate-900 dark:text-white ml-1">{generatedPassword}</span>
+                    <p className="text-xs text-amber-700 dark:text-amber-300">{uiText("New password generated: ")}<span className="font-mono text-base font-bold text-slate-900 dark:text-white ml-1">{uiText(generatedPassword)}</span>
                     </p>
                   </div>
-                )}
+                ))}
               </div>
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => setShowEditModal(false)}
                   className="flex-1 px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg font-bold text-sm text-slate-500 hover:bg-slate-50"
-                  disabled={submitting}>
-                  Cancel
-                </button>
+                  disabled={submitting}>{uiText("Cancel")}</button>
                 <button type="submit"
                   className="flex-1 bg-blue-600 text-white font-bold py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-blue-700 disabled:opacity-50"
                   disabled={submitting}>
                   {submitting ? <Loader2 className="animate-spin" size={18} /> : <Check size={18} />}
-                  <span>{submitting ? 'Saving...' : 'Save Changes'}</span>
+                  <span>{uiText(submitting ? 'Saving...' : 'Save Changes')}</span>
                 </button>
               </div>
             </form>
           </div>
         </div>
-      )}
+      ))}
     </div>
   );
 };

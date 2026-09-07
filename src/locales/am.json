@@ -1,8 +1,8 @@
 {
   "nav": {
-    "home": "ዋና ገጽ",
+    "home": "መነሻ",
     "about": "ስለ እኛ",
-    "programs": "ፕሮግራሞች",
+    "programs": "መርሐ ግብሮች",
     "media": "ሚዲያ",
     "branches": "ቅርንጫፎች",
     "signIn": "ግባ",
@@ -17,7 +17,7 @@
     "finance": "ፋይናንስ",
     "settings": "ቅንብሮች",
     "transcripts": "ትራንስክሪፕቶች",
-    "exams": "ኦፊሴላዊ ፈተናዎች",
+    "exams": "የይፋ ፈተናዎች",
     "teacherPortal": "የመምህራን መግቢያ",
     "weeklyPlans": "ሳምንታዊ እቅዶች",
     "mySchedule": "የእኔ የጊዜ ሰሌዳ",
@@ -36,23 +36,27 @@
     "websitePosts": "የድር ጣቢያ ልጥፎች",
     "auditorDashboard": "የኦዲተር ዳሽቦርድ",
     "specialStudents": "ልዩ ተማሪዎች",
-    "schoolLife": "የትምህርት ቤት ህይወት",
+    "schoolLife": "የትምህርት ቤት ሕይወት",
     "classes": "ክፍሎች",
     "subjects": "ትምህርቶች",
     "staffManagement": "የሰራተኞች አስተዳደር",
-    "elearningLibrary": "የኢ-መማር ቤተ መጻሕፍት",
+    "elearningLibrary": "የኤሌክትሮኒክ ትምህርት ቤተ መጻሕፍት",
     "academicOverview": "የአካዳሚክ አጠቃላይ እይታ",
     "academicAnalytics": "የአካዳሚክ ትንታኔ",
     "teachersStaff": "መምህራን እና ሰራተኞች",
     "attendanceOversight": "የክትትል ቁጥጥር",
     "gradeEditing": "የውጤት እና ነጥብ ማስተካካያ",
-    "elearningManagement": "የኢ-መማር አስተዳደር",
+    "elearningManagement": "የኤሌክትሮኒክ ትምህርት አስተዳደር",
     "gradeManagement": "የውጤት አስተዳደር",
     "gradeEntry": "ውጤት ማስገቢያ",
     "familyDashboard": "የቤተሰብ ዳሽቦርድ",
     "communicationBook": "የኮሙኒኬችን ደብተር",
     "newsEvents": "ዜና እና ሁነቶች",
-    "librarian": "የቤተ-መጽሐፍት ሠራተኞች"
+    "librarian": "የቤተ-መጽሐፍት ሠራተኞች",
+    "supervise": "ተቆጣጠር",
+    "storekeeperPortal": "የመጋዘን መግቢያ",
+    "propertyRegister": "የንብረት መዝገብ",
+    "addAsset": "ንብረት ጨምር"
   },
   "landing": {
     "heroTitle": "የ",
@@ -143,7 +147,7 @@
       "quickLinks": "ፈጣን አገናኞች",
       "connect": "ይገናኙ",
       "staffAccess": "የሰራተኞች መግቢያ",
-      "staffPortal": "ይፋዊ የሰራተኞች ፖርታል",
+      "staffPortal": "የይፋ የሰራተኞች ፖርታል",
       "rights": "© 2026 የዝቋላ አቦ ትምህርት ቤት • ቢሾፍቱ",
       "founded": "የዝቋላ አቦ ትምህርት ቤት በዝቋላ አቦ ገዳም ማህበር የሚተዳደር ሲሆን ብቁ እና ኃላፊነት ያላቸው ዜጎችን ለማፍራት ይሰራል።",
       "links": {
@@ -151,7 +155,12 @@
         "admissions": "ምዝገባ",
         "curriculum": "ስርዓተ ትምህርት",
         "schoolLife": "የትምህርት ቤት ህይወት",
-        "careers": "ስራዎች"
+        "careers": "ስራዎች",
+        "/": "መነሻ",
+        "/about": "ስለ እኛ",
+        "/programs": "መርሐ ግብሮች",
+        "/school-life": "የትምህርት ቤት ሕይወት",
+        "/branches": "ቅርንጫፎች"
       }
     },
     "valuesSubtitle": "መሰረቶቻችን",
@@ -286,7 +295,7 @@
         ]
       },
       "schoolLife": {
-        "subtitle": "የትምህርት ቤት ህይወት",
+        "subtitle": "የትምህርት ቤት ሕይወት",
         "title": "ከክፍል ውጭ",
         "uniform": {
           "title": "የትምህርት ቤት የደንብ ልብስ",
@@ -363,7 +372,8 @@
             "name": "አቶ ዮናስ በቀለ",
             "role": "ዳይሬክተር — አዋሽ"
           }
-        ]
+        ],
+        "branch": "ቅርንጫፍ"
       }
     },
     "admissionClosed": "ምዝገባ ተዘግቷል",
@@ -403,10 +413,12 @@
   },
   "sidebar": {
     "activeRole": "አሁን ያለው ሚና",
-    "logout": "ውጣ"
+    "logout": "ውጣ",
+    "academicPortal": "የትምህርት መግቢያ",
+    "signOut": "ውጣ"
   },
   "roles": {
-    "super-admin": "ሱፐር አድሚን",
+    "super-admin": "ዋና አስተዳዳሪ",
     "school-admin": "ትምህርት ቤት አስተዳዳሪ",
     "academic-manager": "ትምህርት አስተዳዳሪ",
     "vice-principal": "ምክትል ርዕሰ መምህር",
@@ -490,7 +502,7 @@
   "registration": {
     "title": "የተማሪዎች ምዝገባ",
     "subtitle": "መግቢያዎችን፣ የትራንስክሪፕት ማፅደቆችን እና የተማሪዎችን ደረጃ ማሳደግ ያስተዳድሩ።",
-    "schoolTitleEn": "Ziquala Abo Kindergarten and Primary School",
+    "schoolTitleEn": "ዝቋላ አቦ መዋዕለ ሕፃናትና አንደኛ ደረጃ ትምህርት ቤት",
     "schoolTitleAm": "የዝቋላ አቦ ገዳም አፀደ ህፃናትና አንደኛ ደረጃ ት/ቤት",
     "formTitle": "የተማሪዎች መመዝገቢ ቅፅ",
     "back": "ተመለስ",
@@ -579,7 +591,9 @@
     "publish": "ወደ ድር ጣቢያው ይለጥፉ",
     "imageType": "ምስል (URL)",
     "videoType": "ቪዲዮ (YouTube Embed URL)",
-    "placeholderDesc": "ስለዚህ ልጥፍ አንድ ነገር ይጻፉ..."
+    "placeholderDesc": "ስለዚህ ልጥፍ አንድ ነገር ይጻፉ...",
+    "confirmDelete": "እርግጠኛ ነዎት ይህን ልጥፍ መሰረዝ ይፈልጋሉ?",
+    "publishing": "በማውጣት ላይ..."
   },
   "driverPortal": {
     "title": "የሎጅስቲክስ ዳሽቦርድ",
@@ -693,7 +707,9 @@
     "creating": "በመፍጠር ላይ...",
     "updateClass": "ክፍል አዘምን",
     "noClasses": "ምንም ክፍሎች አልተገኘሁም።",
-    "back": "ተመለስ"
+    "back": "ተመለስ",
+    "createClassTitle": "አዲስ ክፍል ፍጠር",
+    "editClassTitle": "ክፍል አስተካክል"
   },
   "subjects": {
     "title": "የትምህርት ዓይነቶች አስተዳደር",
@@ -750,7 +766,7 @@
     "subtitle": "የተማሪ መዝገቦችን እና የክፍል ምደባዎችን ያስተዳድሩ",
     "addStudent": "ተማሪ ጨምር",
     "pendingApplications": "በመጠባበቅ ላይ ያሉ ማመልከቻዎች",
-    "export": "መዝገብ አውርድ (Export)",
+    "export": "መዝገብ አውርድ",
     "searchPlaceholder": "ተማሪዎችን ይፈልጉ...",
     "allGrades": "ሁሉም ክፍሎች",
     "allSections": "ሁሉም ሴክሽኖች",
@@ -884,7 +900,7 @@
     "latePresent": "ዘግይተው የተገኙ",
     "arrivedLateToday": "ዛሬ ዘግይተው የተገኙ",
     "teachersAbsent": "የቀሩ መምህራን",
-    "pendingSignIn": "ያልተመዘገቡ (Pending)",
+    "pendingSignIn": "ያልተመዘገቡ",
     "staffBiometricTitle": "የሰራተኞች ባዮሜትሪክ ክትትል",
     "staffBiometricSubtitle": "ሰራተኞችን በዛሬው የመገኘት እና የባዮሜትሪክ ሁኔታ ያጣሩ።",
     "filterAll": "ሁሉም",
@@ -950,8 +966,8 @@
     "colDetails": "የንብረት ዝርዝር",
     "colBranch": "ቅርንጫፍ",
     "colAmount": "ብዛት",
-    "colUnitValue": "የአንዱ ዋጋ (ETB)",
-    "colTotalValue": "ጠቅላላ ዋጋ (ETB)",
+    "colUnitValue": "የአንዱ ዋጋ (ብር)",
+    "colTotalValue": "ጠቅላላ ዋጋ (ብር)",
     "colAdded": "የተጨመረበት ቀን",
     "noInventoryFound": "ምንም የንብረት መዝገብ አልተገኘም።"
   },
@@ -959,7 +975,7 @@
     "title": "የስርዓት ቅንብሮች",
     "subtitle": "የትምህርት ቤት ምርጫዎችዎን እና የስርዓት ውቅርዎን ያስተዳድሩ።",
     "needHelp": "እርዳታ ይፈልጋሉ?",
-    "schoolNameLabel": "የትምህርት ቤት ስም (ይፋዊ)",
+    "schoolNameLabel": "የትምህርት ቤት ስም (የይፋ)",
     "schoolMottoLabel": "የትምህርት ቤት መፈክር",
     "configuration": "ማዋቀሪያ",
     "languages": {
@@ -970,21 +986,24 @@
     "tabs": {
       "General": "አጠቃላይ",
       "Security": "ደህንነት",
-      "Grading": "የደረጃ አሰጣጥ ስርዓት",
+      "Grading": "የውጤት አሰጣጥ ሥርዓት",
       "Appearance": "ገጽታ"
     },
     "subtabs": {
-      "branding": "ማህተም (ብራንዲንግ)",
+      "branding": "የተቋም መለያ ገጽታ",
       "contact": "አድራሻ",
       "password": "የይለፍ ቃል",
       "smtp": "ኢሜይል / SMTP"
-    }
+    },
+    "currentPassword": "የአሁኑ ሚስጥራዊ ማለፊያ ቁልፍ",
+    "newPassword": "አዲስ የይለፍ ቃል"
   },
   "common": {
     "back": "ተመለስ",
     "dashboard": "ዳሽቦርድ",
     "exams": "ፈተናዎች",
-    "grades": "ውጤቶች"
+    "grades": "ውጤቶች",
+    "schoolName": "ዝቋላ አቦ ትምህርት ቤት"
   },
   "branches": {
     "title": "የትምህርት ቤት ቅርንጫፎች",
@@ -1095,7 +1114,10 @@
     "diploma": "ዲፕሎማ",
     "degree": "ዲግሪ",
     "master": "ማስተርስ",
-    "phd": "ዶክተሬት (PhD)"
+    "phd": "ዶክተሬት (PhD)",
+    "supervise": "ተቆጣጠር",
+    "teachersList": "መምህራን",
+    "colAdminRating": "የአስተዳዳሪ ደረጃ አሰጣጥ"
   },
   "librarian": {
     "title": "የቤተ-መጽሐፍት ሠራተኞች",
@@ -1256,7 +1278,8 @@
     "roomTeacherLabel": "የክፍል ኃላፊ መምህር:",
     "loadingGrades": "ክፍሎችን በመጫን ላይ...",
     "loadingStudents": "ተማሪዎችን በመጫን ላይ...",
-    "academicOversightHeader": "የትምህርት ቁጥጥር"
+    "academicOversightHeader": "የትምህርት ቁጥጥር",
+    "colTeacher": "መምህር"
   },
   "teacherPortal": {
     "overview": "አጠቃላይ እይታ",
@@ -1321,8 +1344,8 @@
   },
   "examsPage": {
     "back": "ተመለስ",
-    "officialExaminations": "ኦፊሴላዊ ፈተናዎች",
-    "manageExamsSub": "ለትምህርቶችዎ አጋማሽ እና የመጨረሻ ፈተናዎችን ያስተዳድሩ።",
+    "officialExaminations": "የይፋ ፈተናዎች",
+    "manageExamsSub": "ለትምህርቶችዎ የይፋ አጋማሽ እና የመጨረሻ ፈተናዎችን ያስተዳድሩ።",
     "newExamination": "አዲስ ፈተና",
     "allItems": "ሁሉም ነገሮች",
     "midTerms": "የግማሽ ዘመን ፈተናዎች",

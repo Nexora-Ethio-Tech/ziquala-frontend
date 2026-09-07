@@ -1,3 +1,4 @@
+import { uiText } from "../localization";
 import React, { useState, useRef, useEffect } from 'react';
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { parseEthiopianDateString } from '../utils/ethiopianCalendar';
@@ -117,8 +118,8 @@ export const EthiopianDatePicker: React.FC<EthiopianDatePickerProps> = ({
         <input
           type="text"
           id={id}
-          placeholder={placeholder}
-          title={title}
+          placeholder={uiText(placeholder)}
+          title={uiText(title)}
           value={value}
           onChange={handleInputChange}
           onClick={() => setIsOpen(true)}
@@ -130,17 +131,17 @@ export const EthiopianDatePicker: React.FC<EthiopianDatePickerProps> = ({
           className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 cursor-pointer"
           onClick={() => setIsOpen(!isOpen)}
         />
-        {value && (
+        {uiText(value && (
           <button
             type="button"
-            title="Clear selected date"
-            aria-label="Clear selected date"
+            title={uiText("Clear selected date")}
+            aria-label={uiText("Clear selected date")}
             onClick={() => onChange('')}
             className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
           >
             <X size={14} />
           </button>
-        )}
+        ))}
       </div>
 
       {isOpen && (
@@ -149,8 +150,8 @@ export const EthiopianDatePicker: React.FC<EthiopianDatePickerProps> = ({
           <div className="flex items-center justify-between mb-4">
             <button
               type="button"
-              title="Previous month"
-              aria-label="Previous month"
+              title={uiText("Previous month")}
+              aria-label={uiText("Previous month")}
               onClick={handlePrevMonth}
               className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500 dark:text-slate-400"
             >
@@ -159,19 +160,18 @@ export const EthiopianDatePicker: React.FC<EthiopianDatePickerProps> = ({
             
             <div className="text-center">
               <div className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-widest">
-                {ETHIOPIAN_MONTHS[viewMonth - 1]}
+                {uiText(ETHIOPIAN_MONTHS[viewMonth - 1])}
               </div>
               <div className="flex items-center justify-center gap-1 mt-0.5">
                 <select
-                  title="Select Year"
+                  title={uiText("Select Year")}
                   value={viewYear}
                   onChange={(e) => setViewYear(Number(e.target.value))}
                   className="bg-transparent text-[11px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest border-none p-0 focus:ring-0 cursor-pointer outline-none"
                 >
                   {Array.from({ length: 36 }, (_, i) => 2000 + i).map((yr) => (
                     <option key={yr} value={yr} className="bg-white dark:bg-slate-900 text-slate-850 dark:text-white font-bold">
-                      {yr} E.C.
-                    </option>
+                      {yr}{uiText(" E.C.")}</option>
                   ))}
                 </select>
               </div>
@@ -179,8 +179,8 @@ export const EthiopianDatePicker: React.FC<EthiopianDatePickerProps> = ({
 
             <button
               type="button"
-              title="Next month"
-              aria-label="Next month"
+              title={uiText("Next month")}
+              aria-label={uiText("Next month")}
               onClick={handleNextMonth}
               className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500 dark:text-slate-400"
             >
@@ -213,7 +213,7 @@ export const EthiopianDatePicker: React.FC<EthiopianDatePickerProps> = ({
           </div>
 
           <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center text-[10px] font-black uppercase text-slate-400 tracking-wider">
-            <span>Ethiopian Calendar</span>
+            <span>{uiText("Ethiopian Calendar")}</span>
             <button
               type="button"
               onClick={() => {
@@ -229,9 +229,7 @@ export const EthiopianDatePicker: React.FC<EthiopianDatePickerProps> = ({
                 setIsOpen(false);
               }}
               className="text-blue-600 hover:text-blue-700"
-            >
-              Today
-            </button>
+            >{uiText("Today")}</button>
           </div>
         </div>
       )}

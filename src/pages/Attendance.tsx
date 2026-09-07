@@ -1,3 +1,4 @@
+import { uiError, uiText, localeTag } from "../localization";
 import { useTranslation } from 'react-i18next';
 import { CheckCircle, XCircle, Clock, ChevronDown, UserCheck, Users, ShieldAlert, ArrowRight, X, Send, Check, Loader2, ArrowLeft, Pencil, Sliders, CalendarDays } from 'lucide-react';
 import { useState, useEffect } from 'react';
@@ -20,19 +21,19 @@ const ETH_MONTHS = [
 function formatEthDateStr(ethStr: string): string {
   const p = parseEthiopianDateString(ethStr);
   if (!p) return ethStr;
-  return `${p.day} ${ETH_MONTHS[p.month - 1]} ${p.year} E.C.`;
+  return `${p.day} ${uiText(ETH_MONTHS[p.month - 1])} ${p.year} ${uiText("E.C.")}`;
 }
 
 function formatWindowTime(timeStr?: string): string {
   if (!timeStr) return '--:--';
   const parts = timeStr.split(':');
   if (parts.length < 2) return timeStr;
-  let h = parseInt(parts[0], 10);
-  const m = parts[1];
-  const meridiem = h >= 12 ? 'PM' : 'AM';
-  h = h % 12;
-  if (h === 0) h = 12;
-  return `${h}:${m} ${meridiem}`;
+  const hour = Number(parts[0]);
+  const minute = Number(parts[1]);
+  if (!Number.isFinite(hour) || !Number.isFinite(minute)) return timeStr;
+  return new Date(2020, 0, 1, hour, minute).toLocaleTimeString(localeTag(), {
+    hour: 'numeric', minute: '2-digit', hour12: true,
+  });
 }
 
 type AttendanceMode = 'student' | 'staff' | null;
@@ -146,10 +147,10 @@ export const Attendance = () => {
         setStaffAttendance(mappedRecords);
       }
       setShowWindowsModal(false);
-      alert(`Attendance time intervals for ${formatEthDateStr(selectedDate)} saved successfully!`);
+      alert(uiText("Attendance time intervals for {{value0}} saved successfully!", { value0: formatEthDateStr(selectedDate) }));
     } catch (error: any) {
       console.error('Failed to save attendance times:', error);
-      alert('Failed to save attendance times: ' + (error?.response?.data?.message || error.message || 'Unknown error'));
+      alert(uiError('Failed to save attendance times: ' + (error?.response?.data?.message || error.message || 'Unknown error')));
     } finally {
       setWindowsSaving(false);
     }
@@ -310,7 +311,7 @@ export const Attendance = () => {
       }
     } catch (error) {
       console.error('Failed to save manual attendance:', error);
-      alert('Failed to save manual attendance. Please try again.');
+      alert(uiText("Failed to save manual attendance. Please try again."));
     } finally {
       setEditSaving(false);
     }
@@ -340,10 +341,10 @@ export const Attendance = () => {
         date: selectedDate,
         records,
       });
-      alert(`Attendance records for ${formatEthDateStr(selectedDate)} saved successfully!`);
+      alert(uiText("Attendance records for {{value0}} saved successfully!", { value0: formatEthDateStr(selectedDate) }));
     } catch (error: any) {
       console.error('Failed to bulk-save staff attendance:', error);
-      alert('Failed to save staff attendance: ' + (error?.response?.data?.message || error.message || 'Unknown error'));
+      alert(uiError('Failed to save staff attendance: ' + (error?.response?.data?.message || error.message || 'Unknown error')));
     } finally {
       setStaffSaving(false);
     }
@@ -452,7 +453,7 @@ export const Attendance = () => {
           ? {
             ...record,
             status: 'Present',
-            signInTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            signInTime: new Date().toLocaleTimeString(localeTag(), { hour: '2-digit', minute: '2-digit' }),
           }
           : record
       )
@@ -465,7 +466,7 @@ export const Attendance = () => {
         record.id === id
           ? {
             ...record,
-            signOutTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            signOutTime: new Date().toLocaleTimeString(localeTag(), { hour: '2-digit', minute: '2-digit' }),
           }
           : record
       )
@@ -656,7 +657,7 @@ export const Attendance = () => {
       }
     } catch (error) {
       console.error('Failed to export staff attendance:', error);
-      alert('Failed to generate report. Please try again.');
+      alert(uiText("Failed to generate report. Please try again."));
     } finally {
       setIsExporting(false);
     }
@@ -753,7 +754,7 @@ export const Attendance = () => {
       }
     } catch (error) {
       console.error('Failed to export student attendance:', error);
-      alert('Failed to generate student attendance report. Please try again.');
+      alert(uiText("Failed to generate student attendance report. Please try again."));
     } finally {
       setIsStudentExporting(false);
     }
@@ -768,9 +769,7 @@ export const Attendance = () => {
           onClick={() => navigate(-1)}
           className="flex items-center gap-1 text-blue-600 hover:underline text-xs font-bold uppercase tracking-widest"
         >
-          <ArrowLeft size={14} />
-          Back
-        </button>
+          <ArrowLeft size={14} />{uiText("Back")}</button>
       </div>
       {isVP && absentReviewQueue.length > 0 && (
         <div className="bg-white dark:bg-slate-900 rounded-2xl border-2 border-rose-100 dark:border-rose-900/30 overflow-hidden shadow-xl shadow-rose-50 dark:shadow-none">
@@ -780,24 +779,23 @@ export const Attendance = () => {
                 <ShieldAlert size={20} />
               </div>
               <div>
-                <h3 className="font-black text-rose-900 dark:text-rose-100 text-sm uppercase tracking-wider">VP Attendance Review Queue</h3>
-                <p className="text-xs text-rose-700 dark:text-rose-300">Unexcused absences requiring escalation</p>
+                <h3 className="font-black text-rose-900 dark:text-rose-100 text-sm uppercase tracking-wider">{uiText("VP Attendance Review Queue")}</h3>
+                <p className="text-xs text-rose-700 dark:text-rose-300">{uiText("Unexcused absences requiring escalation")}</p>
               </div>
             </div>
             <span className="px-3 py-1 bg-rose-200 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 rounded-full text-xs font-black">
-              {absentReviewQueue.length} PENDING
-            </span>
+              {absentReviewQueue.length}{uiText(" PENDING")}</span>
           </div>
           <div className="divide-y divide-rose-50 dark:divide-rose-900/20">
             {absentReviewQueue.map((item) => (
               <div key={item.id} className="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-rose-50/30 dark:hover:bg-rose-900/10 transition-colors">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center text-rose-600 font-black shadow-sm border border-rose-100 dark:border-rose-900/30">
-                    {item.studentName[0]}
+                    {uiText(item.studentName[0])}
                   </div>
                   <div>
-                    <p className="font-bold text-slate-800 dark:text-slate-100">{item.studentName}</p>
-                    <p className="text-xs text-slate-500 font-medium">Grade {item.grade} • Reported at {item.time}</p>
+                    <p className="font-bold text-slate-800 dark:text-slate-100">{uiText(item.studentName)}</p>
+                    <p className="text-xs text-slate-500 font-medium">{uiText("Grade ")}{uiText(item.grade)}{uiText(" • Reported at ")}{uiText(item.time)}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -806,20 +804,16 @@ export const Attendance = () => {
                     onClick={() => setAbsentReviewQueue(prev => prev.filter(q => q.id !== item.id))}
                     className="flex-1 sm:flex-none px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-100"
                   >
-                    <Check size={16} />
-                    Pass (Excused)
-                  </button>
+                    <Check size={16} />{uiText("Pass (Excused)")}</button>
                   <button
                     type="button"
                     onClick={() => {
-                      alert(`Notifying parents of ${item.studentName}...`);
+                      alert(uiText("Notifying parents of {{value0}}...", { value0: item.studentName }));
                       setAbsentReviewQueue(prev => prev.filter(q => q.id !== item.id));
                     }}
                     className="flex-1 sm:flex-none px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-rose-100"
                   >
-                    <Send size={16} />
-                    Notify Parents
-                  </button>
+                    <Send size={16} />{uiText("Notify Parents")}</button>
                 </div>
               </div>
             ))}
@@ -839,12 +833,10 @@ export const Attendance = () => {
                   <h3 className="text-xl font-black uppercase tracking-tight text-blue-900 dark:text-blue-100">{t("attendance.staffCommandCenter","Staff Shortage Command Center")}</h3>
                   <p className="text-sm font-bold text-blue-600/70 dark:text-blue-400/70 mt-1 flex items-center gap-2">
                     <span className="flex items-center gap-1.5 px-2.5 py-1 bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 rounded-full text-[10px] font-black uppercase tracking-widest">
-                      {staffAttendance.filter(t => t.status === 'Absent').length} ABSENT STAFF
-                    </span>
+                      {staffAttendance.filter(t => t.status === 'Absent').length}{uiText(" ABSENT STAFF")}</span>
                     <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700" />
                     <span className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 rounded-full text-[10px] font-black uppercase tracking-widest">
-                      {staffAttendance.filter(t => t.status === 'Present').length} PRESENT
-                    </span>
+                      {staffAttendance.filter(t => t.status === 'Present').length}{uiText(" PRESENT")}</span>
                   </p>
                 </div>
               </div>
@@ -855,7 +847,7 @@ export const Attendance = () => {
                 className="flex items-center gap-2 px-6 py-3 bg-slate-900 dark:bg-blue-600 hover:bg-black dark:hover:bg-blue-700 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-lg hover:scale-105 active:scale-95 disabled:opacity-50"
               >
                 {isProxyAnalysisRunning ? <Loader2 size={16} className="animate-spin" /> : <Users size={16} />}
-                {isProxyAnalysisRunning ? t('attendance.analyzing','Analyzing...') : t('attendance.autoMatchProxies','Auto-Match Proxies')}
+                {uiText(isProxyAnalysisRunning ? t('attendance.analyzing','Analyzing...') : t('attendance.autoMatchProxies','Auto-Match Proxies'))}
               </button>
             </div>
           </div>
@@ -874,14 +866,14 @@ export const Attendance = () => {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
                           <div className="w-12 h-12 bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-2xl flex items-center justify-center font-black text-xl shadow-inner">
-                            {teacher.name[0]}
+                            {uiText(teacher.name[0])}
                           </div>
                           <div>
                             <p className="text-sm font-black text-slate-800 dark:text-white group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors">{teacher.name}</p>
                             <div className="flex flex-wrap items-center gap-2 mt-1.5">
-                              <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 rounded text-[9px] font-black uppercase tracking-wider">{teacher.subjects[0] || teacher.department || 'Staff'}</span>
+                              <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 rounded text-[9px] font-black uppercase tracking-wider">{uiText(teacher.subjects[0] || teacher.department || 'Staff')}</span>
                               <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700" />
-                              <span className="px-2 py-0.5 bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 rounded text-[9px] font-black uppercase tracking-wider">Impact: {teacher.classes || 3} Classes</span>
+                              <span className="px-2 py-0.5 bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 rounded text-[9px] font-black uppercase tracking-wider">{uiText("Impact: ")}{teacher.classes || 3}{uiText(" Classes")}</span>
                             </div>
                           </div>
                         </div>
@@ -889,9 +881,7 @@ export const Attendance = () => {
                           type="button"
                           onClick={() => { setAbsentTeacher(teacher); setShowSubModal(true); }}
                           className="px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all shadow-sm"
-                        >
-                          Find Proxy
-                        </button>
+                        >{uiText("Find Proxy")}</button>
                       </div>
                     </div>
                   ))}
@@ -912,8 +902,8 @@ export const Attendance = () => {
                         <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto" />
                         <Users size={24} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-blue-600" />
                       </div>
-                      <p className="text-sm font-bold text-slate-800 dark:text-white">Analyzing Schedule Matrix...</p>
-                      <p className="text-xs text-slate-500">Matching subject expertise and free periods.</p>
+                      <p className="text-sm font-bold text-slate-800 dark:text-white">{uiText("Analyzing Schedule Matrix...")}</p>
+                      <p className="text-xs text-slate-500">{uiText("Matching subject expertise and free periods.")}</p>
                     </div>
                   ) : proxySuggestions.length > 0 ? (
                     <div className="w-full space-y-3">
@@ -923,16 +913,12 @@ export const Attendance = () => {
                             <div className="p-2 bg-emerald-500 text-white rounded-lg group-hover:rotate-12 transition-transform">
                               <CheckCircle size={18} />
                             </div>
-                            <p className="text-sm font-bold text-emerald-900 dark:text-emerald-100">{suggestion}</p>
+                            <p className="text-sm font-bold text-emerald-900 dark:text-emerald-100">{uiText(suggestion)}</p>
                           </div>
-                          <button type="button" className="text-[10px] font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-widest hover:underline">
-                            Quick Assign
-                          </button>
+                          <button type="button" className="text-[10px] font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-widest hover:underline">{uiText("Quick Assign")}</button>
                         </div>
                       ))}
-                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest pt-4">
-                        Analysis Complete • Subject Match: High
-                      </p>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest pt-4">{uiText("Analysis Complete • Subject Match: High")}</p>
                     </div>
                   ) : (
                     <div className="space-y-4">
@@ -984,16 +970,16 @@ export const Attendance = () => {
 
           {!attendanceMode && (
             <div className="bg-white dark:bg-slate-900 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800 p-10 text-center">
-              <p className="text-sm font-bold text-slate-800 dark:text-slate-100 mb-3">No attendance view selected yet.</p>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">Tap a mode above to load student or staff attendance details.</p>
+              <p className="text-sm font-bold text-slate-800 dark:text-slate-100 mb-3">{uiText("No attendance view selected yet.")}</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">{uiText("Tap a mode above to load student or staff attendance details.")}</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="rounded-3xl p-6 bg-slate-50 dark:bg-slate-800/60">
                   <h3 className="font-bold text-slate-800 dark:text-slate-100">{t("attendance.studentTab","Student Attendance")}</h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">Review grade section attendance and save today’s roll.</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">{uiText("Review grade section attendance and save today’s roll.")}</p>
                 </div>
                 <div className="rounded-3xl p-6 bg-slate-50 dark:bg-slate-800/60">
                   <h3 className="font-bold text-slate-800 dark:text-slate-100">{t("attendance.staffTab","Staff Attendance")}</h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">Monitor teacher biometric sign-in/out and attendance status.</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">{uiText("Monitor teacher biometric sign-in/out and attendance status.")}</p>
                 </div>
               </div>
             </div>
@@ -1022,9 +1008,9 @@ export const Attendance = () => {
                     date: selectedDate,
                     attendanceRecords: records
                   });
-                  alert('Attendance saved successfully!');
+                  alert(uiText("Attendance saved successfully!"));
                 } catch (error: any) {
-                  alert('Failed to save attendance: ' + (error?.response?.data?.error?.message || error.message || 'Unknown error'));
+                  alert(uiError('Failed to save attendance: ' + (error?.response?.data?.error?.message || error.message || 'Unknown error')));
                 }
               }}
               className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-bold text-sm shadow-lg shadow-blue-100 dark:shadow-none">
@@ -1046,9 +1032,9 @@ export const Attendance = () => {
                   onChange={(e) => setSelectedGrade(e.target.value)}
                   className="appearance-none pl-4 pr-10 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500 transition-all w-40"
                 >
-                  <option value="">-- {t("attendance.selectGradeOption", "Select Grade")} --</option>
+                  <option value="">{uiText("-- ")}{t("attendance.selectGradeOption", "Select Grade")}{uiText(" --")}</option>
                   {gradeStats.map((grade, idx) => (
-                    <option key={grade.id ? `grade-opt-${grade.id}-${idx}` : `grade-opt-${idx}`} value={grade.grade}>{grade.grade}</option>
+                    <option key={grade.id ? `grade-opt-${grade.id}-${idx}` : `grade-opt-${idx}`} value={grade.grade}>{uiText(grade.grade)}</option>
                   ))}
                 </select>
                 <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
@@ -1063,16 +1049,16 @@ export const Attendance = () => {
                   id="attendanceDate"
                   value={selectedDate}
                   onChange={setSelectedDate}
-                  placeholder="YYYY-MM-DD"
-                  title="Select attendance date (Ethiopian calendar)"
+                  placeholder={uiText("YYYY-MM-DD")}
+                  title={uiText("Select attendance date (Ethiopian calendar)")}
                 />
-                <span className="text-[9px] text-slate-500 dark:text-slate-400">{formatEthDateStr(selectedDate)}</span>
+                <span className="text-[9px] text-slate-500 dark:text-slate-400">{uiText(formatEthDateStr(selectedDate))}</span>
               </div>
             </div>
             <div className="h-10 w-px bg-slate-100 dark:bg-slate-800 hidden md:block" />
             <div className="space-y-1">
               <label className="text-[10px] font-bold text-slate-500 uppercase">{t("attendance.totalStudentsLabel","Total Students")}</label>
-              <p className="text-sm font-bold text-slate-800 dark:text-slate-100">{students.length} Enrolled</p>
+              <p className="text-sm font-bold text-slate-800 dark:text-slate-100">{students.length}{uiText(" Enrolled")}</p>
             </div>
           </div>
 
@@ -1108,8 +1094,8 @@ export const Attendance = () => {
               id="studentExportStartDate"
               value={studentExportStartDate}
               onChange={setStudentExportStartDate}
-              placeholder="YYYY-MM-DD"
-              title="Select start date for student export (Ethiopian calendar)"
+              placeholder={uiText("YYYY-MM-DD")}
+              title={uiText("Select start date for student export (Ethiopian calendar)")}
             />
           </div>
 
@@ -1121,8 +1107,8 @@ export const Attendance = () => {
               id="studentExportEndDate"
               value={studentExportEndDate}
               onChange={setStudentExportEndDate}
-              placeholder="YYYY-MM-DD"
-              title="Select end date for student export (Ethiopian calendar)"
+              placeholder={uiText("YYYY-MM-DD")}
+              title={uiText("Select end date for student export (Ethiopian calendar)")}
             />
           </div>
 
@@ -1142,9 +1128,7 @@ export const Attendance = () => {
                   <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Exporting...
-                </>
+                  </svg>{uiText("Exporting...")}</>
               ) : (
                 <>
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -1177,16 +1161,16 @@ export const Attendance = () => {
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center text-blue-700 dark:text-blue-400 font-bold text-xs">
-                            {stat.badgeNumber}
+                            {uiText(stat.badgeNumber)}
                           </div>
-                          <span className="text-sm font-bold text-slate-800 dark:text-slate-100">{stat.grade}</span>
+                          <span className="text-sm font-bold text-slate-800 dark:text-slate-100">{uiText(stat.grade)}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-center text-sm font-medium text-slate-600 dark:text-slate-400">{stat.enrollment} Students</td>
-                      <td className="px-6 py-4 text-center text-sm font-medium text-slate-600 dark:text-slate-400">{stat.present} Students</td>
+                      <td className="px-6 py-4 text-center text-sm font-medium text-slate-600 dark:text-slate-400">{uiText(stat.enrollment)}{uiText(" Students")}</td>
+                      <td className="px-6 py-4 text-center text-sm font-medium text-slate-600 dark:text-slate-400">{uiText(stat.present)}{uiText(" Students")}</td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <span className="text-sm font-bold text-slate-700 dark:text-slate-300">{stat.percentage}</span>
+                          <span className="text-sm font-bold text-slate-700 dark:text-slate-300">{uiText(stat.percentage)}</span>
                           <div className="w-24 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                             {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions, no-inline-styles */}
                             <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${stat.percentageNumeric}%` }} />
@@ -1212,7 +1196,7 @@ export const Attendance = () => {
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center text-blue-700 dark:text-blue-400 font-bold text-xs">
-                            {student.name[0]}
+                            {uiText(student.name[0])}
                           </div>
                           <span className="text-sm font-bold text-slate-800 dark:text-slate-100">{student.name}</span>
                         </div>
@@ -1226,8 +1210,8 @@ export const Attendance = () => {
                               ? 'bg-emerald-600 border-emerald-600 text-white shadow-md shadow-emerald-100'
                               : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400 hover:border-emerald-500 hover:text-emerald-500'
                               }`}
-                            title="Present"
-                            aria-label="Mark present"
+                            title={uiText("Present")}
+                            aria-label={uiText("Mark present")}
                           >
                             <CheckCircle size={20} />
                           </button>
@@ -1238,8 +1222,8 @@ export const Attendance = () => {
                               ? 'bg-rose-600 border-rose-600 text-white shadow-md shadow-rose-100'
                               : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400 hover:border-rose-500 hover:text-rose-500'
                               }`}
-                            title="Absent"
-                            aria-label="Mark absent"
+                            title={uiText("Absent")}
+                            aria-label={uiText("Mark absent")}
                           >
                             <XCircle size={20} />
                           </button>
@@ -1249,8 +1233,7 @@ export const Attendance = () => {
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <span className="text-sm font-bold text-slate-700 dark:text-slate-300">
-                            {studentAttendanceHistory[student.id]?.attendance_percentage ?? '-'}%
-                          </span>
+                            {uiText(studentAttendanceHistory[student.id]?.attendance_percentage ?? '-')}{uiText("%")}</span>
                           <div className="w-24 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                             {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions, no-inline-styles */}
                             <div
@@ -1281,10 +1264,10 @@ export const Attendance = () => {
                   <EthiopianDatePicker
                     value={selectedDate}
                     onChange={setSelectedDate}
-                    placeholder="YYYY-MM-DD"
-                    title="Select staff attendance date (Ethiopian calendar)"
+                    placeholder={uiText("YYYY-MM-DD")}
+                    title={uiText("Select staff attendance date (Ethiopian calendar)")}
                   />
-                  <span className="text-[9px] text-slate-500 dark:text-slate-400">{formatEthDateStr(selectedDate)}</span>
+                  <span className="text-[9px] text-slate-500 dark:text-slate-400">{uiText(formatEthDateStr(selectedDate))}</span>
                 </div>
               </div>
               <div className="h-10 w-px bg-slate-100 dark:bg-slate-800 hidden md:block" />
@@ -1306,7 +1289,7 @@ export const Attendance = () => {
                 className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-6 py-2 rounded-lg font-bold text-sm shadow-lg shadow-blue-100 dark:shadow-none transition-all"
               >
                 {staffSaving ? (
-                  <><Loader2 size={14} className="animate-spin" /> Saving...</>
+                  <><Loader2 size={14} className="animate-spin" />{uiText(" Saving...")}</>
                 ) : (
                   <><Check size={14} /> {t("attendance.saveAttendanceRecords")}</>
                 )}
@@ -1322,19 +1305,15 @@ export const Attendance = () => {
                   <span className="p-1.5 bg-indigo-500/20 text-indigo-300 rounded-lg">
                     <Clock size={16} />
                   </span>
-                  <h4 className="font-bold text-base text-white">
-                    Attendance Shift Intervals
-                  </h4>
+                  <h4 className="font-bold text-base text-white">{uiText("Attendance Shift Intervals")}</h4>
                   <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${attendanceWindows?.isCustomForDate
                       ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
                       : 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
                     }`}>
-                    {attendanceWindows?.isCustomForDate ? 'Custom for this date' : 'Default Schedule'}
+                    {uiText(attendanceWindows?.isCustomForDate ? 'Custom for this date' : 'Default Schedule')}
                   </span>
                 </div>
-                <p className="text-xs text-slate-300">
-                  Target Date: <span className="font-semibold text-white">{formatEthDateStr(selectedDate)}</span> • Staff punches are validated against these intervals.
-                </p>
+                <p className="text-xs text-slate-300">{uiText("Target Date: ")}<span className="font-semibold text-white">{uiText(formatEthDateStr(selectedDate))}</span>{uiText(" • Staff punches are validated against these intervals.")}</p>
               </div>
 
               {isAdmin && (
@@ -1344,9 +1323,7 @@ export const Attendance = () => {
                   onClick={() => setShowWindowsModal(true)}
                   className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl font-bold text-xs shadow-lg shadow-indigo-600/30 transition-all self-start md:self-auto cursor-pointer"
                 >
-                  <Sliders size={14} />
-                  Edit Attendance Times
-                </button>
+                  <Sliders size={14} />{uiText("Edit Attendance Times")}</button>
               )}
             </div>
 
@@ -1354,63 +1331,52 @@ export const Attendance = () => {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-4 border-t border-white/10 relative z-10">
               <div className="bg-white/5 backdrop-blur-sm p-3 rounded-xl border border-white/10">
                 <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-                  Morning Check-In
-                </p>
+                  <span className="w-2 h-2 rounded-full bg-emerald-400"></span>{uiText("Morning Check-In")}</p>
                 <p className="text-sm font-black text-white mt-1">
-                  {formatWindowTime(attendanceWindows?.morningCheckInStart || '07:30')} – {formatWindowTime(attendanceWindows?.morningCheckInEnd || '08:30')}
+                  {uiText(formatWindowTime(attendanceWindows?.morningCheckInStart || '07:30'))}{uiText(" – ")}{uiText(formatWindowTime(attendanceWindows?.morningCheckInEnd || '08:30'))}
                 </p>
-                <p className="text-[9px] text-slate-400 mt-0.5">2:30 Morning (Qen)</p>
+                <p className="text-[9px] text-slate-400 mt-0.5">{uiText("2:30 Morning (Qen)")}</p>
               </div>
 
               <div className="bg-white/5 backdrop-blur-sm p-3 rounded-xl border border-white/10">
                 <p className="text-[10px] font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-amber-400"></span>
-                  Lunch Check-Out
-                </p>
+                  <span className="w-2 h-2 rounded-full bg-amber-400"></span>{uiText("Lunch Check-Out")}</p>
                 <p className="text-sm font-black text-white mt-1">
-                  {formatWindowTime(attendanceWindows?.lunchCheckOutStart || '12:00')} – {formatWindowTime(attendanceWindows?.lunchCheckOutEnd || '13:00')}
+                  {uiText(formatWindowTime(attendanceWindows?.lunchCheckOutStart || '12:00'))}{uiText(" – ")}{uiText(formatWindowTime(attendanceWindows?.lunchCheckOutEnd || '13:00'))}
                 </p>
-                <p className="text-[9px] text-slate-400 mt-0.5">Afternoon Window</p>
+                <p className="text-[9px] text-slate-400 mt-0.5">{uiText("Afternoon Window")}</p>
               </div>
 
               <div className="bg-white/5 backdrop-blur-sm p-3 rounded-xl border border-white/10">
                 <p className="text-[10px] font-bold text-sky-400 uppercase tracking-wider flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-sky-400"></span>
-                  Lunch Check-In
-                </p>
+                  <span className="w-2 h-2 rounded-full bg-sky-400"></span>{uiText("Lunch Check-In")}</p>
                 <p className="text-sm font-black text-white mt-1">
-                  {formatWindowTime(attendanceWindows?.lunchCheckInStart || '13:00')} – {formatWindowTime(attendanceWindows?.lunchCheckInEnd || '14:00')}
+                  {uiText(formatWindowTime(attendanceWindows?.lunchCheckInStart || '13:00'))}{uiText(" – ")}{uiText(formatWindowTime(attendanceWindows?.lunchCheckInEnd || '14:00'))}
                 </p>
-                <p className="text-[9px] text-slate-400 mt-0.5">Afternoon Window</p>
+                <p className="text-[9px] text-slate-400 mt-0.5">{uiText("Afternoon Window")}</p>
               </div>
 
               <div className="bg-white/5 backdrop-blur-sm p-3 rounded-xl border border-white/10">
                 <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-indigo-400"></span>
-                  Leave / Sign-Out
-                </p>
+                  <span className="w-2 h-2 rounded-full bg-indigo-400"></span>{uiText("Leave / Sign-Out")}</p>
                 <p className="text-sm font-black text-white mt-1">
-                  {formatWindowTime(attendanceWindows?.leaveStart || '17:00')} – {formatWindowTime(attendanceWindows?.leaveEnd || '18:00')}
+                  {uiText(formatWindowTime(attendanceWindows?.leaveStart || '17:00'))}{uiText(" – ")}{uiText(formatWindowTime(attendanceWindows?.leaveEnd || '18:00'))}
                 </p>
-                <p className="text-[9px] text-slate-400 mt-0.5">Evening Departure</p>
+                <p className="text-[9px] text-slate-400 mt-0.5">{uiText("Evening Departure")}</p>
               </div>
             </div>
 
             {/* Policy Rule Bar */}
             <div className="mt-3 text-[10px] text-slate-300 flex flex-wrap items-center gap-x-4 gap-y-1 pt-2 border-t border-white/5">
-              <span><strong>Status Policy:</strong></span>
+              <span><strong>{uiText("Status Policy:")}</strong></span>
               <span className="flex items-center gap-1 text-emerald-300">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                All 4 in interval = <strong>Present</strong>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>{uiText("All 4 in interval = ")}<strong>{uiText("Present")}</strong>
               </span>
               <span className="flex items-center gap-1 text-amber-300">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-                1+ missing = <strong>Half Day</strong>
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>{uiText("1+ missing = ")}<strong>{uiText("Half Day")}</strong>
               </span>
               <span className="flex items-center gap-1 text-rose-300">
-                <span className="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
-                All missing = <strong>Full Day Absent</strong>
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-400"></span>{uiText("All missing = ")}<strong>{uiText("Full Day Absent")}</strong>
               </span>
             </div>
           </div>
@@ -1425,8 +1391,8 @@ export const Attendance = () => {
                 id="exportStartDate"
                 value={exportStartDate}
                 onChange={setExportStartDate}
-                placeholder="YYYY-MM-DD"
-                title="Select start date for export (Ethiopian calendar)"
+                placeholder={uiText("YYYY-MM-DD")}
+                title={uiText("Select start date for export (Ethiopian calendar)")}
               />
             </div>
 
@@ -1438,8 +1404,8 @@ export const Attendance = () => {
                 id="exportEndDate"
                 value={exportEndDate}
                 onChange={setExportEndDate}
-                placeholder="YYYY-MM-DD"
-                title="Select end date for export (Ethiopian calendar)"
+                placeholder={uiText("YYYY-MM-DD")}
+                title={uiText("Select end date for export (Ethiopian calendar)")}
               />
             </div>
 
@@ -1458,9 +1424,7 @@ export const Attendance = () => {
                     <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Exporting...
-                  </>
+                    </svg>{uiText("Exporting...")}</>
                 ) : (
                   <>
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -1496,7 +1460,7 @@ export const Attendance = () => {
             <div>
               <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100">{t("attendance.staffBiometricTitle")}</h3>
               <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                {formatEthDateStr(selectedDate)} — {t("attendance.staffBiometricSubtitle")}
+                {uiText(formatEthDateStr(selectedDate))}{uiText(" — ")}{t("attendance.staffBiometricSubtitle")}
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -1515,7 +1479,7 @@ export const Attendance = () => {
                     : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                     }`}
                 >
-                  {filter.label}
+                  {uiText(filter.label)}
                 </button>
               ))}
             </div>
@@ -1527,7 +1491,7 @@ export const Attendance = () => {
                 <thead className="bg-slate-50/50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
                   <tr>
                     <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">{t("attendance.colStaff","Staff Member")}</th>
-                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center">ZK ID</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center">{uiText("ZK ID")}</th>
                     <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center">{t("attendance.colStatus", "Status")}</th>
                     <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center">{t("attendance.colArrival", "Arrival")}</th>
                     <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center">{t("attendance.colLunchOut","Lunch Out")}</th>
@@ -1542,7 +1506,7 @@ export const Attendance = () => {
                       <td colSpan={8} className="px-6 py-12 text-center">
                         <div className="flex flex-col items-center gap-3">
                           <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                          <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Loading staff attendance...</p>
+                          <p className="text-sm font-bold text-slate-500 dark:text-slate-400">{uiText("Loading staff attendance...")}</p>
                         </div>
                       </td>
                     </tr>
@@ -1550,9 +1514,9 @@ export const Attendance = () => {
                     <tr>
                       <td colSpan={8} className="px-6 py-12 text-center">
                         <p className="text-sm font-bold text-slate-500 dark:text-slate-400">
-                          {staffFilter === 'all'
+                          {uiText(staffFilter === 'all'
                             ? 'No staff members found for this branch.'
-                            : `No staff members with status "${staffFilter}" for this date.`}
+                            : `No staff members with status "${staffFilter}" for this date.`)}
                         </p>
                       </td>
                     </tr>
@@ -1562,20 +1526,20 @@ export const Attendance = () => {
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-700 dark:text-blue-300 font-bold">
-                              {record.name[0]}
+                              {uiText(record.name[0])}
                             </div>
                             <div>
                               <p className="font-bold text-slate-800 dark:text-slate-100">{record.name}</p>
                               <p className="text-xs text-slate-500 dark:text-slate-400">
-                                {record.subjects && record.subjects.length > 0
+                                {uiText(record.subjects && record.subjects.length > 0
                                   ? record.subjects.join(', ')
-                                  : record.role ? record.role.replace('-', ' ').toUpperCase() : 'Staff'}
+                                  : record.role ? record.role.replace('-', ' ').toUpperCase() : 'Staff')}
                               </p>
                             </div>
                           </div>
                         </td>
                         <td className="px-6 py-4 text-center text-sm font-semibold text-slate-600 dark:text-slate-400">
-                          {record.zkDeviceId ?? '--'}
+                          {uiText(record.zkDeviceId ?? '--')}
                         </td>
                         <td className="px-6 py-4 text-center">
                           <span className={`inline-flex items-center px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-[0.2em]
@@ -1588,33 +1552,27 @@ export const Attendance = () => {
                             ${record.status === 'Weekend' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' : ''}
                             ${record.status === 'Holiday' ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400' : ''}
                           `}>
-                            {record.status}
+                            {uiText(record.status)}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-center text-sm text-slate-600 dark:text-slate-400">{record.signInTime ?? '--:--'}</td>
-                        <td className="px-6 py-4 text-center text-sm text-slate-600 dark:text-slate-400">{record.lunchOutTime ?? '--:--'}</td>
-                        <td className="px-6 py-4 text-center text-sm text-slate-600 dark:text-slate-400">{record.lunchInTime ?? '--:--'}</td>
-                        <td className="px-6 py-4 text-center text-sm text-slate-600 dark:text-slate-400">{record.signOutTime ?? '--:--'}</td>
+                        <td className="px-6 py-4 text-center text-sm text-slate-600 dark:text-slate-400">{uiText(record.signInTime ?? '--:--')}</td>
+                        <td className="px-6 py-4 text-center text-sm text-slate-600 dark:text-slate-400">{uiText(record.lunchOutTime ?? '--:--')}</td>
+                        <td className="px-6 py-4 text-center text-sm text-slate-600 dark:text-slate-400">{uiText(record.lunchInTime ?? '--:--')}</td>
+                        <td className="px-6 py-4 text-center text-sm text-slate-600 dark:text-slate-400">{uiText(record.signOutTime ?? '--:--')}</td>
                         <td className="px-6 py-4 text-right">
                           <div className="flex items-center justify-end gap-2">
                             {record.isBiometric ? (
-                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 rounded-lg text-[10px] font-black uppercase tracking-wider border border-emerald-100 dark:border-emerald-900/20">
-                                Biometric
-                              </span>
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 rounded-lg text-[10px] font-black uppercase tracking-wider border border-emerald-100 dark:border-emerald-900/20">{uiText("Biometric")}</span>
                             ) : record.signInTime ? (
-                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 rounded-lg text-[10px] font-black uppercase tracking-wider border border-amber-100 dark:border-amber-900/20">
-                                Manual
-                              </span>
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 rounded-lg text-[10px] font-black uppercase tracking-wider border border-amber-100 dark:border-amber-900/20">{uiText("Manual")}</span>
                             ) : null}
                             {isAdmin && (
                               <button
                                 onClick={() => setEditRecord(record)}
                                 className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-blue-100 dark:bg-slate-800 dark:hover:bg-blue-900/30 text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 transition-colors text-[10px] font-black uppercase tracking-wider"
-                                title="Edit attendance manually"
+                                title={uiText("Edit attendance manually")}
                               >
-                                <Pencil size={11} />
-                                Edit
-                              </button>
+                                <Pencil size={11} />{uiText("Edit")}</button>
                             )}
                           </div>
                         </td>
@@ -1637,11 +1595,11 @@ export const Attendance = () => {
                   <ShieldAlert size={20} />
                 </div>
                 <div>
-                  <h3 className="font-bold text-slate-800 dark:text-white">Staff Substitution</h3>
-                  <p className="text-xs text-slate-500 font-medium tracking-tight">Rapid Proxy Teacher Assignment</p>
+                  <h3 className="font-bold text-slate-800 dark:text-white">{uiText("Staff Substitution")}</h3>
+                  <p className="text-xs text-slate-500 font-medium tracking-tight">{uiText("Rapid Proxy Teacher Assignment")}</p>
                 </div>
               </div>
-              <button type="button" aria-label="Close substitution modal" onClick={() => setShowSubModal(false)} className="text-slate-400 hover:text-slate-600 transition-colors">
+              <button type="button" aria-label={uiText("Close substitution modal")} onClick={() => setShowSubModal(false)} className="text-slate-400 hover:text-slate-600 transition-colors">
                 <X size={20} />
               </button>
             </div>
@@ -1650,39 +1608,35 @@ export const Attendance = () => {
               <div className="p-5 bg-rose-50 dark:bg-rose-900/10 border border-rose-100 dark:border-rose-900/30 rounded-[2rem] flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="w-14 h-14 bg-rose-100 dark:bg-rose-900/30 rounded-2xl flex items-center justify-center text-rose-700 dark:text-rose-400 font-black text-2xl shadow-inner">
-                    {absentTeacher?.name[0]}
+                    {uiText(absentTeacher?.name[0])}
                   </div>
                   <div>
                     <p className="text-base font-black text-rose-900 dark:text-rose-100">{absentTeacher?.name}</p>
-                    <p className="text-xs text-rose-700 dark:text-rose-400 font-bold uppercase tracking-widest mt-1">Reported Absent Today</p>
+                    <p className="text-xs text-rose-700 dark:text-rose-400 font-bold uppercase tracking-widest mt-1">{uiText("Reported Absent Today")}</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-[10px] font-black text-rose-400 dark:text-rose-500 uppercase tracking-[0.2em]">Live Impact</p>
-                  <p className="text-lg font-black text-rose-900 dark:text-rose-100">{absentTeacher?.classes} Classes</p>
+                  <p className="text-[10px] font-black text-rose-400 dark:text-rose-500 uppercase tracking-[0.2em]">{uiText("Live Impact")}</p>
+                  <p className="text-lg font-black text-rose-900 dark:text-rose-100">{uiText(absentTeacher?.classes)}{uiText(" Classes")}</p>
                 </div>
               </div>
 
               <div className="space-y-4">
                 <h4 className="font-bold text-slate-800 dark:text-white text-sm uppercase tracking-widest flex items-center gap-2">
-                  <Users size={16} className="text-blue-600" />
-                  Eligible Substitutes
-                </h4>
+                  <Users size={16} className="text-blue-600" />{uiText("Eligible Substitutes")}</h4>
                 <div className="grid grid-cols-1 gap-3">
                   {staffAttendance.filter(t => t.status === 'Present' && t.role === 'teacher' && t.id !== absentTeacher?.id).map((teacher) => (
                     <div key={teacher.id} className="flex items-center justify-between p-4 border border-slate-100 dark:border-slate-800 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center font-bold">
-                          {teacher.name[0]}
+                          {uiText(teacher.name[0])}
                         </div>
                         <div>
                           <p className="text-sm font-bold text-slate-800 dark:text-white">{teacher.name}</p>
-                          <p className="text-[10px] text-slate-400 font-medium uppercase">{teacher.subjects.join(', ') || 'General'}</p>
+                          <p className="text-[10px] text-slate-400 font-medium uppercase">{uiText(teacher.subjects.join(', ') || 'General')}</p>
                         </div>
                       </div>
-                      <button type="button" className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold opacity-0 group-hover:opacity-100 transition-all">
-                        Assign Proxy
-                        <ArrowRight size={14} />
+                      <button type="button" className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold opacity-0 group-hover:opacity-100 transition-all">{uiText("Assign Proxy")}<ArrowRight size={14} />
                       </button>
                     </div>
                   ))}
@@ -1691,9 +1645,7 @@ export const Attendance = () => {
             </div>
 
             <div className="p-6 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 text-center">
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-                Automated SMS & App notifications will be sent to parents and the assigned teacher.
-              </p>
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{uiText("Automated SMS & App notifications will be sent to parents and the assigned teacher.")}</p>
             </div>
           </div>
         </div>
@@ -1781,16 +1733,15 @@ const EditAttendanceTimesModal = ({
               <Clock size={20} />
             </div>
             <div>
-              <h3 className="font-bold text-slate-800 dark:text-white">Configure Attendance Times</h3>
-              <p className="text-xs text-slate-500 font-medium tracking-tight mt-0.5">
-                Target Date: <span className="font-bold text-blue-600 dark:text-blue-400">{formatEthDateStr(selectedDate)}</span>
+              <h3 className="font-bold text-slate-800 dark:text-white">{uiText("Configure Attendance Times")}</h3>
+              <p className="text-xs text-slate-500 font-medium tracking-tight mt-0.5">{uiText("Target Date: ")}<span className="font-bold text-blue-600 dark:text-blue-400">{uiText(formatEthDateStr(selectedDate))}</span>
               </p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            title="Close attendance times modal"
+            title={uiText("Close attendance times modal")}
             className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
           >
             <X size={20} />
@@ -1803,14 +1754,12 @@ const EditAttendanceTimesModal = ({
             <div className="p-3 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
               <div className="flex items-center justify-between mb-1.5">
                 <span className="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                  Morning Check-In (Arrival)
-                </span>
-                <span className="text-[10px] text-slate-400 font-semibold">Default: 07:30 – 08:30 (2:30 Morning)</span>
+                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span>{uiText("Morning Check-In (Arrival)")}</span>
+                <span className="text-[10px] text-slate-400 font-semibold">{uiText("Default: 07:30 – 08:30 (2:30 Morning)")}</span>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase">Start Time</label>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Start Time")}</label>
                   <input
                     type="time"
                     value={morningStart}
@@ -1820,7 +1769,7 @@ const EditAttendanceTimesModal = ({
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase">End Time</label>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase">{uiText("End Time")}</label>
                   <input
                     type="time"
                     value={morningEnd}
@@ -1836,14 +1785,12 @@ const EditAttendanceTimesModal = ({
             <div className="p-3 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
               <div className="flex items-center justify-between mb-1.5">
                 <span className="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-                  Lunch Check-Out (Afternoon)
-                </span>
-                <span className="text-[10px] text-slate-400 font-semibold">Default: 12:00 – 13:00 (1:00 PM)</span>
+                  <span className="w-2 h-2 rounded-full bg-amber-500"></span>{uiText("Lunch Check-Out (Afternoon)")}</span>
+                <span className="text-[10px] text-slate-400 font-semibold">{uiText("Default: 12:00 – 13:00 (1:00 PM)")}</span>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase">Start Time</label>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Start Time")}</label>
                   <input
                     type="time"
                     value={lunchOutStart}
@@ -1853,7 +1800,7 @@ const EditAttendanceTimesModal = ({
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase">End Time</label>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase">{uiText("End Time")}</label>
                   <input
                     type="time"
                     value={lunchOutEnd}
@@ -1869,14 +1816,12 @@ const EditAttendanceTimesModal = ({
             <div className="p-3 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
               <div className="flex items-center justify-between mb-1.5">
                 <span className="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-sky-500"></span>
-                  Lunch Check-In (Afternoon)
-                </span>
-                <span className="text-[10px] text-slate-400 font-semibold">Default: 13:00 – 14:00 (2:00 PM)</span>
+                  <span className="w-2 h-2 rounded-full bg-sky-500"></span>{uiText("Lunch Check-In (Afternoon)")}</span>
+                <span className="text-[10px] text-slate-400 font-semibold">{uiText("Default: 13:00 – 14:00 (2:00 PM)")}</span>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase">Start Time</label>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Start Time")}</label>
                   <input
                     type="time"
                     value={lunchInStart}
@@ -1886,7 +1831,7 @@ const EditAttendanceTimesModal = ({
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase">End Time</label>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase">{uiText("End Time")}</label>
                   <input
                     type="time"
                     value={lunchInEnd}
@@ -1902,14 +1847,12 @@ const EditAttendanceTimesModal = ({
             <div className="p-3 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
               <div className="flex items-center justify-between mb-1.5">
                 <span className="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
-                  Leave / Sign-Out (Departure)
-                </span>
-                <span className="text-[10px] text-slate-400 font-semibold">Default: 17:00 – 18:00 (5:00-6:00 PM)</span>
+                  <span className="w-2 h-2 rounded-full bg-indigo-500"></span>{uiText("Leave / Sign-Out (Departure)")}</span>
+                <span className="text-[10px] text-slate-400 font-semibold">{uiText("Default: 17:00 – 18:00 (5:00-6:00 PM)")}</span>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase">Start Time</label>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Start Time")}</label>
                   <input
                     type="time"
                     value={leaveStart}
@@ -1919,7 +1862,7 @@ const EditAttendanceTimesModal = ({
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase">End Time</label>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase">{uiText("End Time")}</label>
                   <input
                     type="time"
                     value={leaveEnd}
@@ -1940,17 +1883,13 @@ const EditAttendanceTimesModal = ({
                 onChange={(e) => setApplyToAll(e.target.checked)}
                 className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 dark:border-slate-700 dark:bg-slate-800"
               />
-              <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">
-                Save as default schedule template for all dates
-              </span>
+              <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">{uiText("Save as default schedule template for all dates")}</span>
             </label>
             <button
               type="button"
               onClick={handleResetDefaults}
               className="text-xs font-bold text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-            >
-              Reset Defaults
-            </button>
+            >{uiText("Reset Defaults")}</button>
           </div>
 
           <div className="pt-3 flex items-center justify-end gap-3 border-t border-slate-100 dark:border-slate-800">
@@ -1958,22 +1897,18 @@ const EditAttendanceTimesModal = ({
               type="button"
               onClick={onClose}
               className="px-4 py-2 text-sm font-bold text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors"
-            >
-              Cancel
-            </button>
+            >{uiText("Cancel")}</button>
             <button
               type="submit"
               disabled={saving}
               className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-600/20 transition-all flex items-center gap-2 disabled:opacity-50 cursor-pointer"
             >
-              {saving ? (
+              {uiText(saving ? (
                 <>
-                  <Loader2 size={16} className="animate-spin" />
-                  Saving...
-                </>
+                  <Loader2 size={16} className="animate-spin" />{uiText("Saving...")}</>
               ) : (
                 'Save Attendance Times'
-              )}
+              ))}
             </button>
           </div>
         </form>
@@ -2051,10 +1986,10 @@ const EditAttendanceModal = ({
       <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-3xl shadow-2xl animate-in zoom-in duration-300 overflow-hidden border border-slate-100 dark:border-slate-800">
         <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/50">
           <div>
-            <h3 className="font-bold text-slate-800 dark:text-white">Manual Punch Entry</h3>
-            <p className="text-xs text-slate-500 font-medium tracking-tight mt-0.5">{record.name} ({record.role?.replace('-', ' ').toUpperCase()})</p>
+            <h3 className="font-bold text-slate-800 dark:text-white">{uiText("Manual Punch Entry")}</h3>
+            <p className="text-xs text-slate-500 font-medium tracking-tight mt-0.5">{record.name}{uiText(" (")}{uiText(record.role?.replace('-', ' ').toUpperCase())}{uiText(")")}</p>
           </div>
-          <button type="button" onClick={onClose} title="Close manual punch entry" aria-label="Close manual punch entry" className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+          <button type="button" onClick={onClose} title={uiText("Close manual punch entry")} aria-label={uiText("Close manual punch entry")} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
             <X size={20} />
           </button>
         </div>
@@ -2063,105 +1998,97 @@ const EditAttendanceModal = ({
           <div className="space-y-4">
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Arrival Time</label>
-                <span className="text-[10px] text-slate-400">Interval: {formatWindowTime(windows?.morningCheckInStart || '07:30')} – {formatWindowTime(windows?.morningCheckInEnd || '08:30')}</span>
+                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{uiText("Arrival Time")}</label>
+                <span className="text-[10px] text-slate-400">{uiText("Interval: ")}{uiText(formatWindowTime(windows?.morningCheckInStart || '07:30'))}{uiText(" – ")}{uiText(formatWindowTime(windows?.morningCheckInEnd || '08:30'))}</span>
               </div>
               <div className="flex gap-2">
                 <input
                   type="time"
                   value={signIn}
                   onChange={(e) => setSignIn(e.target.value)}
-                  title="Arrival time"
-                  aria-label="Arrival time"
+                  title={uiText("Arrival time")}
+                  aria-label={uiText("Arrival time")}
                   className="flex-1 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600/50 text-sm"
                 />
                 <button
                   type="button"
                   onClick={() => setFieldToNow('signIn')}
-                  title="Set arrival time to now"
-                  aria-label="Set arrival time to now"
+                  title={uiText("Set arrival time to now")}
+                  aria-label={uiText("Set arrival time to now")}
                   className="px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-bold text-xs transition-colors"
-                >
-                  Now
-                </button>
+                >{uiText("Now")}</button>
               </div>
             </div>
 
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Lunch Out Time</label>
-                <span className="text-[10px] text-slate-400">Interval: {formatWindowTime(windows?.lunchCheckOutStart || '12:00')} – {formatWindowTime(windows?.lunchCheckOutEnd || '13:00')}</span>
+                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{uiText("Lunch Out Time")}</label>
+                <span className="text-[10px] text-slate-400">{uiText("Interval: ")}{uiText(formatWindowTime(windows?.lunchCheckOutStart || '12:00'))}{uiText(" – ")}{uiText(formatWindowTime(windows?.lunchCheckOutEnd || '13:00'))}</span>
               </div>
               <div className="flex gap-2">
                 <input
                   type="time"
                   value={lunchOut}
                   onChange={(e) => setLunchOut(e.target.value)}
-                  title="Lunch out time"
-                  aria-label="Lunch out time"
+                  title={uiText("Lunch out time")}
+                  aria-label={uiText("Lunch out time")}
                   className="flex-1 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600/50 text-sm"
                 />
                 <button
                   type="button"
                   onClick={() => setFieldToNow('lunchOut')}
-                  title="Set lunch out time to now"
-                  aria-label="Set lunch out time to now"
+                  title={uiText("Set lunch out time to now")}
+                  aria-label={uiText("Set lunch out time to now")}
                   className="px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-bold text-xs transition-colors"
-                >
-                  Now
-                </button>
+                >{uiText("Now")}</button>
               </div>
             </div>
 
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Lunch In Time</label>
-                <span className="text-[10px] text-slate-400">Interval: {formatWindowTime(windows?.lunchCheckInStart || '13:00')} – {formatWindowTime(windows?.lunchCheckInEnd || '14:00')}</span>
+                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{uiText("Lunch In Time")}</label>
+                <span className="text-[10px] text-slate-400">{uiText("Interval: ")}{uiText(formatWindowTime(windows?.lunchCheckInStart || '13:00'))}{uiText(" – ")}{uiText(formatWindowTime(windows?.lunchCheckInEnd || '14:00'))}</span>
               </div>
               <div className="flex gap-2">
                 <input
                   type="time"
                   value={lunchIn}
                   onChange={(e) => setLunchIn(e.target.value)}
-                  title="Lunch in time"
-                  aria-label="Lunch in time"
+                  title={uiText("Lunch in time")}
+                  aria-label={uiText("Lunch in time")}
                   className="flex-1 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600/50 text-sm"
                 />
                 <button
                   type="button"
                   onClick={() => setFieldToNow('lunchIn')}
-                  title="Set lunch in time to now"
-                  aria-label="Set lunch in time to now"
+                  title={uiText("Set lunch in time to now")}
+                  aria-label={uiText("Set lunch in time to now")}
                   className="px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-bold text-xs transition-colors"
-                >
-                  Now
-                </button>
+                >{uiText("Now")}</button>
               </div>
             </div>
 
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Departure Time</label>
-                <span className="text-[10px] text-slate-400">Interval: {formatWindowTime(windows?.leaveStart || '17:00')} – {formatWindowTime(windows?.leaveEnd || '18:00')}</span>
+                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{uiText("Departure Time")}</label>
+                <span className="text-[10px] text-slate-400">{uiText("Interval: ")}{uiText(formatWindowTime(windows?.leaveStart || '17:00'))}{uiText(" – ")}{uiText(formatWindowTime(windows?.leaveEnd || '18:00'))}</span>
               </div>
               <div className="flex gap-2">
                 <input
                   type="time"
                   value={signOut}
                   onChange={(e) => setSignOut(e.target.value)}
-                  title="Departure time"
-                  aria-label="Departure time"
+                  title={uiText("Departure time")}
+                  aria-label={uiText("Departure time")}
                   className="flex-1 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600/50 text-sm"
                 />
                 <button
                   type="button"
                   onClick={() => setFieldToNow('signOut')}
-                  title="Set departure time to now"
-                  aria-label="Set departure time to now"
+                  title={uiText("Set departure time to now")}
+                  aria-label={uiText("Set departure time to now")}
                   className="px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-bold text-xs transition-colors"
-                >
-                  Now
-                </button>
+                >{uiText("Now")}</button>
               </div>
             </div>
           </div>
@@ -2171,22 +2098,18 @@ const EditAttendanceModal = ({
               type="button"
               onClick={onClose}
               className="px-4 py-2 text-sm font-bold text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors"
-            >
-              Cancel
-            </button>
+            >{uiText("Cancel")}</button>
             <button
               type="submit"
               disabled={saving}
               className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-600/20 transition-all flex items-center gap-2 disabled:opacity-50"
             >
-              {saving ? (
+              {uiText(saving ? (
                 <>
-                  <Loader2 size={16} className="animate-spin" />
-                  Saving...
-                </>
+                  <Loader2 size={16} className="animate-spin" />{uiText("Saving...")}</>
               ) : (
                 'Save Attendance'
-              )}
+              ))}
             </button>
           </div>
         </form>

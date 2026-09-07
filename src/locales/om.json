@@ -1,10 +1,10 @@
 {
   "nav": {
-    "home": "Fuula Duraa",
+    "home": "Fuula jalqabaa",
     "about": "Waa'ee Keenya",
     "programs": "Sagantaalee",
     "media": "Miidiyaa",
-    "branches": "Dameewwan",
+    "branches": "Dammeewwan",
     "signIn": "Seeni",
     "dashboard": "Daashboordii",
     "overview": "Waliigala",
@@ -36,7 +36,7 @@
     "websitePosts": "Maxxansoota Weebsaayitii",
     "auditorDashboard": "Daashboordii Odiitaraa",
     "specialStudents": "Barattoota Addaa",
-    "schoolLife": "Jireenya Mana Barumsaa",
+    "schoolLife": "Jireenya mana barumsaa",
     "classes": "Kutaalee",
     "subjects": "Gosa Barnootaa",
     "staffManagement": "Bulchiinsa Hojjettootaa",
@@ -52,7 +52,11 @@
     "familyDashboard": "Daashboordii Maatii",
     "communicationBook": "Kitaaba Qunnamtii",
     "newsEvents": "Odeeffannoo fi Qophiiwwan",
-    "librarian": "Hojjettoota Mana Kitaabaa"
+    "librarian": "Hojjettoota Mana Kitaabaa",
+    "supervise": "To'adhu",
+    "storekeeperPortal": "Fuula kuusaa",
+    "propertyRegister": "Galmee qabeenyaa",
+    "addAsset": "Qabeenya dabali"
   },
   "landing": {
     "heroTitle": "Sanyii",
@@ -151,7 +155,12 @@
         "admissions": "Galmee",
         "curriculum": "Silaabasii",
         "schoolLife": "Jireenya Mana Barumsaa",
-        "careers": "Hojii"
+        "careers": "Hojii",
+        "/": "Fuula jalqabaa",
+        "/about": "Waa'ee keenya",
+        "/programs": "Sagantaalee",
+        "/school-life": "Jireenya mana barumsaa",
+        "/branches": "Dammeewwan"
       }
     },
     "valuesSubtitle": "Bu'uuroota Keenya",
@@ -287,7 +296,7 @@
         ]
       },
       "schoolLife": {
-        "subtitle": "Jireenya Mana Barumsaa",
+        "subtitle": "Jireenya mana barumsaa",
         "title": "Kutaa Barnootaatiin Alatti",
         "uniform": {
           "title": "Uffata Mana Barumsaa",
@@ -364,7 +373,8 @@
             "name": "Obbo Yonaas Baqqalaa",
             "role": "Daarektara — Awaash"
           }
-        ]
+        ],
+        "branch": "Dammee"
       }
     },
     "admissionClosed": "Galmeen Cufameera",
@@ -404,10 +414,12 @@
   },
   "sidebar": {
     "activeRole": "Gahee Ammaa",
-    "logout": "Ba'i"
+    "logout": "Ba'i",
+    "academicPortal": "Fuula barnootaa",
+    "signOut": "Ba'i"
   },
   "roles": {
-    "super-admin": "Bulchaa Ol'aanaa",
+    "super-admin": "Bulchaa olaanaa",
     "school-admin": "Bulchaa Mana Barumsaa",
     "academic-manager": "Bulchaa Barnootaa",
     "vice-principal": "Itti Aanaa Piriinsipaalaa",
@@ -491,7 +503,7 @@
   "registration": {
     "title": "Galmee Barataa",
     "subtitle": "Seensa, mirkaneessa tiraanisክripitii fi guddina barattootaa bulchi.",
-    "schoolTitleEn": "Ziquala Abo Kindergarten and Primary School",
+    "schoolTitleEn": "Mana Barumsaa Oolmaa Daa'immanii fi Sadarkaa Tokkoffaa Ziquala Abo",
     "schoolTitleAm": "የዝቋላ አቦ ገዳም አፀደ ህፃናትና አንደኛ ደረጃ ት/ቤት",
     "formTitle": "Waraqaa Galmee Barattootaa",
     "back": "Gara Duubaa",
@@ -580,7 +592,9 @@
     "publish": "Marsariitii irratti Maxxansi",
     "imageType": "Fakkii (URL)",
     "videoType": "Viidiyoo (YouTube Embed URL)",
-    "placeholderDesc": "Waa'ee maxxansa kanaa tokko barreessi..."
+    "placeholderDesc": "Waa'ee maxxansa kanaa tokko barreessi...",
+    "confirmDelete": "Barreeffama kana haquu akka barbaaddu mirkaneeffatteettaa?",
+    "publishing": "Maxxansaa Jira..."
   },
   "driverPortal": {
     "title": "Daashboordii Loojistiksii",
@@ -694,7 +708,9 @@
     "creating": "Uumaa Jira...",
     "updateClass": "Kutaa Haaraumsi",
     "noClasses": "Kutaan argame hin jiru.",
-    "back": "Duubatti"
+    "back": "Duubatti",
+    "createClassTitle": "Kutaa Haaraa Uumi",
+    "editClassTitle": "Kutaa Gulaali"
   },
   "subjects": {
     "title": "Bulchiinsa Gosa Barnootaa",
@@ -951,8 +967,8 @@
     "colDetails": "Tarree Meeshaa",
     "colBranch": "Dammee",
     "colAmount": "Baay'ina",
-    "colUnitValue": "Gatii Tokkoo (ETB)",
-    "colTotalValue": "Gatii Guutuu (ETB)",
+    "colUnitValue": "Gatii Tokkoo (Qarshii)",
+    "colTotalValue": "Gatii Guutuu (Qarshii)",
     "colAdded": "Gara Galmee Dabalame",
     "noInventoryFound": "Galmeen meeshaa tokkollee hin argamne."
   },
@@ -971,21 +987,24 @@
     "tabs": {
       "General": "Waliigala",
       "Security": "Nageenya",
-      "Grading": "Sirna Qabxii",
+      "Grading": "Sirna qabxii kennuu",
       "Appearance": "Bifa"
     },
     "subtabs": {
-      "branding": "Branding",
+      "branding": "Eenyummaa dhaabbataa",
       "contact": "Quunnamtii",
       "password": "Jecha Icchitii",
       "smtp": "Imeelii / SMTP"
-    }
+    },
+    "currentPassword": "Jecha Darbii Ammaa",
+    "newPassword": "Jecha Darbii Haaraa"
   },
   "common": {
     "back": "Deebi'i",
     "dashboard": "Daashboordii",
     "exams": "Qormaata",
-    "grades": "Qabxii"
+    "grades": "Qabxii",
+    "schoolName": "Mana Barumsaa Ziquala Abo"
   },
   "branches": {
     "title": "Dameewwan Mana Barumsaa",
@@ -1096,7 +1115,10 @@
     "diploma": "Dippiloomaa",
     "degree": "Digrii",
     "master": "Digrii 2ffaa (Maastarsii)",
-    "phd": "Dooktoraata (PhD)"
+    "phd": "Dooktoraata (PhD)",
+    "supervise": "To'adhu",
+    "teachersList": "Barsiisota",
+    "colAdminRating": "Sadarkaa Bulchaa"
   },
   "librarian": {
     "title": "Hojjettoota Mana Kitaabaa",
@@ -1257,7 +1279,8 @@
     "roomTeacherLabel": "Barsiisaa Kutaa:",
     "loadingGrades": "Kutaalee fe'aa jira...",
     "loadingStudents": "Barattootaa fe'aa jira...",
-    "academicOversightHeader": "To'annoo Akkaadaamii"
+    "academicOversightHeader": "To'annoo Akkaadaamii",
+    "colTeacher": "Barsiisaa"
   },
   "teacherPortal": {
     "overview": "Waliigala",
@@ -1408,6 +1431,7 @@
     "dueDate": "Guyyaa Deebisaa",
     "bookNamePlaceholder": "fkn., The Great Gatsby",
     "authorPlaceholder": "fkn., F. Scott Fitzgerald",
-    "shelfPlaceholder": "fkn., A-5-12"
+    "shelfPlaceholder": "fkn., A-5-12",
+    "colStock": "Kuusaa"
   }
 }

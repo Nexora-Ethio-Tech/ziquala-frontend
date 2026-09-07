@@ -69,7 +69,7 @@ export const defaultELearningBooks: ELearningBook[] = [
     driveUrl: '',
     status: 'published',
     featured: true,
-    allowDownload: false,
+    allowDownload: true,
     coverClass: 'from-amber-500 via-orange-600 to-rose-800',
     createdAt: now,
     updatedAt: now,
@@ -87,7 +87,7 @@ export const defaultELearningBooks: ELearningBook[] = [
     driveUrl: '',
     status: 'published',
     featured: true,
-    allowDownload: false,
+    allowDownload: true,
     coverClass: 'from-fuchsia-600 via-purple-700 to-indigo-950',
     createdAt: now,
     updatedAt: now,
@@ -105,7 +105,7 @@ export const defaultELearningBooks: ELearningBook[] = [
     driveUrl: '',
     status: 'published',
     featured: false,
-    allowDownload: false,
+    allowDownload: true,
     coverClass: 'from-rose-500 via-red-700 to-slate-950',
     createdAt: now,
     updatedAt: now,
@@ -123,7 +123,7 @@ export const defaultELearningBooks: ELearningBook[] = [
     driveUrl: '',
     status: 'published',
     featured: true,
-    allowDownload: false,
+    allowDownload: true,
     coverClass: 'from-sky-400 via-blue-700 to-indigo-950',
     createdAt: now,
     updatedAt: now,
@@ -141,7 +141,7 @@ export const defaultELearningBooks: ELearningBook[] = [
     driveUrl: '',
     status: 'published',
     featured: true,
-    allowDownload: false,
+    allowDownload: true,
     coverClass: 'from-emerald-400 via-emerald-700 to-teal-950',
     createdAt: now,
     updatedAt: now,
@@ -159,7 +159,7 @@ export const defaultELearningBooks: ELearningBook[] = [
     driveUrl: '',
     status: 'published',
     featured: true,
-    allowDownload: false,
+    allowDownload: true,
     coverClass: 'from-cyan-500 via-sky-700 to-blue-950',
     createdAt: now,
     updatedAt: now,
@@ -177,7 +177,7 @@ export const defaultELearningBooks: ELearningBook[] = [
     driveUrl: '',
     status: 'published',
     featured: false,
-    allowDownload: false,
+    allowDownload: true,
     coverClass: 'from-slate-600 via-slate-800 to-black',
     createdAt: now,
     updatedAt: now,
@@ -195,7 +195,7 @@ export const defaultELearningBooks: ELearningBook[] = [
     driveUrl: '',
     status: 'published',
     featured: false,
-    allowDownload: false,
+    allowDownload: true,
     coverClass: 'from-yellow-400 via-amber-600 to-stone-900',
     createdAt: now,
     updatedAt: now,
@@ -220,20 +220,29 @@ export const saveELearningBooks = (books: ELearningBook[]) => {
 };
 
 export const extractGoogleDriveFileId = (url: string) => {
-  const trimmed = url.trim();
-  if (!trimmed) return '';
-  const pathMatch = trimmed.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
-  if (pathMatch?.[1]) return pathMatch[1];
   try {
-    const parsed = new URL(trimmed);
-    if (!parsed.hostname.endsWith('google.com')) return '';
-    return parsed.searchParams.get('id') || '';
+    const parsed = new URL(url.trim());
+    if (parsed.protocol !== 'https:' || parsed.hostname !== 'drive.google.com') return '';
+    const fileId = parsed.pathname.match(/^\/file\/d\/([a-zA-Z0-9_-]+)(?:\/|$)/)?.[1]
+      || parsed.searchParams.get('id') || '';
+    return /^[a-zA-Z0-9_-]+$/.test(fileId) ? fileId : '';
   } catch {
     return '';
   }
 };
 
-export const getGoogleDrivePreviewUrl = (url: string) => {
+const driveFileUrl = (url: string, download: boolean) => {
   const fileId = extractGoogleDriveFileId(url);
-  return fileId ? `https://drive.google.com/file/d/${fileId}/preview` : '';
+  if (!fileId) return '';
+  const target = new URL(download ? 'https://drive.google.com/uc' : `https://drive.google.com/file/d/${fileId}/preview`);
+  if (download) {
+    target.searchParams.set('export', 'download');
+    target.searchParams.set('id', fileId);
+  }
+  const resourceKey = new URL(url.trim()).searchParams.get('resourcekey');
+  if (resourceKey) target.searchParams.set('resourcekey', resourceKey);
+  return target.toString();
 };
+
+export const getGoogleDrivePreviewUrl = (url: string) => driveFileUrl(url, false);
+export const getGoogleDriveDownloadUrl = (url: string) => driveFileUrl(url, true);

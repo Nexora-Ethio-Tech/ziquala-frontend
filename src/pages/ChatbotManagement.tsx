@@ -1,3 +1,4 @@
+import { uiError, uiText } from "../localization";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
     MessageSquare,
@@ -99,7 +100,7 @@ export default function ChatbotManagement() {
             loadDocs();
         } catch (err: any) {
             console.error(err);
-            alert(err.response?.data?.error || "Failed to add document. Check your permissions or backend logs.");
+            alert(uiError(err.response?.data?.error || "Failed to add document. Check your permissions or backend logs."));
         } finally {
             setDocLoading(false);
         }
@@ -107,27 +108,27 @@ export default function ChatbotManagement() {
 
     const deleteDoc = async (id: string) => {
         if (!isSuperAdmin) return;
-        if (!window.confirm("Are you sure you want to delete this full document?")) return;
+        if (!window.confirm(uiText("Are you sure you want to delete this full document?"))) return;
 
         try {
             await api.delete(`/super-admin/chatbot/docs/${id}`);
             loadDocs();
         } catch (err: any) {
             console.error(err);
-            alert(err.response?.data?.error || "Failed to delete document.");
+            alert(uiError(err.response?.data?.error || "Failed to delete document."));
         }
     };
 
     const clearAllDocs = async () => {
         if (!isSuperAdmin) return;
-        if (!window.confirm("Are you sure you want to delete ALL documents? This cannot be undone.")) return;
+        if (!window.confirm(uiText("Are you sure you want to delete ALL documents? This cannot be undone."))) return;
 
         try {
             await api.delete('/super-admin/chatbot/docs');
             setDocs([]);
         } catch (err: any) {
             console.error(err);
-            alert(err.response?.data?.error || "Failed to clear documents.");
+            alert(uiError(err.response?.data?.error || "Failed to clear documents."));
         }
     };
 
@@ -140,7 +141,7 @@ export default function ChatbotManagement() {
             loadDocs();
         } catch (err: any) {
             console.error(err);
-            alert(err.response?.data?.error || "Failed to update document.");
+            alert(uiError(err.response?.data?.error || "Failed to update document."));
         }
     };
 
@@ -160,15 +161,11 @@ export default function ChatbotManagement() {
                             </div>
 
                             <div>
-                                <h1 className="font-bold text-xl">
-                                    Ziquala Abo School Assistant
-                                </h1>
+                                <h1 className="font-bold text-xl">{uiText("Ziquala Abo School Assistant")}</h1>
 
                                 <div className="flex items-center gap-2 mt-1">
                                     <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                                    <p className="text-sm text-blue-100">
-                                        Semantic Search Active
-                                    </p>
+                                    <p className="text-sm text-blue-100">{uiText("Semantic Search Active")}</p>
                                 </div>
                             </div>
                         </div>
@@ -187,7 +184,7 @@ export default function ChatbotManagement() {
                                         }`}
                                 >
                                     <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                        {msg.content}
+                                        {msg.role === 'user' ? msg.content : uiText(msg.content)}
                                     </ReactMarkdown>
                                 </div>
                             </div>
@@ -216,7 +213,7 @@ export default function ChatbotManagement() {
                                         sendMessage();
                                     }
                                 }}
-                                placeholder="Ask anything..."
+                                placeholder={uiText("Ask anything...")}
                                 className="flex-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-blue-500"
                             />
 
@@ -243,12 +240,10 @@ export default function ChatbotManagement() {
                                 </div>
 
                                 <div>
-                                    <h2 className="font-bold text-xl">
-                                        Knowledge Base
-                                    </h2>
+                                    <h2 className="font-bold text-xl">{uiText("Knowledge Base")}</h2>
 
                                     <p className="text-sm text-emerald-100">
-                                        {isSuperAdmin ? "Manage whole documents securely" : "View available knowledge base"}
+                                        {uiText(isSuperAdmin ? "Manage whole documents securely" : "View available knowledge base")}
                                     </p>
                                 </div>
                             </div>
@@ -259,9 +254,7 @@ export default function ChatbotManagement() {
                                     onClick={clearAllDocs}
                                     className="flex items-center gap-2 bg-red-500 hover:bg-red-600 px-4 py-2 rounded-2xl text-sm font-medium transition-colors shadow-lg"
                                 >
-                                    <AlertTriangle size={16} />
-                                    Clear All
-                                </button>
+                                    <AlertTriangle size={16} />{uiText("Clear All")}</button>
                             )}
                         </div>
                     </div>
@@ -272,7 +265,7 @@ export default function ChatbotManagement() {
                             <textarea
                                 value={docText}
                                 onChange={(e) => setDocText(e.target.value)}
-                                placeholder="Paste full document text here..."
+                                placeholder={uiText("Paste full document text here...")}
                                 className="w-full h-32 resize-none rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 outline-none focus:ring-2 focus:ring-emerald-500"
                             />
 
@@ -283,7 +276,7 @@ export default function ChatbotManagement() {
                             >
                                 <Plus size={18} />
 
-                                {docLoading ? "Adding..." : "Add Document"}
+                                {uiText(docLoading ? "Adding..." : "Add Document")}
                             </button>
                         </div>
                     )}
@@ -291,9 +284,7 @@ export default function ChatbotManagement() {
                     {/* Docs List */}
                     <div className="flex-1 overflow-y-auto p-5 space-y-6 bg-slate-50 dark:bg-slate-950/40">
                         {docs.length === 0 && (
-                            <div className="text-center text-slate-500 dark:text-slate-400 mt-10">
-                                No documents found in database.
-                            </div>
+                            <div className="text-center text-slate-500 dark:text-slate-400 mt-10">{uiText("No documents found in database.")}</div>
                         )}
 
                         {docs.map((doc) => (
@@ -303,9 +294,7 @@ export default function ChatbotManagement() {
                             >
                                 <div className="flex items-center justify-between mb-3 border-b border-slate-100 dark:border-slate-700 pb-3">
 
-                                    <div className="text-xs font-mono font-medium bg-slate-100 dark:bg-slate-700 px-3 py-1.5 rounded-full text-slate-600 dark:text-slate-300">
-                                        Doc ID: {doc.id.slice(0, 8)}...
-                                    </div>
+                                    <div className="text-xs font-mono font-medium bg-slate-100 dark:bg-slate-700 px-3 py-1.5 rounded-full text-slate-600 dark:text-slate-300">{uiText("Doc ID: ")}{uiText(doc.id.slice(0, 8))}{uiText("...")}</div>
 
                                     {isSuperAdmin && (
                                         <div className="flex gap-2">
@@ -315,7 +304,7 @@ export default function ChatbotManagement() {
                                                     setEditingText(doc.text);
                                                 }}
                                                 className="p-2 rounded-xl bg-slate-100 hover:bg-yellow-500 text-slate-600 hover:text-white dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-yellow-600 transition-colors"
-                                                title="Edit Full Document"
+                                                title={uiText("Edit Full Document")}
                                             >
                                                 <Pencil size={16} />
                                             </button>
@@ -323,7 +312,7 @@ export default function ChatbotManagement() {
                                             <button
                                                 onClick={() => deleteDoc(doc.id)}
                                                 className="p-2 rounded-xl bg-slate-100 hover:bg-red-500 text-slate-600 hover:text-white dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-red-600 transition-colors"
-                                                title="Delete Document"
+                                                title={uiText("Delete Document")}
                                             >
                                                 <Trash2 size={16} />
                                             </button>
@@ -344,9 +333,7 @@ export default function ChatbotManagement() {
                                                 onClick={updateDoc}
                                                 className="flex items-center justify-center flex-1 gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-xl transition-colors font-medium"
                                             >
-                                                <Save size={18} />
-                                                Save Changes
-                                            </button>
+                                                <Save size={18} />{uiText("Save Changes")}</button>
 
                                             <button
                                                 onClick={() => {
@@ -355,15 +342,13 @@ export default function ChatbotManagement() {
                                                 }}
                                                 className="flex items-center justify-center flex-1 gap-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-white px-4 py-3 rounded-xl transition-colors font-medium"
                                             >
-                                                <X size={18} />
-                                                Cancel
-                                            </button>
+                                                <X size={18} />{uiText("Cancel")}</button>
                                         </div>
                                     </div>
                                 ) : (
                                     <div className="prose prose-sm dark:prose-invert max-w-none overflow-y-auto max-h-60 bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700/50 custom-scrollbar">
                                         <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                            {doc.text}
+                                            {uiText(doc.text)}
                                         </ReactMarkdown>
                                     </div>
                                 )}

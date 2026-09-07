@@ -52,7 +52,11 @@
     "familyDashboard": "Family Dashboard",
     "communicationBook": "Communication Book",
     "newsEvents": "News & Events",
-    "librarian": "Librarian Staff"
+    "librarian": "Librarian Staff",
+    "supervise": "Supervise",
+    "storekeeperPortal": "Store Portal",
+    "propertyRegister": "Property Register",
+    "addAsset": "Add Asset"
   },
   "schoolAdmin": {
     "welcomeBack": "Welcome back,",
@@ -111,7 +115,9 @@
     "creating": "Creating...",
     "updateClass": "Update Class",
     "noClasses": "No classes found.",
-    "back": "Back"
+    "back": "Back",
+    "createClassTitle": "Create New Class",
+    "editClassTitle": "Edit Class"
   },
   "subjects": {
     "title": "Subject Management",
@@ -437,7 +443,8 @@
             "name": "Ato Yonas Bekele",
             "role": "Director — Awash"
           }
-        ]
+        ],
+        "branch": "Branch"
       }
     },
     "admissionClosed": "Admission Closed",
@@ -477,7 +484,9 @@
   },
   "sidebar": {
     "activeRole": "Active Role",
-    "logout": "Logout Session"
+    "logout": "Logout Session",
+    "academicPortal": "Academic Portal",
+    "signOut": "Sign out"
   },
   "roles": {
     "super-admin": "Super Admin",
@@ -653,7 +662,9 @@
     "publish": "Publish to Website",
     "imageType": "Image (URL)",
     "videoType": "Video (YouTube Embed URL)",
-    "placeholderDesc": "Write something about this post..."
+    "placeholderDesc": "Write something about this post...",
+    "confirmDelete": "Are you sure you want to delete this post?",
+    "publishing": "Publishing..."
   },
   "driverPortal": {
     "title": "Logistics Dashboard",
@@ -896,7 +907,8 @@
     "colVerification": "Verification & Actions",
     "back": "Back",
     "selectGradeOption": "Select Grade",
-    "exportStudentCsv": "Export Student CSV"
+    "exportStudentCsv": "Export Student CSV",
+    "runAnalysis": "Run Analysis"
   },
   "schedule": {
     "architectTitle": "Schedule Architect",
@@ -977,13 +989,16 @@
       "contact": "Contact",
       "password": "Password",
       "smtp": "Email / SMTP"
-    }
+    },
+    "currentPassword": "Current Password",
+    "newPassword": "New Password"
   },
   "common": {
     "back": "Back",
     "dashboard": "Dashboard",
     "exams": "exams",
-    "grades": "grades"
+    "grades": "grades",
+    "schoolName": "Ziquala Abo School"
   },
   "branches": {
     "title": "School Branches",
@@ -1094,7 +1109,10 @@
     "diploma": "Diploma",
     "degree": "Degree",
     "master": "Master",
-    "phd": "PhD"
+    "phd": "PhD",
+    "supervise": "Supervise",
+    "teachersList": "Teachers",
+    "colAdminRating": "Admin Rating"
   },
   "librarian": {
     "title": "Librarian Staff",
@@ -1255,7 +1273,8 @@
     "roomTeacherLabel": "Room Teacher:",
     "loadingGrades": "Loading grades...",
     "loadingStudents": "Loading students...",
-    "academicOversightHeader": "Academic Oversight"
+    "academicOversightHeader": "Academic Oversight",
+    "colTeacher": "Teacher"
   },
   "teacherPortal": {
     "overview": "Overview",

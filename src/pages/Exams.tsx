@@ -1,3 +1,4 @@
+import { uiError, uiText } from "../localization";
 import { useTranslation } from 'react-i18next';
 
 import { useEffect, useMemo, useState } from 'react';
@@ -39,24 +40,23 @@ const StudentExamCard = ({ exam, onStart }: { exam: PublishedExam; onStart: () =
           <ClipboardList size={20} />
         </div>
         <span className={`inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full border ${cfg.color}`}>
-          <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />{cfg.label}
+          <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />{uiText(cfg.label)}
         </span>
       </div>
-      <h3 className="text-lg font-black text-slate-800 dark:text-white mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors tracking-tight line-clamp-2">{exam.title}</h3>
-      <p className="text-xs font-bold text-slate-400 mb-4">{exam.examType}</p>
+      <h3 className="text-lg font-black text-slate-800 dark:text-white mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors tracking-tight line-clamp-2">{uiText(exam.title)}</h3>
+      <p className="text-xs font-bold text-slate-400 mb-4">{uiText(exam.examType)}</p>
       <div className="space-y-2 mb-5">
-        {exam.teacherName && <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-medium"><User size={12} className="text-emerald-500" /> {exam.teacherName}</div>}
-        <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-medium"><Clock size={12} className="text-amber-500" /> {exam.durationMinutes} min • {exam.questionCount} questions</div>
+        {uiText(exam.teacherName && <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-medium"><User size={12} className="text-emerald-500" /> {uiText(exam.teacherName)}</div>)}
+        <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-medium"><Clock size={12} className="text-amber-500" /> {exam.durationMinutes}{uiText(" min • ")}{exam.questionCount}{uiText(" questions")}</div>
         {exam.passwordRequired && (
           <div className="flex items-center gap-2 text-xs text-blue-600 dark:text-blue-400 font-bold">
-            <Lock size={12} className="text-blue-500" /> Password Required
-          </div>
+            <Lock size={12} className="text-blue-500" />{uiText(" Password Required")}</div>
         )}
         {isSubmitted && exam.finalScore !== null && (
           <div className="mt-2 p-3 bg-slate-50 dark:bg-slate-800 rounded-xl">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Your Score</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{uiText("Your Score")}</p>
             <div className="flex items-center gap-2">
-              <span className={`text-2xl font-black ${Number(exam.finalScore) >= 50 ? 'text-emerald-600' : 'text-red-500'}`}>{exam.finalScore}%</span>
+              <span className={`text-2xl font-black ${Number(exam.finalScore) >= 50 ? 'text-emerald-600' : 'text-red-500'}`}>{exam.finalScore}{uiText("%")}</span>
               <CheckCircle2 size={16} className="text-emerald-500" />
             </div>
           </div>
@@ -64,13 +64,13 @@ const StudentExamCard = ({ exam, onStart }: { exam: PublishedExam; onStart: () =
       </div>
       <div className="pt-4 border-t border-slate-50 dark:border-slate-800">
         {isSubmitted ? (
-          <span className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider"><CheckCircle2 size={14} className="text-emerald-500" /> Exam Submitted</span>
+          <span className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider"><CheckCircle2 size={14} className="text-emerald-500" />{uiText(" Exam Submitted")}</span>
         ) : isTerminated ? (
-          <button onClick={onStart} className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 hover:bg-red-100 transition-colors"><AlertTriangle size={12} /> Terminated – Enter PIN</button>
+          <button onClick={onStart} className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 hover:bg-red-100 transition-colors"><AlertTriangle size={12} />{uiText(" Terminated – Enter PIN")}</button>
         ) : isActive ? (
-          <button onClick={onStart} className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest bg-blue-600 hover:bg-blue-700 text-white transition-colors shadow-lg shadow-blue-500/20"><ChevronRight size={14} /> Resume Exam</button>
+          <button onClick={onStart} className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest bg-blue-600 hover:bg-blue-700 text-white transition-colors shadow-lg shadow-blue-500/20"><ChevronRight size={14} />{uiText(" Resume Exam")}</button>
         ) : (
-          <button onClick={onStart} className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/20 hover:bg-blue-50 transition-all">Start Exam <ChevronRight size={14} /></button>
+          <button onClick={onStart} className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/20 hover:bg-blue-50 transition-all">{uiText("Start Exam ")}<ChevronRight size={14} /></button>
         )}
       </div>
     </div>
@@ -179,7 +179,7 @@ const Exams = () => {
       setAdminAuthModal(null);
       setAdminPassword('');
     } else {
-      alert('Invalid Principal Password');
+      alert(uiText("Invalid Principal Password"));
     }
   };
 
@@ -190,19 +190,17 @@ const Exams = () => {
         <div className="flex flex-col gap-1">
           <Breadcrumbs />
           <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-blue-600 hover:underline text-xs font-bold uppercase tracking-widest">
-            <ArrowLeft size={14} /> Back
-          </button>
+            <ArrowLeft size={14} />{uiText(" Back")}</button>
         </div>
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{t('examsPage.officialExaminations', 'Official Examinations')}</h1>
-            <p className="text-slate-500 dark:text-slate-400">Access and attempt your scheduled examinations.</p>
+            <p className="text-slate-500 dark:text-slate-400">{uiText("Access and attempt your scheduled examinations.")}</p>
           </div>
           <button onClick={fetchExams} disabled={loadingExams} className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-            <RefreshCw size={14} className={loadingExams ? 'animate-spin' : ''} /> Refresh
-          </button>
+            <RefreshCw size={14} className={loadingExams ? 'animate-spin' : ''} />{uiText(" Refresh")}</button>
         </div>
-        {examError && <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm font-bold">{examError}</div>}
+        {uiText(examError && <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm font-bold">{uiError(examError)}</div>)}
         {loadingExams ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1,2,3].map(i => <div key={i} className="h-48 bg-slate-100 dark:bg-slate-800 rounded-2xl animate-pulse" />)}
@@ -210,8 +208,8 @@ const Exams = () => {
         ) : studentExams.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-slate-400">
             <ClipboardList size={48} className="mb-4 opacity-40" />
-            <p className="font-bold text-lg">No exams published yet</p>
-            <p className="text-sm">Check back when your teacher publishes an examination.</p>
+            <p className="font-bold text-lg">{uiText("No exams published yet")}</p>
+            <p className="text-sm">{uiText("Check back when your teacher publishes an examination.")}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -232,15 +230,13 @@ const Exams = () => {
           onClick={() => navigate(-1)}
           className="flex items-center gap-1 text-blue-600 hover:underline text-xs font-bold uppercase tracking-widest"
         >
-          <ArrowLeft size={14} />
-          Back
-        </button>
+          <ArrowLeft size={14} />{uiText("Back")}</button>
       </div>
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Official Examinations</h1>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{uiText("Official Examinations")}</h1>
           <p className="text-slate-500 dark:text-slate-400">
-            {isTeacher && t('examsPage.manageExamsSub', 'Manage official mid-term and final examinations for your courses.')}
+            {uiText(isTeacher && t('examsPage.manageExamsSub', 'Manage official mid-term and final examinations for your courses.'))}
           </p>
         </div>
         {isTeacher && (
@@ -250,16 +246,12 @@ const Exams = () => {
               disabled={!canCreateOfficialExam}
               className={`px-6 py-2 rounded-xl font-bold transition-all flex items-center gap-2 ${canCreateOfficialExam ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-200' : 'bg-slate-200 text-slate-500 cursor-not-allowed'}`}
             >
-              <Plus size={20} />
-              New Examination
-            </button>
+              <Plus size={20} />{uiText("New Examination")}</button>
           </div>
         )}
       </div>
       {isTeacher && !canCreateOfficialExam && (
-        <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-amber-700 text-sm font-bold">
-          You are currently not assigned as an official examiner. Ask School Admin to promote you as examiner for Mid/Final exams.
-        </div>
+        <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-amber-700 text-sm font-bold">{uiText("You are currently not assigned as an official examiner. Ask School Admin to promote you as examiner for Mid/Final exams.")}</div>
       )}
 
       <div className="flex flex-wrap gap-3">
@@ -269,9 +261,7 @@ const Exams = () => {
               ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
               : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-800'
             }`}
-        >
-          All Items
-        </button>
+        >{uiText("All Items")}</button>
         {categories.map(cat => (
           <button
             key={cat}
@@ -281,7 +271,7 @@ const Exams = () => {
                 : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-800'
               }`}
           >
-            {cat === 'Mid-term' ? t('examsPage.midTerms', 'Mid-terms') : t('examsPage.finals', 'Finals')}
+            {uiText(cat === 'Mid-term' ? t('examsPage.midTerms', 'Mid-terms') : t('examsPage.finals', 'Finals'))}
           </button>
         ))}
       </div>
@@ -293,8 +283,7 @@ const Exams = () => {
             <div key={cat} className="space-y-4">
               <h2 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
                 <Filter size={20} className="text-blue-600" />
-                {cat}s
-              </h2>
+                {uiText(cat)}{uiText("s")}</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredExams.filter(e => e.category === cat).map(exam => (
                   <ExamCard
@@ -351,13 +340,13 @@ const Exams = () => {
                 {draftExams.map((exam: any) => (
                   <div key={exam.id} className="bg-white dark:bg-slate-800 border border-amber-200 dark:border-amber-800/50 rounded-2xl p-5 space-y-3 hover:shadow-lg hover:shadow-amber-500/5 transition-all">
                     <div className="flex items-start justify-between gap-2">
-                      <h3 className="font-bold text-slate-800 dark:text-white text-sm leading-tight">{exam.title}</h3>
+                      <h3 className="font-bold text-slate-800 dark:text-white text-sm leading-tight">{uiText(exam.title)}</h3>
                       <span className="shrink-0 text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700">{t('examsPage.draft', 'Draft')}</span>
                     </div>
                     <div className="text-xs text-slate-500 dark:text-slate-400 space-y-1">
-                      {exam.subject_name && <p><BookOpen size={10} className="inline mr-1" />{exam.subject_name}</p>}
-                      {(exam.class_name || exam.section_name) && <p><User size={10} className="inline mr-1" />{exam.class_name}{exam.section_name ? ` · ${exam.section_name}` : ''}</p>}
-                      <p><Clock size={10} className="inline mr-1" />{exam.duration_minutes} min · {exam.question_count} Qs · {exam.total_points} pts</p>
+                      {uiText(exam.subject_name && <p><BookOpen size={10} className="inline mr-1" />{uiText(exam.subject_name)}</p>)}
+                      {uiText((exam.class_name || exam.section_name) && <p><User size={10} className="inline mr-1" />{uiText(exam.class_name)}{uiText(exam.section_name ? ` · ${exam.section_name}` : '')}</p>)}
+                      <p><Clock size={10} className="inline mr-1" />{uiText(exam.duration_minutes)}{uiText(" min · ")}{uiText(exam.question_count)}{uiText(" Qs · ")}{uiText(exam.total_points)}{uiText(" pts")}</p>
                     </div>
                     <div className="flex gap-2 pt-1">
                       <button
@@ -368,7 +357,7 @@ const Exams = () => {
                             setCreationType('Exam'); 
                             setShowCreateForm(true); 
                           } catch (err: any) {
-                            alert(err?.message || 'Failed to load full exam details');
+                            alert(uiError(err?.message || 'Failed to load full exam details'));
                           }
                         }}
                         className="flex-1 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-xs font-bold hover:bg-blue-100 transition-colors flex items-center justify-center gap-1"
@@ -376,13 +365,13 @@ const Exams = () => {
                         <FileText size={12} /> {t('examsPage.edit', 'Edit')}
                       </button>
                       <button
-                        onClick={async () => { try { await publishTeacherExam(exam.id); const td = await getTeacherExams(); setDraftExams(Array.isArray(td.draftExams) ? td.draftExams : []); setPublishedExams(Array.isArray(td.publishedExams) ? td.publishedExams : []); } catch(e: any) { alert(e?.message || 'Failed to publish'); } }}
+                        onClick={async () => { try { await publishTeacherExam(exam.id); const td = await getTeacherExams(); setDraftExams(Array.isArray(td.draftExams) ? td.draftExams : []); setPublishedExams(Array.isArray(td.publishedExams) ? td.publishedExams : []); } catch(e: any) { alert(uiError(e?.message || 'Failed to publish')); } }}
                         className="flex-1 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold hover:bg-emerald-100 transition-colors flex items-center justify-center gap-1"
                       >
                         <Eye size={12} /> {t('examsPage.publish', 'Publish')}
                       </button>
                       <button
-                        onClick={async () => { if (!confirm('Delete this draft?')) return; try { await deleteTeacherExam(exam.id); const td = await getTeacherExams(); setDraftExams(Array.isArray(td.draftExams) ? td.draftExams : []); } catch(e: any) { alert(e?.message || 'Failed to delete'); } }}
+                        onClick={async () => { if (!confirm(uiText("Delete this draft?"))) return; try { await deleteTeacherExam(exam.id); const td = await getTeacherExams(); setDraftExams(Array.isArray(td.draftExams) ? td.draftExams : []); } catch(e: any) { alert(uiError(e?.message || 'Failed to delete')); } }}
                         className="py-1.5 px-2 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-500 text-xs font-bold hover:bg-red-100 transition-colors"
                       >
                         <Trash2 size={12} />
@@ -407,13 +396,13 @@ const Exams = () => {
                 {publishedExams.map((exam: any) => (
                   <div key={exam.id} className="bg-white dark:bg-slate-800 border border-emerald-200 dark:border-emerald-800/50 rounded-2xl p-5 space-y-3 hover:shadow-lg hover:shadow-emerald-500/5 transition-all">
                     <div className="flex items-start justify-between gap-2">
-                      <h3 className="font-bold text-slate-800 dark:text-white text-sm leading-tight">{exam.title}</h3>
+                      <h3 className="font-bold text-slate-800 dark:text-white text-sm leading-tight">{uiText(exam.title)}</h3>
                       <span className="shrink-0 text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700">{t('examsPage.live', 'Live')}</span>
                     </div>
                     <div className="text-xs text-slate-500 dark:text-slate-400 space-y-1">
-                      {exam.subject_name && <p><BookOpen size={10} className="inline mr-1" />{exam.subject_name}</p>}
-                      {(exam.class_name || exam.section_name) && <p><User size={10} className="inline mr-1" />{exam.class_name}{exam.section_name ? ` · ${exam.section_name}` : ''}</p>}
-                      <p><Clock size={10} className="inline mr-1" />{exam.duration_minutes} min · {exam.question_count} Qs · {exam.total_points} pts</p>
+                      {uiText(exam.subject_name && <p><BookOpen size={10} className="inline mr-1" />{uiText(exam.subject_name)}</p>)}
+                      {uiText((exam.class_name || exam.section_name) && <p><User size={10} className="inline mr-1" />{uiText(exam.class_name)}{uiText(exam.section_name ? ` · ${exam.section_name}` : '')}</p>)}
+                      <p><Clock size={10} className="inline mr-1" />{uiText(exam.duration_minutes)}{uiText(" min · ")}{uiText(exam.question_count)}{uiText(" Qs · ")}{uiText(exam.total_points)}{uiText(" pts")}</p>
                     </div>
                   </div>
                 ))}
@@ -423,21 +412,19 @@ const Exams = () => {
         </div>
       )}
 
-      {adminAuthModal && (
+      {uiText(adminAuthModal && (
 
         <div className="fixed inset-0 z-[150] bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4">
           <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-3xl shadow-2xl p-8 border-4 border-blue-500 animate-in zoom-in duration-300">
             <div className="w-20 h-20 bg-blue-50 dark:bg-blue-900/30 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
               <ShieldCheck size={40} />
             </div>
-            <h3 className="text-2xl font-black text-slate-900 dark:text-white text-center mb-2 uppercase tracking-tighter">Principal Authorization</h3>
-            <p className="text-slate-500 dark:text-slate-400 text-center mb-8 font-medium">
-              You are accessing an official examination as a School Admin. Please enter the Principal-set password to proceed.
-            </p>
+            <h3 className="text-2xl font-black text-slate-900 dark:text-white text-center mb-2 uppercase tracking-tighter">{uiText("Principal Authorization")}</h3>
+            <p className="text-slate-500 dark:text-slate-400 text-center mb-8 font-medium">{uiText("You are accessing an official examination as a School Admin. Please enter the Principal-set password to proceed.")}</p>
             <div className="space-y-4">
               <input
                 type="password"
-                placeholder="Enter Principal Password"
+                placeholder={uiText("Enter Principal Password")}
                 autoFocus
                 className="w-full px-6 py-4 bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl outline-none focus:border-blue-500 transition-all text-center font-bold tracking-widest dark:text-white"
                 value={adminPassword}
@@ -448,20 +435,16 @@ const Exams = () => {
                 <button
                   onClick={() => { setAdminAuthModal(null); setAdminPassword(''); }}
                   className="flex-1 py-4 bg-slate-100 dark:bg-slate-800 text-slate-500 rounded-2xl font-black transition-all hover:bg-slate-200"
-                >
-                  CANCEL
-                </button>
+                >{uiText("CANCEL")}</button>
                 <button
                   onClick={() => handleAdminStart(adminAuthModal)}
                   className="flex-1 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black shadow-lg shadow-blue-200 dark:shadow-none transition-all"
-                >
-                  AUTHORIZE
-                </button>
+                >{uiText("AUTHORIZE")}</button>
               </div>
             </div>
           </div>
         </div>
-      )}
+      ))}
     </div>
   );
 };
@@ -501,7 +484,7 @@ const ExamCard = ({ exam, role, actorId, onStart }: { exam: Exam, role: string |
       setLockPassword('');
       setShowLockModal(false);
     } else {
-      alert('Please enter a password to lock the exam');
+      alert(uiText("Please enter a password to lock the exam"));
     }
   };
 
@@ -511,7 +494,7 @@ const ExamCard = ({ exam, role, actorId, onStart }: { exam: Exam, role: string |
       setUnlockPassword('');
       setShowUnlockModal(false);
     } else {
-      alert('Unlock denied. Only the user who locked this exam can unlock it with the same password.');
+      alert(uiText("Unlock denied. Only the user who locked this exam can unlock it with the same password."));
     }
   };
 
@@ -521,7 +504,7 @@ const ExamCard = ({ exam, role, actorId, onStart }: { exam: Exam, role: string |
 
   const handlePrincipalPasswordSave = () => {
     if (!principalPasswordInput.trim()) {
-      alert('Enter a principal password.');
+      alert(uiText("Enter a principal password."));
       return;
     }
     setPrincipalPassword(exam.id, principalPasswordInput.trim());
@@ -540,24 +523,23 @@ const ExamCard = ({ exam, role, actorId, onStart }: { exam: Exam, role: string |
             <ClipboardList size={24} />
           </div>
           <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500">
-            {exam.category}
+            {uiText(exam.category)}
           </span>
         </div>
 
-        <h3 className="text-xl font-black text-slate-800 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors tracking-tight">{exam.title}</h3>
+        <h3 className="text-xl font-black text-slate-800 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors tracking-tight">{uiText(exam.title)}</h3>
         <div className="space-y-3 mb-8 relative z-10">
           <div className="flex items-center gap-3 text-xs font-bold text-slate-500 dark:text-slate-400">
             <div className="p-1.5 bg-slate-50 dark:bg-slate-800 rounded-lg"><BookOpen size={14} className="text-blue-600" /></div>
-            {exam.courseName}
+            {uiText(exam.courseName)}
           </div>
           <div className="flex items-center gap-3 text-xs font-bold text-slate-500 dark:text-slate-400">
             <div className="p-1.5 bg-slate-50 dark:bg-slate-800 rounded-lg"><User size={14} className="text-emerald-600" /></div>
-            {exam.teacherName}
+            {uiText(exam.teacherName)}
           </div>
           <div className="flex items-center gap-3 text-xs font-bold text-slate-500 dark:text-slate-400">
             <div className="p-1.5 bg-slate-50 dark:bg-slate-800 rounded-lg"><Clock size={14} className="text-amber-600" /></div>
-            {exam.durationMinutes} mins • {exam.questions.length} Questions
-          </div>
+            {exam.durationMinutes}{uiText(" mins • ")}{exam.questions.length}{uiText(" Questions")}</div>
         </div>
 
         <div className="pt-6 border-t border-slate-50 dark:border-slate-800 relative z-10">
@@ -568,30 +550,30 @@ const ExamCard = ({ exam, role, actorId, onStart }: { exam: Exam, role: string |
               className={`w-full flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] transition-all py-2 rounded-xl ${isLocked ? 'text-slate-400 cursor-not-allowed bg-slate-50 dark:bg-slate-800' : 'text-blue-600 dark:text-blue-400 hover:gap-4 bg-blue-50/50 dark:bg-blue-900/20'}`}
             >
               {isLocked ? (
-                <>Locked with Code <Lock size={14} /></>
+                <>{uiText("Locked with Code ")}<Lock size={14} /></>
               ) : (
-                <>Start Exam <ChevronRight size={16} /></>
+                <>{uiText("Start Exam ")}<ChevronRight size={16} /></>
               )}
             </button>
           ) : (
             <div className="flex justify-between items-center text-sm">
               <div className="flex items-center gap-3">
                 <span className={exam.status === 'available' ? 'text-green-600 font-bold' : 'text-slate-400'}>
-                  {exam.status === 'available' ? '• Active' : '• Draft'}
+                  {uiText(exam.status === 'available' ? '• Active' : '• Draft')}
                 </span>
                 {(role === 'teacher' || role === 'school-admin') && (
                   <div className="flex items-center gap-1">
                     <button
                       onClick={handleLockClick}
                       className={`p-1 rounded ${isLocked ? 'text-rose-600 bg-rose-50' : 'text-slate-400 hover:bg-slate-50'}`}
-                      title={isLocked ? 'Unlock' : 'Lock with Code'}
+                      title={uiText(isLocked ? 'Unlock' : 'Lock with Code')}
                     >
                       <Lock size={14} />
                     </button>
                     <button
                       onClick={handleHideToggle}
                       className={`p-1 rounded ${isHidden ? 'text-amber-600 bg-amber-50' : 'text-slate-400 hover:bg-slate-50'}`}
-                      title={isHidden ? 'Unveil' : 'Hide'}
+                      title={uiText(isHidden ? 'Unveil' : 'Hide')}
                     >
                       {isHidden ? <EyeOff size={14} /> : <Eye size={14} />}
                     </button>
@@ -599,7 +581,7 @@ const ExamCard = ({ exam, role, actorId, onStart }: { exam: Exam, role: string |
                       <button
                         onClick={() => setShowPrincipalModal(true)}
                         className="p-1 rounded text-indigo-600 hover:bg-indigo-50"
-                        title="Set Principal Password"
+                        title={uiText("Set Principal Password")}
                       >
                         <ShieldCheck size={14} />
                       </button>
@@ -607,9 +589,7 @@ const ExamCard = ({ exam, role, actorId, onStart }: { exam: Exam, role: string |
                   </div>
                 )}
               </div>
-              <button className="text-slate-400 hover:text-blue-600 transition-colors font-bold uppercase text-[10px] tracking-widest">
-                View Details
-              </button>
+              <button className="text-slate-400 hover:text-blue-600 transition-colors font-bold uppercase text-[10px] tracking-widest">{uiText("View Details")}</button>
             </div>
           )}
         </div>
@@ -619,7 +599,7 @@ const ExamCard = ({ exam, role, actorId, onStart }: { exam: Exam, role: string |
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-black text-slate-900">Lock Exam</h2>
+              <h2 className="text-2xl font-black text-slate-900">{uiText("Lock Exam")}</h2>
               <button
                 onClick={() => { setShowLockModal(false); setLockPassword(''); }}
                 className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
@@ -627,10 +607,10 @@ const ExamCard = ({ exam, role, actorId, onStart }: { exam: Exam, role: string |
                 <X size={20} />
               </button>
             </div>
-            <p className="text-slate-600">Set a password for students to unlock this exam.</p>
+            <p className="text-slate-600">{uiText("Set a password for students to unlock this exam.")}</p>
             <input
               type="password"
-              placeholder="Enter exam access password"
+              placeholder={uiText("Enter exam access password")}
               value={lockPassword}
               onChange={(e) => setLockPassword(e.target.value)}
               className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
@@ -639,15 +619,11 @@ const ExamCard = ({ exam, role, actorId, onStart }: { exam: Exam, role: string |
               <button
                 onClick={() => { setShowLockModal(false); setLockPassword(''); }}
                 className="flex-1 px-4 py-2 border border-slate-200 rounded-lg hover:bg-slate-50 font-bold transition-colors"
-              >
-                Cancel
-              </button>
+              >{uiText("Cancel")}</button>
               <button
                 onClick={handleLockSave}
                 className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold transition-colors"
-              >
-                Lock Exam
-              </button>
+              >{uiText("Lock Exam")}</button>
             </div>
           </div>
         </div>
@@ -657,7 +633,7 @@ const ExamCard = ({ exam, role, actorId, onStart }: { exam: Exam, role: string |
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-black text-slate-900">Unlock Exam</h2>
+              <h2 className="text-2xl font-black text-slate-900">{uiText("Unlock Exam")}</h2>
               <button
                 onClick={() => { setShowUnlockModal(false); setUnlockPassword(''); }}
                 className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
@@ -665,10 +641,10 @@ const ExamCard = ({ exam, role, actorId, onStart }: { exam: Exam, role: string |
                 <X size={20} />
               </button>
             </div>
-            <p className="text-slate-600">Enter the password to unlock this exam.</p>
+            <p className="text-slate-600">{uiText("Enter the password to unlock this exam.")}</p>
             <input
               type="password"
-              placeholder="Enter exam password"
+              placeholder={uiText("Enter exam password")}
               value={unlockPassword}
               onChange={(e) => setUnlockPassword(e.target.value)}
               className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
@@ -677,19 +653,15 @@ const ExamCard = ({ exam, role, actorId, onStart }: { exam: Exam, role: string |
               <button
                 onClick={() => { setShowUnlockModal(false); setUnlockPassword(''); }}
                 className="flex-1 px-4 py-2 border border-slate-200 rounded-lg hover:bg-slate-50 font-bold transition-colors"
-              >
-                Cancel
-              </button>
+              >{uiText("Cancel")}</button>
               <button
                 onClick={handleUnlock}
                 disabled={!isLockOwner}
                 className="flex-1 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold transition-colors"
-              >
-                Unlock Exam
-              </button>
+              >{uiText("Unlock Exam")}</button>
             </div>
             {isLocked && !isLockOwner && (
-              <p className="text-xs text-rose-600 font-bold">You did not create this lock. Unlock is restricted to lock owner.</p>
+              <p className="text-xs text-rose-600 font-bold">{uiText("You did not create this lock. Unlock is restricted to lock owner.")}</p>
             )}
           </div>
         </div>
@@ -699,7 +671,7 @@ const ExamCard = ({ exam, role, actorId, onStart }: { exam: Exam, role: string |
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-black text-slate-900">Principal Password</h2>
+              <h2 className="text-2xl font-black text-slate-900">{uiText("Principal Password")}</h2>
               <button
                 onClick={() => { setShowPrincipalModal(false); setPrincipalPasswordInput(''); }}
                 className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
@@ -707,10 +679,10 @@ const ExamCard = ({ exam, role, actorId, onStart }: { exam: Exam, role: string |
                 <X size={20} />
               </button>
             </div>
-            <p className="text-slate-600">Set the password required for School Admin authorization to start this official exam.</p>
+            <p className="text-slate-600">{uiText("Set the password required for School Admin authorization to start this official exam.")}</p>
             <input
               type="password"
-              placeholder="Enter principal password"
+              placeholder={uiText("Enter principal password")}
               value={principalPasswordInput}
               onChange={(e) => setPrincipalPasswordInput(e.target.value)}
               className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
@@ -719,15 +691,11 @@ const ExamCard = ({ exam, role, actorId, onStart }: { exam: Exam, role: string |
               <button
                 onClick={() => { setShowPrincipalModal(false); setPrincipalPasswordInput(''); }}
                 className="flex-1 px-4 py-2 border border-slate-200 rounded-lg hover:bg-slate-50 font-bold transition-colors"
-              >
-                Cancel
-              </button>
+              >{uiText("Cancel")}</button>
               <button
                 onClick={handlePrincipalPasswordSave}
                 className="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold transition-colors"
-              >
-                Save Password
-              </button>
+              >{uiText("Save Password")}</button>
             </div>
           </div>
         </div>
@@ -941,7 +909,7 @@ const ExamCreator = ({ type, editingExam, onCancel, onSave }: {
 
   const handleSave = async (publish: boolean = false) => {
     if (passwordRequired && !examPassword.trim()) {
-      alert('Please enter a password for the exam.');
+      alert(uiText("Please enter a password for the exam."));
       return;
     }
 
@@ -1013,7 +981,7 @@ const ExamCreator = ({ type, editingExam, onCancel, onSave }: {
       }
     } catch (error: any) {
       console.error('Exam save failed:', error);
-      alert(error?.message || 'Could not save exam.');
+      alert(uiError(error?.message || 'Could not save exam.'));
     }
   };
 
@@ -1024,18 +992,13 @@ const ExamCreator = ({ type, editingExam, onCancel, onSave }: {
           <button onClick={onCancel} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500">
             <X size={24} />
           </button>
-          <h1 className="text-2xl font-bold dark:text-white">{isEditing ? `Edit ${type}` : `Create New ${type}`}</h1>
+          <h1 className="text-2xl font-bold dark:text-white">{uiText(isEditing ? `Edit ${type}` : `Create New ${type}`)}</h1>
         </div>
         <div className="flex gap-3">
-          <button onClick={onCancel} className="px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
-            Cancel
-          </button>
+          <button onClick={onCancel} className="px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">{uiText("Cancel")}</button>
           <button onClick={() => handleSave(false)} className="bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-white hover:bg-slate-300 dark:hover:bg-slate-600 px-6 py-2 rounded-lg font-medium transition-colors flex items-center gap-2">
-            <Save size={20} />
-            Save Draft
-          </button>
-          <button onClick={() => handleSave(true)} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors flex items-center gap-2">
-            Publish {type}
+            <Save size={20} />{uiText("Save Draft")}</button>
+          <button onClick={() => handleSave(true)} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors flex items-center gap-2">{uiText("Publish ")}{uiText(type)}
           </button>
         </div>
       </div>
@@ -1049,15 +1012,15 @@ const ExamCreator = ({ type, editingExam, onCancel, onSave }: {
               ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 border border-emerald-200 dark:border-emerald-800'
               : 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 border border-amber-200 dark:border-amber-800'
           }`}>
-            <span>Questions total: <span className="text-lg">{totalQuestionPoints}</span> pts</span>
-            <span>Exam total: <span className="text-lg">{totalMarks}</span> pts</span>
-            <span>{pointsDiff === 0 ? '✓ Balanced' : pointsDiff > 0 ? `${pointsDiff} pts over` : `${Math.abs(pointsDiff)} pts remaining`}</span>
+            <span>{uiText("Questions total: ")}<span className="text-lg">{totalQuestionPoints}</span>{uiText(" pts")}</span>
+            <span>{uiText("Exam total: ")}<span className="text-lg">{totalMarks}</span>{uiText(" pts")}</span>
+            <span>{uiText(pointsDiff === 0 ? '✓ Balanced' : pointsDiff > 0 ? `${pointsDiff} pts over` : `${Math.abs(pointsDiff)} pts remaining`)}</span>
           </div>
         )}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {role === 'teacher' && (
               <div className="space-y-1">
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Grade</label>
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">{uiText("Grade")}</label>
                 <select className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white" value={gradeId} onChange={e => {
                   const val = e.target.value;
                   setGradeId(val);
@@ -1074,14 +1037,14 @@ const ExamCreator = ({ type, editingExam, onCancel, onSave }: {
                   setSectionsForGrade(Array.from(sectionMap.values()));
                   setCoursesForSection([]);
                 }}>
-                  <option value="" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Select Grade</option>
+                  <option value="" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{uiText("Select Grade")}</option>
                   {gradesForExam.map(g => <option key={g.id} value={g.id} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{g.name}</option>)}
                 </select>
               </div>
             )}
-            {role === 'teacher' && gradeId && (
+            {uiText(role === 'teacher' && gradeId && (
               <div className="space-y-1">
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Section</label>
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">{uiText("Section")}</label>
                 <select className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white" value={sectionId} onChange={e => {
                   const val = e.target.value;
                   setSectionId(val);
@@ -1089,16 +1052,16 @@ const ExamCreator = ({ type, editingExam, onCancel, onSave }: {
                   // Courses taught in this specific class/section
                   setCoursesForSection(teacherCourses.filter((c: any) => c.class_id === val));
                 }}>
-                  <option value="" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Select Section</option>
+                  <option value="" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{uiText("Select Section")}</option>
                   {sectionsForGrade.map(s => <option key={s.id} value={s.id} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{s.name}</option>)}
                 </select>
               </div>
-            )}
+            ))}
           <div className="space-y-1">
-            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Exam Title</label>
+            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">{uiText("Exam Title")}</label>
             <input
               type="text"
-              placeholder="e.g. Mid-term Calculus"
+              placeholder={uiText("e.g. Mid-term Calculus")}
               className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-transparent dark:text-white"
               value={examData.title}
               onChange={e => setExamData({ ...examData, title: e.target.value })}
@@ -1106,18 +1069,18 @@ const ExamCreator = ({ type, editingExam, onCancel, onSave }: {
           </div>
           {/* Course Name removed — subject dropdown used instead */}
           <div className="space-y-1">
-            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Category</label>
+            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">{uiText("Category")}</label>
             <select
               className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold"
               value={examData.category}
               onChange={e => setExamData({ ...examData, category: e.target.value as ExamCategory })}
             >
-              <option value="Mid-term" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Mid-term</option>
-              <option value="Final" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Final</option>
+              <option value="Mid-term" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{uiText("Mid-term")}</option>
+              <option value="Final" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{uiText("Final")}</option>
             </select>
           </div>
           <div className="space-y-1">
-            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Duration (Minutes)</label>
+            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">{uiText("Duration (Minutes)")}</label>
             <input
               type="number"
               className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-transparent dark:text-white"
@@ -1128,26 +1091,26 @@ const ExamCreator = ({ type, editingExam, onCancel, onSave }: {
           {role === 'teacher' && (
             <>
               <div className="space-y-1">
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Total Marks</label>
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">{uiText("Total Marks")}</label>
                 <input type="number" className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-transparent dark:text-white" value={totalMarks} onChange={e => setTotalMarks(Number(e.target.value || 0))} />
               </div>
               <div className="space-y-1">
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Course / Subject</label>
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">{uiText("Course / Subject")}</label>
                 <select className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white" value={subjectId} onChange={e => setSubjectId(e.target.value)} disabled={!sectionId}>
-                  <option value="" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{sectionId ? 'Select Subject' : 'Select a section first'}</option>
-                  {coursesForSection.map(c => <option key={c.id} value={c.id} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{c.name || c.title || c.course_name}</option>)}
+                  <option value="" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{uiText(sectionId ? 'Select Subject' : 'Select a section first')}</option>
+                  {coursesForSection.map(c => <option key={c.id} value={c.id} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{uiText(c.name || c.title || c.course_name)}</option>)}
                 </select>
               </div>
               <div className="space-y-1 col-span-full">
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Instructions for Students</label>
-                <textarea rows={3} className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-transparent dark:text-white" value={instructions} onChange={e => setInstructions(e.target.value)} placeholder="Instructions for students..." />
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">{uiText("Instructions for Students")}</label>
+                <textarea rows={3} className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-transparent dark:text-white" value={instructions} onChange={e => setInstructions(e.target.value)} placeholder={uiText("Instructions for students...")} />
               </div>
 
               <div className="col-span-full grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-200 dark:border-slate-700">
                 <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
                   <div className="space-y-0.5">
-                    <label className="text-sm font-semibold text-slate-900 dark:text-white">Show Score to Students</label>
-                    <p className="text-xs text-slate-500">Allow students to see their score and percentage immediately after submission.</p>
+                    <label className="text-sm font-semibold text-slate-900 dark:text-white">{uiText("Show Score to Students")}</label>
+                    <p className="text-xs text-slate-500">{uiText("Allow students to see their score and percentage immediately after submission.")}</p>
                   </div>
                   <button
                     type="button"
@@ -1166,8 +1129,8 @@ const ExamCreator = ({ type, editingExam, onCancel, onSave }: {
 
                 <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
                   <div className="space-y-0.5">
-                    <label className="text-sm font-semibold text-slate-900 dark:text-white">Is Graded Exam?</label>
-                    <p className="text-xs text-slate-500">Automatically sync results to student gradebook under an assessment type.</p>
+                    <label className="text-sm font-semibold text-slate-900 dark:text-white">{uiText("Is Graded Exam?")}</label>
+                    <p className="text-xs text-slate-500">{uiText("Automatically sync results to student gradebook under an assessment type.")}</p>
                   </div>
                   <button
                     type="button"
@@ -1186,27 +1149,27 @@ const ExamCreator = ({ type, editingExam, onCancel, onSave }: {
 
                 {isGraded && (
                   <div className="space-y-1 col-span-full md:col-span-1">
-                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Assessment Type (Gradebook Category)</label>
+                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">{uiText("Assessment Type (Gradebook Category)")}</label>
                     <select
                       className="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-medium"
                       value={assessmentType}
                       onChange={e => setAssessmentType(e.target.value)}
                     >
-                      <option value="quiz-1" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Quiz 1</option>
-                      <option value="quiz-2" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Quiz 2</option>
-                      <option value="test-1" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Test 1</option>
-                      <option value="mid-exam" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Mid-Term Exam</option>
-                      <option value="mid-assignment" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Mid-Term Assignment</option>
-                      <option value="assignment" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Assignment</option>
-                      <option value="final-exam" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Final Exam</option>
+                      <option value="quiz-1" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{uiText("Quiz 1")}</option>
+                      <option value="quiz-2" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{uiText("Quiz 2")}</option>
+                      <option value="test-1" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{uiText("Test 1")}</option>
+                      <option value="mid-exam" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{uiText("Mid-Term Exam")}</option>
+                      <option value="mid-assignment" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{uiText("Mid-Term Assignment")}</option>
+                      <option value="assignment" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{uiText("Assignment")}</option>
+                      <option value="final-exam" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{uiText("Final Exam")}</option>
                     </select>
                   </div>
                 )}
 
                 <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
                   <div className="space-y-0.5">
-                    <label className="text-sm font-semibold text-slate-900 dark:text-white">Require Exam Password</label>
-                    <p className="text-xs text-slate-500">Require students to enter a password to start or resume the exam.</p>
+                    <label className="text-sm font-semibold text-slate-900 dark:text-white">{uiText("Require Exam Password")}</label>
+                    <p className="text-xs text-slate-500">{uiText("Require students to enter a password to start or resume the exam.")}</p>
                   </div>
                   <button
                     type="button"
@@ -1227,18 +1190,16 @@ const ExamCreator = ({ type, editingExam, onCancel, onSave }: {
                   <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2 col-span-full animate-in slide-in-from-top-2 duration-300">
                     <div className="flex items-center gap-2">
                       <Lock size={16} className="text-blue-500" />
-                      <label className="text-sm font-semibold text-slate-900 dark:text-white">Exam Password</label>
+                      <label className="text-sm font-semibold text-slate-900 dark:text-white">{uiText("Exam Password")}</label>
                     </div>
                     <input
                       type="text"
-                      placeholder="Enter exam password (e.g. 123456)"
+                      placeholder={uiText("Enter exam password (e.g. 123456)")}
                       value={examPassword}
                       onChange={e => setExamPassword(e.target.value)}
                       className="w-full max-w-md px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-mono tracking-wider focus:border-blue-500 outline-none transition-colors"
                     />
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                      Students must enter this password to start the exam and to resume if they reload or leave the page.
-                    </p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">{uiText("Students must enter this password to start the exam and to resume if they reload or leave the page.")}</p>
                   </div>
                 )}
               </div>
@@ -1253,7 +1214,7 @@ const ExamCreator = ({ type, editingExam, onCancel, onSave }: {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <FileText className="text-blue-600" size={20} />
-              <h3 className="font-bold dark:text-white">Assignment Mode</h3>
+              <h3 className="font-bold dark:text-white">{uiText("Assignment Mode")}</h3>
             </div>
             <button
               onClick={() => setAssignmentDetails({ ...assignmentDetails, isDocumentOnly: !assignmentDetails.isDocumentOnly })}
@@ -1262,16 +1223,16 @@ const ExamCreator = ({ type, editingExam, onCancel, onSave }: {
                   : 'bg-slate-100 dark:bg-slate-900 text-slate-500'
                 }`}
             >
-              {assignmentDetails.isDocumentOnly ? 'DOCUMENT-ONLY MODE ACTIVE' : 'SWITCH TO DOCUMENT-ONLY'}
+              {uiText(assignmentDetails.isDocumentOnly ? 'DOCUMENT-ONLY MODE ACTIVE' : 'SWITCH TO DOCUMENT-ONLY')}
             </button>
           </div>
 
           <div className="space-y-4">
             <div className="space-y-1">
-              <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Assignment Description</label>
+              <label className="text-sm font-medium text-slate-700 dark:text-slate-300">{uiText("Assignment Description")}</label>
               <textarea
                 rows={4}
-                placeholder="Provide clear instructions for the assignment..."
+                placeholder={uiText("Provide clear instructions for the assignment...")}
                 className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-transparent dark:text-white"
                 value={assignmentDetails.description}
                 onChange={e => setAssignmentDetails({ ...assignmentDetails, description: e.target.value })}
@@ -1279,7 +1240,7 @@ const ExamCreator = ({ type, editingExam, onCancel, onSave }: {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-1">
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Due Date</label>
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">{uiText("Due Date")}</label>
                 <input
                   type="date"
                   className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-transparent dark:text-white"
@@ -1288,11 +1249,11 @@ const ExamCreator = ({ type, editingExam, onCancel, onSave }: {
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Supporting Document (Max 2MB)</label>
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">{uiText("Supporting Document (Max 2MB)")}</label>
                 <div className="flex items-center justify-center border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-lg p-4 hover:border-blue-500 transition-colors group cursor-pointer h-full min-h-[80px]">
                   <div className="text-center">
                     <Upload className="mx-auto text-slate-400 group-hover:text-blue-500 mb-2" size={24} />
-                    <p className="text-xs text-slate-500">{assignmentDetails.fileName || 'Click to upload PDF or DOCX'}</p>
+                    <p className="text-xs text-slate-500">{uiText(assignmentDetails.fileName || 'Click to upload PDF or DOCX')}</p>
                   </div>
                 </div>
               </div>
@@ -1305,13 +1266,12 @@ const ExamCreator = ({ type, editingExam, onCancel, onSave }: {
       {(!assignmentDetails.isDocumentOnly || type === 'Exam') && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold dark:text-white">Question Structure</h2>
+            <h2 className="text-lg font-bold dark:text-white">{uiText("Question Structure")}</h2>
             <button
               onClick={() => addQuestion()}
               className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-blue-600 px-4 py-2 rounded-lg flex items-center gap-1 font-bold text-sm hover:shadow-sm transition-all"
             >
-              <Plus size={18} /> New Root Question
-            </button>
+              <Plus size={18} />{uiText(" New Root Question")}</button>
           </div>
 
           <div className="space-y-4 pb-20">
@@ -1330,13 +1290,11 @@ const ExamCreator = ({ type, editingExam, onCancel, onSave }: {
             {questions.length === 0 && (
               <div className="py-20 text-center bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800">
                 <Plus className="mx-auto text-slate-300 mb-4" size={48} />
-                <p className="text-slate-500 font-medium">No questions added yet.</p>
+                <p className="text-slate-500 font-medium">{uiText("No questions added yet.")}</p>
                 <button
                   onClick={() => addQuestion()}
                   className="mt-4 text-blue-600 font-bold hover:underline"
-                >
-                  Add your first question
-                </button>
+                >{uiText("Add your first question")}</button>
               </div>
             )}
           </div>
@@ -1368,13 +1326,13 @@ const QuestionNode = ({
   <div className={`bg-white dark:bg-slate-800 p-4 md:p-6 rounded-xl border border-slate-200 dark:border-slate-700 space-y-4 relative group ${level > 0 ? 'ml-4 md:ml-8 mt-4' : ''}`}>
     <div className="flex items-start gap-2 md:gap-4">
       <span className="flex items-center justify-center w-6 h-6 md:w-8 md:h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 font-bold shrink-0 text-xs md:text-sm">
-        {level === 0 ? (index !== undefined ? index + 1 : '•') : '•'}
+        {uiText(level === 0 ? (index !== undefined ? index + 1 : '•') : '•')}
       </span>
       <div className="flex-1 space-y-4 min-w-0">
         <div className="flex flex-wrap items-center gap-2 md:gap-4">
           <input
             type="text"
-            placeholder="Enter question text..."
+            placeholder={uiText("Enter question text...")}
             className="flex-1 text-lg font-medium bg-transparent border-none focus:ring-0 dark:text-white outline-none"
             value={q.text}
             onChange={e => onUpdate(q.id, { text: e.target.value })}
@@ -1384,33 +1342,33 @@ const QuestionNode = ({
             <input
               type="number"
               min={0}
-              placeholder="pts"
+              placeholder={uiText("pts")}
               className="w-16 px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-sm font-bold text-center"
               value={q.points ?? ''}
               onChange={e => onUpdate(q.id, { points: e.target.value === '' ? undefined : Number(e.target.value) })}
-              title="Points for this question"
+              title={uiText("Points for this question")}
             />
-            <span className="text-xs text-slate-400 font-medium">pts</span>
+            <span className="text-xs text-slate-400 font-medium">{uiText("pts")}</span>
           </div>
           <div className="flex items-center bg-slate-50 dark:bg-slate-900 rounded-lg p-1 border dark:border-slate-700">
             <button
               onClick={() => onUpdate(q.id, { type: 'explain' })}
               className={`p-1.5 rounded-md transition-all ${q.type === 'explain' ? 'bg-white dark:bg-slate-800 shadow-sm text-blue-600' : 'text-slate-400'}`}
-              title="Explain Question"
+              title={uiText("Explain Question")}
             >
               <AlignLeft size={16} />
             </button>
             <button
               onClick={() => onUpdate(q.id, { type: 'options' })}
               className={`p-1.5 rounded-md transition-all ${q.type === 'options' ? 'bg-white dark:bg-slate-800 shadow-sm text-blue-600' : 'text-slate-400'}`}
-              title="Multiple Choice"
+              title={uiText("Multiple Choice")}
             >
               <CheckSquare size={16} />
             </button>
             <button
               onClick={() => onUpdate(q.id, { type: 'group' })}
               className={`p-1.5 rounded-md transition-all ${q.type === 'group' ? 'bg-white dark:bg-slate-800 shadow-sm text-blue-600' : 'text-slate-400'}`}
-              title="Question Group"
+              title={uiText("Question Group")}
             >
               <Layers size={16} />
             </button>
@@ -1428,10 +1386,10 @@ const QuestionNode = ({
                   onChange={() => onUpdate(q.id, { correctOptionId: opt.id })}
                   className="w-4 h-4 text-blue-600"
                 />
-                <span className="text-slate-400 font-medium uppercase">{opt.id}.</span>
+                <span className="text-slate-400 font-medium uppercase">{uiText(opt.id)}{uiText(".")}</span>
                 <input
                   type="text"
-                  placeholder={`Option ${opt.id.toUpperCase()}`}
+                  placeholder={uiText("Option {{value0}}", { value0: opt.id.toUpperCase() })}
                   className="flex-1 px-3 py-1.5 rounded-lg border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 dark:text-white"
                   value={opt.text}
                   onChange={e => onUpdateOption(q.id, oIdx, e.target.value)}
@@ -1442,8 +1400,7 @@ const QuestionNode = ({
               onClick={() => onAddOption(q.id)}
               className="flex items-center gap-2 text-sm text-slate-400 hover:text-blue-600 transition-colors"
             >
-              <Plus size={16} /> Add Option
-            </button>
+              <Plus size={16} />{uiText(" Add Option")}</button>
           </div>
         )}
 
@@ -1465,8 +1422,7 @@ const QuestionNode = ({
               onClick={() => onAddSub(q.id)}
               className="flex items-center gap-2 text-sm text-blue-600 font-bold ml-8 hover:underline"
             >
-              <Plus size={16} /> Add Sub-question
-            </button>
+              <Plus size={16} />{uiText(" Add Sub-question")}</button>
           </div>
         )}
       </div>

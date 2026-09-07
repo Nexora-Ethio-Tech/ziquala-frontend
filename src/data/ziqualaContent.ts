@@ -1,3 +1,4 @@
+import officialSchoolStatement from './officialSchoolStatement.json';
 import abbaBirhanemeskelHailemariam from '../assets/leadership/abba-birhanemeskel-hailemariam.webp';
 import misganawSolomon from '../assets/leadership/misganaw-solomon.webp';
 import tadesseTesfaye from '../assets/leadership/tadesse-tesfaye.webp';
@@ -7,16 +8,11 @@ import yosefTemesgen from '../assets/leadership/yosef-temesgen.webp';
 export const ziqualaIdentity = {
   shortName: 'Ziquala Abo School',
   fullName: 'Zuqualla Abbo Primary School (Grade 1–8)',
-  amharicName: 'የዝቋላ አቦ ገዳም ፩ኛ ደረጃ ትምህርት ቤት',
-  oromoName: 'Mana Baruumsa Zuqaalaa Aabboo Sad. 1ffaa',
+  amharicName: officialSchoolStatement.am.name,
+  oromoName: officialSchoolStatement.om.name,
   location: 'Bishoftu, Kebele 03, House No. 721',
   owner: 'Ziquala Debre Kewakibt Abune Gebre Menfes Kidus Monastery Association',
   motto: 'Modern knowledge, spiritual wisdom, and responsible citizenship.',
-} as const;
-
-export const schoolPurpose = {
-  vision: 'To nurture self-directed learners with strong Ethiopian values who create useful ideas, serve their communities, and help their country thrive in a changing world.',
-  mission: 'To deliver high-quality education through capable teachers, combining internationally minded learning with Ethiopian values, disciplined work, and ethical character.',
 } as const;
 
 export const ziqualaBranches = [
@@ -42,6 +38,8 @@ export const publicNavigation = [
     to: '/',
     children: [
       { label: 'School & monastery', hash: '#destinations' },
+      { label: 'Overview', hash: '#home-overview' },
+      { label: 'Digital bookshelf', hash: '#home-books' },
     ],
   },
   {
@@ -121,13 +119,6 @@ export const monasteryHistory = [
   },
 ] as const;
 
-export const schoolGoals = [
-  'Restore and strengthen the ethical values that have long shaped Ethiopian identity.',
-  'Build confidence in science and technology so learners can contribute on a global stage.',
-  'Cultivate love of country and care for Ethiopia’s natural and historical heritage.',
-  'Develop the physical, intellectual, emotional, and social strengths of every learner.',
-] as const;
-
 export const schoolBoardLeaders = [
   {
     name: 'አቶ ተሾመ በየነ',
@@ -162,8 +153,8 @@ export const academicManagerProfile = {
 export type SchoolStaffGroup = 'office' | 'primary' | 'kindergarten';
 
 export const schoolStaff = [
-  { name: 'የትምህርት ቤቱ ርዕሰ መምህር', role: 'School Principal', group: 'office', image: '/images/staff/staff-46.jpg' },
-  { name: 'አባ ገብረጻድቅ ኃይለእየሱስ ብዙነህ', role: 'የት/ቤቱ ሥራ አስኪያጅ', group: 'office', image: '/images/staff/staff-37.jpg' },
+  { name: 'አብረሃም ከፍያለው', role: 'School Principal', group: 'office', image: '/images/staff/staff-46.jpg' },
+  { name: 'አባ ገብረጻድቅ ኃይለኢየሱስ ብዙነህ', role: 'የት/ቤቱ ሥራ አስኪያጅ', group: 'office', image: '/images/staff/staff-37.jpg' },
   { name: 'አባ ብርሃነመስቀል ኃይለማርያም', role: 'የት/ቤቱ አካዳሚክ ማናጀር', group: 'office', image: '/images/staff/staff-33.jpg' },
   { name: 'አባ ገብረጻድቅ ትዕዛዙ ወርቅነህ', role: 'የት/ቤቱ ፀሐፊ', group: 'office', image: '/images/staff/staff-36.jpg' },
   { name: 'አባ ሀብተማርያም በፅሐ ጌታነህ', role: 'የት/ቤቱ ግምጃ ቤት', group: 'office', image: '/images/staff/staff-32.jpg' },

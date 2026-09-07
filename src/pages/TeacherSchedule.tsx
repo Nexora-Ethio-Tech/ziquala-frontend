@@ -1,3 +1,4 @@
+import { uiError, uiText } from "../localization";
 import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Calendar, BookOpen, Loader2, Info } from 'lucide-react';
@@ -47,7 +48,7 @@ export const TeacherSchedule = () => {
         setSchedule(filtered);
       } catch (err: any) {
         console.error('Failed to fetch schedule:', err);
-        setError('Could not load schedule. Please try again later.');
+        setError(uiText("Could not load schedule. Please try again later."));
       } finally {
         setLoading(false);
       }
@@ -61,7 +62,7 @@ export const TeacherSchedule = () => {
     return (
       <div className="flex flex-col items-center justify-center h-96">
         <Loader2 className="animate-spin text-indigo-600 dark:text-indigo-400 mb-4" size={40} />
-        <p className="text-slate-500 dark:text-slate-400 animate-pulse font-medium">Loading your schedule...</p>
+        <p className="text-slate-500 dark:text-slate-400 animate-pulse font-medium">{uiText("Loading your schedule...")}</p>
       </div>
     );
   }
@@ -95,11 +96,11 @@ export const TeacherSchedule = () => {
         </div>
       </div>
 
-      {error && (
+      {uiText(error && (
         <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 p-4 rounded-2xl text-sm font-medium">
-          {error}
+          {uiError(error)}
         </div>
-      )}
+      ))}
 
       {totalSlots === 0 && !error ? (
         <div className="py-20 text-center bg-white dark:bg-slate-900 border border-dashed border-slate-200 dark:border-slate-800 rounded-3xl">
@@ -115,12 +116,12 @@ export const TeacherSchedule = () => {
             <table className="w-full min-w-[800px] border-collapse text-left">
               <thead>
                 <tr className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-800 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
-                  <th className="px-6 py-5">Subject</th>
-                  <th className="px-6 py-5">Monday</th>
-                  <th className="px-6 py-5">Tuesday</th>
-                  <th className="px-6 py-5">Wednesday</th>
-                  <th className="px-6 py-5">Thursday</th>
-                  <th className="px-6 py-5">Friday</th>
+                  <th className="px-6 py-5">{uiText("Subject")}</th>
+                  <th className="px-6 py-5">{uiText("Monday")}</th>
+                  <th className="px-6 py-5">{uiText("Tuesday")}</th>
+                  <th className="px-6 py-5">{uiText("Wednesday")}</th>
+                  <th className="px-6 py-5">{uiText("Thursday")}</th>
+                  <th className="px-6 py-5">{uiText("Friday")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm font-medium">
@@ -131,7 +132,7 @@ export const TeacherSchedule = () => {
                         <div className="bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 p-2.5 rounded-xl border border-indigo-100/50 dark:border-indigo-900/20">
                           <BookOpen size={16} />
                         </div>
-                        <span className="font-extrabold text-slate-800 dark:text-slate-200">{subject}</span>
+                        <span className="font-extrabold text-slate-800 dark:text-slate-200">{uiText(subject)}</span>
                       </div>
                     </td>
                     {WEEKDAYS.map(day => {
@@ -143,7 +144,7 @@ export const TeacherSchedule = () => {
                       return (
                         <td key={day} className="px-6 py-5">
                           {daySlots.length === 0 ? (
-                            <span className="text-slate-300 dark:text-slate-700">—</span>
+                            <span className="text-slate-300 dark:text-slate-700">{uiText("—")}</span>
                           ) : (
                             <div className="flex flex-col gap-2">
                               {daySlots.map((slot, index) => (
@@ -152,10 +153,10 @@ export const TeacherSchedule = () => {
                                   className={`p-2.5 rounded-xl border text-[11px] font-bold ${DAY_BADGE_THEMES[day]} flex flex-col gap-1 shadow-sm`}
                                 >
                                   <div className="flex items-center justify-between">
-                                    <span>{getPeriodLabel(slot.period_number)}</span>
+                                    <span>{uiText(getPeriodLabel(slot.period_number))}</span>
                                   </div>
                                   <div className="text-[10px] opacity-75 font-semibold">
-                                    {slot.class_name}
+                                    {uiText(slot.class_name)}
                                   </div>
                                 </div>
                               ))}
@@ -179,10 +180,7 @@ export const TeacherSchedule = () => {
         </div>
         <div>
           <h4 className="font-bold text-amber-900 dark:text-amber-400">{t('teacherSchedule.scheduleSetByAdmin', 'Schedule is set by Administration')}</h4>
-          <p className="text-sm text-amber-800/80 dark:text-amber-500/80 mt-1 font-medium leading-relaxed">
-            This timetable is managed by the school admin via the Schedule Builder and applies for the entire week.
-            If you notice any conflicts, please contact your Department Head or Principal.
-          </p>
+          <p className="text-sm text-amber-800/80 dark:text-amber-500/80 mt-1 font-medium leading-relaxed">{uiText("This timetable is managed by the school admin via the Schedule Builder and applies for the entire week. If you notice any conflicts, please contact your Department Head or Principal.")}</p>
         </div>
       </div>
     </div>

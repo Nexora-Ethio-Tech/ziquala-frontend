@@ -1,3 +1,4 @@
+import { uiText } from "../localization";
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   BarChart3,
@@ -91,7 +92,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
           );
         }
         items.push(
-          { icon: LibraryBig, label: t('nav.elearningManagement', 'eLearning Management'), path: '/elearning-management' },
+          { icon: LibraryBig, label: uiText('eLearning'), path: '/elearning-library' },
           { icon: Megaphone, label: t('nav.newsEvents', 'News & Events'), path: '/website-posts' },
           { icon: Settings, label: t('nav.settings', 'Settings'), path: '/settings' },
         );
@@ -105,7 +106,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
           { icon: UserCheck, label: t('nav.supervise', 'Supervise'), path: '/teachers' },
           { icon: CalendarCheck, label: t('nav.attendance', 'Attendance'), path: '/attendance' },
           { icon: Package, label: t('nav.inventory', 'Inventory'), path: '/inventory' },
-          { icon: LibraryBig, label: t('nav.elearningLibrary', 'eLearning Library'), path: '/elearning-library' },
+          { icon: LibraryBig, label: uiText('eLearning'), path: '/elearning-library' },
           { icon: Settings, label: t('nav.settings', 'Settings'), path: '/settings' },
         ];
       case 'school-admin':
@@ -116,7 +117,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
           { icon: UserSquare2, label: t('nav.staffManagement', 'Staff Management'), path: '/staff' },
           { icon: CalendarCheck, label: t('nav.attendance', 'Attendance'), path: '/attendance' },
           { icon: Calendar, label: t('nav.scheduleBuilder', 'Schedule Builder'), path: '/schedule-builder' },
-          { icon: LibraryBig, label: t('nav.elearningLibrary', 'eLearning Library'), path: '/elearning-library' },
+          { icon: LibraryBig, label: uiText('eLearning'), path: '/elearning-library' },
           { icon: Settings, label: t('nav.settings', 'Settings'), path: '/settings' },
         ];
       case 'vice-principal':
@@ -126,7 +127,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
           { icon: ClipboardList, label: t('nav.gradeManagement', 'Grade Management'), path: '/vp-grade-management' },
           { icon: FileText, label: t('nav.transcripts', 'Transcripts'), path: '/vp-transcripts' },
           { icon: BookOpen, label: t('nav.communicationBook', 'Communication Book'), path: '/vp-communication' },
-          { icon: LibraryBig, label: t('nav.elearningLibrary', 'eLearning Library'), path: '/elearning-library' },
+          { icon: LibraryBig, label: uiText('eLearning'), path: '/elearning-library' },
         ];
       case 'teacher':
         return [
@@ -136,7 +137,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
           { icon: BookOpen, label: t('nav.mySchedule', 'My Schedule'), path: '/schedule' },
           { icon: ClipboardCheck, label: t('nav.gradeEntry', 'Grade Entry'), path: '/grades' },
           { icon: ClipboardList, label: t('nav.exams', 'Exams'), path: '/exams' },
-          { icon: LibraryBig, label: t('nav.elearningLibrary', 'eLearning Library'), path: '/elearning-library' },
+          { icon: LibraryBig, label: uiText('eLearning'), path: '/elearning-library' },
         ];
       case 'student':
         return [
@@ -144,7 +145,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
           { icon: BookOpen, label: t('nav.gradesCourses', 'Grades & Courses'), path: '/courses' },
           { icon: CalendarCheck, label: t('nav.academicHistory', 'Academic History'), path: '/attendance' },
           { icon: ClipboardList, label: t('nav.exams', 'Exams'), path: '/exams' },
-          { icon: LibraryBig, label: t('nav.elearningLibrary', 'eLearning Library'), path: '/elearning-library' },
+          { icon: LibraryBig, label: uiText('eLearning'), path: '/elearning-library' },
         ];
       case 'parent':
         return [
@@ -152,13 +153,13 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
           { icon: BookOpen, label: t('nav.gradesCourses', 'Grades & Courses'), path: parentPath('grades') },
           { icon: GraduationCap, label: t('nav.academicHistory', 'Academic History'), path: parentPath('history') },
           { icon: ClipboardList, label: t('nav.communicationBook', 'Communication Book'), path: parentPath('communication-book') },
-          { icon: LibraryBig, label: t('nav.elearningLibrary', 'eLearning Library'), path: '/elearning-library' },
+          { icon: LibraryBig, label: uiText('eLearning'), path: '/elearning-library' },
         ];
       case 'librarian':
         return [
           { icon: LayoutDashboard, label: t('nav.librarianPortal', 'Librarian Portal'), path: dashboardRoutes.librarian },
           { icon: LibraryBig, label: t('nav.library', 'Library'), path: '/library' },
-          { icon: BookOpen, label: t('nav.elearningLibrary', 'eLearning Library'), path: '/elearning-library' },
+          { icon: BookOpen, label: uiText('eLearning'), path: '/elearning-library' },
         ];
       case 'storekeeper':
         return [
@@ -193,11 +194,11 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
             <BookOpen size={27} />
           </div>
           <div className="min-w-0">
-            <span className="block truncate text-base font-black leading-tight">{displaySchoolName}</span>
+            <span className="block truncate text-base font-black leading-tight">{uiText(displaySchoolName)}</span>
             <span className="mt-1 block text-[10px] font-black uppercase tracking-[0.22em] text-school-secondary">{t('sidebar.academicPortal', 'Academic Portal')}</span>
           </div>
         </div>
-        <button type="button" onClick={onClose} className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 lg:hidden" aria-label="Close menu">
+        <button type="button" onClick={onClose} className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 lg:hidden" aria-label={uiText("Close menu")}>
           <X size={20} />
         </button>
       </div>
@@ -220,7 +221,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
             )}
           >
             <item.icon size={20} />
-            <span>{item.label}</span>
+            <span>{uiText(item.label)}</span>
           </NavLink>
         ))}
       </nav>

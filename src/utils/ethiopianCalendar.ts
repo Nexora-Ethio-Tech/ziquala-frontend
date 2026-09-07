@@ -1,3 +1,5 @@
+import { uiText } from '../localization';
+import { localeTag } from "../localization";
 /**
  * Ethiopian Calendar Utilities
  *
@@ -242,7 +244,7 @@ export function formatEthiopianLabel(dateInput: string | Date | null): string {
   if (!dateInput) return '';
   try {
     const { year, month, day } = gregorianToEthiopian(dateInput);
-    return `${day} ${ETHIOPIAN_MONTHS_LABELS[month - 1]} ${year} E.C.`;
+    return `${day} ${uiText(ETHIOPIAN_MONTHS_LABELS[month - 1])} ${year} ${uiText("E.C.")}`;
   } catch {
     return '';
   }
@@ -270,7 +272,7 @@ export function getCurrentEthiopianMonth(): string {
 
 /**
  * Format any date as Ethiopian date display string (e.g., "1 Meskerem 2018 E.C.")
- * Replaces: new Date(...).toLocaleDateString()
+ * Replaces: new Date(...).toLocaleDateString(localeTag())
  */
 export function formatEthiopianDateOnly(dateInput: string | Date | null): string {
   return formatEthiopianLabel(dateInput);

@@ -1,3 +1,4 @@
+import { uiText } from "../localization";
 import { ChevronRight, Home } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -24,10 +25,10 @@ export const Breadcrumbs = () => {
           <div key={to} className="flex items-center gap-2">
             <ChevronRight size={10} className="text-slate-300" />
             {last ? (
-              <span className="text-slate-600 dark:text-slate-300">{translatedSegment}</span>
+              <span className="text-slate-600 dark:text-slate-300">{uiText(translatedSegment)}</span>
             ) : (
               <Link to={to} className="hover:text-school-primary transition-colors">
-                {translatedSegment}
+                {uiText(translatedSegment)}
               </Link>
             )}
           </div>

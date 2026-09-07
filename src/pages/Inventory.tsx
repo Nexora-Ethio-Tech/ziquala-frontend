@@ -1,3 +1,4 @@
+import { uiError, uiText, localeTag } from "../localization";
 import { useTranslation } from 'react-i18next';
 
 import { Package, Search, Filter, AlertCircle, ArrowLeft } from 'lucide-react';
@@ -26,7 +27,7 @@ export const Inventory = () => {
   useEffect(() => {
     const loadData = async () => {
       if (!role || !allowedRoles.includes(role)) {
-        setError('You do not have permission to view the inventory.');
+        setError(uiText("You do not have permission to view the inventory."));
         setLoading(false);
         return;
       }
@@ -44,9 +45,9 @@ export const Inventory = () => {
       } catch (e: any) {
         // If the API returns 403 because of insufficient role, show friendly message
         if (e.response?.status === 403) {
-          setError('Access denied: insufficient permissions for inventory data.');
+          setError(uiText("Access denied: insufficient permissions for inventory data."));
         } else {
-          setError(e?.message || 'Failed to load inventory');
+          setError(uiError(e?.message || 'Failed to load inventory'));
         }
       } finally {
         setLoading(false);
@@ -94,16 +95,12 @@ export const Inventory = () => {
           onClick={() => navigate(-1)}
           className="flex items-center gap-1 text-blue-600 hover:underline text-xs font-bold uppercase tracking-widest"
         >
-          <ArrowLeft size={14} />
-          Back
-        </button>
+          <ArrowLeft size={14} />{uiText("Back")}</button>
       </div>
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">{t("inventory.title", "Inventory & Assets")}</h2>
-          <p className="text-slate-500 dark:text-slate-400 text-sm">
-            Live inventory data {selectedBranch ? `for ${selectedBranch.name}` : 'across all branches'}.
-          </p>
+          <p className="text-slate-500 dark:text-slate-400 text-sm">{uiText("Live inventory data ")}{uiText(selectedBranch ? `for ${selectedBranch.name}` : 'across all branches')}{uiText(".")}</p>
         </div>
       </div>
 
@@ -126,17 +123,17 @@ export const Inventory = () => {
           </div>
           <div>
             <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">{t("inventory.maintenanceDue", "Maintenance Due")}</p>
-            <p className="text-lg font-black text-slate-800 dark:text-slate-100">{maintenanceDueCount} Items</p>
+            <p className="text-lg font-black text-slate-800 dark:text-slate-100">{maintenanceDueCount}{uiText(" Items")}</p>
           </div>
         </div>
       </div>
 
-      {error && (
+      {uiText(error && (
         <div className="rounded-2xl border border-rose-200 bg-rose-50 text-rose-800 px-4 py-3 text-sm font-semibold flex items-center gap-2">
           <AlertCircle size={16} />
-          {error}
+          {uiError(error)}
         </div>
-      )}
+      ))}
 
       <div className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-xl shadow-slate-200/40 dark:shadow-none border border-slate-100 dark:border-slate-800 overflow-hidden transition-all duration-500">
         <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-50/50 dark:bg-slate-800/30">
@@ -153,7 +150,7 @@ export const Inventory = () => {
           <div className="flex items-center gap-3">
             <button className="flex items-center gap-2 px-5 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">
               <Filter size={16} />
-              <span>Filter</span>
+              <span>{uiText("Filter")}</span>
             </button>
           </div>
         </div>
@@ -173,7 +170,7 @@ export const Inventory = () => {
             <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-slate-500">Loading inventory...</td>
+                  <td colSpan={6} className="px-6 py-12 text-center text-slate-500">{uiText("Loading inventory...")}</td>
                 </tr>
               ) : filteredItems.length === 0 ? (
                 <tr>
@@ -188,12 +185,12 @@ export const Inventory = () => {
                       </div>
                       <div>
                         <p className="text-sm font-black text-slate-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{item.name}</p>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">{item.description || 'No description'}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">{uiText(item.description || 'No description')}</p>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 text-sm text-slate-700 dark:text-slate-300">
-                    {branchNameById.get(item.branch_id) || item.branch_id}
+                    {uiText(branchNameById.get(item.branch_id) || item.branch_id)}
                   </td>
                   <td className="px-6 py-4 text-center">
                     <span className={`text-sm font-bold ${Number(item.amount || 0) < 10 ? 'text-rose-600' : 'text-slate-700 dark:text-slate-300'}`}>
@@ -201,12 +198,12 @@ export const Inventory = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right text-sm font-semibold text-slate-700 dark:text-slate-300">
-                    {Number(item.value).toLocaleString()}
+                    {uiText(Number(item.value).toLocaleString(localeTag()))}
                   </td>
                   <td className="px-6 py-4 text-right text-sm font-bold text-emerald-600 dark:text-emerald-400">
-                    {(Number(item.value) * Number(item.amount || 0)).toLocaleString()}
+                    {uiText((Number(item.value) * Number(item.amount || 0)).toLocaleString(localeTag()))}
                   </td>
-                  <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">{formatEthiopianLabel(item.created_at)}</td>
+                  <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">{uiText(formatEthiopianLabel(item.created_at))}</td>
                 </tr>
               ))}
             </tbody>

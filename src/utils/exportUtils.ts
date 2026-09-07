@@ -1,10 +1,11 @@
+import { uiText } from '../localization';
 
 export const exportToCSV = (data: any[], filename: string) => {
   if (data.length === 0) return;
 
   const headers = Object.keys(data[0]);
   const csvRows = [
-    headers.join(','),
+    headers.map(header => '"' + uiText(header).replace(/"/g, '""') + '"').join(','),
     ...data.map(row =>
       headers.map(header => {
         const value = row[header];
@@ -15,7 +16,7 @@ export const exportToCSV = (data: any[], filename: string) => {
   ];
 
   const csvString = csvRows.join('\n');
-  const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+  const blob = new Blob(['\uFEFF' + csvString], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
 
@@ -115,7 +116,7 @@ const buildWorksheetXml = (rows: Record<string, any>[]) => {
   const xmlRows = [];
   if (headers.length > 0) {
     xmlRows.push(
-      `<row r="1">${headers.map((header, index) => toCellXml(`${columnName(index)}1`, header)).join('')}</row>`
+      `<row r="1">${headers.map((header, index) => toCellXml(`${columnName(index)}1`, uiText(header))).join('')}</row>`
     );
 
     dataRows.forEach((row, rowIndex) => {

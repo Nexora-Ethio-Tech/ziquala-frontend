@@ -1,3 +1,4 @@
+import { uiError, uiText } from "../localization";
 import { useTranslation } from 'react-i18next';
 import { Plus, Trash2, Clock, BookOpen, Users, Search, Save, X, Settings2, LayoutGrid, ArrowLeft, ChevronDown, Zap, CheckCircle2, Loader2, AlertTriangle, Eye } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
@@ -257,13 +258,13 @@ export const ScheduleBuilder = () => {
 
   const handleSaveStructure = useCallback(async () => {
     if (structureRows.length === 0) {
-      alert('Add at least one timetable structure row before saving.');
+      alert(uiText("Add at least one timetable structure row before saving."));
       return;
     }
 
     for (const row of structureRows) {
       if (!row.classId || !row.teacherId || !row.subject || row.sessionsPerWeek < 1) {
-        alert('Please complete all timetable structure rows before saving.');
+        alert(uiText("Please complete all timetable structure rows before saving."));
         return;
       }
     }
@@ -278,10 +279,10 @@ export const ScheduleBuilder = () => {
           sessionsPerWeek: row.sessionsPerWeek
         }))
       );
-      alert('Timetable structure saved successfully.');
+      alert(uiText("Timetable structure saved successfully."));
     } catch (err: any) {
       console.error('Failed to save schedule structure:', err);
-      alert('Unable to save timetable structure. Please try again.');
+      alert(uiText("Unable to save timetable structure. Please try again."));
     } finally {
       setSavingStructure(false);
     }
@@ -302,7 +303,7 @@ export const ScheduleBuilder = () => {
       console.error('Failed to save config:', err);
       const errorObj = err.response?.data?.error;
       if (errorObj?.code === 'VALIDATION_ERROR' && Array.isArray(errorObj?.details)) {
-        alert(`Failed to save config: ${errorObj.details.join(', ')}`);
+        alert(uiText("Failed to save config: {{value0}}", { value0: errorObj.details.join(', ') }));
       }
     } finally {
       setSavingConfig(false);
@@ -328,7 +329,7 @@ export const ScheduleBuilder = () => {
       console.error('Failed to save constraints:', err);
       const errorObj = err.response?.data?.error;
       if (errorObj?.code === 'VALIDATION_ERROR' && Array.isArray(errorObj?.details)) {
-        alert(`Failed to save constraints: ${errorObj.details.join(', ')}`);
+        alert(uiText("Failed to save constraints: {{value0}}", { value0: errorObj.details.join(', ') }));
       }
     } finally {
       setSavingConstraints(false);
@@ -439,7 +440,7 @@ export const ScheduleBuilder = () => {
       <div className="space-y-4">
         {classNames.map(className => (
           <div key={className}>
-            <h5 className="text-sm font-black text-slate-700 dark:text-slate-300 mb-2">{className}</h5>
+            <h5 className="text-sm font-black text-slate-700 dark:text-slate-300 mb-2">{uiText(className)}</h5>
             <div className="overflow-x-auto">
               <div
                 className="min-w-[700px] grid gap-1"
@@ -447,15 +448,14 @@ export const ScheduleBuilder = () => {
               >
                 <div />
                 {periods.map(p => (
-                  <div key={p} className="text-center text-[9px] font-black text-slate-400 uppercase pb-1">
-                    P{p}
+                  <div key={p} className="text-center text-[9px] font-black text-slate-400 uppercase pb-1">{uiText("P")}{p}
                   </div>
                 ))}
 
                 {days.map(day => (
                   <div key={day} className="contents">
                     <div className="flex items-center text-[10px] font-black text-slate-500 uppercase">
-                      {day.substring(0, 3)}
+                      {uiText(day.substring(0, 3))}
                     </div>
                     {periods.map(period => {
                       const entry = classDayPeriods.get(className)?.get(day)?.get(period);
@@ -470,14 +470,14 @@ export const ScheduleBuilder = () => {
                           {entry ? (
                             <>
                               <span className="text-[9px] font-black text-blue-700 dark:text-blue-300 truncate max-w-full px-1">
-                                {entry.subject.length > 8 ? entry.subject.substring(0, 8) + '…' : entry.subject}
+                                {uiText(entry.subject.length > 8 ? entry.subject.substring(0, 8) + '…' : entry.subject)}
                               </span>
                               <span className="text-[7px] text-slate-400 dark:text-slate-500 truncate max-w-full px-1">
-                                {entry.teacher.split(' ').pop()}
+                                {uiText(entry.teacher.split(' ').pop())}
                               </span>
                             </>
                           ) : (
-                            <span className="text-[8px] text-slate-300">—</span>
+                            <span className="text-[8px] text-slate-300">{uiText("—")}</span>
                           )}
                         </div>
                       );
@@ -501,9 +501,7 @@ export const ScheduleBuilder = () => {
           onClick={() => navigate(-1)}
           className="flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:underline text-xs font-bold uppercase tracking-widest outline-none self-start"
         >
-          <ArrowLeft size={14} />
-          Back
-        </button>
+          <ArrowLeft size={14} />{uiText("Back")}</button>
       </div>
 
       {/* Main Architect Container */}
@@ -535,15 +533,15 @@ export const ScheduleBuilder = () => {
         </div>
 
         {/* Approval success banner */}
-        {approvalSuccess && (
+        {uiText(approvalSuccess && (
           <div className="flex items-center gap-3 p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-2xl animate-in fade-in zoom-in-95">
             <CheckCircle2 className="text-emerald-600 dark:text-emerald-400 flex-shrink-0" size={22} />
-            <p className="text-sm font-bold text-emerald-700 dark:text-emerald-300">{approvalSuccess}</p>
+            <p className="text-sm font-bold text-emerald-700 dark:text-emerald-300">{uiText(approvalSuccess)}</p>
           </div>
-        )}
+        ))}
 
         {/* SECTION 4: Generated Results (Collapsible) — shown at top when available */}
-        {(generationResult || generationError) && (
+        {uiText((generationResult || generationError) && (
           <div className="bg-slate-50/30 dark:bg-slate-900/10 rounded-3xl border border-slate-100 dark:border-slate-800/80 overflow-hidden transition-all duration-300">
             <button
               onClick={() => toggleSection('results')}
@@ -555,10 +553,10 @@ export const ScheduleBuilder = () => {
                 </div>
                 <div>
                   <h3 className="text-lg font-black text-slate-800 dark:text-white">
-                    {generationError ? 'Generation Failed' : `${generationResult!.candidateCount} Candidate${generationResult!.candidateCount !== 1 ? 's' : ''} Generated`}
+                    {uiText(generationError ? 'Generation Failed' : `${generationResult!.candidateCount} Candidate${generationResult!.candidateCount !== 1 ? 's' : ''} Generated`)}
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-0.5">
-                    {generationError ? 'Review constraints and try again' : 'Select a timetable to approve and publish'}
+                    {uiText(generationError ? 'Review constraints and try again' : 'Select a timetable to approve and publish')}
                   </p>
                 </div>
               </div>
@@ -575,7 +573,7 @@ export const ScheduleBuilder = () => {
               {generationError ? (
                 <div className="flex items-center gap-3 p-6 bg-rose-50 dark:bg-rose-900/10 border border-rose-200 dark:border-rose-800 rounded-2xl">
                   <AlertTriangle className="text-rose-500 flex-shrink-0" size={24} />
-                  <p className="text-sm font-bold text-rose-700 dark:text-rose-300">{generationError}</p>
+                  <p className="text-sm font-bold text-rose-700 dark:text-rose-300">{uiError(generationError)}</p>
                 </div>
               ) : generationResult && (
                 <div className="space-y-4">
@@ -594,12 +592,10 @@ export const ScheduleBuilder = () => {
                             {idx + 1}
                           </div>
                           <div>
-                            <h4 className="font-black text-slate-800 dark:text-white">
-                              Option {idx + 1}
+                            <h4 className="font-black text-slate-800 dark:text-white">{uiText("Option ")}{idx + 1}
                             </h4>
                             <p className="text-xs text-slate-400 font-bold">
-                              {candidate.slotsFilled}/{candidate.totalSlots} slots filled • {candidate.fillRate} coverage
-                            </p>
+                              {candidate.slotsFilled}{uiText("/")}{candidate.totalSlots}{uiText(" slots filled • ")}{uiText(candidate.fillRate)}{uiText(" coverage")}</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
@@ -609,9 +605,7 @@ export const ScheduleBuilder = () => {
                               disabled={isApproving}
                               className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white px-5 py-2.5 rounded-xl font-bold text-xs uppercase transition-all hover:scale-105 active:scale-95"
                             >
-                              {isApproving ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
-                              Approve & Publish
-                            </button>
+                              {isApproving ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}{uiText("Approve & Publish")}</button>
                           )}
                           <button className="p-2 text-slate-400 hover:text-blue-500 transition-colors">
                             <Eye size={18} />
@@ -635,7 +629,7 @@ export const ScheduleBuilder = () => {
               )}
             </div>
           </div>
-        )}
+        ))}
 
         {/* SECTION 1: Core Parameters (Collapsible) */}
         <div className="bg-slate-50/30 dark:bg-slate-900/10 rounded-3xl border border-slate-100 dark:border-slate-800/80 overflow-hidden transition-all duration-300">
@@ -724,7 +718,7 @@ export const ScheduleBuilder = () => {
                       className="w-full p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold outline-none dark:text-white focus:ring-2 focus:ring-blue-500"
                     >
                       {[5, 6, 7, 8, 9, 10].map(n => (
-                        <option key={n} value={n}>{n} Periods per Day</option>
+                        <option key={n} value={n}>{n}{uiText(" Periods per Day")}</option>
                       ))}
                     </select>
                   </div>
@@ -751,7 +745,7 @@ export const ScheduleBuilder = () => {
             </div>
             <div className="flex items-center gap-3">
               <span className="text-xs font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full">
-                {loadingTeachers ? '...' : t('schedule.teachersCount', { count: teachers.length, defaultValue: `${teachers.length} teachers` })}
+                {uiText(loadingTeachers ? '...' : t('schedule.teachersCount', { count: teachers.length, defaultValue: `${teachers.length} teachers` }))}
               </span>
               <ChevronDown
                 size={20}
@@ -786,7 +780,7 @@ export const ScheduleBuilder = () => {
                     <Loader2 className="animate-spin text-blue-500" size={24} />
                   </div>
                 ) : filteredTeachers.length === 0 ? (
-                  <div className="p-6 text-center text-slate-400 text-sm font-bold">No teachers found</div>
+                  <div className="p-6 text-center text-slate-400 text-sm font-bold">{uiText("No teachers found")}</div>
                 ) : (
                   filteredTeachers.map(teacher => (
                     <button
@@ -801,7 +795,7 @@ export const ScheduleBuilder = () => {
                         className={`w-10 h-10 rounded-xl flex items-center justify-center font-black ${selectedTeacher?.id === teacher.id ? 'bg-white/20' : 'bg-slate-100 dark:bg-slate-900'
                           }`}
                       >
-                        {teacher.name.charAt(0)}
+                        {uiText(teacher.name.charAt(0))}
                       </div>
                       <div className="text-left">
                         <p className="font-bold text-sm">{teacher.name}</p>
@@ -809,7 +803,7 @@ export const ScheduleBuilder = () => {
                           className={`text-[10px] uppercase tracking-tighter font-black ${selectedTeacher?.id === teacher.id ? 'text-blue-100' : 'text-slate-400'
                             }`}
                         >
-                          {(teacher.subjects || []).join(' • ') || 'No subjects'}
+                          {uiText((teacher.subjects || []).join(' • ') || 'No subjects')}
                         </p>
                       </div>
                     </button>
@@ -848,15 +842,14 @@ export const ScheduleBuilder = () => {
                       >
                         <div />
                         {periods.map(p => (
-                          <div key={p} className="text-center text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase pb-2">
-                            Period {p}
+                          <div key={p} className="text-center text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase pb-2">{uiText("Period ")}{p}
                           </div>
                         ))}
 
                         {days.map(day => (
                           <div key={day} className="contents">
                             <div className="flex items-center text-xs font-black text-slate-600 dark:text-slate-400 uppercase">
-                              {day}
+                              {uiText(day)}
                             </div>
                             {periods.map(period => {
                               const isBlocked = teacherConstraints[`${selectedTeacher.id}-${day}`]?.includes(period);
@@ -987,14 +980,12 @@ export const ScheduleBuilder = () => {
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-2 text-purple-600 dark:text-purple-400 font-black text-xs uppercase tracking-widest">
                   <BookOpen size={16} />
-                  <span>Timetable Structure</span>
+                  <span>{uiText("Timetable Structure")}</span>
                 </div>
               </div>
               <div className="space-y-3 max-h-[520px] overflow-y-auto pr-2">
                 {loadingClasses || loadingTeachers ? (
-                  <div className="flex items-center justify-center py-16 text-slate-500 dark:text-slate-400">
-                    Loading class and teacher lists...
-                  </div>
+                  <div className="flex items-center justify-center py-16 text-slate-500 dark:text-slate-400">{uiText("Loading class and teacher lists...")}</div>
                 ) : (
                   <TimetableStructureEditor
                     classes={classes}
@@ -1016,10 +1007,10 @@ export const ScheduleBuilder = () => {
                         setStructureRows(rows);
                         await refreshClassesFromDb();
                         await refreshStructureFromDb();
-                        alert('Timetable structure saved successfully.');
+                        alert(uiText("Timetable structure saved successfully."));
                       } catch (err) {
                         console.error('Failed to save structure from editor:', err);
-                        alert('Unable to save timetable structure. Please try again.');
+                        alert(uiText("Unable to save timetable structure. Please try again."));
                       } finally {
                         setSavingStructure(false);
                       }
@@ -1032,9 +1023,7 @@ export const ScheduleBuilder = () => {
                 <button
                   onClick={() => { setIsStructureExpanded(false); }}
                   className="w-full sm:w-auto px-5 py-3 bg-white text-purple-600 border border-purple-300 rounded-2xl font-bold hover:bg-purple-100 transition-all"
-                >
-                  Done
-                </button>
+                >{uiText("Done")}</button>
               </div>
             </div>
           </div>

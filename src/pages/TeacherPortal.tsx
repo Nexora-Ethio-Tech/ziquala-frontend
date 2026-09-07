@@ -1,3 +1,4 @@
+import { uiText, localeTag } from "../localization";
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { BookOpen, Users, Calendar, ArrowRight, ArrowLeft, ClipboardList, FileText, Plus, X, CheckCircle2, XCircle, Loader2, Star, Save, Send, Search, ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react';
@@ -197,18 +198,18 @@ export const TeacherPortal = () => {
         payload.rating = rating;
       }
       await reviewDeptPlan(id, payload);
-      showToast('Plan approved successfully!', 'success');
+      showToast(uiText("Plan approved successfully!"), 'success');
       // Refresh from DB to get accurate state
       fetchDeptPlans();
     } catch (err: any) {
-      showToast(err.response?.data?.error?.message || 'Failed to approve plan', 'error');
+      showToast(uiText(err.response?.data?.error?.message || 'Failed to approve plan'), 'error');
       fetchDeptPlans(); // revert optimistic update with real data
     }
   };
 
   const handleRejectDeptPlan = async (id: string, rating: number, feedback: string) => {
     if (!feedback.trim()) {
-      showToast('Feedback is required to request revision', 'error');
+      showToast(uiText("Feedback is required to request revision"), 'error');
       return;
     }
 
@@ -226,11 +227,11 @@ export const TeacherPortal = () => {
         payload.rating = rating;
       }
       await reviewDeptPlan(id, payload);
-      showToast('Revision request submitted!', 'success');
+      showToast(uiText("Revision request submitted!"), 'success');
       // Refresh from DB
       fetchDeptPlans();
     } catch (err: any) {
-      showToast(err.response?.data?.error?.message || 'Failed to request revision', 'error');
+      showToast(uiText(err.response?.data?.error?.message || 'Failed to request revision'), 'error');
       fetchDeptPlans(); // revert optimistic update
     }
   };
@@ -545,7 +546,7 @@ export const TeacherPortal = () => {
   const openCommCard = async (student: any) => {
     // Block re-opening if already sent this week
     if (sentCommStudentIds.includes(student.id)) {
-      showToast('Communication book already sent to this student this week.', 'error');
+      showToast(uiText("Communication book already sent to this student this week."), 'error');
       return;
     }
     setActiveCommStudent(student);
@@ -581,10 +582,10 @@ export const TeacherPortal = () => {
       await submitCommunicationLog({ studentId: activeCommStudent.id, weekEnding: getWeekEndingThursday(), ...commLogForm });
       setCommLogSuccess(true);
       setSentCommStudentIds(prev => [...prev, activeCommStudent.id]);
-      showToast(`Communication log sent for ${activeCommStudent.name}!`, 'success');
+      showToast(uiText("Communication log sent for {{value0}}!", { value0: activeCommStudent.name }), 'success');
       setTimeout(() => { setIsCommCardOpen(false); setCommLogSuccess(false); }, 1800);
     } catch {
-      showToast('Failed to send log. Please try again.', 'error');
+      showToast(uiText("Failed to send log. Please try again."), 'error');
     } finally {
       setIsSubmittingLog(false);
     }
@@ -680,11 +681,11 @@ export const TeacherPortal = () => {
   const handleSavePlan = async (targetStatus: 'Draft' | 'Pending') => {
     if (targetStatus === 'Pending') {
       if (!planForm.courseId) {
-        showToast('Please select a Course / Subject before submitting.', 'error');
+        showToast(uiText("Please select a Course / Subject before submitting."), 'error');
         return;
       }
       if (!planForm.deptHeadId) {
-        showToast('Please select a Department Head before submitting.', 'error');
+        showToast(uiText("Please select a Department Head before submitting."), 'error');
         return;
       }
     }
@@ -694,10 +695,10 @@ export const TeacherPortal = () => {
     try {
       if (editingPlan) {
         await updateWeeklyPlan(editingPlan.id, payload);
-        showToast(targetStatus === 'Draft' ? 'Draft saved successfully!' : 'Plan submitted for review!', 'success');
+        showToast(uiText(targetStatus === 'Draft' ? 'Draft saved successfully!' : 'Plan submitted for review!'), 'success');
       } else {
         await submitWeeklyPlan(payload);
-        showToast(targetStatus === 'Draft' ? 'Draft saved! You can continue editing it any time.' : 'Plan submitted for review!', 'success');
+        showToast(uiText(targetStatus === 'Draft' ? 'Draft saved! You can continue editing it any time.' : 'Plan submitted for review!'), 'success');
       }
       clearLocalDraft();
       setIsPlanModalOpen(false);
@@ -707,7 +708,7 @@ export const TeacherPortal = () => {
       setPlans(Array.isArray(planList) ? planList : []);
     } catch (err: any) {
       const msg = err?.message || 'Failed to save plan. Please try again.';
-      showToast(msg, 'error');
+      showToast(uiText(msg), 'error');
       console.error('handleSavePlan error:', err);
 
       const targetId = editingPlan?.id || 'sim-' + Date.now();
@@ -755,7 +756,7 @@ export const TeacherPortal = () => {
         });
       }
 
-      showToast(targetStatus === 'Draft' ? 'Draft saved successfully!' : 'Plan submitted for review!', 'success');
+      showToast(uiText(targetStatus === 'Draft' ? 'Draft saved successfully!' : 'Plan submitted for review!'), 'success');
       clearLocalDraft();
       setIsPlanModalOpen(false);
       setEditingPlan(null);
@@ -816,14 +817,14 @@ export const TeacherPortal = () => {
       }
 
       await publishTeacherExam(examId);
-      showToast('Exam published successfully!', 'success');
+      showToast(uiText("Exam published successfully!"), 'success');
 
       // Refresh exams from backend
       const examsData = await getTeacherExams();
       setDraftExams(Array.isArray(examsData.draftExams) ? examsData.draftExams : []);
       setPublishedExams(Array.isArray(examsData.publishedExams) ? examsData.publishedExams : []);
     } catch (err: any) {
-      showToast(err.response?.data?.error || 'Failed to publish exam', 'error');
+      showToast(uiText(err.response?.data?.error || 'Failed to publish exam'), 'error');
     } finally {
       setSubmitting(false);
     }
@@ -833,13 +834,13 @@ export const TeacherPortal = () => {
     try {
       setSubmitting(true);
       await deleteTeacherExam(examId);
-      showToast('Exam deleted', 'success');
+      showToast(uiText("Exam deleted"), 'success');
 
       // Refresh exams from backend
       const examsData = await getTeacherExams();
       setDraftExams(Array.isArray(examsData.draftExams) ? examsData.draftExams : []);
     } catch (err: any) {
-      showToast(err.response?.data?.error || 'Failed to delete exam', 'error');
+      showToast(uiText(err.response?.data?.error || 'Failed to delete exam'), 'error');
     } finally {
       setSubmitting(false);
     }
@@ -887,7 +888,7 @@ export const TeacherPortal = () => {
           passwordRequired: examForm.passwordRequired,
           questions: examForm.questions
         });
-        showToast('Exam updated!', 'success');
+        showToast(uiText("Exam updated!"), 'success');
       } else {
         // Create new exam
         await saveTeacherExam({
@@ -905,7 +906,7 @@ export const TeacherPortal = () => {
           passwordRequired: examForm.passwordRequired,
           questions: examForm.questions
         });
-        showToast('Exam saved!', 'success');
+        showToast(uiText("Exam saved!"), 'success');
       }
 
       // Refresh exams from backend
@@ -916,7 +917,7 @@ export const TeacherPortal = () => {
       setIsExamModalOpen(false);
       setEditingExam(null);
     } catch (err: any) {
-      showToast(err.response?.data?.error?.message || 'Failed to save exam', 'error');
+      showToast(uiText(err.response?.data?.error?.message || 'Failed to save exam'), 'error');
     } finally {
       setSubmitting(false);
     }
@@ -948,14 +949,14 @@ export const TeacherPortal = () => {
               return (
                 <button key={tab.id} onClick={() => navigate('/exams')}
                   className={`px-8 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all text-slate-500 hover:text-slate-700`}>
-                  {tab.label}
+                  {uiText(tab.label)}
                 </button>
               );
             }
             return (
               <button key={tab.id} onClick={() => { setActiveTab(tab.id as any); if (tab.id === 'plans') setWeeklyPlanSubTab('my-plans'); }}
                 className={`px-8 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === tab.id ? 'bg-white dark:bg-slate-700 text-blue-600 shadow-xl' : 'text-slate-500 hover:text-slate-700'}`}>
-                {tab.label}
+                {uiText(tab.label)}
               </button>
             );
           });
@@ -967,21 +968,15 @@ export const TeacherPortal = () => {
           {/* Header */}
           <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-[2.5rem] p-10 text-white shadow-2xl relative overflow-hidden">
             <div className="relative z-10">
-              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-400 mb-4 block">Teacher Dashboard</span>
-              <h2 className="text-4xl font-black mb-2 tracking-tight">Welcome back, {user?.name?.split(' ')[0]}!</h2>
-              <p className="text-slate-400 font-medium">
-                Digital ID: <span className="text-white font-mono">{(user as any)?.digitalId || (user as any)?.digital_id || '—'}</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-400 mb-4 block">{uiText("Teacher Dashboard")}</span>
+              <h2 className="text-4xl font-black mb-2 tracking-tight">{uiText("Welcome back, ")}{uiText(user?.name?.split(' ')[0])}{uiText("!")}</h2>
+              <p className="text-slate-400 font-medium">{uiText("Digital ID: ")}<span className="text-white font-mono">{uiText((user as any)?.digitalId || (user as any)?.digital_id || '—')}</span>
               </p>
               <div className="mt-8 flex flex-wrap gap-4">
-                <Link to="/attendance" className="bg-blue-600 text-white px-8 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center gap-2 hover:bg-blue-700 transition-all shadow-xl shadow-blue-500/20">
-                  Take Attendance <ArrowRight size={16} />
+                <Link to="/attendance" className="bg-blue-600 text-white px-8 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center gap-2 hover:bg-blue-700 transition-all shadow-xl shadow-blue-500/20">{uiText("Take Attendance ")}<ArrowRight size={16} />
                 </Link>
-                <Link to="/schedule" className="bg-white/5 text-white border border-white/10 px-8 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-white/10 transition-all">
-                  My Schedule
-                </Link>
-                <Link to="/grades" className="bg-emerald-600 text-white px-8 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center gap-2 hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-500/20">
-                  Enter Grades
-                </Link>
+                <Link to="/schedule" className="bg-white/5 text-white border border-white/10 px-8 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-white/10 transition-all">{uiText("My Schedule")}</Link>
+                <Link to="/grades" className="bg-emerald-600 text-white px-8 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center gap-2 hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-500/20">{uiText("Enter Grades")}</Link>
               </div>
             </div>
             <div className="absolute top-0 right-0 p-12 opacity-5"><BookOpen size={240} /></div>
@@ -991,14 +986,14 @@ export const TeacherPortal = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-xl">
               <div className="bg-amber-50 dark:bg-amber-900/20 text-amber-600 w-14 h-14 rounded-2xl flex items-center justify-center mb-6"><Users size={28} /></div>
-              <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">Assigned Classes</p>
-              <h3 className="text-3xl font-black text-slate-800 dark:text-white">{dashboard?.assignedClassesCount ?? '—'}</h3>
+              <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">{uiText("Assigned Classes")}</p>
+              <h3 className="text-3xl font-black text-slate-800 dark:text-white">{uiText(dashboard?.assignedClassesCount ?? '—')}</h3>
             </div>
             <Link to="/schedule" className="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-xl hover:border-purple-300 dark:hover:border-purple-700 transition-colors block">
               <div className="bg-purple-50 dark:bg-purple-900/20 text-purple-600 w-14 h-14 rounded-2xl flex items-center justify-center mb-6"><Calendar size={28} /></div>
-              <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">My Schedule</p>
-              <h3 className="text-3xl font-black text-slate-800 dark:text-white">{todaySchedule.length}</h3>
-              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-4">Classes today · View full schedule →</p>
+              <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">{uiText("My Schedule")}</p>
+              <h3 className="text-3xl font-black text-slate-800 dark:text-white">{uiText(todaySchedule.length)}</h3>
+              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-4">{uiText("Classes today · View full schedule →")}</p>
             </Link>
           </div>
 
@@ -1006,16 +1001,16 @@ export const TeacherPortal = () => {
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
             <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
               <div>
-                <h3 className="font-bold text-slate-800 dark:text-white">My Assigned Classes</h3>
-                <p className="text-xs text-slate-500 mt-0.5">Classes assigned to you from the school administration</p>
+                <h3 className="font-bold text-slate-800 dark:text-white">{uiText("My Assigned Classes")}</h3>
+                <p className="text-xs text-slate-500 mt-0.5">{uiText("Classes assigned to you from the school administration")}</p>
               </div>
-              <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-xs font-bold">{myClasses.length} class{myClasses.length !== 1 ? 'es' : ''}</span>
+              <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-xs font-bold">{myClasses.length}{uiText(" class")}{uiText(myClasses.length !== 1 ? 'es' : '')}</span>
             </div>
             {myClasses.length === 0 ? (
               <div className="p-12 text-center">
                 <div className="bg-slate-50 dark:bg-slate-800 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"><Users size={28} className="text-slate-400" /></div>
-                <p className="font-bold text-slate-500 dark:text-slate-400">No classes assigned yet</p>
-                <p className="text-xs text-slate-400 mt-1">Contact the school admin to assign classes to you.</p>
+                <p className="font-bold text-slate-500 dark:text-slate-400">{uiText("No classes assigned yet")}</p>
+                <p className="text-xs text-slate-400 mt-1">{uiText("Contact the school admin to assign classes to you.")}</p>
               </div>
             ) : (
               <div className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -1027,27 +1022,25 @@ export const TeacherPortal = () => {
                       </div>
                       <div>
                         <p className="font-bold text-slate-800 dark:text-white">
-                          {cls.name || cls.class_name || `Grade ${cls.grade_level}`}
-                          {cls.section ? ` — Section ${cls.section}` : ''}
+                          {uiText(cls.name || cls.class_name || `Grade ${cls.grade_level}`)}
+                          {uiText(cls.section ? ` — Section ${cls.section}` : '')}
                         </p>
                         <p className="text-xs text-slate-500 mt-0.5">
-                          {cls.subject && cls.subject !== 'Assigned Class' ? cls.subject : 'General Class'}
-                          {cls.grade_level ? ` · Grade ${cls.grade_level}` : ''}
+                          {uiText(cls.subject && cls.subject !== 'Assigned Class' ? cls.subject : 'General Class')}
+                          {uiText(cls.grade_level ? ` · Grade ${cls.grade_level}` : '')}
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-4 text-right">
                       <div>
-                        <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Students</p>
-                        <p className="font-black text-slate-800 dark:text-white">{cls.enrolledStudents ?? '—'}</p>
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">{uiText("Students")}</p>
+                        <p className="font-black text-slate-800 dark:text-white">{uiText(cls.enrolledStudents ?? '—')}</p>
                       </div>
                       <div className="flex gap-2">
                         <Link
                           to={`/grades?classId=${cls.id || cls.class_id}&courseId=${cls.course_id || cls.id}&subject=${encodeURIComponent(cls.subject || 'General')}`}
                           className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-colors"
-                        >
-                          Enter Grades
-                        </Link>
+                        >{uiText("Enter Grades")}</Link>
                       </div>
                     </div>
                   </div>
@@ -1060,16 +1053,16 @@ export const TeacherPortal = () => {
           <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-xl overflow-hidden mt-6">
             <div className="p-8 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-black text-slate-800 dark:text-white">Announcements from School Administration</h3>
-                <p className="text-xs text-slate-500 mt-0.5">Important notifications and updates from the administration</p>
+                <h3 className="text-lg font-black text-slate-800 dark:text-white">{uiText("Announcements from School Administration")}</h3>
+                <p className="text-xs text-slate-500 mt-0.5">{uiText("Important notifications and updates from the administration")}</p>
               </div>
-              <span className="px-3 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-full text-xs font-bold">{mergedAnnouncements.length} announcement{mergedAnnouncements.length !== 1 ? 's' : ''}</span>
+              <span className="px-3 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-full text-xs font-bold">{mergedAnnouncements.length}{uiText(" announcement")}{uiText(mergedAnnouncements.length !== 1 ? 's' : '')}</span>
             </div>
             {mergedAnnouncements.length === 0 ? (
               <div className="p-6 text-center">
                 <div className="bg-slate-50 dark:bg-slate-800/60 w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-3"><AlertCircle size={22} className="text-slate-400" /></div>
-                <p className="font-bold text-slate-600 dark:text-slate-300 text-sm">No announcements yet</p>
-                <p className="text-xs text-slate-400 mt-1">Check back later for updates from school administration.</p>
+                <p className="font-bold text-slate-600 dark:text-slate-300 text-sm">{uiText("No announcements yet")}</p>
+                <p className="text-xs text-slate-400 mt-1">{uiText("Check back later for updates from school administration.")}</p>
               </div>
             ) : (
               <div className="p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1085,22 +1078,20 @@ export const TeacherPortal = () => {
                               ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300' 
                               : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
                           }`}>
-                            {ann.priority || 'Normal'} Priority
-                          </span>
-                          {ann.category && (
+                            {uiText(ann.priority || 'Normal')}{uiText(" Priority")}</span>
+                          {uiText(ann.category && (
                             <span className="px-2 py-0.5 bg-slate-200/70 dark:bg-slate-700/60 text-slate-700 dark:text-slate-300 text-[10px] font-bold rounded-md">
-                              {ann.category}
+                              {uiText(ann.category)}
                             </span>
-                          )}
+                          ))}
                           <span className="text-[10px] text-slate-400 dark:text-slate-500 ml-auto font-medium">
-                            {isValidDate ? `${formatEthiopianLabel(ann.timestamp)} ${dateObj.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}` : ''}
+                            {uiText(isValidDate ? `${formatEthiopianLabel(ann.timestamp)} ${dateObj.toLocaleTimeString(localeTag(), { hour: '2-digit', minute: '2-digit' })}` : '')}
                           </span>
                         </div>
                         <h4 className="font-bold text-slate-800 dark:text-slate-100 text-sm mb-1.5">{ann.title}</h4>
                         <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed whitespace-pre-wrap">{ann.content}</p>
                       </div>
-                      <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-4 pt-2 border-t border-slate-200/50 dark:border-slate-700/50 font-medium">
-                        Posted by: {ann.posted_by_name || 'School Admin'}
+                      <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-4 pt-2 border-t border-slate-200/50 dark:border-slate-700/50 font-medium">{uiText("Posted by: ")}{uiText(ann.posted_by_name || 'School Admin')}
                       </p>
                     </div>
                   );
@@ -1122,9 +1113,7 @@ export const TeacherPortal = () => {
                     ? 'border-blue-600 text-blue-600'
                     : 'border-transparent text-slate-400 hover:text-slate-600'
                   }`}
-              >
-                My Weekly Plans
-              </button>
+              >{uiText("My Weekly Plans")}</button>
               <button
                 type="button"
                 onClick={() => { setWeeklyPlanSubTab('annual-plans' as any); fetchMyAnnualPlans(); }}
@@ -1132,9 +1121,7 @@ export const TeacherPortal = () => {
                     ? 'border-violet-600 text-violet-600'
                     : 'border-transparent text-slate-400 hover:text-slate-600'
                   }`}
-              >
-                📅 Annual Plans
-              </button>
+              >{uiText("📅 Annual Plans")}</button>
               <button
                 type="button"
                 onClick={() => setWeeklyPlanSubTab('communication-book')}
@@ -1142,18 +1129,14 @@ export const TeacherPortal = () => {
                     ? 'border-emerald-600 text-emerald-600'
                     : 'border-transparent text-slate-400 hover:text-slate-600'
                   }`}
-              >
-                Communication Book
-              </button>
+              >{uiText("Communication Book")}</button>
             </div>
 
             {/* Elegant simulation toggle to facilitate testing both states easily */}
             <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-800 p-2.5 rounded-2xl border border-slate-200/50 dark:border-slate-700/50">
-              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
-                🧪 Promote to Department Head (Simulation)
-              </span>
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">{uiText("🧪 Promote to Department Head (Simulation)")}</span>
               <input
-                title="Toggle Department Head simulation"
+                title={uiText("Toggle Department Head simulation")}
                 type="checkbox"
                 checked={simulateDeanMode}
                 onChange={e => {
@@ -1174,9 +1157,9 @@ export const TeacherPortal = () => {
               <div className="bg-gradient-to-br from-violet-600 to-purple-700 rounded-[2rem] p-8 text-white shadow-2xl relative overflow-hidden">
                 <div className="absolute top-0 right-0 p-10 opacity-10"><FileText size={160} /></div>
                 <div className="relative z-10">
-                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-violet-200 mb-2 block">Yearly Lesson Plan</span>
-                  <h2 className="text-3xl font-black mb-1 tracking-tight">Annual Plans</h2>
-                  <p className="text-violet-100 font-medium text-sm">Submit your full-year curriculum plan for Department Head review.</p>
+                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-violet-200 mb-2 block">{uiText("Yearly Lesson Plan")}</span>
+                  <h2 className="text-3xl font-black mb-1 tracking-tight">{uiText("Annual Plans")}</h2>
+                  <p className="text-violet-100 font-medium text-sm">{uiText("Submit your full-year curriculum plan for Department Head review.")}</p>
                 </div>
               </div>
 
@@ -1184,22 +1167,21 @@ export const TeacherPortal = () => {
               <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-xl overflow-hidden">
                 <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
                   <div>
-                    <h3 className="font-black text-slate-800 dark:text-white">My Annual Plans</h3>
-                    <p className="text-xs text-slate-500 mt-0.5">{annualPlans.length} plan(s) submitted</p>
+                    <h3 className="font-black text-slate-800 dark:text-white">{uiText("My Annual Plans")}</h3>
+                    <p className="text-xs text-slate-500 mt-0.5">{annualPlans.length}{uiText(" plan(s) submitted")}</p>
                   </div>
                   <button
                     onClick={() => { setEditingAnnualPlan(null); setAnnualForm(emptyAnnualForm); setIsAnnualModalOpen(true); }}
                     className="flex items-center gap-2 px-6 py-3 bg-violet-600 hover:bg-violet-700 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-lg"
                   >
-                    <Plus size={16} /> New Annual Plan
-                  </button>
+                    <Plus size={16} />{uiText(" New Annual Plan")}</button>
                 </div>
 
                 {annualPlans.length === 0 ? (
                   <div className="p-12 text-center">
                     <div className="bg-violet-50 dark:bg-violet-900/20 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"><FileText size={28} className="text-violet-400" /></div>
-                    <p className="font-bold text-slate-500">No annual plans yet</p>
-                    <p className="text-xs text-slate-400 mt-1">Create your first yearly lesson plan and submit it for department head review.</p>
+                    <p className="font-bold text-slate-500">{uiText("No annual plans yet")}</p>
+                    <p className="text-xs text-slate-400 mt-1">{uiText("Create your first yearly lesson plan and submit it for department head review.")}</p>
                   </div>
                 ) : (
                   <div className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -1207,28 +1189,26 @@ export const TeacherPortal = () => {
                       <div key={plan.id} className="p-5 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-3 flex-wrap">
-                            <p className="font-black text-slate-800 dark:text-white text-sm">{plan.subject} — {plan.grade}</p>
+                            <p className="font-black text-slate-800 dark:text-white text-sm">{uiText(plan.subject)}{uiText(" — ")}{uiText(plan.grade)}</p>
                             <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase ${
                               plan.status === 'Approved' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
                               : plan.status === 'Revision Required' ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
                               : plan.status === 'Draft' ? 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
                               : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
-                            }`}>{plan.status}</span>
+                            }`}>{uiText(plan.status)}</span>
                           </div>
-                          <p className="text-xs text-slate-500 mt-1">Academic Year: {plan.academic_year} · {Array.isArray(plan.items) ? plan.items.length : 0} weeks planned</p>
-                          {plan.feedback && <p className="text-xs text-orange-600 mt-1 italic">Feedback: "{plan.feedback}"</p>}
+                          <p className="text-xs text-slate-500 mt-1">{uiText("Academic Year: ")}{uiText(plan.academic_year)}{uiText(" · ")}{uiText(Array.isArray(plan.items) ? plan.items.length : 0)}{uiText(" weeks planned")}</p>
+                          {uiText(plan.feedback && <p className="text-xs text-orange-600 mt-1 italic">{uiText("Feedback: \"")}{uiText(plan.feedback)}{uiText("\"")}</p>)}
                         </div>
                         <div className="flex gap-2 ml-4">
                           {(plan.status === 'Draft' || plan.status === 'Revision Required') && (
                             <button
                               onClick={() => { setEditingAnnualPlan(plan); setAnnualForm({ ...emptyAnnualForm, ...plan, items: Array.isArray(plan.items) && plan.items.length > 0 ? plan.items : defaultAnnualItems() }); setIsAnnualModalOpen(true); }}
                               className="px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white text-xs font-black rounded-xl transition-all"
-                            >
-                              Edit & Submit
-                            </button>
+                            >{uiText("Edit & Submit")}</button>
                           )}
                           {plan.status === 'Approved' && (
-                            <span className="flex items-center gap-1 text-xs text-emerald-600 font-black"><CheckCircle2 size={14} /> Approved</span>
+                            <span className="flex items-center gap-1 text-xs text-emerald-600 font-black"><CheckCircle2 size={14} />{uiText(" Approved")}</span>
                           )}
                         </div>
                       </div>
@@ -1244,20 +1224,20 @@ export const TeacherPortal = () => {
               <div className="bg-gradient-to-br from-emerald-600 to-teal-700 rounded-[2rem] p-8 text-white shadow-2xl relative overflow-hidden">
                 <div className="absolute top-0 right-0 p-10 opacity-10"><ClipboardList size={160} /></div>
                 <div className="relative z-10">
-                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-200 mb-2 block">Home Room · Weekly Reports</span>
-                  <h2 className="text-3xl font-black mb-1 tracking-tight">Communication Book</h2>
-                  <p className="text-emerald-100 font-medium text-sm">Select a section or search a student to send weekly ratings to parents.</p>
+                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-200 mb-2 block">{uiText("Home Room · Weekly Reports")}</span>
+                  <h2 className="text-3xl font-black mb-1 tracking-tight">{uiText("Communication Book")}</h2>
+                  <p className="text-emerald-100 font-medium text-sm">{uiText("Select a section or search a student to send weekly ratings to parents.")}</p>
                 </div>
               </div>
 
               {/* ── Global Student Search ── */}
               <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-lg p-6">
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3 block">Quick Search — All My Homeroom Students</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3 block">{uiText("Quick Search — All My Homeroom Students")}</label>
                 <div className="relative">
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                   <input
                     type="text"
-                    placeholder="Type student name to search across all sections…"
+                    placeholder={uiText("Type student name to search across all sections…")}
                     value={globalCommSearch}
                     onChange={e => setGlobalCommSearch(e.target.value)}
                     className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-medium outline-none focus:border-emerald-500 transition-all text-slate-900 dark:text-white"
@@ -1271,29 +1251,27 @@ export const TeacherPortal = () => {
                       return (
                         <div key={id} className="flex items-center justify-between px-5 py-3 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-all">
                           <div>
-                            <p className="text-sm font-bold text-slate-800 dark:text-white">{name}</p>
-                            <p className="text-[10px] text-slate-400 uppercase tracking-widest">{s.sectionName} · {s.digitalId || ''}</p>
+                            <p className="text-sm font-bold text-slate-800 dark:text-white">{uiText(name)}</p>
+                            <p className="text-[10px] text-slate-400 uppercase tracking-widest">{uiText(s.sectionName)}{uiText(" · ")}{uiText(s.digitalId || '')}</p>
                           </div>
                           {sentCommStudentIds.includes(id) ? (
                             <button
                               disabled
                               className="px-4 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-black rounded-xl cursor-not-allowed flex items-center gap-1"
                             >
-                              <CheckCircle2 size={12} /> Sent
-                            </button>
+                              <CheckCircle2 size={12} />{uiText(" Sent")}</button>
                           ) : (
                             <button
                               onClick={() => { setGlobalCommSearch(''); openCommCard({ id, name }); }}
                               className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black rounded-xl transition-all flex items-center gap-1"
                             >
-                              <Send size={12} /> Talk to Parent
-                            </button>
+                              <Send size={12} />{uiText(" Talk to Parent")}</button>
                           )}
                         </div>
                       );
                     })}
                     {allHomeroomStudents.filter(s => (s.studentName || s.student_name || s.name || '').toLowerCase().includes(globalCommSearch.toLowerCase())).length === 0 && (
-                      <p className="text-center text-slate-400 text-sm py-6 font-medium">No students found.</p>
+                      <p className="text-center text-slate-400 text-sm py-6 font-medium">{uiText("No students found.")}</p>
                     )}
                   </div>
                 )}
@@ -1303,12 +1281,12 @@ export const TeacherPortal = () => {
               {!selectedCommSection ? (
                 /* Section Cards */
                 <div>
-                  <h3 className="text-xs font-black uppercase tracking-widest text-slate-500 mb-4">My Homeroom Sections</h3>
+                  <h3 className="text-xs font-black uppercase tracking-widest text-slate-500 mb-4">{uiText("My Homeroom Sections")}</h3>
                   {commSections.length === 0 ? (
                     <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-800 p-12 text-center">
                       <Users className="text-slate-300 dark:text-slate-700 mx-auto mb-4" size={40} />
-                      <p className="text-slate-500 font-bold text-sm">No homeroom sections assigned.</p>
-                      <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-1">Contact administration if this is incorrect.</p>
+                      <p className="text-slate-500 font-bold text-sm">{uiText("No homeroom sections assigned.")}</p>
+                      <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-1">{uiText("Contact administration if this is incorrect.")}</p>
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -1322,8 +1300,8 @@ export const TeacherPortal = () => {
                             <Users className="text-emerald-600 group-hover:text-white transition-all" size={26} />
                           </div>
                           <h4 className="text-lg font-black text-slate-800 dark:text-white">{sec.name}</h4>
-                          {sec.section && <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-0.5">Section {sec.section}</p>}
-                          <p className="text-xs text-emerald-600 dark:text-emerald-400 font-bold mt-3">{sec.enrolledStudents} students · Click to view roster →</p>
+                          {uiText(sec.section && <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-0.5">{uiText("Section ")}{uiText(sec.section)}</p>)}
+                          <p className="text-xs text-emerald-600 dark:text-emerald-400 font-bold mt-3">{uiText(sec.enrolledStudents)}{uiText(" students · Click to view roster →")}</p>
                         </button>
                       ))}
                     </div>
@@ -1336,7 +1314,7 @@ export const TeacherPortal = () => {
                     <div className="flex items-center gap-3">
                       <button
                         type="button"
-                        title="Go back to section roster"
+                        title={uiText("Go back to section roster")}
                         onClick={() => { setSelectedCommSection(null); setCommStudents([]); setCommPage(1); }}
                         className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
                       >
@@ -1344,16 +1322,16 @@ export const TeacherPortal = () => {
                       </button>
                       <div>
                         <h3 className="font-black text-slate-800 dark:text-white">{selectedCommSection.name}</h3>
-                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Student Roster</p>
+                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{uiText("Student Roster")}</p>
                       </div>
                     </div>
-                    <span className="text-xs font-black text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1.5 rounded-full">{commStudents.length} students</span>
+                    <span className="text-xs font-black text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1.5 rounded-full">{commStudents.length}{uiText(" students")}</span>
                   </div>
 
                   {commStudentsLoading ? (
                     <div className="flex justify-center items-center h-48"><Loader2 className="animate-spin text-emerald-500" size={32} /></div>
                   ) : commStudents.length === 0 ? (
-                    <div className="p-10 text-center"><p className="text-slate-400 font-medium">No students in this section.</p></div>
+                    <div className="p-10 text-center"><p className="text-slate-400 font-medium">{uiText("No students in this section.")}</p></div>
                   ) : (
                     <>
                       {/* Paginated Table */}
@@ -1366,7 +1344,7 @@ export const TeacherPortal = () => {
                               </div>
                               <div>
                                 <p className="font-bold text-slate-800 dark:text-white text-sm">{s.name}</p>
-                                <p className="text-[10px] text-slate-400 uppercase tracking-wider">{s.digitalId || s.grade || '—'}</p>
+                                <p className="text-[10px] text-slate-400 uppercase tracking-wider">{uiText(s.digitalId || s.grade || '—')}</p>
                               </div>
                             </div>
                             {sentCommStudentIds.includes(s.id) ? (
@@ -1374,15 +1352,13 @@ export const TeacherPortal = () => {
                                 disabled
                                 className="flex items-center gap-2 px-4 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-black rounded-xl cursor-not-allowed shadow-sm"
                               >
-                                <CheckCircle2 size={13} /> Sent
-                              </button>
+                                <CheckCircle2 size={13} />{uiText(" Sent")}</button>
                             ) : (
                               <button
                                 onClick={() => openCommCard(s)}
                                 className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black rounded-xl transition-all shadow-sm"
                               >
-                                <Send size={13} /> Talk to Parent
-                              </button>
+                                <Send size={13} />{uiText(" Talk to Parent")}</button>
                             )}
                           </div>
                         ))}
@@ -1391,11 +1367,11 @@ export const TeacherPortal = () => {
                       {/* Pagination */}
                       {commStudents.length > COMM_PAGE_SIZE && (
                         <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 dark:border-slate-800">
-                          <p className="text-xs text-slate-400 font-bold">Page {commPage} of {Math.ceil(commStudents.length / COMM_PAGE_SIZE)}</p>
+                          <p className="text-xs text-slate-400 font-bold">{uiText("Page ")}{commPage}{uiText(" of ")}{Math.ceil(commStudents.length / COMM_PAGE_SIZE)}</p>
                           <div className="flex gap-2">
                             <button
                               type="button"
-                              title="Previous page"
+                              title={uiText("Previous page")}
                               disabled={commPage === 1}
                               onClick={() => setCommPage(p => p - 1)}
                               className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 disabled:opacity-30 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-all"
@@ -1404,7 +1380,7 @@ export const TeacherPortal = () => {
                             </button>
                             <button
                               type="button"
-                              title="Next page"
+                              title={uiText("Next page")}
                               disabled={commPage >= Math.ceil(commStudents.length / COMM_PAGE_SIZE)}
                               onClick={() => setCommPage(p => p + 1)}
                               className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 disabled:opacity-30 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-all"
@@ -1420,20 +1396,20 @@ export const TeacherPortal = () => {
               )}
 
               {/* ── Talk-to-Parent Rating Card Modal ── */}
-              {isCommCardOpen && activeCommStudent && (
+              {uiText(isCommCardOpen && activeCommStudent && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={e => { if (e.target === e.currentTarget) setIsCommCardOpen(false); }}>
                   <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl w-full max-w-2xl max-h-[92vh] overflow-y-auto">
 
                     {/* Card Header */}
                     <div className="bg-gradient-to-r from-emerald-600 to-teal-600 p-6 rounded-t-[2.5rem] flex items-center justify-between">
                       <div>
-                        <p className="text-emerald-200 text-[10px] font-black uppercase tracking-widest">Communication Book</p>
+                        <p className="text-emerald-200 text-[10px] font-black uppercase tracking-widest">{uiText("Communication Book")}</p>
                         <h3 className="text-white text-xl font-black mt-0.5">{activeCommStudent.name}</h3>
-                        <p className="text-emerald-200 text-xs mt-0.5">Week ending: {formatEthiopianLabel(getWeekEndingThursday())}</p>
+                        <p className="text-emerald-200 text-xs mt-0.5">{uiText("Week ending: ")}{uiText(formatEthiopianLabel(getWeekEndingThursday()))}</p>
                       </div>
                       <button
                         type="button"
-                        title="Close communication book modal"
+                        title={uiText("Close communication book modal")}
                         onClick={() => setIsCommCardOpen(false)}
                         className="p-2 rounded-xl bg-white/20 hover:bg-white/30 transition-all"
                       >
@@ -1447,13 +1423,13 @@ export const TeacherPortal = () => {
                           <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center">
                             <CheckCircle2 className="text-emerald-500" size={36} />
                           </div>
-                          <p className="text-emerald-600 font-black text-lg">Sent to Parent!</p>
+                          <p className="text-emerald-600 font-black text-lg">{uiText("Sent to Parent!")}</p>
                         </div>
                       ) : (
                         <>
                           {/* Metrics Grid */}
                           <div>
-                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-4">Rate each area (1–5 stars)</p>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-4">{uiText("Rate each area (1–5 stars)")}</p>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                               {[
                                 { key: 'ratingMaterials', label: 'Materials', icon: '📚' },
@@ -1469,13 +1445,13 @@ export const TeacherPortal = () => {
                                 const val = commLogForm[key as keyof typeof commLogForm] as number;
                                 return (
                                   <div key={key} className="flex items-center justify-between bg-slate-50 dark:bg-slate-800/40 p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
-                                    <span className="text-sm font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2"><span>{icon}</span>{label}</span>
+                                    <span className="text-sm font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2"><span>{uiText(icon)}</span>{uiText(label)}</span>
                                     <div className="flex gap-1">
                                       {[1, 2, 3, 4, 5].map(star => (
                                         <button
                                           key={star}
                                           type="button"
-                                          title={`Rate ${label} as ${star} star${star !== 1 ? 's' : ''}`}
+                                          title={uiText("Rate {{value0}} as {{value1}} star{{value2}}", { value0: label, value1: star, value2: uiText(star !== 1 ? 's' : '') })}
                                           onClick={() => setCommLogForm(f => ({ ...f, [key]: star === val ? 0 : star }))}
                                           className="transition-transform hover:scale-110"
                                         >
@@ -1494,10 +1470,10 @@ export const TeacherPortal = () => {
 
                           {/* Teacher Note */}
                           <div>
-                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">Teacher's Observation Note</label>
+                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">{uiText("Teacher's Observation Note")}</label>
                             <textarea
                               rows={4}
-                              placeholder="Describe the student's performance this week…"
+                              placeholder={uiText("Describe the student's performance this week…")}
                               value={commLogForm.teacherNote}
                               onChange={e => setCommLogForm(f => ({ ...f, teacherNote: e.target.value }))}
                               className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl text-sm outline-none focus:border-emerald-500 transition-all resize-none text-slate-800 dark:text-white"
@@ -1506,16 +1482,14 @@ export const TeacherPortal = () => {
 
                           {/* Footer Buttons */}
                           <div className="flex gap-3 pt-2">
-                            <button onClick={() => setIsCommCardOpen(false)} className="flex-1 py-3 rounded-2xl border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-black text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">
-                              Close
-                            </button>
+                            <button onClick={() => setIsCommCardOpen(false)} className="flex-1 py-3 rounded-2xl border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-black text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">{uiText("Close")}</button>
                             <button
                               onClick={handleSubmitCommLog}
                               disabled={isSubmittingLog}
                               className="flex-1 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white font-black text-sm flex items-center justify-center gap-2 transition-all shadow-lg"
                             >
                               {isSubmittingLog ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
-                              {isSubmittingLog ? 'Sending…' : 'Send to Parent'}
+                              {uiText(isSubmittingLog ? 'Sending…' : 'Send to Parent')}
                             </button>
                           </div>
                         </>
@@ -1523,14 +1497,14 @@ export const TeacherPortal = () => {
                     </div>
                   </div>
                 </div>
-              )}
+              ))}
             </div>
           ) : (
             <div className="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-xl overflow-hidden animate-in fade-in duration-200">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
                 <div>
-                  <h2 className="text-3xl font-black text-slate-800 dark:text-white tracking-tight uppercase">Weekly Plans</h2>
-                  <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px] mt-1">Submit lesson plans for head of department review</p>
+                  <h2 className="text-3xl font-black text-slate-800 dark:text-white tracking-tight uppercase">{uiText("Weekly Plans")}</h2>
+                  <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px] mt-1">{uiText("Submit lesson plans for head of department review")}</p>
                 </div>
                 <div className="flex gap-4 flex-wrap">
                   <button onClick={() => {
@@ -1541,16 +1515,14 @@ export const TeacherPortal = () => {
                     setIsPlanModalOpen(true);
                   }}
                     className="flex items-center gap-3 px-8 py-4 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-700 transition-all shadow-xl shadow-blue-500/20">
-                    <Plus size={18} /> Create New Plan
-                  </button>
+                    <Plus size={18} />{uiText(" Create New Plan")}</button>
                   <button onClick={() => {
                     setEditingPlan(null);
                     setPlanForm({ ...emptyPlan, status: 'Pending' });
                     setIsPlanModalOpen(true);
                   }}
                     className="flex items-center gap-3 px-8 py-4 bg-emerald-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-500/20">
-                    <Send size={18} /> Submit New Plan
-                  </button>
+                    <Send size={18} />{uiText(" Submit New Plan")}</button>
                 </div>
               </div>
 
@@ -1559,54 +1531,52 @@ export const TeacherPortal = () => {
                   <thead>
                     <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
                       {['Date', 'Subject', 'Content', 'Objectives', 'Method', 'Duration', 'Status', 'Feedback', 'Actions'].map(h => (
-                        <th key={h} className="px-4 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">{h}</th>
+                        <th key={h} className="px-4 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">{uiText(h)}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                     {plans.length === 0 ? (
-                      <tr><td colSpan={9} className="px-6 py-12 text-center text-slate-500">No plans yet. Create your first plan!</td></tr>
+                      <tr><td colSpan={9} className="px-6 py-12 text-center text-slate-500">{uiText("No plans yet. Create your first plan!")}</td></tr>
                     ) : (
                       plans.map((plan: any) => (
                         <tr key={plan.id} className="hover:bg-blue-50/30 dark:hover:bg-blue-900/5 transition-colors">
-                          <td className="px-4 py-4 text-xs font-bold text-slate-800 dark:text-slate-200">{plan.date?.slice(0, 10)}</td>
-                          <td className="px-4 py-4 text-xs font-semibold text-blue-600 dark:text-blue-400">{plan.subject || '—'}</td>
-                          <td className="px-4 py-4 text-xs text-slate-600 dark:text-slate-400 max-w-[120px] truncate">{plan.content}</td>
-                          <td className="px-4 py-4 text-xs text-slate-600 dark:text-slate-400 max-w-[120px] truncate">{plan.objectives}</td>
-                          <td className="px-4 py-4 text-xs text-slate-600 dark:text-slate-400 max-w-[100px] truncate">{plan.teaching_method || plan.teachingMethod}</td>
-                          <td className="px-4 py-4 text-xs text-slate-600 dark:text-slate-400">{plan.time_duration || plan.timeDuration}</td>
+                          <td className="px-4 py-4 text-xs font-bold text-slate-800 dark:text-slate-200">{uiText(plan.date?.slice(0, 10))}</td>
+                          <td className="px-4 py-4 text-xs font-semibold text-blue-600 dark:text-blue-400">{uiText(plan.subject || '—')}</td>
+                          <td className="px-4 py-4 text-xs text-slate-600 dark:text-slate-400 max-w-[120px] truncate">{uiText(plan.content)}</td>
+                          <td className="px-4 py-4 text-xs text-slate-600 dark:text-slate-400 max-w-[120px] truncate">{uiText(plan.objectives)}</td>
+                          <td className="px-4 py-4 text-xs text-slate-600 dark:text-slate-400 max-w-[100px] truncate">{uiText(plan.teaching_method || plan.teachingMethod)}</td>
+                          <td className="px-4 py-4 text-xs text-slate-600 dark:text-slate-400">{uiText(plan.time_duration || plan.timeDuration)}</td>
                           <td className="px-4 py-4">
                             <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase ${plan.status === 'Approved' ? 'bg-emerald-100 text-emerald-600' :
                               plan.status === 'Revision Required' ? 'bg-orange-100 text-orange-600' :
                                 plan.status === 'Draft' ? 'bg-slate-100 text-slate-600' :
                                   'bg-amber-100 text-amber-600'
-                              }`}>{plan.status}</span>
+                              }`}>{uiText(plan.status)}</span>
                           </td>
                           <td className="px-4 py-4">
                             {plan.dean_feedback ? (
                               <div>
-                                <p className="text-xs text-slate-600 dark:text-slate-400 max-w-[120px] truncate">{plan.dean_feedback}</p>
-                                {plan.dean_rating && (
+                                <p className="text-xs text-slate-600 dark:text-slate-400 max-w-[120px] truncate">{uiText(plan.dean_feedback)}</p>
+                                {uiText(plan.dean_rating && (
                                   <div className="flex gap-0.5 mt-1">
                                     {[1, 2, 3].map(n => (
                                       <Star key={n} size={10} className={n <= plan.dean_rating ? 'text-amber-500 fill-amber-500' : 'text-slate-300'} />
                                     ))}
                                   </div>
-                                )}
+                                ))}
                               </div>
-                            ) : <span className="text-xs text-slate-400">—</span>}
+                            ) : <span className="text-xs text-slate-400">{uiText("—")}</span>}
                           </td>
                           <td className="px-4 py-4 flex gap-2">
                             {(plan.status === 'Draft' || plan.status === 'Revision Required') && (
                               <>
                                 <button onClick={() => openEditModal(plan)}
-                                  className="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-xs font-bold hover:bg-blue-200 transition-colors">
-                                  Edit
-                                </button>
+                                  className="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-xs font-bold hover:bg-blue-200 transition-colors">{uiText("Edit")}</button>
                                 <button onClick={async () => {
                                   // Guard: sim-IDs mean the plan was never saved to DB — user must open modal and save properly
                                   if (!plan.id || String(plan.id).startsWith('sim-')) {
-                                    showToast('Please open and re-save the plan as a Draft first before submitting.', 'error');
+                                    showToast(uiText("Please open and re-save the plan as a Draft first before submitting."), 'error');
                                     return;
                                   }
                                   const submittedPlan = { ...plan, status: 'Pending', teacher_name: user?.name || 'Assigned Teacher', teacherName: user?.name || 'Assigned Teacher' };
@@ -1629,12 +1599,12 @@ export const TeacherPortal = () => {
                                       weekNumber: plan.week_number || plan.weekNumber || 1
                                     };
                                     await updateWeeklyPlan(plan.id, payload);
-                                    showToast('Plan submitted to Department Head!', 'success');
+                                    showToast(uiText("Plan submitted to Department Head!"), 'success');
                                     const updatedPlans = await getMyWeeklyPlans();
                                     setPlans(Array.isArray(updatedPlans) ? updatedPlans : []);
                                   } catch (err: any) {
                                     const msg = err?.message || 'Submission failed. Please try again.';
-                                    showToast(msg, 'error');
+                                    showToast(uiText(msg), 'error');
                                     console.error('Submission error:', err);
                                   }
                                   // Optimistically update local state regardless of API result
@@ -1646,8 +1616,7 @@ export const TeacherPortal = () => {
                                   });
                                 }}
                                   className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-lg text-xs font-bold hover:bg-emerald-200 transition-colors flex items-center gap-1">
-                                  <CheckCircle2 size={14} /> Submit
-                                </button>
+                                  <CheckCircle2 size={14} />{uiText(" Submit")}</button>
                               </>
                             )}
                           </td>
@@ -1665,8 +1634,8 @@ export const TeacherPortal = () => {
         <div className="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-xl overflow-hidden animate-in fade-in duration-200">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-6">
             <div>
-              <h2 className="text-3xl font-black text-slate-800 dark:text-white tracking-tight uppercase">Department Tasks</h2>
-              <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px] mt-1">Manage and review plans submitted by teachers in your department</p>
+              <h2 className="text-3xl font-black text-slate-800 dark:text-white tracking-tight uppercase">{uiText("Department Tasks")}</h2>
+              <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px] mt-1">{uiText("Manage and review plans submitted by teachers in your department")}</p>
             </div>
           </div>
 
@@ -1677,17 +1646,13 @@ export const TeacherPortal = () => {
               className={`pb-3 text-xs font-black uppercase tracking-wider border-b-2 transition-all ${
                 deptTaskSubTab === 'weekly' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400 hover:text-slate-600'
               }`}
-            >
-              📋 Weekly Plans
-            </button>
+            >{uiText("📋 Weekly Plans")}</button>
             <button
               onClick={() => { setDeptTaskSubTab('annual'); fetchDeptAnnualPlans(); }}
               className={`pb-3 text-xs font-black uppercase tracking-wider border-b-2 transition-all ${
                 deptTaskSubTab === 'annual' ? 'border-violet-600 text-violet-600' : 'border-transparent text-slate-400 hover:text-slate-600'
               }`}
-            >
-              📅 Annual Plans
-            </button>
+            >{uiText("📅 Annual Plans")}</button>
           </div>
 
           {deptTaskSubTab === 'annual' ? (
@@ -1698,22 +1663,22 @@ export const TeacherPortal = () => {
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                   <input
                     type="text"
-                    placeholder="Search by teacher or subject…"
+                    placeholder={uiText("Search by teacher or subject…")}
                     value={annualSearch}
                     onChange={e => setAnnualSearch(e.target.value)}
                     className="w-full pl-9 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-violet-500"
                   />
                 </div>
                 <select
-                  title="Filter annual plans by status"
+                  title={uiText("Filter annual plans by status")}
                   value={annualDeptFilter}
                   onChange={e => setAnnualDeptFilter(e.target.value)}
                   className="px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-violet-500 text-slate-700 dark:text-white"
                 >
-                  <option value="All">All Statuses</option>
-                  <option value="Pending">Pending</option>
-                  <option value="Approved">Approved</option>
-                  <option value="Revision Required">Revision Required</option>
+                  <option value="All">{uiText("All Statuses")}</option>
+                  <option value="Pending">{uiText("Pending")}</option>
+                  <option value="Approved">{uiText("Approved")}</option>
+                  <option value="Revision Required">{uiText("Revision Required")}</option>
                 </select>
               </div>
 
@@ -1727,7 +1692,7 @@ export const TeacherPortal = () => {
               }).length === 0 ? (
                 <div className="text-center py-12">
                   <FileText className="text-slate-300 dark:text-slate-700 mx-auto mb-4" size={40} />
-                  <p className="text-slate-500 font-bold">No annual plans to review.</p>
+                  <p className="text-slate-500 font-bold">{uiText("No annual plans to review.")}</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -1746,22 +1711,22 @@ export const TeacherPortal = () => {
                     >
                       <div className="absolute top-0 right-0 w-2 h-full bg-violet-600 opacity-0 group-hover:opacity-100 transition-opacity" />
                       <div className="border-b border-slate-200 dark:border-slate-700 pb-3">
-                        <h3 className="font-black text-slate-900 dark:text-white text-sm uppercase tracking-tight group-hover:text-violet-600 transition-colors">{plan.teacher_name}</h3>
-                        <p className="text-xs text-slate-500 font-bold mt-1">{plan.subject} — {plan.grade}</p>
+                        <h3 className="font-black text-slate-900 dark:text-white text-sm uppercase tracking-tight group-hover:text-violet-600 transition-colors">{uiText(plan.teacher_name)}</h3>
+                        <p className="text-xs text-slate-500 font-bold mt-1">{uiText(plan.subject)}{uiText(" — ")}{uiText(plan.grade)}</p>
                       </div>
                       <div className="space-y-1.5 text-xs">
-                        <p className="text-slate-500">Academic Year: <span className="font-bold text-slate-700 dark:text-slate-300">{plan.academic_year}</span></p>
-                        <p className="text-slate-500">Weeks: <span className="font-bold text-slate-700 dark:text-slate-300">{Array.isArray(plan.items) ? plan.items.length : 0}</span></p>
+                        <p className="text-slate-500">{uiText("Academic Year: ")}<span className="font-bold text-slate-700 dark:text-slate-300">{uiText(plan.academic_year)}</span></p>
+                        <p className="text-slate-500">{uiText("Weeks: ")}<span className="font-bold text-slate-700 dark:text-slate-300">{uiText(Array.isArray(plan.items) ? plan.items.length : 0)}</span></p>
                       </div>
                       <div className="flex items-center justify-between pt-2 border-t border-slate-200 dark:border-slate-700">
                         <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase ${
                           plan.status === 'Approved' ? 'bg-emerald-100 text-emerald-600' : plan.status === 'Revision Required' ? 'bg-orange-100 text-orange-600' : 'bg-amber-100 text-amber-600'
-                        }`}>{plan.status}</span>
+                        }`}>{uiText(plan.status)}</span>
                         {plan.rating ? (
                           <div className="flex gap-0.5">{[1,2,3,4,5].map(s => <Star key={s} size={11} className={s <= plan.rating ? 'text-amber-400 fill-amber-400' : 'text-slate-300'} />)}</div>
                         ) : null}
                       </div>
-                      <div className="text-center pt-1"><span className="text-[10px] font-black text-violet-600 uppercase tracking-widest group-hover:underline">Review Annual Plan →</span></div>
+                      <div className="text-center pt-1"><span className="text-[10px] font-black text-violet-600 uppercase tracking-widest group-hover:underline">{uiText("Review Annual Plan →")}</span></div>
                     </div>
                   ))}
                 </div>
@@ -1773,24 +1738,24 @@ export const TeacherPortal = () => {
           <div className="flex flex-col md:flex-row gap-4 mb-6">
             <input
               type="text"
-              placeholder="Search teacher or subject..."
+              placeholder={uiText("Search teacher or subject...")}
               value={deptSearch}
               onChange={e => setDeptSearch(e.target.value)}
               className="flex-1 px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
             />
             <div className="flex-1 md:flex-none">
-              <label htmlFor="deptFilter" className="sr-only">Filter lesson plans by status</label>
+              <label htmlFor="deptFilter" className="sr-only">{uiText("Filter lesson plans by status")}</label>
               <select
                 id="deptFilter"
-                title="Filter lesson plans by status"
+                title={uiText("Filter lesson plans by status")}
                 value={deptFilter}
                 onChange={e => setDeptFilter(e.target.value)}
                 className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="All">All Statuses</option>
-                <option value="Pending">Pending</option>
-                <option value="Approved">Approved</option>
-                <option value="Revision Required">Revision Required</option>
+                <option value="All">{uiText("All Statuses")}</option>
+                <option value="Pending">{uiText("Pending")}</option>
+                <option value="Approved">{uiText("Approved")}</option>
+                <option value="Revision Required">{uiText("Revision Required")}</option>
               </select>
             </div>
           </div>
@@ -1798,7 +1763,7 @@ export const TeacherPortal = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredDeptPlans.length === 0 ? (
               <div className="col-span-full text-center py-12">
-                <p className="text-slate-500 font-bold">No plans matching the search/filter criteria.</p>
+                <p className="text-slate-500 font-bold">{uiText("No plans matching the search/filter criteria.")}</p>
               </div>
             ) : (
               filteredDeptPlans.map((plan: any) => (
@@ -1817,24 +1782,24 @@ export const TeacherPortal = () => {
                   {/* Header */}
                   <div className="border-b border-slate-100 dark:border-slate-700 pb-3">
                     <h3 className="font-black text-slate-900 dark:text-white text-sm uppercase tracking-tight group-hover:text-blue-600 transition-colors">
-                      {plan.teacher_name || plan.teacherName}
+                      {uiText(plan.teacher_name || plan.teacherName)}
                     </h3>
-                    <p className="text-xs text-slate-500 font-bold uppercase mt-1">{plan.subject || '—'}</p>
+                    <p className="text-xs text-slate-500 font-bold uppercase mt-1">{uiText(plan.subject || '—')}</p>
                   </div>
 
                   {/* Plan Details Preview */}
                   <div className="space-y-2 text-xs">
                     <div>
-                      <label className="font-bold text-slate-400 uppercase tracking-wider text-[9px]">Date</label>
-                      <p className="text-slate-800 dark:text-slate-200 font-medium mt-0.5">{plan.date?.slice(0, 10)}</p>
+                      <label className="font-bold text-slate-400 uppercase tracking-wider text-[9px]">{uiText("Date")}</label>
+                      <p className="text-slate-800 dark:text-slate-200 font-medium mt-0.5">{uiText(plan.date?.slice(0, 10))}</p>
                     </div>
                     <div>
-                      <label className="font-bold text-slate-400 uppercase tracking-wider text-[9px]">Topic / Content</label>
-                      <p className="text-slate-800 dark:text-slate-200 line-clamp-2 mt-0.5 font-medium">{plan.content}</p>
+                      <label className="font-bold text-slate-400 uppercase tracking-wider text-[9px]">{uiText("Topic / Content")}</label>
+                      <p className="text-slate-800 dark:text-slate-200 line-clamp-2 mt-0.5 font-medium">{uiText(plan.content)}</p>
                     </div>
                     <div>
-                      <label className="font-bold text-slate-400 uppercase tracking-wider text-[9px]">Objectives</label>
-                      <p className="text-slate-800 dark:text-slate-200 line-clamp-2 mt-0.5 font-medium">{plan.objectives}</p>
+                      <label className="font-bold text-slate-400 uppercase tracking-wider text-[9px]">{uiText("Objectives")}</label>
+                      <p className="text-slate-800 dark:text-slate-200 line-clamp-2 mt-0.5 font-medium">{uiText(plan.objectives)}</p>
                     </div>
                   </div>
 
@@ -1848,7 +1813,7 @@ export const TeacherPortal = () => {
                             : 'bg-amber-100 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400'
                         }`}
                     >
-                      {plan.status}
+                      {uiText(plan.status)}
                     </span>
 
                     {(plan.dean_rating || plan.rating) ? (
@@ -1865,19 +1830,17 @@ export const TeacherPortal = () => {
                   </div>
 
                   {/* Feedback comment preview */}
-                  {(plan.dean_feedback || plan.feedback) && (
+                  {uiText((plan.dean_feedback || plan.feedback) && (
                     <div className="bg-slate-50 dark:bg-slate-900/40 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800">
-                      <p className="text-[9px] font-bold text-slate-400 uppercase">Comments</p>
+                      <p className="text-[9px] font-bold text-slate-400 uppercase">{uiText("Comments")}</p>
                       <p className="text-xs text-slate-600 dark:text-slate-400 truncate mt-0.5 font-medium">
-                        {plan.dean_feedback || plan.feedback}
+                        {uiText(plan.dean_feedback || plan.feedback)}
                       </p>
                     </div>
-                  )}
+                  ))}
 
                   <div className="text-center pt-2">
-                    <span className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest group-hover:underline">
-                      View & Evaluate Plan →
-                    </span>
+                    <span className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest group-hover:underline">{uiText("View & Evaluate Plan →")}</span>
                   </div>
                 </div>
               ))
@@ -1898,9 +1861,9 @@ export const TeacherPortal = () => {
               <div className="flex items-center gap-3">
                 <div className="p-3 bg-white/20 text-white rounded-2xl"><FileText size={22} /></div>
                 <div>
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-200 block">Ziquala Abo 1st Primary School</span>
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-200 block">{uiText("Ziquala Abo 1st Primary School")}</span>
                   <h3 className="font-black text-white text-lg tracking-tight">
-                    {editingPlan ? 'Edit Weekly Lesson Plan Sheet' : 'Weekly Lesson Plan Form'}
+                    {uiText(editingPlan ? 'Edit Weekly Lesson Plan Sheet' : 'Weekly Lesson Plan Form')}
                   </h3>
                 </div>
               </div>
@@ -1915,37 +1878,35 @@ export const TeacherPortal = () => {
 
             <div className="p-6 space-y-6 max-h-[75vh] overflow-y-auto">
               
-              {editingPlan && editingPlan.status === 'Revision Required' && (editingPlan.dean_feedback || editingPlan.feedback) && (
+              {uiText(editingPlan && editingPlan.status === 'Revision Required' && (editingPlan.dean_feedback || editingPlan.feedback) && (
                 <div className="p-4 bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800/50 rounded-2xl flex items-start gap-3">
                   <AlertCircle size={20} className="text-orange-600 dark:text-orange-400 mt-0.5 shrink-0" />
                   <div>
-                    <h4 className="text-xs font-black text-orange-800 dark:text-orange-400 uppercase tracking-wider">Revision Required from Department Head</h4>
-                    <p className="text-sm text-orange-700 dark:text-orange-300 mt-1 font-medium leading-relaxed">
-                      "{editingPlan.dean_feedback || editingPlan.feedback}"
-                    </p>
+                    <h4 className="text-xs font-black text-orange-800 dark:text-orange-400 uppercase tracking-wider">{uiText("Revision Required from Department Head")}</h4>
+                    <p className="text-sm text-orange-700 dark:text-orange-300 mt-1 font-medium leading-relaxed">{uiText("\"")}{uiText(editingPlan.dean_feedback || editingPlan.feedback)}{uiText("\"")}</p>
                   </div>
                 </div>
-              )}
+              ))}
 
               {/* Header Info Block */}
               <div className="bg-slate-50 dark:bg-slate-800/50 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-4">
                 <div className="flex justify-between items-center flex-wrap gap-2">
-                  <h4 className="text-xs font-black uppercase tracking-widest text-slate-500">📋 Document Header Information</h4>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase">Ziquala Abo Primary School Official Format</span>
+                  <h4 className="text-xs font-black uppercase tracking-widest text-slate-500">{uiText("📋 Document Header Information")}</h4>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Ziquala Abo Primary School Official Format")}</span>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="text-[10px] font-black uppercase text-slate-400 block mb-1">Teacher's Name</label>
+                    <label className="text-[10px] font-black uppercase text-slate-400 block mb-1">{uiText("Teacher's Name")}</label>
                     <input
                       type="text"
-                      placeholder="Teacher Name"
+                      placeholder={uiText("Teacher Name")}
                       value={planForm.teacherName || (user as any)?.name || ''}
                       onChange={e => setPlanForm({ ...planForm, teacherName: e.target.value })}
                       className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] font-black uppercase text-slate-400 block mb-1">Subject / Course</label>
+                    <label className="text-[10px] font-black uppercase text-slate-400 block mb-1">{uiText("Subject / Course")}</label>
                     <select
                       value={planForm.courseId || ''}
                       onChange={e => {
@@ -1958,54 +1919,54 @@ export const TeacherPortal = () => {
                       }}
                       className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value="">Select Course / Subject</option>
+                      <option value="">{uiText("Select Course / Subject")}</option>
                       {myCourses.map((c: any) => (
-                        <option key={c.id} value={c.id}>{c.name}{c.code ? ` (${c.code})` : ''}</option>
+                        <option key={c.id} value={c.id}>{c.name}{uiText(c.code ? ` (${c.code})` : '')}</option>
                       ))}
                     </select>
                   </div>
                   <div>
-                    <label className="text-[10px] font-black uppercase text-slate-400 block mb-1">Chapter / Unit</label>
+                    <label className="text-[10px] font-black uppercase text-slate-400 block mb-1">{uiText("Chapter / Unit")}</label>
                     <input
                       type="text"
-                      placeholder="e.g. Unit 3: Linear Equations"
+                      placeholder={uiText("e.g. Unit 3: Linear Equations")}
                       value={planForm.chapterUnit || ''}
                       onChange={e => setPlanForm({ ...planForm, chapterUnit: e.target.value })}
                       className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-white"
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] font-black uppercase text-slate-400 block mb-1">Topic / Title</label>
+                    <label className="text-[10px] font-black uppercase text-slate-400 block mb-1">{uiText("Topic / Title")}</label>
                     <input
                       type="text"
-                      placeholder="e.g. Solving 2-step equations"
+                      placeholder={uiText("e.g. Solving 2-step equations")}
                       value={planForm.topicTitle || ''}
                       onChange={e => setPlanForm({ ...planForm, topicTitle: e.target.value })}
                       className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-white"
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] font-black uppercase text-slate-400 block mb-1">Grade & Section</label>
+                    <label className="text-[10px] font-black uppercase text-slate-400 block mb-1">{uiText("Grade & Section")}</label>
                     <input
                       type="text"
-                      placeholder="e.g. Grade 7 Section A"
+                      placeholder={uiText("e.g. Grade 7 Section A")}
                       value={planForm.gradeSection || ''}
                       onChange={e => setPlanForm({ ...planForm, gradeSection: e.target.value })}
                       className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-white"
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] font-black uppercase text-slate-400 block mb-1">Periods / Week</label>
+                    <label className="text-[10px] font-black uppercase text-slate-400 block mb-1">{uiText("Periods / Week")}</label>
                     <input
                       type="text"
-                      placeholder="e.g. 4 Periods"
+                      placeholder={uiText("e.g. 4 Periods")}
                       value={planForm.periodsPerWeek || ''}
                       onChange={e => setPlanForm({ ...planForm, periodsPerWeek: e.target.value })}
                       className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-white"
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] font-black uppercase text-slate-400 block mb-1">Date (From)</label>
+                    <label className="text-[10px] font-black uppercase text-slate-400 block mb-1">{uiText("Date (From)")}</label>
                     <input
                       type="date"
                       value={planForm.dateFrom || planForm.date}
@@ -2014,7 +1975,7 @@ export const TeacherPortal = () => {
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] font-black uppercase text-slate-400 block mb-1">Date (To)</label>
+                    <label className="text-[10px] font-black uppercase text-slate-400 block mb-1">{uiText("Date (To)")}</label>
                     <input
                       type="date"
                       value={planForm.dateTo || planForm.date}
@@ -2023,16 +1984,16 @@ export const TeacherPortal = () => {
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] font-black uppercase text-slate-400 block mb-1">Department Head Reviewer</label>
+                    <label className="text-[10px] font-black uppercase text-slate-400 block mb-1">{uiText("Department Head Reviewer")}</label>
                     <select
                       value={planForm.deptHeadId || ''}
                       onChange={e => setPlanForm({ ...planForm, deptHeadId: e.target.value })}
                       className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-white"
                     >
-                      <option value="">Select Department Head</option>
+                      <option value="">{uiText("Select Department Head")}</option>
                       {displayHods.map((hod: any) => (
                         <option key={hod.teacher_id || hod.id} value={hod.teacher_id || hod.id}>
-                          {hod.name} {hod.department ? `— ${hod.department}` : ''}
+                          {hod.name} {uiText(hod.department ? `— ${hod.department}` : '')}
                         </option>
                       ))}
                     </select>
@@ -2043,7 +2004,7 @@ export const TeacherPortal = () => {
               {/* View Mode & Quick Controls Header */}
               <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 flex-wrap gap-3">
                 <div className="flex items-center gap-2">
-                  <h4 className="text-xs font-black uppercase tracking-widest text-slate-500">📅 Daily Activities Breakdown (Monday – Friday)</h4>
+                  <h4 className="text-xs font-black uppercase tracking-widest text-slate-500">{uiText("📅 Daily Activities Breakdown (Monday – Friday)")}</h4>
                 </div>
                 <div className="flex items-center gap-2">
                   {/* Editor Mode Switcher */}
@@ -2052,16 +2013,12 @@ export const TeacherPortal = () => {
                       type="button"
                       onClick={() => setPlanEditorMode('tabs')}
                       className={`px-3 py-1 rounded-lg text-xs font-black transition-all ${planEditorMode === 'tabs' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-500'}`}
-                    >
-                      Single Day Tabs
-                    </button>
+                    >{uiText("Single Day Tabs")}</button>
                     <button
                       type="button"
                       onClick={() => setPlanEditorMode('full')}
                       className={`px-3 py-1 rounded-lg text-xs font-black transition-all ${planEditorMode === 'full' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-500'}`}
-                    >
-                      📊 Full Matrix Grid View
-                    </button>
+                    >{uiText("📊 Full Matrix Grid View")}</button>
                   </div>
                 </div>
               </div>
@@ -2081,7 +2038,7 @@ export const TeacherPortal = () => {
                             : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
                         }`}
                       >
-                        {d}
+                        {uiText(d)}
                       </button>
                     ))}
                   </div>
@@ -2108,12 +2065,12 @@ export const TeacherPortal = () => {
                     return (
                       <div className="bg-slate-50 dark:bg-slate-800/40 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-5">
                         <div className="flex justify-between items-center bg-blue-50 dark:bg-blue-950/30 p-3 rounded-xl border border-blue-100 dark:border-blue-900/40 flex-wrap gap-2">
-                          <span className="text-xs font-black text-blue-700 dark:text-blue-400 uppercase">Configuring {activePlanDay}'s Lesson Plan</span>
+                          <span className="text-xs font-black text-blue-700 dark:text-blue-400 uppercase">{uiText("Configuring ")}{uiText(activePlanDay)}{uiText("'s Lesson Plan")}</span>
                           <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-bold text-slate-400 uppercase">Time Duration:</span>
+                            <span className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Time Duration:")}</span>
                             <input
                               type="text"
-                              placeholder="e.g. 45 mins"
+                              placeholder={uiText("e.g. 45 mins")}
                               value={act.timeDuration || ''}
                               onChange={e => updateDayAct('timeDuration', e.target.value)}
                               className="px-2 py-1 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg outline-none w-28 font-bold text-slate-800 dark:text-white"
@@ -2123,20 +2080,20 @@ export const TeacherPortal = () => {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
-                            <label className="text-xs font-bold text-slate-500 uppercase block mb-1">Lesson Content (የትምህርት ይዘት)</label>
+                            <label className="text-xs font-bold text-slate-500 uppercase block mb-1">{uiText("Lesson Content (የትምህርት ይዘት)")}</label>
                             <textarea
                               rows={3}
-                              placeholder="Specify main topic & sub-topics to cover on this day…"
+                              placeholder={uiText("Specify main topic & sub-topics to cover on this day…")}
                               value={act.content || ''}
                               onChange={e => updateDayAct('content', e.target.value)}
                               className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none text-slate-800 dark:text-white"
                             />
                           </div>
                           <div>
-                            <label className="text-xs font-bold text-slate-500 uppercase block mb-1">Expected Outcome / Competence (የሚጠበቅ ውጤት / ብቃት)</label>
+                            <label className="text-xs font-bold text-slate-500 uppercase block mb-1">{uiText("Expected Outcome / Competence (የሚጠበቅ ውጤት / ብቃት)")}</label>
                             <textarea
                               rows={3}
-                              placeholder="What specific skills or knowledge should students gain?"
+                              placeholder={uiText("What specific skills or knowledge should students gain?")}
                               value={act.competence || ''}
                               onChange={e => updateDayAct('competence', e.target.value)}
                               className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none text-slate-800 dark:text-white"
@@ -2146,45 +2103,43 @@ export const TeacherPortal = () => {
 
                         {/* 4 Phases of Teacher Activity */}
                         <div className="border border-slate-200 dark:border-slate-700 rounded-xl p-4 bg-white dark:bg-slate-800 space-y-3">
-                          <label className="text-xs font-black uppercase text-blue-600 dark:text-blue-400 tracking-wider block">
-                            Teacher Activity (የመምህሩ ተግባር - 4 Phases)
-                          </label>
+                          <label className="text-xs font-black uppercase text-blue-600 dark:text-blue-400 tracking-wider block">{uiText("Teacher Activity (የመምህሩ ተግባር - 4 Phases)")}</label>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                             <div className="p-3 bg-blue-50/40 dark:bg-blue-950/20 rounded-xl border border-blue-100 dark:border-blue-900/30">
-                              <span className="text-[10px] font-black text-blue-700 dark:text-blue-400 uppercase block mb-1">1. Introduction (መግቢያ)</span>
+                              <span className="text-[10px] font-black text-blue-700 dark:text-blue-400 uppercase block mb-1">{uiText("1. Introduction (መግቢያ)")}</span>
                               <textarea
                                 rows={2}
-                                placeholder="Warm-up, attendance & review previous lesson…"
+                                placeholder={uiText("Warm-up, attendance & review previous lesson…")}
                                 value={act.teacherIntro || ''}
                                 onChange={e => updateDayAct('teacherIntro', e.target.value)}
                                 className="w-full px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs outline-none focus:ring-2 focus:ring-blue-500 resize-none text-slate-800 dark:text-white"
                               />
                             </div>
                             <div className="p-3 bg-indigo-50/40 dark:bg-indigo-950/20 rounded-xl border border-indigo-100 dark:border-indigo-900/30">
-                              <span className="text-[10px] font-black text-indigo-700 dark:text-indigo-400 uppercase block mb-1">2. Lesson Presentation (ትምህርት አቀራረብ)</span>
+                              <span className="text-[10px] font-black text-indigo-700 dark:text-indigo-400 uppercase block mb-1">{uiText("2. Lesson Presentation (ትምህርት አቀራረብ)")}</span>
                               <textarea
                                 rows={2}
-                                placeholder="Core explanation, examples, and demonstration…"
+                                placeholder={uiText("Core explanation, examples, and demonstration…")}
                                 value={act.teacherPresentation || ''}
                                 onChange={e => updateDayAct('teacherPresentation', e.target.value)}
                                 className="w-full px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs outline-none focus:ring-2 focus:ring-blue-500 resize-none text-slate-800 dark:text-white"
                               />
                             </div>
                             <div className="p-3 bg-violet-50/40 dark:bg-violet-950/20 rounded-xl border border-violet-100 dark:border-violet-900/30">
-                              <span className="text-[10px] font-black text-violet-700 dark:text-violet-400 uppercase block mb-1">3. Summary (ማጠቃለያ)</span>
+                              <span className="text-[10px] font-black text-violet-700 dark:text-violet-400 uppercase block mb-1">{uiText("3. Summary (ማጠቃለያ)")}</span>
                               <textarea
                                 rows={2}
-                                placeholder="Wrap-up & key takeaways consolidation…"
+                                placeholder={uiText("Wrap-up & key takeaways consolidation…")}
                                 value={act.teacherSummary || ''}
                                 onChange={e => updateDayAct('teacherSummary', e.target.value)}
                                 className="w-full px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs outline-none focus:ring-2 focus:ring-blue-500 resize-none text-slate-800 dark:text-white"
                               />
                             </div>
                             <div className="p-3 bg-amber-50/40 dark:bg-amber-950/20 rounded-xl border border-amber-100 dark:border-amber-900/30">
-                              <span className="text-[10px] font-black text-amber-700 dark:text-amber-400 uppercase block mb-1">4. Assessment / Evaluation (ምዘና)</span>
+                              <span className="text-[10px] font-black text-amber-700 dark:text-amber-400 uppercase block mb-1">{uiText("4. Assessment / Evaluation (ምዘና)")}</span>
                               <textarea
                                 rows={2}
-                                placeholder="Check understanding, oral questions or quiz…"
+                                placeholder={uiText("Check understanding, oral questions or quiz…")}
                                 value={act.teacherAssessment || ''}
                                 onChange={e => updateDayAct('teacherAssessment', e.target.value)}
                                 className="w-full px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs outline-none focus:ring-2 focus:ring-blue-500 resize-none text-slate-800 dark:text-white"
@@ -2196,10 +2151,10 @@ export const TeacherPortal = () => {
                         {/* Student Activity & Teaching Method */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
-                            <label className="text-xs font-bold text-slate-500 uppercase block mb-1">Student Activity (የተማሪው ተግባር)</label>
+                            <label className="text-xs font-bold text-slate-500 uppercase block mb-1">{uiText("Student Activity (የተማሪው ተግባር)")}</label>
                             <textarea
                               rows={2}
-                              placeholder="e.g. Note-taking, asking questions, group work"
+                              placeholder={uiText("e.g. Note-taking, asking questions, group work")}
                               value={act.studentActivity || ''}
                               onChange={e => updateDayAct('studentActivity', e.target.value)}
                               className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none text-slate-800 dark:text-white"
@@ -2212,17 +2167,16 @@ export const TeacherPortal = () => {
                                   type="button"
                                   onClick={() => updateDayAct('studentActivity', act.studentActivity ? `${act.studentActivity}, ${chip}` : chip)}
                                   className="text-[10px] px-2 py-0.5 bg-slate-200 dark:bg-slate-700 hover:bg-blue-100 hover:text-blue-700 rounded-md font-medium text-slate-600 dark:text-slate-300 transition-all"
-                                >
-                                  + {chip}
+                                >{uiText("+ ")}{uiText(chip)}
                                 </button>
                               ))}
                             </div>
                           </div>
                           <div>
-                            <label className="text-xs font-bold text-slate-500 uppercase block mb-1">Teaching Method (ማስተማሪያ ዘዴ)</label>
+                            <label className="text-xs font-bold text-slate-500 uppercase block mb-1">{uiText("Teaching Method (ማስተማሪያ ዘዴ)")}</label>
                             <textarea
                               rows={2}
-                              placeholder="e.g. Demonstration, Question & Answer, Lecture"
+                              placeholder={uiText("e.g. Demonstration, Question & Answer, Lecture")}
                               value={act.teachingMethod || ''}
                               onChange={e => updateDayAct('teachingMethod', e.target.value)}
                               className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none text-slate-800 dark:text-white"
@@ -2235,8 +2189,7 @@ export const TeacherPortal = () => {
                                   type="button"
                                   onClick={() => updateDayAct('teachingMethod', act.teachingMethod ? `${act.teachingMethod}, ${chip}` : chip)}
                                   className="text-[10px] px-2 py-0.5 bg-slate-200 dark:bg-slate-700 hover:bg-blue-100 hover:text-blue-700 rounded-md font-medium text-slate-600 dark:text-slate-300 transition-all"
-                                >
-                                  + {chip}
+                                >{uiText("+ ")}{uiText(chip)}
                                 </button>
                               ))}
                             </div>
@@ -2246,10 +2199,10 @@ export const TeacherPortal = () => {
                         {/* Teaching Aid & Evaluation */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
-                            <label className="text-xs font-bold text-slate-500 uppercase block mb-1">Teaching Aid / Materials (መርጃ መሣሪያ)</label>
+                            <label className="text-xs font-bold text-slate-500 uppercase block mb-1">{uiText("Teaching Aid / Materials (መርጃ መሣሪያ)")}</label>
                             <textarea
                               rows={2}
-                              placeholder="e.g. Textbook, Chalk/Whiteboard, Charts, Models"
+                              placeholder={uiText("e.g. Textbook, Chalk/Whiteboard, Charts, Models")}
                               value={act.teachingAid || ''}
                               onChange={e => updateDayAct('teachingAid', e.target.value)}
                               className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none text-slate-800 dark:text-white"
@@ -2262,17 +2215,16 @@ export const TeacherPortal = () => {
                                   type="button"
                                   onClick={() => updateDayAct('teachingAid', act.teachingAid ? `${act.teachingAid}, ${chip}` : chip)}
                                   className="text-[10px] px-2 py-0.5 bg-slate-200 dark:bg-slate-700 hover:bg-blue-100 hover:text-blue-700 rounded-md font-medium text-slate-600 dark:text-slate-300 transition-all"
-                                >
-                                  + {chip}
+                                >{uiText("+ ")}{uiText(chip)}
                                 </button>
                               ))}
                             </div>
                           </div>
                           <div>
-                            <label className="text-xs font-bold text-slate-500 uppercase block mb-1">Evaluation / Remark (ምዘና)</label>
+                            <label className="text-xs font-bold text-slate-500 uppercase block mb-1">{uiText("Evaluation / Remark (ምዘና)")}</label>
                             <textarea
                               rows={2}
-                              placeholder="Daily observations or remarks…"
+                              placeholder={uiText("Daily observations or remarks…")}
                               value={act.evaluationRemark || ''}
                               onChange={e => updateDayAct('evaluationRemark', e.target.value)}
                               className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none text-slate-800 dark:text-white"
@@ -2289,14 +2241,14 @@ export const TeacherPortal = () => {
                   <table className="w-full text-left min-w-[1200px] text-xs border-collapse">
                     <thead>
                       <tr className="bg-slate-800 text-white border-b border-slate-700 text-[11px] font-black uppercase">
-                        <th className="px-3 py-3 w-20 border-r border-slate-700 text-center">Day (ቀን)</th>
-                        <th className="px-3 py-3 w-56 border-r border-slate-700">Content & Outcome (ይዘት እና ብቃት)</th>
-                        <th className="px-2 py-3 w-20 border-r border-slate-700 text-center">Time (ጊዜ)</th>
-                        <th className="px-3 py-3 w-64 border-r border-slate-700">Teacher Activity (የመምህሩ ተግባር)</th>
-                        <th className="px-3 py-3 border-r border-slate-700">Student Activity (የተማሪው)</th>
-                        <th className="px-3 py-3 border-r border-slate-700">Method (ዘዴ)</th>
-                        <th className="px-3 py-3 border-r border-slate-700">Aid (መርጃ)</th>
-                        <th className="px-3 py-3">Remark (ምዘና)</th>
+                        <th className="px-3 py-3 w-20 border-r border-slate-700 text-center">{uiText("Day (ቀን)")}</th>
+                        <th className="px-3 py-3 w-56 border-r border-slate-700">{uiText("Content & Outcome (ይዘት እና ብቃት)")}</th>
+                        <th className="px-2 py-3 w-20 border-r border-slate-700 text-center">{uiText("Time (ጊዜ)")}</th>
+                        <th className="px-3 py-3 w-64 border-r border-slate-700">{uiText("Teacher Activity (የመምህሩ ተግባር)")}</th>
+                        <th className="px-3 py-3 border-r border-slate-700">{uiText("Student Activity (የተማሪው)")}</th>
+                        <th className="px-3 py-3 border-r border-slate-700">{uiText("Method (ዘዴ)")}</th>
+                        <th className="px-3 py-3 border-r border-slate-700">{uiText("Aid (መርጃ)")}</th>
+                        <th className="px-3 py-3">{uiText("Remark (ምዘና)")}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-300 dark:divide-slate-700">
@@ -2321,19 +2273,19 @@ export const TeacherPortal = () => {
                         return (
                           <tr key={dayName} className={dayIdx % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-slate-50/70 dark:bg-slate-800/40'}>
                             <td className="px-3 py-3 font-black text-center text-blue-700 dark:text-blue-400 border-r border-slate-200 dark:border-slate-800 align-top">
-                              {dayName}
+                              {uiText(dayName)}
                             </td>
                             <td className="px-2 py-2 border-r border-slate-200 dark:border-slate-800 align-top space-y-2">
                               <textarea
                                 rows={2}
-                                placeholder="Lesson Content…"
+                                placeholder={uiText("Lesson Content…")}
                                 value={act.content || ''}
                                 onChange={e => updateDayAct('content', e.target.value)}
                                 className="w-full p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs outline-none focus:ring-1 focus:ring-blue-500 resize-none text-slate-800 dark:text-white font-medium"
                               />
                               <textarea
                                 rows={2}
-                                placeholder="Expected Outcome…"
+                                placeholder={uiText("Expected Outcome…")}
                                 value={act.competence || ''}
                                 onChange={e => updateDayAct('competence', e.target.value)}
                                 className="w-full p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs outline-none focus:ring-1 focus:ring-blue-500 resize-none text-slate-600 dark:text-slate-300"
@@ -2350,28 +2302,28 @@ export const TeacherPortal = () => {
                             <td className="px-2 py-2 border-r border-slate-200 dark:border-slate-800 align-top space-y-1.5">
                               <input
                                 type="text"
-                                placeholder="1. Intro"
+                                placeholder={uiText("1. Intro")}
                                 value={act.teacherIntro || ''}
                                 onChange={e => updateDayAct('teacherIntro', e.target.value)}
                                 className="w-full p-1.5 bg-blue-50/50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md text-xs text-slate-800 dark:text-white"
                               />
                               <input
                                 type="text"
-                                placeholder="2. Presentation"
+                                placeholder={uiText("2. Presentation")}
                                 value={act.teacherPresentation || ''}
                                 onChange={e => updateDayAct('teacherPresentation', e.target.value)}
                                 className="w-full p-1.5 bg-indigo-50/50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md text-xs text-slate-800 dark:text-white"
                               />
                               <input
                                 type="text"
-                                placeholder="3. Summary"
+                                placeholder={uiText("3. Summary")}
                                 value={act.teacherSummary || ''}
                                 onChange={e => updateDayAct('teacherSummary', e.target.value)}
                                 className="w-full p-1.5 bg-violet-50/50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md text-xs text-slate-800 dark:text-white"
                               />
                               <input
                                 type="text"
-                                placeholder="4. Assessment"
+                                placeholder={uiText("4. Assessment")}
                                 value={act.teacherAssessment || ''}
                                 onChange={e => updateDayAct('teacherAssessment', e.target.value)}
                                 className="w-full p-1.5 bg-amber-50/50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md text-xs text-slate-800 dark:text-white"
@@ -2380,7 +2332,7 @@ export const TeacherPortal = () => {
                             <td className="px-2 py-2 border-r border-slate-200 dark:border-slate-800 align-top">
                               <textarea
                                 rows={4}
-                                placeholder="Student Activity…"
+                                placeholder={uiText("Student Activity…")}
                                 value={act.studentActivity || ''}
                                 onChange={e => updateDayAct('studentActivity', e.target.value)}
                                 className="w-full p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs outline-none focus:ring-1 focus:ring-blue-500 resize-none text-slate-800 dark:text-white"
@@ -2389,7 +2341,7 @@ export const TeacherPortal = () => {
                             <td className="px-2 py-2 border-r border-slate-200 dark:border-slate-800 align-top">
                               <textarea
                                 rows={4}
-                                placeholder="Method…"
+                                placeholder={uiText("Method…")}
                                 value={act.teachingMethod || ''}
                                 onChange={e => updateDayAct('teachingMethod', e.target.value)}
                                 className="w-full p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs outline-none focus:ring-1 focus:ring-blue-500 resize-none text-slate-800 dark:text-white"
@@ -2398,7 +2350,7 @@ export const TeacherPortal = () => {
                             <td className="px-2 py-2 border-r border-slate-200 dark:border-slate-800 align-top">
                               <textarea
                                 rows={4}
-                                placeholder="Aid…"
+                                placeholder={uiText("Aid…")}
                                 value={act.teachingAid || ''}
                                 onChange={e => updateDayAct('teachingAid', e.target.value)}
                                 className="w-full p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs outline-none focus:ring-1 focus:ring-blue-500 resize-none text-slate-800 dark:text-white"
@@ -2407,7 +2359,7 @@ export const TeacherPortal = () => {
                             <td className="px-2 py-2 align-top">
                               <textarea
                                 rows={4}
-                                placeholder="Remark…"
+                                placeholder={uiText("Remark…")}
                                 value={act.evaluationRemark || ''}
                                 onChange={e => updateDayAct('evaluationRemark', e.target.value)}
                                 className="w-full p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs outline-none focus:ring-1 focus:ring-blue-500 resize-none text-slate-800 dark:text-white"
@@ -2429,9 +2381,7 @@ export const TeacherPortal = () => {
                 onClick={() => { setIsPlanModalOpen(false); setEditingPlan(null); }}
                 className="px-6 py-2.5 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold text-xs uppercase rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-all"
                 disabled={submitting}
-              >
-                Cancel
-              </button>
+              >{uiText("Cancel")}</button>
               <button
                 type="button"
                 onClick={() => handleSavePlan('Draft')}
@@ -2439,7 +2389,7 @@ export const TeacherPortal = () => {
                 className="px-6 py-2.5 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 text-slate-800 dark:text-white font-bold text-xs uppercase rounded-xl transition-all flex items-center gap-2"
               >
                 {submitting ? <Loader2 className="animate-spin" size={14} /> : <Save size={14} />}
-                {editingPlan ? 'Update Draft' : 'Save Draft'}
+                {uiText(editingPlan ? 'Update Draft' : 'Save Draft')}
               </button>
               <button
                 type="button"
@@ -2448,7 +2398,7 @@ export const TeacherPortal = () => {
                 className="px-8 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs uppercase rounded-xl transition-all shadow-lg shadow-blue-500/20 flex items-center gap-2"
               >
                 {submitting ? <Loader2 className="animate-spin" size={14} /> : <Send size={14} />}
-                {editingPlan ? 'Submit for Review' : 'Submit Plan'}
+                {uiText(editingPlan ? 'Submit for Review' : 'Submit Plan')}
               </button>
             </div>
 
@@ -2461,10 +2411,10 @@ export const TeacherPortal = () => {
         <div className="fixed inset-0 bg-black/50 z-40 flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-2xl my-8 border border-slate-100 dark:border-slate-800">
             <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-indigo-600 p-6 rounded-t-2xl flex justify-between items-center z-10">
-              <h3 className="text-xl font-black text-white uppercase tracking-wide">{editingExam ? '✏️ Edit Exam' : '📝 Create New Exam'}</h3>
+              <h3 className="text-xl font-black text-white uppercase tracking-wide">{uiText(editingExam ? '✏️ Edit Exam' : '📝 Create New Exam')}</h3>
               <button
                 type="button"
-                title="Close exam modal"
+                title={uiText("Close exam modal")}
                 onClick={() => { setIsExamModalOpen(false); setEditingExam(null); }}
                 className="text-white hover:bg-white/20 p-1 rounded"
               >
@@ -2475,8 +2425,8 @@ export const TeacherPortal = () => {
             <div className="p-6 space-y-4 max-h-[calc(100vh-300px)] overflow-y-auto">
               {/* Exam Title */}
               <div>
-                <label htmlFor="examTitle" className="text-xs font-bold text-slate-500 uppercase">Exam Title</label>
-                <input id="examTitle" type="text" placeholder="e.g., Mid Exam - Mathematics"
+                <label htmlFor="examTitle" className="text-xs font-bold text-slate-500 uppercase">{uiText("Exam Title")}</label>
+                <input id="examTitle" type="text" placeholder={uiText("e.g., Mid Exam - Mathematics")}
                   value={examForm.title} onChange={e => setExamForm({ ...examForm, title: e.target.value })}
                   className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
@@ -2484,13 +2434,13 @@ export const TeacherPortal = () => {
               {/* Grade & Subject Selection */}
               <div className="grid grid-cols-2 gap-4 p-4 bg-blue-50 dark:bg-slate-800 rounded-lg border border-blue-200 dark:border-slate-700">
                 <div>
-                  <label htmlFor="examGrade" className="text-xs font-bold text-slate-500 uppercase">Grade Level</label>
+                  <label htmlFor="examGrade" className="text-xs font-bold text-slate-500 uppercase">{uiText("Grade Level")}</label>
                   {loadingGrades ? (
-                    <div className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-sm text-slate-400">Loading...</div>
+                    <div className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-sm text-slate-400">{uiText("Loading...")}</div>
                   ) : (
                     <select id="examGrade" value={examForm.gradeId} onChange={e => handleGradeChange(e.target.value)}
                       className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500">
-                      <option value="">Select Grade</option>
+                      <option value="">{uiText("Select Grade")}</option>
                       {gradesForExam.map(grade => (
                         <option key={grade.id} value={grade.id}>{grade.name}</option>
                       ))}
@@ -2498,9 +2448,9 @@ export const TeacherPortal = () => {
                   )}
                 </div>
                 <div>
-                  <label htmlFor="examSubject" className="text-xs font-bold text-slate-500 uppercase">Subject/Course</label>
+                  <label htmlFor="examSubject" className="text-xs font-bold text-slate-500 uppercase">{uiText("Subject/Course")}</label>
                   {examForm.gradeId && loadingCourses ? (
-                    <div className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-sm text-slate-400">Loading...</div>
+                    <div className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-sm text-slate-400">{uiText("Loading...")}</div>
                   ) : examForm.gradeId && coursesForGrade.length > 0 ? (
                     <div className="mt-1 p-3 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg space-y-2">
                       {coursesForGrade.map(course => (
@@ -2509,14 +2459,14 @@ export const TeacherPortal = () => {
                             checked={examForm.subjectId === course.id}
                             onChange={e => setExamForm({ ...examForm, subjectId: e.target.value })}
                             className="w-4 h-4 text-blue-600 rounded-full" />
-                          <span className="text-slate-700 dark:text-slate-300">{course.name} ({course.code})</span>
+                          <span className="text-slate-700 dark:text-slate-300">{course.name}{uiText(" (")}{uiText(course.code)}{uiText(")")}</span>
                         </label>
                       ))}
                     </div>
                   ) : examForm.gradeId ? (
-                    <div className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-sm text-slate-400">No courses available for this grade</div>
+                    <div className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-sm text-slate-400">{uiText("No courses available for this grade")}</div>
                   ) : (
-                    <div className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-sm text-slate-400">Select a grade first</div>
+                    <div className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-sm text-slate-400">{uiText("Select a grade first")}</div>
                   )}
                 </div>
               </div>
@@ -2524,23 +2474,23 @@ export const TeacherPortal = () => {
               {/* Exam Type & Total Marks & Duration */}
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <label htmlFor="examType" className="text-xs font-bold text-slate-500 uppercase">Type</label>
+                  <label htmlFor="examType" className="text-xs font-bold text-slate-500 uppercase">{uiText("Type")}</label>
                   <select id="examType" value={examForm.examType} onChange={e => setExamForm({ ...examForm, examType: e.target.value })}
                     className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500">
-                    <option>Mid Exam</option>
-                    <option>Final Exam</option>
-                    <option>Quiz</option>
-                    <option>Other</option>
+                    <option value="Mid Exam">{uiText("Mid Exam")}</option>
+                    <option value="Final Exam">{uiText("Final Exam")}</option>
+                    <option value="Quiz">{uiText("Quiz")}</option>
+                    <option value="Other">{uiText("Other")}</option>
                   </select>
                 </div>
                 <div>
-                  <label htmlFor="totalMarks" className="text-xs font-bold text-slate-500 uppercase">Total Marks</label>
+                  <label htmlFor="totalMarks" className="text-xs font-bold text-slate-500 uppercase">{uiText("Total Marks")}</label>
                   <input id="totalMarks" type="number" min="10" max="1000"
                     value={examForm.totalMarks} onChange={e => setExamForm({ ...examForm, totalMarks: parseInt(e.target.value) })}
                     className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500" />
                 </div>
                 <div>
-                  <label htmlFor="duration" className="text-xs font-bold text-slate-500 uppercase">Duration (min)</label>
+                  <label htmlFor="duration" className="text-xs font-bold text-slate-500 uppercase">{uiText("Duration (min)")}</label>
                   <input id="duration" type="number" min="15" max="600"
                     value={examForm.duration} onChange={e => setExamForm({ ...examForm, duration: parseInt(e.target.value) })}
                     className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500" />
@@ -2550,21 +2500,21 @@ export const TeacherPortal = () => {
               {/* Class & Section */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="examClass" className="text-xs font-bold text-slate-500 uppercase">Class</label>
+                  <label htmlFor="examClass" className="text-xs font-bold text-slate-500 uppercase">{uiText("Class")}</label>
                   <select id="examClass" value={examForm.selectedClass} onChange={e => {
                     const selected = myClasses.find((c: any) => c.id === e.target.value);
                     setExamForm({ ...examForm, selectedClass: e.target.value, selectedSection: '' });
                   }}
                     className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="">Select Class</option>
+                    <option value="">{uiText("Select Class")}</option>
                     {myClasses.map((c: any) => (
-                      <option key={c.id} value={c.id}>{c.name || c.class_name}</option>
+                      <option key={c.id} value={c.id}>{uiText(c.name || c.class_name)}</option>
                     ))}
                   </select>
                 </div>
                 <div>
-                  <label htmlFor="examSection" className="text-xs font-bold text-slate-500 uppercase">Section</label>
-                  <input id="examSection" type="text" placeholder="e.g., A, B, C"
+                  <label htmlFor="examSection" className="text-xs font-bold text-slate-500 uppercase">{uiText("Section")}</label>
+                  <input id="examSection" type="text" placeholder={uiText("e.g., A, B, C")}
                     value={examForm.selectedSection} onChange={e => setExamForm({ ...examForm, selectedSection: e.target.value })}
                     className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500" />
                 </div>
@@ -2572,8 +2522,8 @@ export const TeacherPortal = () => {
 
               {/* Instructions */}
               <div>
-                <label htmlFor="examInstructions" className="text-xs font-bold text-slate-500 uppercase">Instructions for Students</label>
-                <textarea id="examInstructions" rows={3} placeholder="e.g., Answer all questions. No calculators allowed. Duration: 1 hour"
+                <label htmlFor="examInstructions" className="text-xs font-bold text-slate-500 uppercase">{uiText("Instructions for Students")}</label>
+                <textarea id="examInstructions" rows={3} placeholder={uiText("e.g., Answer all questions. No calculators allowed. Duration: 1 hour")}
                   value={examForm.instructions} onChange={e => setExamForm({ ...examForm, instructions: e.target.value })}
                   className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
               </div>
@@ -2584,41 +2534,37 @@ export const TeacherPortal = () => {
                   <input id="isLocked" type="checkbox" checked={examForm.isLocked}
                     onChange={e => setExamForm({ ...examForm, isLocked: e.target.checked, passwordRequired: e.target.checked })}
                     className="w-4 h-4 text-amber-600 rounded" />
-                  <label htmlFor="isLocked" className="text-xs font-bold text-slate-500 uppercase cursor-pointer flex-1">
-                    🔒 Lock This Exam (Requires Password)
-                  </label>
+                  <label htmlFor="isLocked" className="text-xs font-bold text-slate-500 uppercase cursor-pointer flex-1">{uiText("🔒 Lock This Exam (Requires Password)")}</label>
                 </div>
                 {examForm.isLocked && (
                   <>
                     <div>
-                      <label htmlFor="examPassword" className="text-xs font-bold text-slate-500 uppercase">Exam Password</label>
-                      <input id="examPassword" type="password" placeholder="Enter exam password (students will need this)"
+                      <label htmlFor="examPassword" className="text-xs font-bold text-slate-500 uppercase">{uiText("Exam Password")}</label>
+                      <input id="examPassword" type="password" placeholder={uiText("Enter exam password (students will need this)")}
                         value={examForm.examPassword} onChange={e => setExamForm({ ...examForm, examPassword: e.target.value })}
                         className="w-full mt-1 px-4 py-2 bg-white dark:bg-slate-700 border border-amber-200 dark:border-slate-600 rounded-lg text-sm outline-none focus:ring-2 focus:ring-amber-500" />
                     </div>
-                    <p className="text-xs text-slate-600 dark:text-slate-400 italic">ℹ️ Students must enter this password to access the exam. If they leave and return, they'll need to enter it again.</p>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 italic">{uiText("ℹ️ Students must enter this password to access the exam. If they leave and return, they'll need to enter it again.")}</p>
                   </>
                 )}
               </div>
 
               {/* Questions Builder - Simple version */}
               <div>
-                <label className="text-xs font-bold text-slate-500 uppercase">Questions Preview</label>
+                <label className="text-xs font-bold text-slate-500 uppercase">{uiText("Questions Preview")}</label>
                 <p className="text-xs text-slate-500 mt-2 p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
-                  {examForm.questions.length === 0 ? 'No questions added yet. This feature will be available in the full version.' : `${examForm.questions.length} questions configured`}
+                  {uiText(examForm.questions.length === 0 ? 'No questions added yet. This feature will be available in the full version.' : `${examForm.questions.length} questions configured`)}
                 </p>
               </div>
             </div>
 
             <div className="sticky bottom-0 bg-slate-50 dark:bg-slate-800 p-6 rounded-b-2xl flex gap-3 border-t border-slate-100 dark:border-slate-700">
               <button onClick={() => { setIsExamModalOpen(false); setEditingExam(null); }}
-                className="flex-1 px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg font-bold text-sm text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
-                Cancel
-              </button>
+                className="flex-1 px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg font-bold text-sm text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">{uiText("Cancel")}</button>
               <button onClick={handleSaveExamChanges} disabled={submitting}
                 className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg font-bold text-sm hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
                 {submitting ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-                {editingExam ? 'Update Exam' : 'Save Exam'}
+                {uiText(editingExam ? 'Update Exam' : 'Save Exam')}
               </button>
             </div>
           </div>
@@ -2626,26 +2572,22 @@ export const TeacherPortal = () => {
       )}
 
       {/* Plan Details & Evaluation Modal (Ziquala Abo Matrix Format) */}
-      {selectedPlanForView && (
+      {uiText(selectedPlanForView && (
         <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-start justify-center p-4 overflow-y-auto print:p-0 print:bg-white">
           <div className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl border border-slate-100 dark:border-slate-800 w-full max-w-6xl my-4 print:my-0 print:shadow-none print:border-none print:w-full">
             
             {/* Header Banner */}
             <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-900 text-white rounded-t-[2rem] print:hidden">
               <div>
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400 block">Official Weekly Lesson Plan Document</span>
-                <h3 className="font-black text-white text-lg tracking-tight uppercase">
-                  Ziquala Abo 1st Primary School Weekly Lesson Plan Form
-                </h3>
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400 block">{uiText("Official Weekly Lesson Plan Document")}</span>
+                <h3 className="font-black text-white text-lg tracking-tight uppercase">{uiText("Ziquala Abo 1st Primary School Weekly Lesson Plan Form")}</h3>
               </div>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => window.print()}
                   className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 shadow-md"
-                >
-                  🖨️ Print / Save PDF
-                </button>
+                >{uiText("🖨️ Print / Save PDF")}</button>
                 <button
                   type="button"
                   onClick={() => setSelectedPlanForView(null)}
@@ -2660,64 +2602,62 @@ export const TeacherPortal = () => {
               
               {/* Document Header Table Block */}
               <div className="border border-slate-300 dark:border-slate-700 rounded-2xl overflow-hidden text-xs">
-                <div className="bg-slate-100 dark:bg-slate-800 p-3 font-black text-slate-800 dark:text-white uppercase tracking-wider text-center border-b border-slate-300 dark:border-slate-700">
-                  ZIQUALA ABO 1ST PRIMARY SCHOOL WEEKLY LESSON PLAN FORM
-                </div>
+                <div className="bg-slate-100 dark:bg-slate-800 p-3 font-black text-slate-800 dark:text-white uppercase tracking-wider text-center border-b border-slate-300 dark:border-slate-700">{uiText("ZIQUALA ABO 1ST PRIMARY SCHOOL WEEKLY LESSON PLAN FORM")}</div>
                 <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-y divide-slate-200 dark:divide-slate-700 bg-slate-50/50 dark:bg-slate-900/50">
                   <div className="p-3">
-                    <span className="text-[9px] font-black uppercase text-slate-400 block">Teacher Name</span>
-                    <span className="font-bold text-slate-800 dark:text-slate-100">{selectedPlanForView.teacher_name || selectedPlanForView.teacherName || 'Assigned Teacher'}</span>
+                    <span className="text-[9px] font-black uppercase text-slate-400 block">{uiText("Teacher Name")}</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-100">{uiText(selectedPlanForView.teacher_name || selectedPlanForView.teacherName || 'Assigned Teacher')}</span>
                   </div>
                   <div className="p-3">
-                    <span className="text-[9px] font-black uppercase text-slate-400 block">Subject / Lesson Type</span>
-                    <span className="font-bold text-blue-600 dark:text-blue-400">{selectedPlanForView.subject || '—'}</span>
+                    <span className="text-[9px] font-black uppercase text-slate-400 block">{uiText("Subject / Lesson Type")}</span>
+                    <span className="font-bold text-blue-600 dark:text-blue-400">{uiText(selectedPlanForView.subject || '—')}</span>
                   </div>
                   <div className="p-3">
-                    <span className="text-[9px] font-black uppercase text-slate-400 block">Chapter / Unit</span>
-                    <span className="font-bold text-slate-800 dark:text-slate-100">{selectedPlanForView.chapter_unit || selectedPlanForView.chapterUnit || '—'}</span>
+                    <span className="text-[9px] font-black uppercase text-slate-400 block">{uiText("Chapter / Unit")}</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-100">{uiText(selectedPlanForView.chapter_unit || selectedPlanForView.chapterUnit || '—')}</span>
                   </div>
                   <div className="p-3">
-                    <span className="text-[9px] font-black uppercase text-slate-400 block">Topic / Title</span>
-                    <span className="font-bold text-slate-800 dark:text-slate-100">{selectedPlanForView.topic_title || selectedPlanForView.topicTitle || '—'}</span>
+                    <span className="text-[9px] font-black uppercase text-slate-400 block">{uiText("Topic / Title")}</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-100">{uiText(selectedPlanForView.topic_title || selectedPlanForView.topicTitle || '—')}</span>
                   </div>
                   <div className="p-3">
-                    <span className="text-[9px] font-black uppercase text-slate-400 block">Grade & Section</span>
-                    <span className="font-bold text-slate-800 dark:text-slate-100">{selectedPlanForView.grade_section || selectedPlanForView.gradeSection || '—'}</span>
+                    <span className="text-[9px] font-black uppercase text-slate-400 block">{uiText("Grade & Section")}</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-100">{uiText(selectedPlanForView.grade_section || selectedPlanForView.gradeSection || '—')}</span>
                   </div>
                   <div className="p-3">
-                    <span className="text-[9px] font-black uppercase text-slate-400 block">Date Range</span>
-                    <span className="font-bold text-slate-800 dark:text-slate-100">{selectedPlanForView.date_from || selectedPlanForView.date || '—'} to {selectedPlanForView.date_to || selectedPlanForView.date || '—'}</span>
+                    <span className="text-[9px] font-black uppercase text-slate-400 block">{uiText("Date Range")}</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-100">{uiText(selectedPlanForView.date_from || selectedPlanForView.date || '—')}{uiText(" to ")}{uiText(selectedPlanForView.date_to || selectedPlanForView.date || '—')}</span>
                   </div>
                   <div className="p-3">
-                    <span className="text-[9px] font-black uppercase text-slate-400 block">Periods / Week</span>
-                    <span className="font-bold text-slate-800 dark:text-slate-100">{selectedPlanForView.periods_per_week || selectedPlanForView.periodsPerWeek || '—'}</span>
+                    <span className="text-[9px] font-black uppercase text-slate-400 block">{uiText("Periods / Week")}</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-100">{uiText(selectedPlanForView.periods_per_week || selectedPlanForView.periodsPerWeek || '—')}</span>
                   </div>
                   <div className="p-3">
-                    <span className="text-[9px] font-black uppercase text-slate-400 block">Status</span>
+                    <span className="text-[9px] font-black uppercase text-slate-400 block">{uiText("Status")}</span>
                     <span className={`inline-block px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase ${
                       selectedPlanForView.status === 'Approved' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
                       selectedPlanForView.status === 'Revision Required' ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' :
                       'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
-                    }`}>{selectedPlanForView.status}</span>
+                    }`}>{uiText(selectedPlanForView.status)}</span>
                   </div>
                 </div>
               </div>
 
               {/* 5-Day Matrix Table matching paper layout with 4 sub-rows for Teacher Activity */}
               <div className="space-y-3">
-                <h4 className="text-xs font-black uppercase tracking-widest text-slate-500 print:hidden">📅 Daily Lesson Plan Matrix Table</h4>
+                <h4 className="text-xs font-black uppercase tracking-widest text-slate-500 print:hidden">{uiText("📅 Daily Lesson Plan Matrix Table")}</h4>
                 <div className="overflow-x-auto rounded-2xl border border-slate-300 dark:border-slate-700">
                   <table className="w-full text-left min-w-[1100px] text-xs border-collapse">
                     <thead>
                       <tr className="bg-slate-800 text-white border-b border-slate-700">
-                        <th className="px-3 py-2.5 font-black uppercase w-20 border-r border-slate-700 text-center">Day (ቀን)</th>
-                        <th className="px-3 py-2.5 font-black uppercase w-56 border-r border-slate-700">Content & Outcome (ይዘት እና ብቃት)</th>
-                        <th className="px-2 py-2.5 font-black uppercase w-20 border-r border-slate-700 text-center">Time (ጊዜ)</th>
-                        <th className="px-3 py-2.5 font-black uppercase w-60 border-r border-slate-700">Teacher Activity (የመምህሩ ተግባር)</th>
-                        <th className="px-3 py-2.5 font-black uppercase border-r border-slate-700">Student Activity (የተማሪው)</th>
-                        <th className="px-3 py-2.5 font-black uppercase border-r border-slate-700">Method (ማስተማሪያ ዘዴ)</th>
-                        <th className="px-3 py-2.5 font-black uppercase border-r border-slate-700">Aid (መርጃ መሣሪያ)</th>
-                        <th className="px-3 py-2.5 font-black uppercase">Remark (ምዘና)</th>
+                        <th className="px-3 py-2.5 font-black uppercase w-20 border-r border-slate-700 text-center">{uiText("Day (ቀን)")}</th>
+                        <th className="px-3 py-2.5 font-black uppercase w-56 border-r border-slate-700">{uiText("Content & Outcome (ይዘት እና ብቃት)")}</th>
+                        <th className="px-2 py-2.5 font-black uppercase w-20 border-r border-slate-700 text-center">{uiText("Time (ጊዜ)")}</th>
+                        <th className="px-3 py-2.5 font-black uppercase w-60 border-r border-slate-700">{uiText("Teacher Activity (የመምህሩ ተግባር)")}</th>
+                        <th className="px-3 py-2.5 font-black uppercase border-r border-slate-700">{uiText("Student Activity (የተማሪው)")}</th>
+                        <th className="px-3 py-2.5 font-black uppercase border-r border-slate-700">{uiText("Method (ማስተማሪያ ዘዴ)")}</th>
+                        <th className="px-3 py-2.5 font-black uppercase border-r border-slate-700">{uiText("Aid (መርጃ መሣሪያ)")}</th>
+                        <th className="px-3 py-2.5 font-black uppercase">{uiText("Remark (ምዘና)")}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-300 dark:divide-slate-700">
@@ -2742,60 +2682,60 @@ export const TeacherPortal = () => {
                           {/* Sub-row 1: Introduction */}
                           <tr className="bg-white dark:bg-slate-900 border-t-2 border-slate-300 dark:border-slate-700">
                             <td rowSpan={4} className="px-3 py-3 font-black text-center text-blue-800 dark:text-blue-400 border-r border-slate-300 dark:border-slate-700 align-middle bg-slate-50/80 dark:bg-slate-800/40">
-                              <span className="text-sm">{act.day}</span>
+                              <span className="text-sm">{uiText(act.day)}</span>
                             </td>
                             <td rowSpan={4} className="px-3 py-3 border-r border-slate-300 dark:border-slate-700 align-top space-y-2 max-w-[200px]">
                               <div>
-                                <span className="text-[9px] font-black uppercase text-slate-400 block border-b border-slate-200 dark:border-slate-800 pb-0.5 mb-1">Content (ይዘት)</span>
-                                <p className="font-semibold text-slate-900 dark:text-slate-100 whitespace-pre-wrap">{act.content || '—'}</p>
+                                <span className="text-[9px] font-black uppercase text-slate-400 block border-b border-slate-200 dark:border-slate-800 pb-0.5 mb-1">{uiText("Content (ይዘት)")}</span>
+                                <p className="font-semibold text-slate-900 dark:text-slate-100 whitespace-pre-wrap">{uiText(act.content || '—')}</p>
                               </div>
                               <div className="pt-2 border-t border-slate-200 dark:border-slate-800">
-                                <span className="text-[9px] font-black uppercase text-slate-400 block border-b border-slate-200 dark:border-slate-800 pb-0.5 mb-1">Expected Outcome / Competence (ብቃት)</span>
-                                <p className="font-medium text-slate-600 dark:text-slate-400 whitespace-pre-wrap">{act.competence || '—'}</p>
+                                <span className="text-[9px] font-black uppercase text-slate-400 block border-b border-slate-200 dark:border-slate-800 pb-0.5 mb-1">{uiText("Expected Outcome / Competence (ብቃት)")}</span>
+                                <p className="font-medium text-slate-600 dark:text-slate-400 whitespace-pre-wrap">{uiText(act.competence || '—')}</p>
                               </div>
                             </td>
                             <td rowSpan={4} className="px-2 py-3 font-bold text-center text-slate-600 dark:text-slate-400 border-r border-slate-300 dark:border-slate-700 align-middle whitespace-nowrap">
-                              {act.timeDuration || '45 mins'}
+                              {uiText(act.timeDuration || '45 mins')}
                             </td>
                             <td className="px-3 py-2 border-r border-b border-slate-200 dark:border-slate-800 bg-blue-50/30 dark:bg-blue-950/20">
-                              <span className="text-[9px] font-black uppercase text-blue-700 dark:text-blue-400 block">1. Intro (መግቢያ)</span>
-                              <p className="text-slate-800 dark:text-slate-200 font-medium mt-0.5">{act.teacherIntro || '—'}</p>
+                              <span className="text-[9px] font-black uppercase text-blue-700 dark:text-blue-400 block">{uiText("1. Intro (መግቢያ)")}</span>
+                              <p className="text-slate-800 dark:text-slate-200 font-medium mt-0.5">{uiText(act.teacherIntro || '—')}</p>
                             </td>
                             <td rowSpan={4} className="px-3 py-3 border-r border-slate-300 dark:border-slate-700 align-top text-slate-800 dark:text-slate-200 whitespace-pre-wrap max-w-[160px]">
-                              {act.studentActivity || '—'}
+                              {uiText(act.studentActivity || '—')}
                             </td>
                             <td rowSpan={4} className="px-3 py-3 border-r border-slate-300 dark:border-slate-700 align-top text-slate-800 dark:text-slate-200 whitespace-pre-wrap max-w-[140px]">
-                              {act.teachingMethod || '—'}
+                              {uiText(act.teachingMethod || '—')}
                             </td>
                             <td rowSpan={4} className="px-3 py-3 border-r border-slate-300 dark:border-slate-700 align-top text-slate-800 dark:text-slate-200 whitespace-pre-wrap max-w-[140px]">
-                              {act.teachingAid || '—'}
+                              {uiText(act.teachingAid || '—')}
                             </td>
                             <td rowSpan={4} className="px-3 py-3 align-top text-slate-800 dark:text-slate-200 whitespace-pre-wrap max-w-[140px]">
-                              {act.evaluationRemark || '—'}
+                              {uiText(act.evaluationRemark || '—')}
                             </td>
                           </tr>
 
                           {/* Sub-row 2: Lesson Presentation */}
                           <tr className="bg-white dark:bg-slate-900">
                             <td className="px-3 py-2 border-r border-b border-slate-200 dark:border-slate-800 bg-indigo-50/30 dark:bg-indigo-950/20">
-                              <span className="text-[9px] font-black uppercase text-indigo-700 dark:text-indigo-400 block">2. Presentation (አቀራረብ)</span>
-                              <p className="text-slate-800 dark:text-slate-200 font-medium mt-0.5">{act.teacherPresentation || '—'}</p>
+                              <span className="text-[9px] font-black uppercase text-indigo-700 dark:text-indigo-400 block">{uiText("2. Presentation (አቀራረብ)")}</span>
+                              <p className="text-slate-800 dark:text-slate-200 font-medium mt-0.5">{uiText(act.teacherPresentation || '—')}</p>
                             </td>
                           </tr>
 
                           {/* Sub-row 3: Summary */}
                           <tr className="bg-white dark:bg-slate-900">
                             <td className="px-3 py-2 border-r border-b border-slate-200 dark:border-slate-800 bg-violet-50/30 dark:bg-violet-950/20">
-                              <span className="text-[9px] font-black uppercase text-violet-700 dark:text-violet-400 block">3. Summary (ማጠቃለያ)</span>
-                              <p className="text-slate-800 dark:text-slate-200 font-medium mt-0.5">{act.teacherSummary || '—'}</p>
+                              <span className="text-[9px] font-black uppercase text-violet-700 dark:text-violet-400 block">{uiText("3. Summary (ማጠቃለያ)")}</span>
+                              <p className="text-slate-800 dark:text-slate-200 font-medium mt-0.5">{uiText(act.teacherSummary || '—')}</p>
                             </td>
                           </tr>
 
                           {/* Sub-row 4: Assessment */}
                           <tr className="bg-white dark:bg-slate-900">
                             <td className="px-3 py-2 border-r border-slate-200 dark:border-slate-800 bg-amber-50/30 dark:bg-amber-950/20">
-                              <span className="text-[9px] font-black uppercase text-amber-700 dark:text-amber-400 block">4. Assessment (ምዘና)</span>
-                              <p className="text-slate-800 dark:text-slate-200 font-medium mt-0.5">{act.teacherAssessment || '—'}</p>
+                              <span className="text-[9px] font-black uppercase text-amber-700 dark:text-amber-400 block">{uiText("4. Assessment (ምዘና)")}</span>
+                              <p className="text-slate-800 dark:text-slate-200 font-medium mt-0.5">{uiText(act.teacherAssessment || '—')}</p>
                             </td>
                           </tr>
                         </React.Fragment>
@@ -2808,27 +2748,27 @@ export const TeacherPortal = () => {
               {/* Signatures & Approvals Footer Block */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 dark:bg-slate-800/40 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 print:bg-white print:border-slate-400">
                 <div className="border border-dashed border-slate-300 dark:border-slate-700 p-3 rounded-xl text-center print:border-solid print:border-slate-400">
-                  <p className="text-[10px] font-black uppercase text-slate-400">Teacher Signature & Date</p>
-                  <p className="font-bold text-slate-800 dark:text-white text-xs mt-2">{selectedPlanForView.teacher_name || selectedPlanForView.teacherName || 'Assigned Teacher'}</p>
-                  <p className="text-[10px] text-slate-400 mt-1">Date: {selectedPlanForView.created_at ? new Date(selectedPlanForView.created_at).toLocaleDateString() : selectedPlanForView.date || '—'}</p>
+                  <p className="text-[10px] font-black uppercase text-slate-400">{uiText("Teacher Signature & Date")}</p>
+                  <p className="font-bold text-slate-800 dark:text-white text-xs mt-2">{uiText(selectedPlanForView.teacher_name || selectedPlanForView.teacherName || 'Assigned Teacher')}</p>
+                  <p className="text-[10px] text-slate-400 mt-1">{uiText("Date: ")}{uiText(selectedPlanForView.created_at ? new Date(selectedPlanForView.created_at).toLocaleDateString(localeTag()) : selectedPlanForView.date || '—')}</p>
                 </div>
                 <div className="border border-dashed border-slate-300 dark:border-slate-700 p-3 rounded-xl text-center print:border-solid print:border-slate-400">
-                  <p className="text-[10px] font-black uppercase text-slate-400">Department Head Signature & Date</p>
-                  <p className="font-bold text-slate-800 dark:text-white text-xs mt-2">{selectedPlanForView.status === 'Approved' ? 'Verified & Approved' : 'Pending Approval'}</p>
-                  <p className="text-[10px] text-slate-400 mt-1">Date: {selectedPlanForView.updated_at ? new Date(selectedPlanForView.updated_at).toLocaleDateString() : '—'}</p>
+                  <p className="text-[10px] font-black uppercase text-slate-400">{uiText("Department Head Signature & Date")}</p>
+                  <p className="font-bold text-slate-800 dark:text-white text-xs mt-2">{uiText(selectedPlanForView.status === 'Approved' ? 'Verified & Approved' : 'Pending Approval')}</p>
+                  <p className="text-[10px] text-slate-400 mt-1">{uiText("Date: ")}{uiText(selectedPlanForView.updated_at ? new Date(selectedPlanForView.updated_at).toLocaleDateString(localeTag()) : '—')}</p>
                 </div>
                 <div className="border border-dashed border-slate-300 dark:border-slate-700 p-3 rounded-xl text-center print:border-solid print:border-slate-400">
-                  <p className="text-[10px] font-black uppercase text-slate-400">Principal / VP Signature & Date</p>
-                  <p className="font-bold text-slate-800 dark:text-white text-xs mt-2">{selectedPlanForView.status === 'Approved' ? 'Signed for Academic Oversight' : 'Awaiting Review'}</p>
-                  <p className="text-[10px] text-slate-400 mt-1">Date: {selectedPlanForView.updated_at ? new Date(selectedPlanForView.updated_at).toLocaleDateString() : '—'}</p>
+                  <p className="text-[10px] font-black uppercase text-slate-400">{uiText("Principal / VP Signature & Date")}</p>
+                  <p className="font-bold text-slate-800 dark:text-white text-xs mt-2">{uiText(selectedPlanForView.status === 'Approved' ? 'Signed for Academic Oversight' : 'Awaiting Review')}</p>
+                  <p className="text-[10px] text-slate-400 mt-1">{uiText("Date: ")}{uiText(selectedPlanForView.updated_at ? new Date(selectedPlanForView.updated_at).toLocaleDateString(localeTag()) : '—')}</p>
                 </div>
               </div>
 
               {/* Interactive Evaluation Section for Dept Head */}
               <div className="p-5 bg-blue-50/50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/40 rounded-2xl space-y-4 print:hidden">
-                <h4 className="text-xs font-black text-blue-900 dark:text-blue-400 uppercase tracking-widest">✍️ Department Head Evaluation & Rating</h4>
+                <h4 className="text-xs font-black text-blue-900 dark:text-blue-400 uppercase tracking-widest">{uiText("✍️ Department Head Evaluation & Rating")}</h4>
                 <div>
-                  <label className="text-[10px] font-black text-slate-400 uppercase block mb-1">Rating (1–3 Stars)</label>
+                  <label className="text-[10px] font-black text-slate-400 uppercase block mb-1">{uiText("Rating (1–3 Stars)")}</label>
                   <div className="flex gap-1.5">
                     {[1, 2, 3].map(star => (
                       <button
@@ -2843,10 +2783,10 @@ export const TeacherPortal = () => {
                   </div>
                 </div>
                 <div>
-                  <label className="text-[10px] font-black text-slate-400 uppercase block mb-1">Feedback / Revision Comments</label>
+                  <label className="text-[10px] font-black text-slate-400 uppercase block mb-1">{uiText("Feedback / Revision Comments")}</label>
                   <textarea
                     rows={3}
-                    placeholder="Provide revision instructions or feedback…"
+                    placeholder={uiText("Provide revision instructions or feedback…")}
                     value={reviewFeedback}
                     onChange={e => setReviewFeedback(e.target.value)}
                     className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none text-slate-800 dark:text-white"
@@ -2859,22 +2799,18 @@ export const TeacherPortal = () => {
                       setSelectedPlanForView(null);
                     }}
                     className="flex-1 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase rounded-xl transition-all shadow-md shadow-emerald-500/20"
-                  >
-                    ✓ Approve Plan
-                  </button>
+                  >{uiText("✓ Approve Plan")}</button>
                   <button
                     onClick={() => {
                       if (!reviewFeedback.trim()) {
-                        showToast('Please enter revision comments first!', 'error');
+                        showToast(uiText("Please enter revision comments first!"), 'error');
                         return;
                       }
                       handleRejectDeptPlan(selectedPlanForView.id, reviewRating, reviewFeedback);
                       setSelectedPlanForView(null);
                     }}
                     className="flex-1 px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs uppercase rounded-xl transition-all shadow-md shadow-orange-500/20"
-                  >
-                    ⟲ Request Revision
-                  </button>
+                  >{uiText("⟲ Request Revision")}</button>
                 </div>
               </div>
 
@@ -2882,7 +2818,7 @@ export const TeacherPortal = () => {
 
           </div>
         </div>
-      )}
+      ))}
 
       {/* Toast */}
       {toast.show && (
@@ -2890,7 +2826,7 @@ export const TeacherPortal = () => {
           <div className={`flex items-center gap-3 px-6 py-4 rounded-xl shadow-2xl border ${toast.type === 'success' ? 'bg-green-50 dark:bg-green-900/20 border-green-200' : 'bg-red-50 dark:bg-red-900/20 border-red-200'
             }`}>
             {toast.type === 'success' ? <CheckCircle2 className="text-green-600" size={20} /> : <XCircle className="text-red-600" size={20} />}
-            <p className={`text-sm font-bold ${toast.type === 'success' ? 'text-green-800' : 'text-red-800'}`}>{toast.message}</p>
+            <p className={`text-sm font-bold ${toast.type === 'success' ? 'text-green-800' : 'text-red-800'}`}>{uiText(toast.message)}</p>
           </div>
         </div>
       )}
@@ -2905,9 +2841,9 @@ export const TeacherPortal = () => {
                 <div className="p-3 bg-white/20 text-white rounded-2xl"><FileText size={20} /></div>
                 <div>
                   <h3 className="font-black text-white uppercase tracking-tight">
-                    {editingAnnualPlan ? 'Edit Annual Plan' : 'New Yearly Lesson Plan'}
+                    {uiText(editingAnnualPlan ? 'Edit Annual Plan' : 'New Yearly Lesson Plan')}
                   </h3>
-                  <p className="text-xs text-violet-200 font-bold uppercase tracking-widest">Submit for Department Head review</p>
+                  <p className="text-xs text-violet-200 font-bold uppercase tracking-widest">{uiText("Submit for Department Head review")}</p>
                 </div>
               </div>
               <button
@@ -2921,61 +2857,61 @@ export const TeacherPortal = () => {
 
             <div className="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
               {/* Revision notice */}
-              {editingAnnualPlan?.status === 'Revision Required' && editingAnnualPlan?.feedback && (
+              {uiText(editingAnnualPlan?.status === 'Revision Required' && editingAnnualPlan?.feedback && (
                 <div className="p-4 bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800/50 rounded-2xl flex gap-3">
                   <AlertCircle size={18} className="text-orange-600 shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-xs font-black text-orange-800 uppercase tracking-wider">Department Head Feedback</p>
-                    <p className="text-sm text-orange-700 mt-1">"{editingAnnualPlan.feedback}"</p>
+                    <p className="text-xs font-black text-orange-800 uppercase tracking-wider">{uiText("Department Head Feedback")}</p>
+                    <p className="text-sm text-orange-700 mt-1">{uiText("\"")}{uiText(editingAnnualPlan.feedback)}{uiText("\"")}</p>
                   </div>
                 </div>
-              )}
+              ))}
 
               {/* Header Metadata */}
               <div className="bg-slate-50 dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
-                <h4 className="text-xs font-black uppercase tracking-widest text-slate-500 mb-4">📋 Plan Header Information</h4>
+                <h4 className="text-xs font-black uppercase tracking-widest text-slate-500 mb-4">{uiText("📋 Plan Header Information")}</h4>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div>
-                    <label className="text-[10px] font-black uppercase text-slate-500">Academic Year</label>
+                    <label className="text-[10px] font-black uppercase text-slate-500">{uiText("Academic Year")}</label>
                     <input value={annualForm.academicYear} onChange={e => setAnnualForm(f => ({ ...f, academicYear: e.target.value }))}
                       className="w-full mt-1 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-violet-500" />
                   </div>
                   <div>
-                    <label className="text-[10px] font-black uppercase text-slate-500">Subject</label>
+                    <label className="text-[10px] font-black uppercase text-slate-500">{uiText("Subject")}</label>
                     <select value={annualForm.courseId} onChange={e => {
                       const c = myCourses.find((x: any) => x.id === e.target.value);
                       setAnnualForm(f => ({ ...f, courseId: e.target.value, subject: c?.name || f.subject }));
                     }} className="w-full mt-1 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-violet-500">
-                      <option value="">Select course…</option>
-                      {myCourses.map((c: any) => <option key={c.id} value={c.id}>{c.name}{c.class_name ? ` — ${c.class_name}` : ''}</option>)}
+                      <option value="">{uiText("Select course…")}</option>
+                      {myCourses.map((c: any) => <option key={c.id} value={c.id}>{c.name}{uiText(c.class_name ? ` — ${c.class_name}` : '')}</option>)}
                     </select>
                     {!annualForm.courseId && (
-                      <input placeholder="Or type subject…" value={annualForm.subject} onChange={e => setAnnualForm(f => ({ ...f, subject: e.target.value }))}
+                      <input placeholder={uiText("Or type subject…")} value={annualForm.subject} onChange={e => setAnnualForm(f => ({ ...f, subject: e.target.value }))}
                         className="w-full mt-1 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-violet-500" />
                     )}
                   </div>
                   <div>
-                    <label className="text-[10px] font-black uppercase text-slate-500">Grade</label>
+                    <label className="text-[10px] font-black uppercase text-slate-500">{uiText("Grade")}</label>
                     <input value={annualForm.grade} onChange={e => setAnnualForm(f => ({ ...f, grade: e.target.value }))}
-                      placeholder="e.g. Grade 9" className="w-full mt-1 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-violet-500" />
+                      placeholder={uiText("e.g. Grade 9")} className="w-full mt-1 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-violet-500" />
                   </div>
                   <div>
-                    <label className="text-[10px] font-black uppercase text-slate-500">Duration / Period</label>
+                    <label className="text-[10px] font-black uppercase text-slate-500">{uiText("Duration / Period")}</label>
                     <input value={annualForm.durationPeriod} onChange={e => setAnnualForm(f => ({ ...f, durationPeriod: e.target.value }))}
                       className="w-full mt-1 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-violet-500" />
                   </div>
                   <div>
-                    <label className="text-[10px] font-black uppercase text-slate-500">Working Days/Year</label>
+                    <label className="text-[10px] font-black uppercase text-slate-500">{uiText("Working Days/Year")}</label>
                     <input type="number" value={annualForm.workingDaysYear} onChange={e => setAnnualForm(f => ({ ...f, workingDaysYear: +e.target.value }))}
                       className="w-full mt-1 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-violet-500" />
                   </div>
                   <div>
-                    <label className="text-[10px] font-black uppercase text-slate-500">Periods / Year</label>
+                    <label className="text-[10px] font-black uppercase text-slate-500">{uiText("Periods / Year")}</label>
                     <input type="number" value={annualForm.periodsYear} onChange={e => setAnnualForm(f => ({ ...f, periodsYear: +e.target.value }))}
                       className="w-full mt-1 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-violet-500" />
                   </div>
                   <div>
-                    <label className="text-[10px] font-black uppercase text-slate-500">Periods / Week</label>
+                    <label className="text-[10px] font-black uppercase text-slate-500">{uiText("Periods / Week")}</label>
                     <input type="number" value={annualForm.periodsWeek} onChange={e => setAnnualForm(f => ({ ...f, periodsWeek: +e.target.value }))}
                       className="w-full mt-1 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-violet-500" />
                   </div>
@@ -2984,13 +2920,13 @@ export const TeacherPortal = () => {
 
               {/* 11-Column Matrix */}
               <div>
-                <h4 className="text-xs font-black uppercase tracking-widest text-slate-500 mb-3">📅 Yearly Matrix — September to June</h4>
+                <h4 className="text-xs font-black uppercase tracking-widest text-slate-500 mb-3">{uiText("📅 Yearly Matrix — September to June")}</h4>
                 <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
                   <table className="w-full text-left min-w-[1400px] text-xs">
                     <thead>
                       <tr className="bg-violet-600 text-white">
                         {['Month','Week','# Periods','Unit','Main Content','Sub Content','Competence (Learning Outcome)','Teaching Method','Teaching Aid','Evaluation','Remark'].map(h => (
-                          <th key={h} className="px-3 py-3 font-black uppercase tracking-wide whitespace-nowrap border-r border-violet-500 last:border-r-0">{h}</th>
+                          <th key={h} className="px-3 py-3 font-black uppercase tracking-wide whitespace-nowrap border-r border-violet-500 last:border-r-0">{uiText(h)}</th>
                         ))}
                       </tr>
                     </thead>
@@ -3002,10 +2938,10 @@ export const TeacherPortal = () => {
                           <tr key={idx} className={`border-b border-slate-100 dark:border-slate-700 ${idx % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-slate-50/50 dark:bg-slate-800/30'}`}>
                             {isFirstWeekOfMonth ? (
                               <td className="px-3 py-2 font-black text-violet-700 dark:text-violet-400 bg-violet-50 dark:bg-violet-900/10 border-r border-slate-200 dark:border-slate-700 whitespace-nowrap" rowSpan={monthRows}>
-                                {item.month}
+                                {uiText(item.month)}
                               </td>
                             ) : null}
-                            <td className="px-3 py-2 border-r border-slate-100 dark:border-slate-700 text-center font-bold text-slate-600 dark:text-slate-400 whitespace-nowrap">Week {item.week}</td>
+                            <td className="px-3 py-2 border-r border-slate-100 dark:border-slate-700 text-center font-bold text-slate-600 dark:text-slate-400 whitespace-nowrap">{uiText("Week ")}{item.week}</td>
                             {['noOfPeriods','unit','mainContent','subContent','competence','teachingMethod','teachingAid','evaluation','remark'].map(field => (
                               <td key={field} className="px-1 py-1 border-r border-slate-100 dark:border-slate-700 last:border-r-0">
                                 <input
@@ -3017,7 +2953,7 @@ export const TeacherPortal = () => {
                                     setAnnualForm(f => ({ ...f, items: newItems }));
                                   }}
                                   className="w-full px-2 py-1.5 bg-transparent border border-transparent hover:border-violet-300 focus:border-violet-500 focus:bg-white dark:focus:bg-slate-800 rounded-lg outline-none transition-all text-slate-800 dark:text-slate-200 min-w-[80px]"
-                                  placeholder="—"
+                                  placeholder={uiText("—")}
                                 />
                               </td>
                             ))}
@@ -3035,9 +2971,7 @@ export const TeacherPortal = () => {
               <button
                 onClick={() => { setIsAnnualModalOpen(false); setEditingAnnualPlan(null); }}
                 className="px-6 py-3 border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
-              >
-                Cancel
-              </button>
+              >{uiText("Cancel")}</button>
               <button
                 onClick={async () => {
                   try {
@@ -3045,53 +2979,50 @@ export const TeacherPortal = () => {
                     const payload = { ...annualForm, status: 'Draft' };
                     if (editingAnnualPlan) { await updateAnnualPlan(editingAnnualPlan.id, payload); }
                     else { await submitAnnualPlan(payload); }
-                    showToast('Draft saved!', 'success');
+                    showToast(uiText("Draft saved!"), 'success');
                     setIsAnnualModalOpen(false); setEditingAnnualPlan(null);
                     fetchMyAnnualPlans();
-                  } catch (e: any) { showToast(e?.message || 'Failed to save draft', 'error'); }
+                  } catch (e: any) { showToast(uiText(e?.message || 'Failed to save draft'), 'error'); }
                   finally { setSubmitting(false); }
                 }}
                 disabled={submitting}
                 className="flex items-center gap-2 px-6 py-3 bg-slate-600 hover:bg-slate-700 disabled:opacity-60 text-white font-black text-xs uppercase tracking-widest rounded-2xl transition-all"
               >
-                <Save size={16} /> Save Draft
-              </button>
+                <Save size={16} />{uiText(" Save Draft")}</button>
               <button
                 onClick={async () => {
-                  if (!annualForm.subject && !annualForm.courseId) { showToast('Please enter a subject or select a course.', 'error'); return; }
-                  if (!annualForm.grade) { showToast('Please enter a grade.', 'error'); return; }
+                  if (!annualForm.subject && !annualForm.courseId) { showToast(uiText("Please enter a subject or select a course."), 'error'); return; }
+                  if (!annualForm.grade) { showToast(uiText("Please enter a grade."), 'error'); return; }
                   try {
                     setSubmitting(true);
                     const payload = { ...annualForm, status: 'Pending' };
                     if (editingAnnualPlan) { await updateAnnualPlan(editingAnnualPlan.id, payload); }
                     else { await submitAnnualPlan(payload); }
-                    showToast('Annual plan submitted for review!', 'success');
+                    showToast(uiText("Annual plan submitted for review!"), 'success');
                     setIsAnnualModalOpen(false); setEditingAnnualPlan(null);
                     fetchMyAnnualPlans();
-                  } catch (e: any) { showToast(e?.message || 'Failed to submit plan', 'error'); }
+                  } catch (e: any) { showToast(uiText(e?.message || 'Failed to submit plan'), 'error'); }
                   finally { setSubmitting(false); }
                 }}
                 disabled={submitting}
                 className="flex items-center gap-2 px-8 py-3 bg-violet-600 hover:bg-violet-700 disabled:opacity-60 text-white font-black text-xs uppercase tracking-widest rounded-2xl transition-all shadow-lg shadow-violet-500/20"
               >
-                {submitting ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
-                Submit for Review
-              </button>
+                {submitting ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}{uiText("Submit for Review")}</button>
             </div>
           </div>
         </div>
       )}
 
       {/* ── Annual Plan Review Modal (Dept Head) ── */}
-      {selectedAnnualForView && (
+      {uiText(selectedAnnualForView && (
         <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-start justify-center p-4 overflow-y-auto">
           <div className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl border border-slate-100 dark:border-slate-800 w-full max-w-5xl my-4">
             {/* Header */}
             <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-gradient-to-r from-slate-800 to-slate-900 rounded-t-[2rem]">
               <div>
-                <h3 className="font-black text-white uppercase tracking-tight text-lg">Annual Plan Review</h3>
+                <h3 className="font-black text-white uppercase tracking-tight text-lg">{uiText("Annual Plan Review")}</h3>
                 <p className="text-xs text-slate-400 mt-0.5 font-bold">
-                  {selectedAnnualForView.teacher_name} · {selectedAnnualForView.subject} · {selectedAnnualForView.grade}
+                  {uiText(selectedAnnualForView.teacher_name)}{uiText(" · ")}{uiText(selectedAnnualForView.subject)}{uiText(" · ")}{uiText(selectedAnnualForView.grade)}
                 </p>
               </div>
               <button onClick={() => setSelectedAnnualForView(null)} className="p-2 hover:bg-white/10 rounded-xl text-white transition-all"><X size={20} /></button>
@@ -3111,8 +3042,8 @@ export const TeacherPortal = () => {
                   { label: 'Weeks Planned', value: Array.isArray(selectedAnnualForView.items) ? selectedAnnualForView.items.length : 0 },
                 ].map(({ label, value }) => (
                   <div key={label}>
-                    <p className="text-[9px] font-black uppercase text-slate-400">{label}</p>
-                    <p className="font-bold text-slate-800 dark:text-white text-sm mt-0.5">{value || '—'}</p>
+                    <p className="text-[9px] font-black uppercase text-slate-400">{uiText(label)}</p>
+                    <p className="font-bold text-slate-800 dark:text-white text-sm mt-0.5">{uiText(value || '—')}</p>
                   </div>
                 ))}
               </div>
@@ -3120,13 +3051,13 @@ export const TeacherPortal = () => {
               {/* Matrix Preview */}
               {Array.isArray(selectedAnnualForView.items) && selectedAnnualForView.items.length > 0 && (
                 <div>
-                  <h4 className="text-xs font-black uppercase tracking-widest text-slate-500 mb-3">📅 Yearly Matrix</h4>
+                  <h4 className="text-xs font-black uppercase tracking-widest text-slate-500 mb-3">{uiText("📅 Yearly Matrix")}</h4>
                   <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-700">
                     <table className="w-full text-left min-w-[1200px] text-xs">
                       <thead>
                         <tr className="bg-slate-800 text-white">
                           {['Month','Week','# Periods','Unit','Main Content','Sub Content','Competence','Method','Aid','Evaluation','Remark'].map(h => (
-                            <th key={h} className="px-3 py-2.5 font-black uppercase tracking-wide whitespace-nowrap border-r border-slate-700 last:border-r-0">{h}</th>
+                            <th key={h} className="px-3 py-2.5 font-black uppercase tracking-wide whitespace-nowrap border-r border-slate-700 last:border-r-0">{uiText(h)}</th>
                           ))}
                         </tr>
                       </thead>
@@ -3137,11 +3068,11 @@ export const TeacherPortal = () => {
                           return (
                             <tr key={idx} className={`border-b border-slate-100 dark:border-slate-700 ${idx % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-slate-50 dark:bg-slate-800/30'}`}>
                               {isFirst ? (
-                                <td className="px-3 py-2 font-black text-violet-700 dark:text-violet-400 whitespace-nowrap border-r border-slate-200 dark:border-slate-700 bg-violet-50 dark:bg-violet-900/10" rowSpan={monthRows}>{item.month}</td>
+                                <td className="px-3 py-2 font-black text-violet-700 dark:text-violet-400 whitespace-nowrap border-r border-slate-200 dark:border-slate-700 bg-violet-50 dark:bg-violet-900/10" rowSpan={monthRows}>{uiText(item.month)}</td>
                               ) : null}
-                              <td className="px-3 py-2 text-center font-bold text-slate-500 border-r border-slate-100 dark:border-slate-700 whitespace-nowrap">Week {item.week}</td>
+                              <td className="px-3 py-2 text-center font-bold text-slate-500 border-r border-slate-100 dark:border-slate-700 whitespace-nowrap">{uiText("Week ")}{uiText(item.week)}</td>
                               {['noOfPeriods','unit','mainContent','subContent','competence','teachingMethod','teachingAid','evaluation','remark'].map(f => (
-                                <td key={f} className="px-3 py-2 text-slate-700 dark:text-slate-300 border-r border-slate-100 dark:border-slate-700 last:border-r-0">{item[f] || <span className="text-slate-300">—</span>}</td>
+                                <td key={f} className="px-3 py-2 text-slate-700 dark:text-slate-300 border-r border-slate-100 dark:border-slate-700 last:border-r-0">{uiText(item[f] || <span className="text-slate-300">{uiText("—")}</span>)}</td>
                               ))}
                             </tr>
                           );
@@ -3154,10 +3085,10 @@ export const TeacherPortal = () => {
 
               {/* Review Panel */}
               <div className="bg-slate-50 dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 space-y-4">
-                <h4 className="text-xs font-black uppercase tracking-widest text-slate-500">✍️ Your Review</h4>
+                <h4 className="text-xs font-black uppercase tracking-widest text-slate-500">{uiText("✍️ Your Review")}</h4>
                 {/* Star Rating */}
                 <div>
-                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Rating (1–5 Stars)</p>
+                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">{uiText("Rating (1–5 Stars)")}</p>
                   <div className="flex gap-2">
                     {[1,2,3,4,5].map(star => (
                       <button key={star} onClick={() => setAnnualReviewRating(star)}
@@ -3166,18 +3097,18 @@ export const TeacherPortal = () => {
                       </button>
                     ))}
                     {annualReviewRating > 0 && (
-                      <span className="self-center text-xs font-black text-amber-600">{['','Poor','Fair','Good','Very Good','Excellent'][annualReviewRating]}</span>
+                      <span className="self-center text-xs font-black text-amber-600">{uiText(['','Poor','Fair','Good','Very Good','Excellent'][annualReviewRating])}</span>
                     )}
                   </div>
                 </div>
                 {/* Feedback */}
                 <div>
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Feedback / Comments</label>
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">{uiText("Feedback / Comments")}</label>
                   <textarea
                     rows={4}
                     value={annualReviewFeedback}
                     onChange={e => setAnnualReviewFeedback(e.target.value)}
-                    placeholder="Write your detailed feedback here…"
+                    placeholder={uiText("Write your detailed feedback here…")}
                     className="w-full mt-2 px-4 py-3 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 rounded-2xl text-sm outline-none focus:border-violet-500 transition-all resize-none text-slate-800 dark:text-white"
                   />
                 </div>
@@ -3187,46 +3118,41 @@ export const TeacherPortal = () => {
             {/* Footer Buttons */}
             <div className="p-6 border-t border-slate-100 dark:border-slate-800 flex gap-3 justify-end flex-wrap">
               <button onClick={() => setSelectedAnnualForView(null)}
-                className="px-6 py-3 border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">
-                Close
-              </button>
+                className="px-6 py-3 border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">{uiText("Close")}</button>
               <button
                 onClick={async () => {
-                  if (!annualReviewFeedback.trim()) { showToast('Feedback is required when requesting revision.', 'error'); return; }
+                  if (!annualReviewFeedback.trim()) { showToast(uiText("Feedback is required when requesting revision."), 'error'); return; }
                   try {
                     setSubmitting(true);
                     await reviewDeptAnnualPlan(selectedAnnualForView.id, { status: 'Revision Required', feedback: annualReviewFeedback, rating: annualReviewRating || undefined });
-                    showToast('Revision request sent.', 'success');
+                    showToast(uiText("Revision request sent."), 'success');
                     setSelectedAnnualForView(null);
                     fetchDeptAnnualPlans();
-                  } catch (e: any) { showToast(e?.message || 'Failed', 'error'); }
+                  } catch (e: any) { showToast(uiText(e?.message || 'Failed'), 'error'); }
                   finally { setSubmitting(false); }
                 }}
                 disabled={submitting}
                 className="flex items-center gap-2 px-6 py-3 bg-orange-500 hover:bg-orange-600 disabled:opacity-60 text-white font-black text-xs uppercase tracking-widest rounded-2xl transition-all">
-                <XCircle size={16} /> Request Revision
-              </button>
+                <XCircle size={16} />{uiText(" Request Revision")}</button>
               <button
                 onClick={async () => {
                   try {
                     setSubmitting(true);
                     const fb = annualReviewFeedback.trim() || 'Approved by Department Head';
                     await reviewDeptAnnualPlan(selectedAnnualForView.id, { status: 'Approved', feedback: fb, rating: annualReviewRating || undefined });
-                    showToast('Annual plan approved!', 'success');
+                    showToast(uiText("Annual plan approved!"), 'success');
                     setSelectedAnnualForView(null);
                     fetchDeptAnnualPlans();
-                  } catch (e: any) { showToast(e?.message || 'Failed', 'error'); }
+                  } catch (e: any) { showToast(uiText(e?.message || 'Failed'), 'error'); }
                   finally { setSubmitting(false); }
                 }}
                 disabled={submitting}
                 className="flex items-center gap-2 px-8 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white font-black text-xs uppercase tracking-widest rounded-2xl transition-all shadow-lg shadow-emerald-500/20">
-                {submitting ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
-                Approve Plan
-              </button>
+                {submitting ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}{uiText("Approve Plan")}</button>
             </div>
           </div>
         </div>
-      )}
+      ))}
     </div>
   );
 };

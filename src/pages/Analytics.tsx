@@ -1,3 +1,4 @@
+import { uiError, uiText, localeTag } from "../localization";
 
 import {
   TrendingUp,
@@ -79,7 +80,7 @@ export const Analytics = () => {
         const response = await dashboardService.getSuperAdminAnalytics(selectedBranchId || null);
         setAnalytics(response.data);
       } catch (err: any) {
-        setError(err.response?.data?.error?.message || 'Failed to load analytics');
+        setError(uiError(err.response?.data?.error?.message || 'Failed to load analytics'));
       } finally {
         setLoading(false);
       }
@@ -100,8 +101,8 @@ export const Analytics = () => {
   const handleExport = () => {
     const dataToExport: any[] = branchPerformance.map(b => ({
       Branch: b.name,
-      Collected: typeof b.collected === 'number' ? b.collected.toLocaleString() : b.collected,
-      Expected: typeof b.expected === 'number' ? b.expected.toLocaleString() : b.expected,
+      Collected: typeof b.collected === 'number' ? b.collected.toLocaleString(localeTag()) : b.collected,
+      Expected: typeof b.expected === 'number' ? b.expected.toLocaleString(localeTag()) : b.expected,
       Performance: `${b.percent}%`,
       Students: b.students
     }));
@@ -130,9 +131,7 @@ export const Analytics = () => {
     return (
       <div className="min-h-[50vh] flex items-center justify-center">
         <div className="flex items-center gap-3 text-slate-500 font-bold">
-          <Loader2 className="animate-spin" size={18} />
-          Loading analytics...
-        </div>
+          <Loader2 className="animate-spin" size={18} />{uiText("Loading analytics...")}</div>
       </div>
     );
   }
@@ -145,16 +144,14 @@ export const Analytics = () => {
           onClick={() => navigate(-1)}
           className="flex items-center gap-1 text-blue-600 hover:underline text-xs font-bold uppercase tracking-widest"
         >
-          <ArrowLeft size={14} />
-          Back
-        </button>
+          <ArrowLeft size={14} />{uiText("Back")}</button>
       </div>
 
       {/* Executive Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight">{t('analytics.title', 'School Health at a Glance')}</h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400">{t('analytics.subtitle', 'Assess in 10 seconds. Green = Good. Yellow = Attention. Red = Act Now.')} {metricCardText}</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">{t('analytics.subtitle', 'Assess in 10 seconds. Green = Good. Yellow = Attention. Red = Act Now.')} {uiText(metricCardText)}</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <button className="flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-black text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all uppercase tracking-widest">
@@ -165,18 +162,16 @@ export const Analytics = () => {
             onClick={handleExport}
             className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-xl text-xs font-black hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/20 uppercase tracking-widest active:scale-95"
           >
-            <Download size={16} />
-            Export
-          </button>
+            <Download size={16} />{uiText("Export")}</button>
         </div>
       </div>
 
-      {error && (
+      {uiText(error && (
         <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-2xl p-4 flex items-center gap-3 text-amber-800 dark:text-amber-200">
           <AlertCircle size={18} />
-          <p className="text-sm font-semibold">{error}</p>
+          <p className="text-sm font-semibold">{uiError(error)}</p>
         </div>
-      )}
+      ))}
 
       {/* The "Big Three" Traffic Light Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -185,12 +180,12 @@ export const Analytics = () => {
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
               <div className={`w-3 h-3 rounded-full ${feeColor.dot} animate-pulse`} />
-              <span className={`text-[10px] font-black uppercase tracking-widest ${feeColor.text}`}>{feeColor.label}</span>
+              <span className={`text-[10px] font-black uppercase tracking-widest ${feeColor.text}`}>{uiText(feeColor.label)}</span>
             </div>
             <DollarSign size={24} className={`${feeColor.text} group-hover:scale-110 transition-transform`} />
           </div>
           <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-2">{t('analytics.moneyIn', 'Money In')}</p>
-              <h3 className="text-4xl font-black text-slate-800 dark:text-white">{((overview?.feeCollected || 0) / 1000000).toFixed(1)}M <span className="text-base font-bold text-slate-400">ETB</span></h3>
+              <h3 className="text-4xl font-black text-slate-800 dark:text-white">{uiText(((overview?.feeCollected || 0) / 1000000).toFixed(1))}{uiText("M ")}<span className="text-base font-bold text-slate-400">{uiText("ETB")}</span></h3>
           <div className="mt-6 space-y-3">
             <button 
               onClick={() => {
@@ -202,7 +197,7 @@ export const Analytics = () => {
               className="w-full flex justify-between items-center text-[10px] font-black uppercase tracking-widest hover:text-blue-600 transition-colors text-left"
             >
               <span className="text-slate-400">{t('analytics.collectionRate', 'Collection Rate')}</span>
-              <span className={feeColor.text}>{overview?.feePercent || 0}%</span>
+              <span className={feeColor.text}>{overview?.feePercent || 0}{uiText("%")}</span>
             </button>
             <div className="h-3 bg-white/50 dark:bg-slate-800/50 rounded-full overflow-hidden border border-slate-100 dark:border-slate-800">
               <div
@@ -210,7 +205,7 @@ export const Analytics = () => {
                     style={{ width: `${overview?.feePercent || 0}%` }}
               />
             </div>
-                <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold italic tracking-wide">{t('analytics.missingPayments', 'Missing Payments')}: {Math.max(0, ((overview?.feeExpected || 0) - (overview?.feeCollected || 0)) / 1000).toFixed(0)}K ETB</p>
+                <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold italic tracking-wide">{t('analytics.missingPayments', 'Missing Payments')}{uiText(": ")}{uiText(Math.max(0, ((overview?.feeExpected || 0) - (overview?.feeCollected || 0)) / 1000).toFixed(0))}{uiText("K ETB")}</p>
           </div>
         </div>
 
@@ -229,14 +224,14 @@ export const Analytics = () => {
               <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">{t('analytics.students', 'Students')}</p>
               <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-2">{t('analytics.collectedThisYear', 'Collected This Year')}</p>
               <h3 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white">
-                {Number(overview?.yearlyStudentCollections || 0).toLocaleString()} <span className="text-[10px] font-bold text-slate-400">ETB</span>
+                {uiText(Number(overview?.yearlyStudentCollections || 0).toLocaleString(localeTag()))} <span className="text-[10px] font-bold text-slate-400">{uiText("ETB")}</span>
               </h3>
             </div>
             <div className="border-l border-slate-100 dark:border-slate-800 pl-6">
               <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">{t('analytics.staff', 'Staff')}</p>
               <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-2">{t('analytics.paidThisYear', 'Paid This Year')}</p>
               <h3 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white">
-                {Number(overview?.yearlyStaffPayments || 0).toLocaleString()} <span className="text-[10px] font-bold text-slate-400">ETB</span>
+                {uiText(Number(overview?.yearlyStaffPayments || 0).toLocaleString(localeTag()))} <span className="text-[10px] font-bold text-slate-400">{uiText("ETB")}</span>
               </h3>
             </div>
           </div>
@@ -249,7 +244,7 @@ export const Analytics = () => {
           <div className="p-2 bg-amber-500 rounded-xl shadow-lg shadow-amber-500/30">
             <Zap size={18} />
           </div>
-          <h3 className="font-black text-lg uppercase tracking-tight">Key Takeaway</h3>
+          <h3 className="font-black text-lg uppercase tracking-tight">{uiText("Key Takeaway")}</h3>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="p-4 bg-white/5 border border-white/10 rounded-2xl">
@@ -258,8 +253,7 @@ export const Analytics = () => {
               <span className="text-[10px] font-black uppercase tracking-widest text-amber-400">{t('analytics.financeAlert', 'Finance Alert')}</span>
             </div>
             <p className="text-sm font-medium text-slate-200">
-              <span className="text-amber-400 font-black">{analytics?.overview?.overdueCount || 0} students</span> are over 30 days late on payments totaling <span className="font-black">{(analytics?.overview?.overdueAmount || 0).toLocaleString()} ETB</span>.
-            </p>
+              <span className="text-amber-400 font-black">{analytics?.overview?.overdueCount || 0}{uiText(" students")}</span>{uiText(" are over 30 days late on payments totaling ")}<span className="font-black">{uiText((analytics?.overview?.overdueAmount || 0).toLocaleString(localeTag()))}{uiText(" ETB")}</span>{uiText(".")}</p>
           </div>
         </div>
       </div>
@@ -276,11 +270,11 @@ export const Analytics = () => {
                   <div className="flex items-center gap-3">
                     <div className={`w-2.5 h-2.5 rounded-full ${bColor.dot} shadow-lg ${bColor.dot.replace('bg-', 'shadow-')}`} />
                     <span className="text-sm font-black text-slate-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{branch.name}</span>
-                    <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest bg-slate-50 dark:bg-slate-800 px-2 py-0.5 rounded-md ml-2">{branch.students} Students</span>
+                    <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest bg-slate-50 dark:bg-slate-800 px-2 py-0.5 rounded-md ml-2">{branch.students}{uiText(" Students")}</span>
                   </div>
                   <div className="flex items-center gap-4">
-                    <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">{Number(branch.collected).toLocaleString()} / {Number(branch.expected).toLocaleString()}</span>
-                    <span className={`text-xs font-black ${bColor.text}`}>{branch.percent}%</span>
+                    <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">{uiText(Number(branch.collected).toLocaleString(localeTag()))}{uiText(" / ")}{uiText(Number(branch.expected).toLocaleString(localeTag()))}</span>
+                    <span className={`text-xs font-black ${bColor.text}`}>{branch.percent}{uiText("%")}</span>
                   </div>
                 </div>
                 <div className="h-3 bg-slate-50 dark:bg-slate-800/50 rounded-full overflow-hidden border border-slate-100 dark:border-slate-800">

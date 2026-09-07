@@ -1,0 +1,41 @@
+{
+  "om": {
+    "name": "Mana Baruumsa Zuqaalaa Aabboo Sad. 1ffaa",
+    "objectivesHeading": "Kaayyoo",
+    "objectives": [
+      "Barattoonnii naamusa gaarii mallattoo biyya keenya Itoophiyaa kan ta'e yeroo ammaa garuu dimimmisaa dhufe goonfatani akka guddatan gochuu.",
+      "Dhaloota ciccimoo beekumsa saayinsii fi teeknolojii goonfatani fi biyya isaanii sadarkaa addunyaan irra gahe gessisuu danda'an horachuu.",
+      "Jaalala biyyaa fi lammummaa qabaatanii akka gudddatanii fi kabajaa fi kunuunsa qabeenya umamaa fi namtolchee horatanii akka guddatan taasisuu. Walumaagalatti karaa hundumaanu (qaamaan, bilchiina sammuu fi haawaasummaan) namummaan isaani gutuu ta'ee fi ofiitti amanamummaa kan qaban ta'anii akka guddatan taasisuu."
+    ],
+    "visionHeading": "Mul'ata",
+    "vision": "Mala baruuf barsiisuu barataa giddu galeeffatee fayyadamuun ofii isaani akka ofbarsiisan dandeessisuun naamusa gaarii biyya isaanii Itoophiyaa qabaatanii yaada, hojimaataa fi haggansa biyyaa fi lammii fayyaduu burqisiisuu danda'ani fi lammii bilchaataa biyya isaani sadarkaa addunyaan irra geesse gessisuu danda'an uumamani arguu.",
+    "missionHeading": "Ergama",
+    "mission": "Ergamni keenya, sirna barnootaa addunyaawaa qulqullina isaa eege fi Itoophiyummaa goonfate diriirsiineen gargaaramuun ogeessota ga'oomaniin baruumsa gahaa ta'e kennuun lammii naamusa goonfate dhuunfaanis ta'ee waliin cimanii hojjachuu aadaa godhate omishuudha."
+  },
+  "am": {
+    "name": "የዝቋላ አቦ ገዳም 1ኛ ደረጃ ትምህርት ቤት",
+    "objectivesHeading": "ዓላማ",
+    "objectives": [
+      "አሁን አሁን እየደበዘዘ የመጣውን የኛ የኢትዮጵያውያን መለያ የሆነውን ስነ ምግባር ተላብሰው እንዲያድጉ ማድረግ፡፡",
+      "የዘመኑን ሳይንስና ቴክኖሎጂ ዕውቀት ተክነው በማደግ ሀገራቸውን ዓለም ከደረሰበት የዕድገት ደረጃ ለማድረስ የሚችል በዕውቀት የበለፀገ ትውልድ ማፍራት፡፡",
+      "የሀገርና የወገን ፍቅር ተላብሰው እንዲያድጉና ለተፈጥሮና ሰው ሰራሽ ቅርሶች አክብሮት እንዲኖራቸው ማስቻል፡፡ በአጠቃላይ በሁሉም ረገድ (አካላዊ፣ ስነልቦናዊ እና ማህበራዊ) ስብዕናቸው ተሟልቶና በራሳቸው የሚተማመኑ ሆነው እንዲያድጉ ማስቻል፡፡"
+    ],
+    "visionHeading": "ራዕይ",
+    "vision": "ራሳቸውን በራሳቸው ማስተማር በመቻል አሳታፊ ወይም ተማሪ ተኮር የማስተማር ዘዴን በመጠቀም መልካም የሆነውን ኢትዮጵያዊ ሥነ ምግባራቸውን የሚጠብቁ ለሀገርም ለወገንም ጠቃሚ አስተሳሰብ አሰራርና አመራር የሚያመነጩና ዓለም ከደረሰበት የዕድገት ደረጃ ሀገራቸውን ለማድረስ የሚችሉ በሰል ዜጎች ተፈጥረው ማየት፡፡",
+    "missionHeading": "ተልዕኮ",
+    "mission": "ተልዕኳችን በዘመናዊው ዓለም አቀፋዊ ጥራቱን የጠበቀና ኢትዮጵያዊነትን የተላበሰ ስርዓተ ትምህርት በመታገዝ ብቃት ባላቸው ባለሙያዎች የላቀ ትምህርት በመስጠት በግልም ሆነ በህብረት ጠንክሮ መስራትን ባህሉ ያደረገና በሥነምግባር የታነፀ ትውልድ ማፍራት ነው፡፡"
+  },
+  "en": {
+    "name": "Ziquala Abo Monastery Primary School",
+    "objectivesHeading": "Objectives",
+    "objectives": [
+      "Help students grow with the moral character that distinguishes us as Ethiopians and that has been fading in recent times.",
+      "Raise a generation rich in knowledge, equipped with modern science and technology, and capable of bringing their country to the level of development the world has reached.",
+      "Help students grow with love for their country and fellow citizens, and with respect for natural and human-made heritage. Overall, help them develop well-rounded personalities in every respect—physically, psychologically, and socially—and grow with confidence in themselves."
+    ],
+    "visionHeading": "Vision",
+    "vision": "To see mature citizens who can teach themselves through participatory, student-centred learning, preserve good Ethiopian moral character, generate ideas, practices, and leadership that benefit their country and fellow citizens, and bring their country to the level of development the world has reached.",
+    "missionHeading": "Mission",
+    "mission": "Our mission is to provide excellent education through qualified professionals, supported by a modern, high-quality international curriculum that embraces Ethiopian identity, and to raise a morally grounded generation for whom working hard, both individually and together, is a way of life."
+  }
+}

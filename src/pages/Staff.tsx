@@ -1,3 +1,4 @@
+import { uiError, uiText } from "../localization";
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Loader2, AlertCircle, UserCheck, UserPlus, ShieldAlert, Users, Building2, X, Edit2, Trash2, Check } from 'lucide-react';
 import { useState, useEffect } from 'react';
@@ -82,8 +83,8 @@ export const Staff = () => {
     return (
       <div className="p-8 text-center text-rose-500">
         <ShieldAlert className="mx-auto mb-4" size={48} />
-        <h2 className="text-2xl font-bold">Access Denied</h2>
-        <p>You do not have permission to view staff management.</p>
+        <h2 className="text-2xl font-bold">{uiText("Access Denied")}</h2>
+        <p>{uiText("You do not have permission to view staff management.")}</p>
       </div>
     );
   }
@@ -94,27 +95,19 @@ export const Staff = () => {
         <div className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-xl shadow-slate-200/40 dark:shadow-none border border-slate-100 dark:border-slate-800 p-8 md:p-10">
           <div className="max-w-2xl">
             <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300 px-3 py-1 text-[10px] font-black uppercase tracking-[0.25em] mb-4">
-              <Users size={14} />
-              Branch Required
-            </div>
+              <Users size={14} />{uiText("Branch Required")}</div>
             <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{t("staff.title", "Staff Management")}</h1>
-            <p className="text-slate-500 dark:text-slate-400 mt-3 text-sm md:text-base leading-6">
-              Select a branch first to view and manage the academic and library staff assigned to it.
-            </p>
+            <p className="text-slate-500 dark:text-slate-400 mt-3 text-sm md:text-base leading-6">{uiText("Select a branch first to view and manage the academic and library staff assigned to it.")}</p>
             <div className="mt-6 flex flex-wrap gap-3">
               <button
                 onClick={() => navigate('/branches')}
                 className="px-4 py-2.5 bg-blue-600 text-white rounded-xl flex items-center gap-2 hover:bg-blue-700 text-sm font-bold"
               >
-                <Building2 size={18} />
-                Choose Branch
-              </button>
+                <Building2 size={18} />{uiText("Choose Branch")}</button>
               <button
                 onClick={() => navigate('/dashboard/super-admin')}
                 className="px-4 py-2.5 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 text-sm font-bold"
-              >
-                Back to Dashboard
-              </button>
+              >{uiText("Back to Dashboard")}</button>
             </div>
           </div>
         </div>
@@ -171,7 +164,7 @@ export const Staff = () => {
       setStaffList(transformed);
     } catch (err: any) {
       console.error('❌ Error fetching users:', err);
-      setError(err.response?.data?.error?.message || 'Failed to load users');
+      setError(uiError(err.response?.data?.error?.message || 'Failed to load users'));
     } finally {
       setLoading(false);
     }
@@ -322,18 +315,16 @@ export const Staff = () => {
           onClick={() => navigate(-1)}
           className="flex items-center gap-1 text-blue-600 hover:underline text-xs font-bold uppercase tracking-widest"
         >
-          <ArrowLeft size={14} />
-          Back
-        </button>
+          <ArrowLeft size={14} />{uiText("Back")}</button>
       )}
 
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{t("staff.title", "Staff Management")}</h1>
           <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">
-            {currentUserRole === 'super-admin'
+            {uiText(currentUserRole === 'super-admin'
               ? `Assign system roles and global permissions. ${selectedBranch ? ` Viewing ${selectedBranch.name}.` : ''}`
-              : t("staff.subtitle", "Manage the teaching and library teams from one academic workspace.")}
+              : t("staff.subtitle", "Manage the teaching and library teams from one academic workspace."))}
           </p>
         </div>
 
@@ -386,12 +377,12 @@ export const Staff = () => {
             </div>
           )}
 
-          {error && (
+          {uiText(error && (
             <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 flex items-center gap-3">
               <AlertCircle className="text-red-600" size={20} />
-              <p className="text-red-800 dark:text-red-200 text-sm">{error}</p>
+              <p className="text-red-800 dark:text-red-200 text-sm">{uiError(error)}</p>
             </div>
-          )}
+          ))}
 
           {!loading && !error && (
             <div className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-xl shadow-slate-200/40 dark:shadow-none border border-slate-100 dark:border-slate-800 overflow-hidden">
@@ -409,9 +400,7 @@ export const Staff = () => {
                   <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
                     {staffList.length === 0 ? (
                       <tr>
-                        <td colSpan={5} className="px-6 py-12 text-center text-slate-500">
-                          No users found
-                        </td>
+                        <td colSpan={5} className="px-6 py-12 text-center text-slate-500">{uiText("No users found")}</td>
                       </tr>
                     ) : (
                       staffList.map((staff) => (
@@ -421,28 +410,27 @@ export const Staff = () => {
                               <p className="font-bold text-slate-800 dark:text-white">{staff.name}</p>
                               <p className="text-xs text-slate-500">{staff.email}</p>
                               <div className="flex items-center gap-2 mt-1">
-                                <p className="text-xs font-mono text-slate-400">{staff.digitalId || '—'}</p>
-                                {staff.zkDeviceId && (
-                                  <span className="text-[10px] bg-purple-50 text-purple-600 dark:bg-purple-900/30 dark:text-purple-300 px-1.5 py-0.5 rounded font-mono">
-                                    Biometric: {staff.zkDeviceId}
+                                <p className="text-xs font-mono text-slate-400">{uiText(staff.digitalId || '—')}</p>
+                                {uiText(staff.zkDeviceId && (
+                                  <span className="text-[10px] bg-purple-50 text-purple-600 dark:bg-purple-900/30 dark:text-purple-300 px-1.5 py-0.5 rounded font-mono">{uiText("Biometric: ")}{uiText(staff.zkDeviceId)}
                                   </span>
-                                )}
+                                ))}
                               </div>
                             </div>
                           </td>
                           <td className="px-6 py-4">
                             <span className="px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-full text-xs font-bold capitalize">
-                              {staff.role}
+                              {uiText(staff.role)}
                             </span>
                           </td>
                           <td className="px-6 py-4">
                             <span className="text-sm font-semibold text-slate-600 dark:text-slate-400">
-                              {staff.branchName}
+                              {uiText(staff.branchName)}
                             </span>
                           </td>
                           <td className="px-6 py-4">
                             <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${(staff.status === 'Approved' || staff.status === 'active') ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400' : 'bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400'}`}>
-                              {staff.status}
+                              {uiText(staff.status)}
                             </span>
                           </td>
                           <td className="px-6 py-4 text-right">
@@ -451,7 +439,7 @@ export const Staff = () => {
                                 <button
                                   onClick={() => handleUpdateStatus(staff.id, 'Revoked')}
                                   className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg transition-colors"
-                                  title="Deactivate User"
+                                  title={uiText("Deactivate User")}
                                 >
                                   <UserCheck size={16} />
                                 </button>
@@ -459,7 +447,7 @@ export const Staff = () => {
                                 <button
                                   onClick={() => handleUpdateStatus(staff.id, 'Approved')}
                                   className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-colors"
-                                  title="Activate User"
+                                  title={uiText("Activate User")}
                                 >
                                   <UserCheck size={16} />
                                 </button>
@@ -467,14 +455,14 @@ export const Staff = () => {
                               <button
                                 onClick={() => openEditModal(staff)}
                                 className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                                title="Edit User"
+                                title={uiText("Edit User")}
                               >
                                 <Edit2 size={16} />
                               </button>
                               <button
                                 onClick={() => setDeleteModal({ show: true, userId: staff.id, userName: staff.name })}
                                 className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-colors"
-                                title="Delete User"
+                                title={uiText("Delete User")}
                               >
                                 <Trash2 size={16} />
                               </button>
@@ -506,7 +494,7 @@ export const Staff = () => {
                 type="button"
                 onClick={() => setShowCreateModal(false)}
                 className="text-slate-400 hover:text-slate-600"
-                aria-label="Close create user modal"
+                aria-label={uiText("Close create user modal")}
               >
                 <X size={20} />
               </button>
@@ -530,12 +518,12 @@ export const Staff = () => {
                 >
                   {currentUserRole === 'super-admin' ? (
                     <>
-                      <option value="school-admin">School Admin</option>
-                      <option value="academic-manager">Academic Manager</option>
-                      <option value="storekeeper">Storekeeper</option>
+                      <option value="school-admin">{uiText("School Admin")}</option>
+                      <option value="academic-manager">{uiText("Academic Manager")}</option>
+                      <option value="storekeeper">{uiText("Storekeeper")}</option>
                     </>
                   ) : (
-                    <option value="vice-principal">Vice Principal</option>
+                    <option value="vice-principal">{uiText("Vice Principal")}</option>
                   )}
                 </select>
               </div>
@@ -572,7 +560,7 @@ export const Staff = () => {
                   value={createForm.email}
                   onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })}
                   className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="user@school.com"
+                  placeholder={uiText("user@school.com")}
                   required
                 />
               </div>
@@ -612,7 +600,7 @@ export const Staff = () => {
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-slate-500 uppercase">{t("teachers.educationStatus", "Education Status")}</label>
                     <select
-                      title="Select education level"
+                      title={uiText("Select education level")}
                       value={createForm.educationLevel}
                       onChange={(e) => setCreateForm({ ...createForm, educationLevel: e.target.value })}
                       className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
@@ -631,7 +619,7 @@ export const Staff = () => {
                       value={createForm.specialty}
                       onChange={(e) => setCreateForm({ ...createForm, specialty: e.target.value.replace(/[^\p{L}\s'-]/gu, '') })}
                       className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="e.g. Administration, Management..."
+                      placeholder={uiText("e.g. Administration, Management...")}
                     />
                   </div>
                   <div className="space-y-1">
@@ -648,7 +636,7 @@ export const Staff = () => {
                       value={createForm.previousSchool}
                       onChange={(e) => setCreateForm({ ...createForm, previousSchool: e.target.value })}
                       className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="e.g. St. Joseph School"
+                      placeholder={uiText("e.g. St. Joseph School")}
                     />
                   </div>
                   <div className="space-y-1">
@@ -660,7 +648,7 @@ export const Staff = () => {
                       value={createForm.experienceYears}
                       onChange={(e) => setCreateForm({ ...createForm, experienceYears: e.target.value })}
                       className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="e.g. 5"
+                      placeholder={uiText("e.g. 5")}
                     />
                   </div>
                 </div>
@@ -668,10 +656,10 @@ export const Staff = () => {
 
               {currentUserRole === 'super-admin' && (
                 <div className="space-y-1">
-                  <label htmlFor="branch-select" className="text-xs font-bold text-slate-500 uppercase">Branch</label>
+                  <label htmlFor="branch-select" className="text-xs font-bold text-slate-500 uppercase">{uiText("Branch")}</label>
                   {selectedBranchId ? (
                     <div className="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold text-slate-700 dark:text-slate-200">
-                      {selectedBranch?.name || branches.find((branch) => branch.id === selectedBranchId)?.name || 'Selected Branch'}
+                      {uiText(selectedBranch?.name || branches.find((branch) => branch.id === selectedBranchId)?.name || 'Selected Branch')}
                       <input type="hidden" value={selectedBranchId} />
                     </div>
                   ) : (
@@ -682,7 +670,7 @@ export const Staff = () => {
                       className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
                       required
                     >
-                      <option value="">Select Branch</option>
+                      <option value="">{uiText("Select Branch")}</option>
                       {branches.map((branch) => (
                         <option key={branch.id} value={branch.id}>{branch.name}</option>
                       ))}
@@ -697,16 +685,14 @@ export const Staff = () => {
                   onClick={() => setShowCreateModal(false)}
                   className="flex-1 px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg font-bold text-sm text-slate-500 hover:bg-slate-50"
                   disabled={creating}
-                >
-                  Cancel
-                </button>
+                >{uiText("Cancel")}</button>
                 <button
                   type="submit"
                   className="flex-1 bg-blue-600 text-white font-bold py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-blue-700 disabled:opacity-50"
                   disabled={creating}
                 >
                   {creating ? <Loader2 className="animate-spin" size={18} /> : <UserCheck size={18} />}
-                  <span>{creating ? 'Creating...' : 'Create User'}</span>
+                  <span>{uiText(creating ? 'Creating...' : 'Create User')}</span>
                 </button>
               </div>
             </form>
@@ -724,18 +710,18 @@ export const Staff = () => {
                   <UserCheck size={24} />
                 </div>
                 <div>
-                  <h3 className="font-bold text-slate-800 dark:text-slate-100 text-lg">User Created Successfully!</h3>
-                  <p className="text-sm text-slate-500">Save the temporary password below</p>
+                  <h3 className="font-bold text-slate-800 dark:text-slate-100 text-lg">{uiText("User Created Successfully!")}</h3>
+                  <p className="text-sm text-slate-500">{uiText("Save the temporary password below")}</p>
                 </div>
               </div>
             </div>
 
             <div className="p-6 space-y-4">
               <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-slate-700">
-                <label className="text-xs font-bold text-slate-500 uppercase block mb-2">Temporary Password</label>
+                <label className="text-xs font-bold text-slate-500 uppercase block mb-2">{uiText("Temporary Password")}</label>
                 <div className="flex items-center gap-2">
                   <code className="flex-1 text-lg font-mono font-bold text-blue-600 dark:text-blue-400 bg-white dark:bg-slate-900 px-4 py-3 rounded-lg border border-slate-200 dark:border-slate-700">
-                    {successModal.data?.temporaryPassword || 'N/A'}
+                    {uiText(successModal.data?.temporaryPassword || 'N/A')}
                   </code>
                   <button
                     onClick={() => {
@@ -744,30 +730,24 @@ export const Staff = () => {
                       setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
                     }}
                     className="px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-bold text-sm"
-                  >
-                    Copy
-                  </button>
+                  >{uiText("Copy")}</button>
                 </div>
               </div>
 
               <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
                 <p className="text-sm text-amber-800 dark:text-amber-200">
-                  <strong>⚠️ Important:</strong> This password will only be shown once. Make sure to save it securely.
-                </p>
+                  <strong>{uiText("⚠️ Important:")}</strong>{uiText(" This password will only be shown once. Make sure to save it securely.")}</p>
               </div>
 
               <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4">
                 <p className="text-sm text-emerald-800 dark:text-emerald-200">
-                  <strong>📧 Email sent:</strong> A welcome email with the Digital ID, login email, and temporary password has been automatically sent to <strong>{successModal.data?.user?.email}</strong>.
-                </p>
+                  <strong>{uiText("📧 Email sent:")}</strong>{uiText(" A welcome email with the Digital ID, login email, and temporary password has been automatically sent to ")}<strong>{successModal.data?.user?.email}</strong>{uiText(".")}</p>
               </div>
 
               <button
                 onClick={() => setSuccessModal({ show: false, data: null })}
                 className="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition-colors text-sm"
-              >
-                Done
-              </button>
+              >{uiText("Done")}</button>
             </div>
           </div>
         </div>
@@ -782,24 +762,18 @@ export const Staff = () => {
                 <div className="p-3 bg-rose-100 dark:bg-rose-950/50 rounded-full">
                   <Trash2 size={24} />
                 </div>
-                <h3 className="font-bold text-slate-800 dark:text-slate-100 text-lg">Delete User</h3>
+                <h3 className="font-bold text-slate-800 dark:text-slate-100 text-lg">{uiText("Delete User")}</h3>
               </div>
-              <p className="text-slate-600 dark:text-slate-400 mb-6 text-sm">
-                Are you sure you want to delete <strong>{deleteModal.userName}</strong>? This action cannot be undone.
-              </p>
+              <p className="text-slate-600 dark:text-slate-400 mb-6 text-sm">{uiText("Are you sure you want to delete ")}<strong>{uiText(deleteModal.userName)}</strong>{uiText("? This action cannot be undone.")}</p>
               <div className="flex gap-3">
                 <button
                   onClick={() => setDeleteModal({ show: false, userId: '', userName: '' })}
                   className="flex-1 px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
-                >
-                  Cancel
-                </button>
+                >{uiText("Cancel")}</button>
                 <button
                   onClick={confirmDelete}
                   className="flex-1 bg-rose-600 text-white font-bold py-2.5 rounded-xl hover:bg-rose-700 transition-colors text-sm"
-                >
-                  Delete
-                </button>
+                >{uiText("Delete")}</button>
               </div>
             </div>
           </div>
@@ -815,15 +789,13 @@ export const Staff = () => {
                 <div className="p-3 bg-red-100 text-red-600 rounded-full">
                   <AlertCircle size={24} />
                 </div>
-                <h3 className="font-bold text-slate-800 dark:text-slate-100 text-lg">Error</h3>
+                <h3 className="font-bold text-slate-800 dark:text-slate-100 text-lg">{uiText("Error")}</h3>
               </div>
-              <p className="text-slate-600 dark:text-slate-400 mb-6">{errorModal.message}</p>
+              <p className="text-slate-600 dark:text-slate-400 mb-6">{uiText(errorModal.message)}</p>
               <button
                 onClick={() => setErrorModal({ show: false, message: '' })}
                 className="w-full bg-slate-900 dark:bg-slate-800 text-white font-bold py-3 rounded-lg hover:bg-slate-800 dark:hover:bg-slate-700"
-              >
-                Close
-              </button>
+              >{uiText("Close")}</button>
             </div>
           </div>
         </div>
@@ -837,31 +809,31 @@ export const Staff = () => {
             : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-800 dark:text-red-200'
             }`}>
             <UserCheck size={20} />
-            <p className="font-bold text-sm">{toast.message}</p>
+            <p className="font-bold text-sm">{uiText(toast.message)}</p>
           </div>
         </div>
       )}
 
       {/* Edit Modal */}
-      {showEditModal && editingStaff && (
+      {uiText(showEditModal && editingStaff && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 w-full max-w-md">
             <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-blue-100 text-blue-600 rounded-lg"><Edit2 size={20} /></div>
-                <h3 className="font-bold text-slate-800 dark:text-slate-100">Edit User Details</h3>
+                <h3 className="font-bold text-slate-800 dark:text-slate-100">{uiText("Edit User Details")}</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setShowEditModal(false)}
                 className="text-slate-400 hover:text-slate-600"
-                title="Close edit modal"
-                aria-label="Close edit modal"
+                title={uiText("Close edit modal")}
+                aria-label={uiText("Close edit modal")}
               ><X size={20} /></button>
             </div>
             <form onSubmit={handleEdit} className="p-6 space-y-4">
               <div>
-                <label htmlFor="edit-name" className="text-xs font-bold text-slate-500 uppercase">Full Name</label>
+                <label htmlFor="edit-name" className="text-xs font-bold text-slate-500 uppercase">{uiText("Full Name")}</label>
                 <input
                   id="edit-name"
                   type="text"
@@ -872,7 +844,7 @@ export const Staff = () => {
                 />
               </div>
               <div>
-                <label htmlFor="edit-email" className="text-xs font-bold text-slate-500 uppercase">Email Address</label>
+                <label htmlFor="edit-email" className="text-xs font-bold text-slate-500 uppercase">{uiText("Email Address")}</label>
                 <input
                   id="edit-email"
                   type="email"
@@ -885,8 +857,8 @@ export const Staff = () => {
               <div className="flex flex-col gap-3 border-t border-b border-slate-100 dark:border-slate-800 py-4 my-2">
                 <div className="flex items-center justify-between gap-4">
                   <div>
-                    <label className="text-xs font-bold text-slate-500 uppercase">Password Reset</label>
-                    <p className="text-xs text-slate-500">Generate a new 4-digit PIN for this user.</p>
+                    <label className="text-xs font-bold text-slate-500 uppercase">{uiText("Password Reset")}</label>
+                    <p className="text-xs text-slate-500">{uiText("Generate a new 4-digit PIN for this user.")}</p>
                   </div>
                   <button
                     type="button"
@@ -894,34 +866,31 @@ export const Staff = () => {
                     disabled={resettingPassword}
                     className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-xs font-bold disabled:opacity-50 whitespace-nowrap"
                   >
-                    {resettingPassword ? 'Generating...' : 'Reset Password'}
+                    {uiText(resettingPassword ? 'Generating...' : 'Reset Password')}
                   </button>
                 </div>
-                {generatedPassword && (
+                {uiText(generatedPassword && (
                   <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 text-center">
-                    <p className="text-xs text-amber-700 dark:text-amber-300">
-                      New password generated: <span className="font-mono text-base font-bold text-slate-900 dark:text-white ml-1">{generatedPassword}</span>
+                    <p className="text-xs text-amber-700 dark:text-amber-300">{uiText("New password generated: ")}<span className="font-mono text-base font-bold text-slate-900 dark:text-white ml-1">{uiText(generatedPassword)}</span>
                     </p>
                   </div>
-                )}
+                ))}
               </div>
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => setShowEditModal(false)}
                   className="flex-1 px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg font-bold text-sm text-slate-500 hover:bg-slate-50"
-                  disabled={submitting}>
-                  Cancel
-                </button>
+                  disabled={submitting}>{uiText("Cancel")}</button>
                 <button type="submit"
                   className="flex-1 bg-blue-600 text-white font-bold py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-blue-700 disabled:opacity-50"
                   disabled={submitting}>
                   {submitting ? <Loader2 className="animate-spin" size={18} /> : <Check size={18} />}
-                  <span>{submitting ? 'Saving...' : 'Save Changes'}</span>
+                  <span>{uiText(submitting ? 'Saving...' : 'Save Changes')}</span>
                 </button>
               </div>
             </form>
           </div>
         </div>
-      )}
+      ))}
     </div>
   );
 };

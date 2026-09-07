@@ -1,3 +1,4 @@
+import { uiError, uiText } from "../localization";
 import { useTranslation } from 'react-i18next';
 import { Building, Palette, Save, HelpCircle, CreditCard, GraduationCap, Plus, Trash2, AlertCircle, Lock, Unlock, CheckCircle, Shield, Mail, ChevronDown, Check, X } from 'lucide-react';
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -68,7 +69,7 @@ const MultiSelectDropdown = ({
       >
         <div className="flex flex-wrap items-center gap-1.5 py-0.5 max-w-[calc(100%-1.5rem)]">
           {selectedValues.length === 0 ? (
-            <span className="text-slate-400 font-semibold">{placeholder}</span>
+            <span className="text-slate-400 font-semibold">{uiText(placeholder)}</span>
           ) : (
             selectedValues.map((val) => {
               const opt = options.find(o => o.value === val);
@@ -78,17 +79,15 @@ const MultiSelectDropdown = ({
                   key={val}
                   className="inline-flex items-center gap-1 bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 px-2 py-0.5 rounded-lg text-[11px] font-black"
                 >
-                  {displayLabel}
+                  {uiText(displayLabel)}
                   <span
                     onClick={(e) => {
                       e.stopPropagation();
                       onChange(val, false);
                     }}
                     className="hover:text-rose-500 cursor-pointer ml-0.5 text-xs font-black"
-                    title="Remove grade"
-                  >
-                    ×
-                  </span>
+                    title={uiText("Remove grade")}
+                  >{uiText("×")}</span>
                 </span>
               );
             })
@@ -102,23 +101,19 @@ const MultiSelectDropdown = ({
           <div className="fixed inset-0 z-20" onClick={() => setIsOpen(false)} />
           <div className="absolute left-0 right-0 mt-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl max-h-64 overflow-y-auto z-30 p-2 space-y-1 animate-in fade-in slide-in-from-top-1 duration-150">
             <div className="flex items-center justify-between px-3 py-1.5 border-b border-slate-100 dark:border-slate-800 text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">
-              <span>{selectedValues.length} of {options.length} Selected</span>
+              <span>{selectedValues.length}{uiText(" of ")}{options.length}{uiText(" Selected")}</span>
               <div className="flex gap-2">
                 <button
                   type="button"
                   onClick={() => handleToggleAll(true)}
                   className="text-blue-600 dark:text-blue-400 hover:underline uppercase font-extrabold"
-                >
-                  Select All
-                </button>
-                <span>·</span>
+                >{uiText("Select All")}</button>
+                <span>{uiText("·")}</span>
                 <button
                   type="button"
                   onClick={() => handleToggleAll(false)}
                   className="text-rose-500 hover:underline uppercase font-extrabold"
-                >
-                  Clear
-                </button>
+                >{uiText("Clear")}</button>
               </div>
             </div>
             {options.map((option) => {
@@ -135,7 +130,7 @@ const MultiSelectDropdown = ({
                       onChange={(e) => onChange(option.value, e.target.checked)}
                       className="rounded border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer"
                     />
-                    <span>{option.label}</span>
+                    <span>{uiText(option.label)}</span>
                   </span>
                   {isChecked && <Check size={14} className="text-blue-600 dark:text-blue-400" />}
                 </label>
@@ -526,7 +521,7 @@ export const Settings = () => {
 
   const saveGeneralSettings = async () => {
     setGeneralSaving(true);
-    setSuccessMessage('');
+    setSuccessMessage(uiText(""));
     try {
       const active = academicYears.find((y) => y.is_active);
       const shouldActivateYear = Boolean(
@@ -552,11 +547,11 @@ export const Settings = () => {
       if (shouldActivateYear) {
         await loadGeneralSettings();
       }
-      setSuccessMessage('System settings saved successfully!');
-      setTimeout(() => setSuccessMessage(''), 4000);
+      setSuccessMessage(uiText("System settings saved successfully!"));
+      setTimeout(() => setSuccessMessage(uiText("")), 4000);
     } catch (err: any) {
-      setSuccessMessage(err.response?.data?.error?.message || 'Failed to save system settings');
-      setTimeout(() => setSuccessMessage(''), 5000);
+      setSuccessMessage(uiText(err.response?.data?.error?.message || 'Failed to save system settings'));
+      setTimeout(() => setSuccessMessage(uiText("")), 5000);
     } finally {
       setGeneralSaving(false);
     }
@@ -602,7 +597,7 @@ export const Settings = () => {
   };
 
   const handleDeleteFeeConfig = async (id: string) => {
-    if (!window.confirm('Delete this fee configuration? This cannot be undone.')) return;
+    if (!window.confirm(uiText("Delete this fee configuration? This cannot be undone."))) return;
     try {
       await settingsService.deleteBranchGradeFee(id);
       setFinanceSuccessMsg('Fee configuration removed.');
@@ -639,12 +634,12 @@ export const Settings = () => {
 
   const handleSaveSmtp = async () => {
     setSmtpSaving(true);
-    setSmtpMessage('');
+    setSmtpMessage(uiText(""));
     try {
       await settingsService.updateSmtpSettings(smtpSettings);
-      setSmtpMessage('SMTP settings saved');
+      setSmtpMessage(uiText("SMTP settings saved"));
     } catch (err: any) {
-      setSmtpMessage(err.response?.data?.error?.message || 'Failed to save SMTP settings');
+      setSmtpMessage(uiText(err.response?.data?.error?.message || 'Failed to save SMTP settings'));
     } finally {
       setSmtpSaving(false);
     }
@@ -653,12 +648,12 @@ export const Settings = () => {
   const handleTestSmtp = async () => {
     if (!smtpTestEmail) return;
     setSmtpSaving(true);
-    setSmtpMessage('');
+    setSmtpMessage(uiText(""));
     try {
       const result = await settingsService.testSmtpSettings(smtpTestEmail);
-      setSmtpMessage(result.message || 'Test email sent');
+      setSmtpMessage(uiText(result.message || 'Test email sent'));
     } catch (err: any) {
-      setSmtpMessage(err.response?.data?.error?.message || 'SMTP test failed');
+      setSmtpMessage(uiText(err.response?.data?.error?.message || 'SMTP test failed'));
     } finally {
       setSmtpSaving(false);
     }
@@ -666,8 +661,8 @@ export const Settings = () => {
 
   const handleSaveDraftSystems = (updatedSystems: GradingSystem[]) => {
     localStorage.setItem('ziquala_grading_systems', JSON.stringify(updatedSystems));
-    setSuccessMessage('Grading systems saved locally as draft. Click Publish on any card to update teachers.');
-    setTimeout(() => setSuccessMessage(''), 5000);
+    setSuccessMessage(uiText("Grading systems saved locally as draft. Click Publish on any card to update teachers."));
+    setTimeout(() => setSuccessMessage(uiText("")), 5000);
   };
 
   const handleSaveChanges = async () => {
@@ -678,11 +673,11 @@ export const Settings = () => {
     } else if (activeTab === 'Security' && role === 'super-admin' && activeSubTab === 'smtp') {
       await handleSaveSmtp();
     } else if (activeTab === 'Security') {
-      setSuccessMessage('Use the form above to change your password.');
-      setTimeout(() => setSuccessMessage(''), 3000);
+      setSuccessMessage(uiText("Use the form above to change your password."));
+      setTimeout(() => setSuccessMessage(uiText("")), 3000);
     } else {
-      setSuccessMessage('No changes to save for this tab.');
-      setTimeout(() => setSuccessMessage(''), 3000);
+      setSuccessMessage(uiText("No changes to save for this tab."));
+      setTimeout(() => setSuccessMessage(uiText("")), 3000);
     }
   };
 
@@ -692,14 +687,14 @@ export const Settings = () => {
 
     const totalWeight = system.methods.reduce((sum, m) => sum + m.maxWeight, 0);
     if (totalWeight !== 100) {
-      setSuccessMessage(`Error: Total weight must be exactly 100% (currently ${totalWeight}%).`);
-      setTimeout(() => setSuccessMessage(''), 5000);
+      setSuccessMessage(uiText("Error: Total weight must be exactly 100% (currently {{value0}}%).", { value0: totalWeight }));
+      setTimeout(() => setSuccessMessage(uiText("")), 5000);
       return;
     }
 
     if (system.grades.length === 0) {
-      setSuccessMessage('Error: You must select at least one grade to publish this grading system.');
-      setTimeout(() => setSuccessMessage(''), 5000);
+      setSuccessMessage(uiText("Error: You must select at least one grade to publish this grading system."));
+      setTimeout(() => setSuccessMessage(uiText("")), 5000);
       return;
     }
 
@@ -725,31 +720,31 @@ export const Settings = () => {
     localStorage.setItem('ziquala_grading_systems', JSON.stringify(updated));
 
     if (failedGrades.length === 0) {
-      setSuccessMessage(`Grading system "${system.name}" successfully published for Grade(s): ${system.grades.join(', ')}!`);
+      setSuccessMessage(uiText("Grading system \"{{value0}}\" successfully published for Grade(s): {{value1}}!", { value0: system.name, value1: system.grades.join(', ') }));
     } else {
-      setSuccessMessage(`Published for ${publishedCount} grade(s). Failed for Grade(s): ${failedGrades.join(', ')}.`);
+      setSuccessMessage(uiText("Published for {{value0}} grade(s). Failed for Grade(s): {{value1}}.", { value0: publishedCount, value1: failedGrades.join(', ') }));
     }
     setGradingLoading(false);
-    setTimeout(() => setSuccessMessage(''), 6000);
+    setTimeout(() => setSuccessMessage(uiText("")), 6000);
   };
 
   const handleDeleteSystem = (systemId: string) => {
-    if (window.confirm('Are you sure you want to delete this grading system? This will not undo database changes until you re-publish other systems for the impacted grades.')) {
+    if (window.confirm(uiText("Are you sure you want to delete this grading system? This will not undo database changes until you re-publish other systems for the impacted grades."))) {
       const updated = gradingSystems.filter((s) => s.id !== systemId);
       setGradingSystems(updated);
       localStorage.setItem('ziquala_grading_systems', JSON.stringify(updated));
-      setSuccessMessage('Grading system deleted from drafts.');
-      setTimeout(() => setSuccessMessage(''), 3000);
+      setSuccessMessage(uiText("Grading system deleted from drafts."));
+      setTimeout(() => setSuccessMessage(uiText("")), 3000);
     }
   };
 
   const handleCreateSystem = () => {
     if (!draftName.trim()) {
-      alert('Please enter a grading system name.');
+      alert(uiText("Please enter a grading system name."));
       return;
     }
     if (draftGrades.length === 0) {
-      alert('Please select at least one grade level.');
+      alert(uiText("Please select at least one grade level."));
       return;
     }
     const newSystem: GradingSystem = {
@@ -770,8 +765,8 @@ export const Settings = () => {
     setShowNewSystemForm(false);
     setExpandedSystemId(newSystem.id); // auto-expand newly created system
 
-    setSuccessMessage('New grading system added to drafts.');
-    setTimeout(() => setSuccessMessage(''), 3000);
+    setSuccessMessage(uiText("New grading system added to drafts."));
+    setTimeout(() => setSuccessMessage(uiText("")), 3000);
   };
 
 
@@ -818,9 +813,9 @@ export const Settings = () => {
         <div className="flex-1 bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-200/40 dark:shadow-none overflow-hidden transition-all duration-500 flex flex-col min-h-[520px] max-h-[calc(100vh-4rem)]">
           <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/30">
             <h3 className="text-xl font-black text-slate-800 dark:text-white uppercase tracking-tight">
-              {superAdminSubTabs ? t(`settings.subtabs.${activeSubTab}`, getSubTabLabel(activeTab, activeSubTab)) : t(`settings.tabs.${activeTab.startsWith('Grading') ? 'Grading' : activeTab}`, activeTab)}
+              {uiText(superAdminSubTabs ? t(`settings.subtabs.${activeSubTab}`, getSubTabLabel(activeTab, activeSubTab)) : t(`settings.tabs.${activeTab.startsWith('Grading') ? 'Grading' : activeTab}`, activeTab))}
               <span className="text-slate-400 font-bold text-sm normal-case tracking-normal ml-2">
-                {superAdminSubTabs ? `· ${t(`settings.tabs.${activeTab.startsWith('Grading') ? 'Grading' : activeTab}`, activeTab)}` : t('settings.configuration')}
+                {uiText(superAdminSubTabs ? `· ${t(`settings.tabs.${activeTab.startsWith('Grading') ? 'Grading' : activeTab}`, activeTab)}` : t('settings.configuration'))}
               </span>
             </h3>
             <button className="text-blue-600 dark:text-blue-400 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest hover:underline bg-blue-50 dark:bg-blue-900/20 px-4 py-2 rounded-xl">
@@ -830,12 +825,12 @@ export const Settings = () => {
           </div>
 
           <div className="px-6 py-5 flex flex-col gap-5 flex-1 min-h-0 overflow-y-auto">
-            {successMessage && (
+            {uiText(successMessage && (
               <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/30 text-emerald-800 dark:text-emerald-300 p-4 rounded-2xl text-xs font-bold uppercase tracking-wider flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
                 <CheckCircle size={18} className="text-emerald-600 dark:text-emerald-400" />
-                <span>{successMessage}</span>
+                <span>{uiText(successMessage)}</span>
               </div>
-            )}
+            ))}
 
             {superAdminSubTabs && (
               <SettingsSubTabs tabs={superAdminSubTabs} active={activeSubTab} onChange={setActiveSubTab} />
@@ -893,9 +888,9 @@ export const Settings = () => {
                             <input
                               id="school-motto-oromic"
                               type="text"
-                              title="School motto in Oromic"
-                              aria-label="School motto in Oromic"
-                              placeholder="Enter Oromic motto"
+                              title={uiText("School motto in Oromic")}
+                              aria-label={uiText("School motto in Oromic")}
+                              placeholder={uiText("Enter Oromic motto")}
                               className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 italic"
                               value={schoolMotto.oromic}
                               onChange={(e) => role === 'super-admin' && setSchoolMotto({ ...schoolMotto, oromic: e.target.value })}
@@ -907,9 +902,9 @@ export const Settings = () => {
                             <input
                               id="school-motto-amharic"
                               type="text"
-                              title="School motto in Amharic"
-                              aria-label="School motto in Amharic"
-                              placeholder="Enter Amharic motto"
+                              title={uiText("School motto in Amharic")}
+                              aria-label={uiText("School motto in Amharic")}
+                              placeholder={uiText("Enter Amharic motto")}
                               className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 italic"
                               value={schoolMotto.amharic}
                               onChange={(e) => role === 'super-admin' && setSchoolMotto({ ...schoolMotto, amharic: e.target.value })}
@@ -921,9 +916,9 @@ export const Settings = () => {
                             <input
                               id="school-motto-english"
                               type="text"
-                              title="School motto in English"
-                              aria-label="School motto in English"
-                              placeholder="Enter English motto"
+                              title={uiText("School motto in English")}
+                              aria-label={uiText("School motto in English")}
+                              placeholder={uiText("Enter English motto")}
                               className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 italic"
                               value={schoolMotto.english}
                               onChange={(e) => role === 'super-admin' && setSchoolMotto({ ...schoolMotto, english: e.target.value })}
@@ -938,7 +933,7 @@ export const Settings = () => {
                   {showSubSection('contact') && (
                     <>
                       <div className="space-y-1">
-                        <label htmlFor="system-email" className="text-[10px] font-bold text-slate-500 uppercase">System Email</label>
+                        <label htmlFor="system-email" className="text-[10px] font-bold text-slate-500 uppercase">{uiText("System Email")}</label>
                         <input
                           id="system-email"
                           type="email"
@@ -949,7 +944,7 @@ export const Settings = () => {
                         />
                       </div>
                       <div className="space-y-1">
-                        <label htmlFor="phone-number" className="text-[10px] font-bold text-slate-500 uppercase">Phone Number</label>
+                        <label htmlFor="phone-number" className="text-[10px] font-bold text-slate-500 uppercase">{uiText("Phone Number")}</label>
                         <input
                           id="phone-number"
                           type="text"
@@ -960,7 +955,7 @@ export const Settings = () => {
                         />
                       </div>
                       <div className="space-y-1">
-                        <label htmlFor="academic-year" className="text-[10px] font-bold text-slate-500 uppercase">Academic Year</label>
+                        <label htmlFor="academic-year" className="text-[10px] font-bold text-slate-500 uppercase">{uiText("Academic Year")}</label>
                         <select
                           id="academic-year"
                           value={selectedAcademicYearId}
@@ -968,16 +963,16 @@ export const Settings = () => {
                           disabled={role !== 'super-admin' || academicYears.length === 0}
                           className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
                         >
-                          <option value="">Select academic year</option>
+                          <option value="">{uiText("Select academic year")}</option>
                           {academicYears.map((y) => (
                             <option key={y.id} value={y.id}>
-                              {y.year_name}{y.is_active ? ' (Current)' : ''}
+                              {uiText(y.year_name)}{uiText(y.is_active ? ' (Current)' : '')}
                             </option>
                           ))}
                         </select>
                       </div>
                       <div className="space-y-1">
-                        <label htmlFor="school-address" className="text-[10px] font-bold text-slate-500 uppercase">School Address</label>
+                        <label htmlFor="school-address" className="text-[10px] font-bold text-slate-500 uppercase">{uiText("School Address")}</label>
                         <textarea
                           id="school-address"
                           rows={3}
@@ -992,9 +987,7 @@ export const Settings = () => {
 
                   {role !== 'super-admin' && (
                     <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 text-slate-500 text-[10px] font-bold flex items-center gap-2">
-                      <Lock size={14} />
-                      Some global branding settings are restricted to Super Admins.
-                    </div>
+                      <Lock size={14} />{uiText("Some global branding settings are restricted to Super Admins.")}</div>
                   )}
                 </div>
               </SettingsPanel>
@@ -1010,24 +1003,24 @@ export const Settings = () => {
                           <Shield size={24} />
                         </div>
                         <div>
-                          <h4 className="text-lg font-bold text-slate-800 dark:text-white">Change Password</h4>
-                          <p className="text-xs text-slate-500">Update your password to keep your account secure</p>
+                          <h4 className="text-lg font-bold text-slate-800 dark:text-white">{uiText("Change Password")}</h4>
+                          <p className="text-xs text-slate-500">{uiText("Update your password to keep your account secure")}</p>
                         </div>
                       </div>
 
                       {passwordSuccess && (
                         <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4 flex items-center gap-3">
                           <CheckCircle className="text-green-600" size={20} />
-                          <p className="text-sm text-green-800 dark:text-green-200 font-medium">Password changed successfully!</p>
+                          <p className="text-sm text-green-800 dark:text-green-200 font-medium">{uiText("Password changed successfully!")}</p>
                         </div>
                       )}
 
-                      {passwordError && (
+                      {uiText(passwordError && (
                         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 flex items-center gap-3">
                           <AlertCircle className="text-red-600" size={20} />
-                          <p className="text-sm text-red-800 dark:text-red-200 font-medium">{passwordError}</p>
+                          <p className="text-sm text-red-800 dark:text-red-200 font-medium">{uiError(passwordError)}</p>
                         </div>
-                      )}
+                      ))}
 
                       <form
                         onSubmit={async (e) => {
@@ -1109,7 +1102,7 @@ export const Settings = () => {
                           </div>
 
                           <div className="space-y-1">
-                            <label htmlFor="confirm-password" className="text-xs font-bold text-slate-500 uppercase">Confirm New Password</label>
+                            <label htmlFor="confirm-password" className="text-xs font-bold text-slate-500 uppercase">{uiText("Confirm New Password")}</label>
                             <input
                               id="confirm-password"
                               type="password"
@@ -1125,24 +1118,16 @@ export const Settings = () => {
 
                         {/* Password Requirements */}
                         <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
-                          <p className="text-xs font-bold text-blue-800 dark:text-blue-200 mb-2">Password Requirements:</p>
+                          <p className="text-xs font-bold text-blue-800 dark:text-blue-200 mb-2">{uiText("Password Requirements:")}</p>
                           <ul className="space-y-1 text-xs text-blue-700 dark:text-blue-300">
                             <li className="flex items-center gap-2">
-                              <div className={`w-1.5 h-1.5 rounded-full ${passwordForm.newPassword.length >= 5 ? 'bg-green-500' : 'bg-slate-300'}`} />
-                              At least 5 characters long
-                            </li>
+                              <div className={`w-1.5 h-1.5 rounded-full ${passwordForm.newPassword.length >= 5 ? 'bg-green-500' : 'bg-slate-300'}`} />{uiText("At least 5 characters long")}</li>
                             <li className="flex items-center gap-2">
-                              <div className={`w-1.5 h-1.5 rounded-full ${/[A-Z]/.test(passwordForm.newPassword) ? 'bg-green-500' : 'bg-slate-300'}`} />
-                              Contains uppercase letter
-                            </li>
+                              <div className={`w-1.5 h-1.5 rounded-full ${/[A-Z]/.test(passwordForm.newPassword) ? 'bg-green-500' : 'bg-slate-300'}`} />{uiText("Contains uppercase letter")}</li>
                             <li className="flex items-center gap-2">
-                              <div className={`w-1.5 h-1.5 rounded-full ${/[a-z]/.test(passwordForm.newPassword) ? 'bg-green-500' : 'bg-slate-300'}`} />
-                              Contains lowercase letter
-                            </li>
+                              <div className={`w-1.5 h-1.5 rounded-full ${/[a-z]/.test(passwordForm.newPassword) ? 'bg-green-500' : 'bg-slate-300'}`} />{uiText("Contains lowercase letter")}</li>
                             <li className="flex items-center gap-2">
-                              <div className={`w-1.5 h-1.5 rounded-full ${/[0-9]/.test(passwordForm.newPassword) ? 'bg-green-500' : 'bg-slate-300'}`} />
-                              Contains number
-                            </li>
+                              <div className={`w-1.5 h-1.5 rounded-full ${/[0-9]/.test(passwordForm.newPassword) ? 'bg-green-500' : 'bg-slate-300'}`} />{uiText("Contains number")}</li>
                           </ul>
                         </div>
 
@@ -1154,12 +1139,12 @@ export const Settings = () => {
                           {passwordLoading ? (
                             <>
                               <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                              <span>Changing Password...</span>
+                              <span>{uiText("Changing Password...")}</span>
                             </>
                           ) : (
                             <>
                               <Lock size={18} />
-                              <span>Change Password</span>
+                              <span>{uiText("Change Password")}</span>
                             </>
                           )}
                         </button>
@@ -1167,8 +1152,8 @@ export const Settings = () => {
 
                       <div className="grid grid-cols-1 gap-4">
                         <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800">
-                          <p className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Use strong passwords</p>
-                          <p className="text-xs text-slate-500">Combine letters, numbers, and special characters to ensure account safety.</p>
+                          <p className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">{uiText("Use strong passwords")}</p>
+                          <p className="text-xs text-slate-500">{uiText("Combine letters, numbers, and special characters to ensure account safety.")}</p>
                         </div>
                       </div>
                     </div>
@@ -1181,18 +1166,18 @@ export const Settings = () => {
                           <Mail size={24} />
                         </div>
                         <div>
-                          <h4 className="text-lg font-bold text-slate-800 dark:text-white">SMTP / Email</h4>
-                          <p className="text-xs text-slate-500">Outgoing mail for admissions and notifications</p>
+                          <h4 className="text-lg font-bold text-slate-800 dark:text-white">{uiText("SMTP / Email")}</h4>
+                          <p className="text-xs text-slate-500">{uiText("Outgoing mail for admissions and notifications")}</p>
                         </div>
                       </div>
-                      {smtpMessage && (
+                      {uiText(smtpMessage && (
                         <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4 text-sm text-blue-800 dark:text-blue-200">
-                          {smtpMessage}
+                          {uiText(smtpMessage)}
                         </div>
-                      )}
+                      ))}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-800">
                         <div className="space-y-1">
-                          <label htmlFor="smtp-host" className="text-xs font-bold text-slate-500 uppercase">SMTP Host</label>
+                          <label htmlFor="smtp-host" className="text-xs font-bold text-slate-500 uppercase">{uiText("SMTP Host")}</label>
                           <input
                             id="smtp-host"
                             value={smtpSettings.smtp_host}
@@ -1201,7 +1186,7 @@ export const Settings = () => {
                           />
                         </div>
                         <div className="space-y-1">
-                          <label htmlFor="smtp-port" className="text-xs font-bold text-slate-500 uppercase">SMTP Port</label>
+                          <label htmlFor="smtp-port" className="text-xs font-bold text-slate-500 uppercase">{uiText("SMTP Port")}</label>
                           <input
                             id="smtp-port"
                             value={smtpSettings.smtp_port}
@@ -1210,7 +1195,7 @@ export const Settings = () => {
                           />
                         </div>
                         <div className="space-y-1">
-                          <label htmlFor="smtp-user" className="text-xs font-bold text-slate-500 uppercase">SMTP User</label>
+                          <label htmlFor="smtp-user" className="text-xs font-bold text-slate-500 uppercase">{uiText("SMTP User")}</label>
                           <input
                             id="smtp-user"
                             value={smtpSettings.smtp_user}
@@ -1219,7 +1204,7 @@ export const Settings = () => {
                           />
                         </div>
                         <div className="space-y-1">
-                          <label htmlFor="smtp-from" className="text-xs font-bold text-slate-500 uppercase">From Address</label>
+                          <label htmlFor="smtp-from" className="text-xs font-bold text-slate-500 uppercase">{uiText("From Address")}</label>
                           <input
                             id="smtp-from"
                             value={smtpSettings.smtp_from}
@@ -1227,18 +1212,16 @@ export const Settings = () => {
                             className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm"
                           />
                         </div>
-                        <div className="md:col-span-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-200">
-                          SMTP password is managed securely in the server environment as <code>SMTP_PASS</code>. It cannot be viewed or changed here.
-                        </div>
+                        <div className="md:col-span-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-200">{uiText("SMTP password is managed securely in the server environment as ")}<code>{uiText("SMTP_PASS")}</code>{uiText(". It cannot be viewed or changed here.")}</div>
                         <div className="space-y-1 md:col-span-2">
-                          <label htmlFor="smtp-test-email" className="text-xs font-bold text-slate-500 uppercase">Test recipient email</label>
+                          <label htmlFor="smtp-test-email" className="text-xs font-bold text-slate-500 uppercase">{uiText("Test recipient email")}</label>
                           <div className="flex gap-2">
                             <input
                               id="smtp-test-email"
                               type="email"
                               value={smtpTestEmail}
                               onChange={(e) => setSmtpTestEmail(e.target.value)}
-                              placeholder="you@example.com"
+                              placeholder={uiText("you@example.com")}
                               className="flex-1 px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm"
                             />
                             <button
@@ -1246,9 +1229,7 @@ export const Settings = () => {
                               onClick={handleTestSmtp}
                               disabled={smtpSaving || !smtpTestEmail}
                               className="px-4 py-2 bg-slate-800 text-white rounded-xl text-xs font-bold disabled:opacity-50"
-                            >
-                              Send Test
-                            </button>
+                            >{uiText("Send Test")}</button>
                           </div>
                         </div>
                       </div>
@@ -1263,8 +1244,8 @@ export const Settings = () => {
                 <div className="space-y-8 animate-in fade-in duration-300">
                   <div className="flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-100 dark:border-slate-800">
                     <div>
-                      <h4 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-wider">Grading Systems</h4>
-                      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Configure assessment weights and grading formats for multiple grades</p>
+                      <h4 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-wider">{uiText("Grading Systems")}</h4>
+                      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">{uiText("Configure assessment weights and grading formats for multiple grades")}</p>
                     </div>
                     {!showNewSystemForm && (
                       <button
@@ -1281,9 +1262,7 @@ export const Settings = () => {
                         }}
                         className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-black uppercase tracking-widest px-5 py-3 rounded-2xl flex items-center gap-2 shadow-lg shadow-blue-500/20 active:scale-95 transition-all"
                       >
-                        <Plus size={16} />
-                        Add New System
-                      </button>
+                        <Plus size={16} />{uiText("Add New System")}</button>
                     )}
                   </div>
 
@@ -1291,22 +1270,20 @@ export const Settings = () => {
                   {showNewSystemForm && (
                     <div className="bg-slate-50/50 dark:bg-slate-800/20 p-6 rounded-3xl border border-dashed border-slate-200 dark:border-slate-700 space-y-6 animate-in slide-in-from-top duration-300">
                       <div className="flex justify-between items-center border-b border-slate-105 dark:border-slate-800 pb-3">
-                        <h5 className="text-xs font-black text-slate-700 dark:text-slate-200 uppercase tracking-wider">Create New Grading System</h5>
+                        <h5 className="text-xs font-black text-slate-700 dark:text-slate-200 uppercase tracking-wider">{uiText("Create New Grading System")}</h5>
                         <button
                           onClick={() => setShowNewSystemForm(false)}
                           className="text-slate-400 hover:text-slate-650 text-xs font-bold"
-                        >
-                          Cancel
-                        </button>
+                        >{uiText("Cancel")}</button>
                       </div>
 
                       {/* Name Input */}
                       <div className="space-y-1">
-                        <label htmlFor="draft-system-name" className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">System Name</label>
+                        <label htmlFor="draft-system-name" className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{uiText("System Name")}</label>
                         <input
                           id="draft-system-name"
                           type="text"
-                          placeholder="e.g. Primary School (1-4) Grading"
+                          placeholder={uiText("e.g. Primary School (1-4) Grading")}
                           value={draftName}
                           onChange={(e) => setDraftName(e.target.value)}
                           className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-blue-500"
@@ -1315,11 +1292,11 @@ export const Settings = () => {
 
                       {/* Grade Selection Dropdown */}
                       <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Applies to Grades</label>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">{uiText("Applies to Grades")}</label>
                         <MultiSelectDropdown
                           options={GRADE_OPTIONS}
                           selectedValues={draftGrades}
-                          placeholder="Select Grade Levels (e.g. KG 1, KG 2, KG 3, Grade 1...)"
+                          placeholder={uiText("Select Grade Levels (e.g. KG 1, KG 2, KG 3, Grade 1...)")}
                           onChange={(val, checked) => {
                             if (checked) {
                               if (!draftGrades.includes(val)) setDraftGrades(sortGradesList([...draftGrades, val]));
@@ -1333,10 +1310,8 @@ export const Settings = () => {
                       {/* Methods Setup */}
                       <div className="space-y-3">
                         <div className="flex justify-between items-center">
-                          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Assessment Components</label>
-                          <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${draftMethods.reduce((sum, m) => sum + m.maxWeight, 0) === 100 ? 'bg-emerald-105 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
-                            Total: {draftMethods.reduce((sum, m) => sum + m.maxWeight, 0)}%
-                          </span>
+                          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{uiText("Assessment Components")}</label>
+                          <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${draftMethods.reduce((sum, m) => sum + m.maxWeight, 0) === 100 ? 'bg-emerald-105 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>{uiText("Total: ")}{draftMethods.reduce((sum, m) => sum + m.maxWeight, 0)}{uiText("%")}</span>
                         </div>
 
                         <div className="space-y-2">
@@ -1345,8 +1320,8 @@ export const Settings = () => {
                               <input
                                 type="text"
                                 value={m.label}
-                                placeholder="Method name"
-                                aria-label="Grading method name"
+                                placeholder={uiText("Method name")}
+                                aria-label={uiText("Grading method name")}
                                 onChange={(e) => {
                                   const updated = [...draftMethods];
                                   updated[idx].label = e.target.value;
@@ -1357,8 +1332,8 @@ export const Settings = () => {
                               <input
                                 type="number"
                                 value={m.maxWeight}
-                                placeholder="Weight"
-                                aria-label="Maximum weight percentage"
+                                placeholder={uiText("Weight")}
+                                aria-label={uiText("Maximum weight percentage")}
                                 onChange={(e) => {
                                   const updated = [...draftMethods];
                                   updated[idx].maxWeight = parseInt(e.target.value) || 0;
@@ -1369,7 +1344,7 @@ export const Settings = () => {
                               <button
                                 type="button"
                                 onClick={() => setDraftMethods(draftMethods.filter((_, i) => i !== idx))}
-                                title="Delete method"
+                                title={uiText("Delete method")}
                                 className="text-slate-400 hover:text-rose-500"
                               >
                                 <Trash2 size={16} />
@@ -1381,14 +1356,14 @@ export const Settings = () => {
                         <div className="flex gap-2">
                           <input
                             type="text"
-                            placeholder="Add component name..."
+                            placeholder={uiText("Add component name...")}
                             value={draftNewLabel}
                             onChange={(e) => setDraftNewLabel(e.target.value)}
                             className="flex-1 px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs"
                           />
                           <input
                             type="number"
-                            placeholder="Weight %"
+                            placeholder={uiText("Weight %")}
                             value={draftNewWeight}
                             onChange={(e) => setDraftNewWeight(parseInt(e.target.value) || 0)}
                             className="w-20 px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs text-center"
@@ -1404,9 +1379,7 @@ export const Settings = () => {
                               setDraftNewLabel('');
                             }}
                             className="bg-slate-900 dark:bg-blue-600 text-white px-3 rounded-lg text-xs font-bold"
-                          >
-                            Add
-                          </button>
+                          >{uiText("Add")}</button>
                         </div>
                       </div>
 
@@ -1414,9 +1387,7 @@ export const Settings = () => {
                         <button
                           onClick={handleCreateSystem}
                           className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider hover:opacity-90 active:scale-95 shadow-md shadow-blue-500/20"
-                        >
-                          Save Grading System
-                        </button>
+                        >{uiText("Save Grading System")}</button>
                       </div>
                     </div>
                   )}
@@ -1440,19 +1411,16 @@ export const Settings = () => {
                               <h5 className="font-black text-sm text-slate-800 dark:text-white uppercase tracking-tight flex items-center gap-3">
                                 {system.name}
                                 {system.published ? (
-                                  <span className="bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-400 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest">Published</span>
+                                  <span className="bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-400 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest">{uiText("Published")}</span>
                                 ) : (
-                                  <span className="bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-400 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest">Draft</span>
+                                  <span className="bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-400 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest">{uiText("Draft")}</span>
                                 )}
                               </h5>
-                              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
-                                Grades: {sortGradesList(grades).map(g => g.startsWith('KG') ? g : `G${g}`).join(', ') || 'None selected'} · {methods.length} components
-                              </p>
+                              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">{uiText("Grades: ")}{uiText(sortGradesList(grades).map(g => g.startsWith('KG') ? g : `G${g}`).join(', ') || 'None selected')}{uiText(" · ")}{methods.length}{uiText(" components")}</p>
                             </div>
                             <div className="flex items-center gap-4">
                               <span className={`text-[10px] font-black px-2 py-1 rounded-full ${totalWeight === 100 ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
-                                {totalWeight}%
-                              </span>
+                                {totalWeight}{uiText("%")}</span>
                               <div className={`p-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 transition-transform duration-305 ${isExpanded ? 'rotate-180' : ''}`}>
                                 <Plus size={16} />
                               </div>
@@ -1464,12 +1432,12 @@ export const Settings = () => {
                             <div className="px-6 py-5 border-t border-slate-100 dark:border-slate-800 space-y-6 bg-slate-50/30 dark:bg-slate-800/10">
                               {/* Edit System Name */}
                               <div className="space-y-1">
-                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">System Name</label>
+                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{uiText("System Name")}</label>
                                 <input
                                   type="text"
                                   value={system.name}
-                                  placeholder="Enter system name"
-                                  aria-label="Grading system name"
+                                  placeholder={uiText("Enter system name")}
+                                  aria-label={uiText("Grading system name")}
                                   onChange={(e) => {
                                     const updated = gradingSystems.map(s =>
                                       s.id === system.id ? { ...s, name: e.target.value, published: false } : s
@@ -1482,11 +1450,11 @@ export const Settings = () => {
 
                               {/* Edit Grades Dropdown */}
                               <div className="space-y-1">
-                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Applies to Grades</label>
+                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">{uiText("Applies to Grades")}</label>
                                 <MultiSelectDropdown
                                   options={GRADE_OPTIONS}
                                   selectedValues={grades}
-                                  placeholder="Select Grade Levels..."
+                                  placeholder={uiText("Select Grade Levels...")}
                                   onChange={(val, checked) => {
                                     const updatedGrades = checked
                                       ? sortGradesList([...grades, val])
@@ -1502,10 +1470,8 @@ export const Settings = () => {
                               {/* Edit Methods */}
                               <div className="space-y-3">
                                 <div className="flex justify-between items-center">
-                                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Assessment Components</label>
-                                  <span className={`text-[10px] font-black px-3 py-1 rounded-full ${totalWeight === 100 ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
-                                    Total Weight: {totalWeight}%
-                                  </span>
+                                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{uiText("Assessment Components")}</label>
+                                  <span className={`text-[10px] font-black px-3 py-1 rounded-full ${totalWeight === 100 ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>{uiText("Total Weight: ")}{totalWeight}{uiText("%")}</span>
                                 </div>
 
                                 <div className="grid grid-cols-1 gap-2">
@@ -1517,8 +1483,8 @@ export const Settings = () => {
                                       <input
                                         type="text"
                                         value={method.label}
-                                        placeholder="Method name"
-                                        aria-label="Grading method name"
+                                        placeholder={uiText("Method name")}
+                                        aria-label={uiText("Grading method name")}
                                         onChange={(e) => {
                                           const updatedMethods = [...methods];
                                           updatedMethods[idx].label = e.target.value;
@@ -1533,8 +1499,8 @@ export const Settings = () => {
                                         <input
                                           type="number"
                                           value={method.maxWeight}
-                                          placeholder="0"
-                                          aria-label="Maximum weight percentage"
+                                          placeholder={uiText("0")}
+                                          aria-label={uiText("Maximum weight percentage")}
                                           onChange={(e) => {
                                             const updatedMethods = [...methods];
                                             updatedMethods[idx].maxWeight = parseInt(e.target.value) || 0;
@@ -1545,11 +1511,11 @@ export const Settings = () => {
                                           }}
                                           className="bg-transparent font-black text-blue-600 w-12 text-center outline-none text-xs"
                                         />
-                                        <span className="text-[9px] font-black text-slate-400">%</span>
+                                        <span className="text-[9px] font-black text-slate-400">{uiText("%")}</span>
                                       </div>
                                       <button
                                         type="button"
-                                        title="Delete method"
+                                        title={uiText("Delete method")}
                                         onClick={() => {
                                           const updatedMethods = system.methods.filter((_, i) => i !== idx);
                                           const updated = gradingSystems.map(s =>
@@ -1567,7 +1533,7 @@ export const Settings = () => {
 
                                 {/* Quick Presets for this system */}
                                 <div className="pt-2">
-                                  <span className="text-[9px] font-bold text-slate-400 uppercase block mb-2">Preset Quick Add</span>
+                                  <span className="text-[9px] font-bold text-slate-400 uppercase block mb-2">{uiText("Preset Quick Add")}</span>
                                   <div className="flex flex-wrap gap-2">
                                     {[
                                       { label: 'Quiz 1', weight: 5 },
@@ -1599,9 +1565,7 @@ export const Settings = () => {
                                           setGradingSystems(updated);
                                         }}
                                         className="px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-[10px] font-bold rounded-lg hover:border-blue-500 hover:text-blue-600 transition-colors"
-                                      >
-                                        + {preset.label} ({preset.weight}%)
-                                      </button>
+                                      >{uiText("+ ")}{uiText(preset.label)}{uiText(" (")}{preset.weight}{uiText("%)")}</button>
                                     ))}
                                   </div>
                                 </div>
@@ -1610,13 +1574,13 @@ export const Settings = () => {
                                 <div className="flex gap-2 pt-2">
                                   <input
                                     type="text"
-                                    placeholder="Add custom component name..."
+                                    placeholder={uiText("Add custom component name...")}
                                     id={`custom-comp-${system.id}`}
                                     className="flex-1 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs"
                                   />
                                   <input
                                     type="number"
-                                    placeholder="Weight"
+                                    placeholder={uiText("Weight")}
                                     id={`custom-weight-${system.id}`}
                                     className="w-20 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-center"
                                   />
@@ -1642,16 +1606,14 @@ export const Settings = () => {
                                       if (weightInput) weightInput.value = '';
                                     }}
                                     className="bg-blue-600 hover:bg-blue-700 text-white px-4 rounded-xl text-xs font-bold"
-                                  >
-                                    Add Component
-                                  </button>
+                                  >{uiText("Add Component")}</button>
                                 </div>
                               </div>
 
                               {totalWeight !== 100 && (
                                 <div className="flex gap-3 p-4 bg-rose-50 dark:bg-rose-900/20 rounded-2xl border border-rose-100 dark:border-rose-800/50 text-rose-600">
                                   <AlertCircle size={20} className="flex-shrink-0" />
-                                  <p className="text-xs font-medium">Warning: The total weight for this system is currently <strong>{totalWeight}%</strong>. It must equal exactly 100% before publishing.</p>
+                                  <p className="text-xs font-medium">{uiText("Warning: The total weight for this system is currently ")}<strong>{totalWeight}{uiText("%")}</strong>{uiText(". It must equal exactly 100% before publishing.")}</p>
                                 </div>
                               )}
 
@@ -1661,17 +1623,13 @@ export const Settings = () => {
                                   onClick={() => handleDeleteSystem(system.id)}
                                   className="text-rose-600 hover:text-rose-800 text-xs font-black uppercase tracking-wider flex items-center gap-1 bg-rose-50 dark:bg-rose-950/20 px-4 py-2 rounded-xl"
                                 >
-                                  <Trash2 size={14} />
-                                  Delete System
-                                </button>
+                                  <Trash2 size={14} />{uiText("Delete System")}</button>
                                 <button
                                   onClick={() => handlePublishSystem(system.id)}
                                   disabled={gradingLoading || totalWeight !== 100}
                                   className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider hover:opacity-90 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                                 >
-                                  <CheckCircle size={14} />
-                                  Publish System
-                                </button>
+                                  <CheckCircle size={14} />{uiText("Publish System")}</button>
                               </div>
                             </div>
                           )}
@@ -1694,7 +1652,7 @@ export const Settings = () => {
                         onClick={() => setStyle(t)}
                         className={`p-4 rounded-xl border-2 text-center transition-all ${style === t ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400' : 'border-slate-100 dark:border-slate-800 hover:border-slate-200 dark:hover:border-slate-700'}`}
                       >
-                        <p className="font-bold text-sm">{t}</p>
+                        <p className="font-bold text-sm">{uiText(t)}</p>
                       </button>
                     ))}
                   </div>
@@ -1703,8 +1661,8 @@ export const Settings = () => {
                     className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800 rounded-xl cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
                   >
                     <div>
-                      <p className="text-sm font-bold text-slate-800 dark:text-slate-100">Automatic Dark Mode</p>
-                      <p className="text-xs text-slate-500">Switch theme based on system preferences.</p>
+                      <p className="text-sm font-bold text-slate-800 dark:text-slate-100">{uiText("Automatic Dark Mode")}</p>
+                      <p className="text-xs text-slate-500">{uiText("Switch theme based on system preferences.")}</p>
                     </div>
                     <div className={`w-12 h-6 rounded-full relative transition-colors ${autoDarkMode ? 'bg-blue-600' : 'bg-slate-300 dark:bg-slate-700'}`}>
                       <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${autoDarkMode ? 'right-1' : 'left-1'}`} />
@@ -1716,9 +1674,7 @@ export const Settings = () => {
 
             {activeTab === 'Grading System' && role === 'super-admin' && (
               <div className="p-4 bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/30 rounded-2xl text-amber-700 dark:text-amber-400 text-[10px] font-bold flex items-center gap-2">
-                <AlertCircle size={14} />
-                READ-ONLY: Grading configurations are managed at the School Admin level.
-              </div>
+                <AlertCircle size={14} />{uiText("READ-ONLY: Grading configurations are managed at the School Admin level.")}</div>
             )}
             <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 shrink-0">
               {activeTab === 'Grading System' && (
@@ -1728,7 +1684,7 @@ export const Settings = () => {
                   className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 disabled:opacity-60 text-white px-8 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-all shadow-lg active:scale-95"
                 >
                   <Save size={18} />
-                  <span>Save Draft Systems</span>
+                  <span>{uiText("Save Draft Systems")}</span>
                 </button>
               )}
               {(activeTab === 'General' || (activeTab === 'Security' && role === 'super-admin' && activeSubTab === 'smtp')) && (
@@ -1738,7 +1694,7 @@ export const Settings = () => {
                   className="bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white px-8 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-all shadow-lg shadow-blue-100 dark:shadow-none"
                 >
                   <Save size={18} />
-                  <span>{generalSaving || smtpSaving ? 'Saving…' : 'Save Changes'}</span>
+                  <span>{uiText(generalSaving || smtpSaving ? 'Saving…' : 'Save Changes')}</span>
                 </button>
               )}
             </div>

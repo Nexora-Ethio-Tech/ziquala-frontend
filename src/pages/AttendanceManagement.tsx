@@ -1,3 +1,4 @@
+import { uiError, uiText } from "../localization";
 import { useState, useEffect } from 'react';
 import { Users, CheckCircle, XCircle, Clock, AlertCircle, Download } from 'lucide-react';
 import * as attendanceService from '../services/attendanceService';
@@ -29,7 +30,8 @@ export const AttendanceManagement = () => {
 
   const fetchClasses = async () => {
     try {
-      const data = await classService.getAllClasses();
+      const response = await classService.getAllClasses();
+      const data = Array.isArray(response) ? response : response.data || [];
       setClasses(data);
       if (data.length > 0) {
         setSelectedClass(data[0].id);
@@ -59,7 +61,7 @@ export const AttendanceManagement = () => {
       });
       setLocalAttendance(localState);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to fetch data');
+      setError(uiError(err.response?.data?.message || 'Failed to fetch data'));
     } finally {
       setLoading(false);
     }
@@ -98,9 +100,9 @@ export const AttendanceManagement = () => {
       
       await Promise.all(promises);
       await fetchStudentsAndAttendance();
-      alert('Attendance saved successfully!');
+      alert(uiText("Attendance saved successfully!"));
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save attendance');
+      setError(uiError(err.response?.data?.message || 'Failed to save attendance'));
     } finally {
       setSaving(false);
     }
@@ -145,56 +147,54 @@ export const AttendanceManagement = () => {
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Attendance Management</h1>
-          <p className="text-gray-600">Mark and track student attendance</p>
+          <h1 className="text-2xl font-bold text-gray-900">{uiText("Attendance Management")}</h1>
+          <p className="text-gray-600">{uiText("Mark and track student attendance")}</p>
         </div>
         <div className="flex gap-3">
           <button
             onClick={handleExport}
             className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
           >
-            <Download className="w-5 h-5" />
-            Export
-          </button>
+            <Download className="w-5 h-5" />{uiText("Export")}</button>
           <button
             onClick={handleSaveAttendance}
             disabled={saving}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
           >
-            {saving ? 'Saving...' : 'Save Attendance'}
+            {uiText(saving ? 'Saving...' : 'Save Attendance')}
           </button>
         </div>
       </div>
 
-      {error && (
+      {uiText(error && (
         <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-          {error}
+          {uiError(error)}
         </div>
-      )}
+      ))}
 
       <div className="mb-6 bg-white rounded-lg shadow p-4">
         <div className="flex flex-wrap gap-4 items-end">
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Select Class</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{uiText("Select Class")}</label>
             <select
-              title="Select class for attendance management"
+              title={uiText("Select class for attendance management")}
               value={selectedClass}
               onChange={(e) => setSelectedClass(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg"
             >
               {classes.map((cls) => (
                 <option key={cls.id} value={cls.id}>
-                  {cls.name} - {cls.section}
+                  {cls.name}{uiText(" - ")}{uiText(cls.section)}
                 </option>
               ))}
             </select>
           </div>
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{uiText("Date")}</label>
             <input
               type="date"
-              title="Select attendance date"
-              placeholder="Select date"
+              title={uiText("Select attendance date")}
+              placeholder={uiText("Select date")}
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg"
@@ -204,15 +204,11 @@ export const AttendanceManagement = () => {
             <button
               onClick={() => handleMarkAll('Present')}
               className="px-3 py-2 text-sm bg-green-50 text-green-700 border border-green-200 rounded-lg hover:bg-green-100"
-            >
-              All Present
-            </button>
+            >{uiText("All Present")}</button>
             <button
               onClick={() => handleMarkAll('Absent')}
               className="px-3 py-2 text-sm bg-red-50 text-red-700 border border-red-200 rounded-lg hover:bg-red-100"
-            >
-              All Absent
-            </button>
+            >{uiText("All Absent")}</button>
           </div>
         </div>
       </div>
@@ -224,7 +220,7 @@ export const AttendanceManagement = () => {
               <Users className="w-6 h-6 text-blue-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">Total Students</p>
+              <p className="text-sm text-gray-600">{uiText("Total Students")}</p>
               <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
             </div>
           </div>
@@ -235,7 +231,7 @@ export const AttendanceManagement = () => {
               <CheckCircle className="w-6 h-6 text-green-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">Present</p>
+              <p className="text-sm text-gray-600">{uiText("Present")}</p>
               <p className="text-2xl font-bold text-gray-900">{stats.present}</p>
             </div>
           </div>
@@ -246,7 +242,7 @@ export const AttendanceManagement = () => {
               <XCircle className="w-6 h-6 text-red-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">Absent</p>
+              <p className="text-sm text-gray-600">{uiText("Absent")}</p>
               <p className="text-2xl font-bold text-gray-900">{stats.absent}</p>
             </div>
           </div>
@@ -257,7 +253,7 @@ export const AttendanceManagement = () => {
               <Clock className="w-6 h-6 text-yellow-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">Late</p>
+              <p className="text-sm text-gray-600">{uiText("Late")}</p>
               <p className="text-2xl font-bold text-gray-900">{stats.late}</p>
             </div>
           </div>
@@ -268,9 +264,9 @@ export const AttendanceManagement = () => {
         <table className="w-full">
           <thead className="bg-gray-50 border-b">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Student</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Status</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{uiText("Student")}</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{uiText("ID")}</th>
+              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">{uiText("Status")}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
@@ -279,15 +275,15 @@ export const AttendanceManagement = () => {
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-bold">
-                      {student.firstName[0]}{student.lastName[0]}
+                      {uiText(student.firstName[0])}{uiText(student.lastName[0])}
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900">{student.firstName} {student.lastName}</p>
+                      <p className="font-medium text-gray-900">{uiText(student.firstName)} {uiText(student.lastName)}</p>
                       <p className="text-sm text-gray-500">{student.email}</p>
                     </div>
                   </div>
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-600">{student.digitalId}</td>
+                <td className="px-6 py-4 text-sm text-gray-600">{uiText(student.digitalId)}</td>
                 <td className="px-6 py-4">
                   <div className="flex items-center justify-center gap-2">
                     <button
@@ -297,7 +293,7 @@ export const AttendanceManagement = () => {
                           ? 'bg-green-600 border-green-600 text-white'
                           : 'bg-white border-gray-300 text-gray-400 hover:border-green-500 hover:text-green-500'
                       }`}
-                      title="Present"
+                      title={uiText("Present")}
                     >
                       <CheckCircle className="w-5 h-5" />
                     </button>
@@ -308,7 +304,7 @@ export const AttendanceManagement = () => {
                           ? 'bg-red-600 border-red-600 text-white'
                           : 'bg-white border-gray-300 text-gray-400 hover:border-red-500 hover:text-red-500'
                       }`}
-                      title="Absent"
+                      title={uiText("Absent")}
                     >
                       <XCircle className="w-5 h-5" />
                     </button>
@@ -319,7 +315,7 @@ export const AttendanceManagement = () => {
                           ? 'bg-yellow-500 border-yellow-500 text-white'
                           : 'bg-white border-gray-300 text-gray-400 hover:border-yellow-500 hover:text-yellow-500'
                       }`}
-                      title="Late"
+                      title={uiText("Late")}
                     >
                       <Clock className="w-5 h-5" />
                     </button>
@@ -330,7 +326,7 @@ export const AttendanceManagement = () => {
                           ? 'bg-blue-600 border-blue-600 text-white'
                           : 'bg-white border-gray-300 text-gray-400 hover:border-blue-500 hover:text-blue-500'
                       }`}
-                      title="Excused"
+                      title={uiText("Excused")}
                     >
                       <AlertCircle className="w-5 h-5" />
                     </button>
@@ -345,7 +341,7 @@ export const AttendanceManagement = () => {
       {students.length === 0 && !loading && (
         <div className="text-center py-12">
           <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-600">No students found in this class.</p>
+          <p className="text-gray-600">{uiText("No students found in this class.")}</p>
         </div>
       )}
     </div>

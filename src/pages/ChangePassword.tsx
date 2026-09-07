@@ -1,3 +1,4 @@
+import { uiError, uiText } from "../localization";
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Lock, CheckCircle, AlertCircle, ArrowLeft, Eye, EyeOff } from 'lucide-react';
@@ -27,31 +28,31 @@ export const ChangePassword = () => {
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        setError('');
+        setError(uiText(""));
         setSuccess(false);
 
         if (!rules.minLength) {
-            setError('New password must be at least 5 characters long.');
+            setError(uiText("New password must be at least 5 characters long."));
             return;
         }
         if (!rules.hasUpper) {
-            setError('New password must contain at least one uppercase letter.');
+            setError(uiText("New password must contain at least one uppercase letter."));
             return;
         }
         if (!rules.hasLower) {
-            setError('New password must contain at least one lowercase letter.');
+            setError(uiText("New password must contain at least one lowercase letter."));
             return;
         }
         if (!rules.hasNumber) {
-            setError('New password must contain at least one number.');
+            setError(uiText("New password must contain at least one number."));
             return;
         }
         if (newPassword !== confirmPassword) {
-            setError('New passwords do not match.');
+            setError(uiText("New passwords do not match."));
             return;
         }
         if (currentPassword === newPassword) {
-            setError('New password must be different from your current password.');
+            setError(uiText("New password must be different from your current password."));
             return;
         }
 
@@ -66,7 +67,7 @@ export const ChangePassword = () => {
             const msg = err.response?.data?.error?.message
                 || err.response?.data?.error?.details?.[0]
                 || 'Failed to change password. Please check your current password and try again.';
-            setError(msg);
+            setError(uiText(msg));
         } finally {
             setLoading(false);
         }
@@ -80,9 +81,7 @@ export const ChangePassword = () => {
                     onClick={() => navigate(-1)}
                     className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white mb-6"
                 >
-                    <ArrowLeft size={16} />
-                    Back
-                </button>
+                    <ArrowLeft size={16} />{uiText("Back")}</button>
 
                 <div className="rounded-[2rem] overflow-hidden border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl shadow-slate-200/30 dark:shadow-slate-950/50">
                     {/* Header */}
@@ -92,8 +91,8 @@ export const ChangePassword = () => {
                                 <Lock size={22} />
                             </div>
                             <div>
-                                <h1 className="text-xl font-bold text-white">Change Password</h1>
-                                <p className="text-sm text-blue-100 mt-0.5">Update your account password securely.</p>
+                                <h1 className="text-xl font-bold text-white">{uiText("Change Password")}</h1>
+                                <p className="text-sm text-blue-100 mt-0.5">{uiText("Update your account password securely.")}</p>
                             </div>
                         </div>
                     </div>
@@ -102,22 +101,20 @@ export const ChangePassword = () => {
                         {success && (
                             <div className="rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 p-4 flex items-center gap-3 text-emerald-800 dark:text-emerald-200">
                                 <CheckCircle size={20} className="shrink-0" />
-                                <span className="text-sm font-medium">Password changed successfully. Please use your new password next time you log in.</span>
+                                <span className="text-sm font-medium">{uiText("Password changed successfully. Please use your new password next time you log in.")}</span>
                             </div>
                         )}
-                        {error && (
+                        {uiText(error && (
                             <div className="rounded-2xl bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 p-4 flex items-center gap-3 text-rose-800 dark:text-rose-200">
                                 <AlertCircle size={20} className="shrink-0" />
-                                <span className="text-sm font-medium">{error}</span>
+                                <span className="text-sm font-medium">{uiError(error)}</span>
                             </div>
-                        )}
+                        ))}
 
                         <form onSubmit={handleSubmit} className="space-y-5">
                             {/* Current Password */}
                             <div>
-                                <label htmlFor="currentPassword" className="block text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">
-                                    Current Password
-                                </label>
+                                <label htmlFor="currentPassword" className="block text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">{uiText("Current Password")}</label>
                                 <div className="relative">
                                     <input
                                         id="currentPassword"
@@ -141,9 +138,7 @@ export const ChangePassword = () => {
 
                             {/* New Password */}
                             <div>
-                                <label htmlFor="newPassword" className="block text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">
-                                    New Password
-                                </label>
+                                <label htmlFor="newPassword" className="block text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">{uiText("New Password")}</label>
                                 <div className="relative">
                                     <input
                                         id="newPassword"
@@ -178,7 +173,7 @@ export const ChangePassword = () => {
                                                     {met ? <CheckCircle size={11} /> : <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />}
                                                 </div>
                                                 <span className={met ? 'text-emerald-700 dark:text-emerald-400 font-medium' : 'text-slate-400'}>
-                                                    {label}
+                                                    {uiText(label)}
                                                 </span>
                                             </div>
                                         ))}
@@ -188,9 +183,7 @@ export const ChangePassword = () => {
 
                             {/* Confirm Password */}
                             <div>
-                                <label htmlFor="confirmPassword" className="block text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">
-                                    Confirm New Password
-                                </label>
+                                <label htmlFor="confirmPassword" className="block text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">{uiText("Confirm New Password")}</label>
                                 <div className="relative">
                                     <input
                                         id="confirmPassword"
@@ -217,7 +210,7 @@ export const ChangePassword = () => {
                                     </button>
                                 </div>
                                 {confirmPassword.length > 0 && confirmPassword !== newPassword && (
-                                    <p className="mt-1.5 text-xs text-rose-500 font-medium">Passwords do not match.</p>
+                                    <p className="mt-1.5 text-xs text-rose-500 font-medium">{uiText("Passwords do not match.")}</p>
                                 )}
                             </div>
 
@@ -228,14 +221,10 @@ export const ChangePassword = () => {
                             >
                                 {loading ? (
                                     <>
-                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                        Updating...
-                                    </>
+                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />{uiText("Updating...")}</>
                                 ) : (
                                     <>
-                                        <Lock size={16} />
-                                        Update Password
-                                    </>
+                                        <Lock size={16} />{uiText("Update Password")}</>
                                 )}
                             </button>
                         </form>

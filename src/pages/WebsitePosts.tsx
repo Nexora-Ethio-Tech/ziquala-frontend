@@ -1,3 +1,4 @@
+import { uiText } from "../localization";
 import { useState, useRef, useEffect } from 'react';
 import { formatEthiopianLabel } from '../utils/ethiopianCalendar';
 import { Megaphone, Plus, X, Loader2 } from 'lucide-react';
@@ -94,7 +95,7 @@ export const WebsitePosts = () => {
                 <div key={post.id} className="p-4 md:p-6 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors flex flex-col">
                   <div className="flex items-center justify-between mb-4">
                     <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-purple-100 text-purple-700">
-                      {isVideo ? t('websitePosts.videoType', 'Video') : t('websitePosts.imageType', 'Image')}
+                      {uiText(isVideo ? t('websitePosts.videoType', 'Video') : t('websitePosts.imageType', 'Image'))}
                     </span>
                     <button
                       onClick={() => deletePublicPost(post.id)}
@@ -105,18 +106,18 @@ export const WebsitePosts = () => {
                   </div>
                   <div className="aspect-video bg-slate-100 dark:bg-slate-800 rounded-xl mb-4 overflow-hidden shadow-inner">
                     {!isVideo ? (
-                      <img src={post.image_url} alt="Post media" className="w-full h-full object-cover" />
+                      <img src={post.image_url} alt={uiText("Post media")} className="w-full h-full object-cover" />
                     ) : (
-                      <iframe src={post.image_url} title="Post media content" className="w-full h-full pointer-events-none" />
+                      <iframe src={post.image_url} title={uiText("Post media content")} className="w-full h-full pointer-events-none" />
                     )}
                   </div>
                   <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-medium whitespace-pre-wrap">
-                    {post.post_text}
+                    {uiText(post.post_text)}
                   </p>
                   <div className="mt-auto pt-4 flex justify-between items-center border-t border-slate-100 dark:border-slate-800">
                     <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">
                       {/* Maps to the created_at DATE column */}
-                      {formatEthiopianLabel(post.created_at || new Date().toISOString())}
+                      {uiText(formatEthiopianLabel(post.created_at || new Date().toISOString()))}
                     </span>
                   </div>
                 </div>
@@ -133,7 +134,7 @@ export const WebsitePosts = () => {
               <h3 className="font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wider text-sm">{t('websitePosts.addModalTitle')}</h3>
               <button
                 type="button"
-                title="Close add post modal"
+                title={uiText("Close add post modal")}
                 onClick={() => !isSubmitting && setShowPostModal(false)}
                 className="text-slate-400 hover:text-slate-600 transition-colors"
                 disabled={isSubmitting}
@@ -195,7 +196,7 @@ export const WebsitePosts = () => {
                 <label className="text-[10px] font-bold text-slate-500 uppercase">{t('websitePosts.mediaType')}</label>
                 <select
                   name="media_type"
-                  title="Select media type (image or video)"
+                  title={uiText("Select media type (image or video)")}
                   required
                   value={selectedType}
                   onChange={(ev) => setSelectedType(ev.target.value as 'image' | 'video')}
@@ -216,15 +217,15 @@ export const WebsitePosts = () => {
                       accept="image/*"
                       type="file"
                       disabled={isSubmitting}
-                      title="Select image file to upload"
+                      title={uiText("Select image file to upload")}
                       className="w-full text-sm disabled:opacity-50"
                     />
-                    <div className="text-xs text-slate-400 mt-1">Or paste an image URL below</div>
+                    <div className="text-xs text-slate-400 mt-1">{uiText("Or paste an image URL below")}</div>
                     <input
                       name="mediaUrl"
                       type="url"
-                      title="Enter media URL"
-                      placeholder="https://example.com/image.jpg (optional)"
+                      title={uiText("Enter media URL")}
+                      placeholder={uiText("https://example.com/image.jpg (optional)")}
                       disabled={isSubmitting}
                       className="w-full mt-2 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-500 transition-all disabled:opacity-50"
                     />
@@ -234,8 +235,8 @@ export const WebsitePosts = () => {
                     name="mediaUrl"
                     required
                     type="url"
-                    title="Enter video URL"
-                    placeholder="https://example.com/video.mp4"
+                    title={uiText("Enter video URL")}
+                    placeholder={uiText("https://example.com/video.mp4")}
                     disabled={isSubmitting}
                     className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-500 transition-all disabled:opacity-50"
                   />
@@ -259,7 +260,7 @@ export const WebsitePosts = () => {
                   className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-purple-200 dark:shadow-none flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : <Megaphone size={18} />}
-                  <span>{isSubmitting ? t('websitePosts.publishing', 'Publishing...') : t('websitePosts.publish')}</span>
+                  <span>{uiText(isSubmitting ? t('websitePosts.publishing', 'Publishing...') : t('websitePosts.publish'))}</span>
                 </button>
               </div>
             </form>

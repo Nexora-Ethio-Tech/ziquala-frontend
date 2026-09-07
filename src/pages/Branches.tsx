@@ -1,3 +1,4 @@
+import { uiError, uiText } from "../localization";
 import { Building2, MapPin, Users, GraduationCap, ChevronRight, Plus, ArrowLeft, X, Check, Loader2, AlertCircle, Edit, Trash2, Upload } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import { useTranslation } from 'react-i18next';
@@ -58,7 +59,7 @@ export const Branches = () => {
         }
       } catch (err: any) {
         console.error('❌ Branches API Error:', err);
-        setError(err.message || 'Failed to fetch branches');
+        setError(uiError(err.message || 'Failed to fetch branches'));
         // Fallback to mock data
         setBranches(mockBranches as any);
       } finally {
@@ -82,7 +83,7 @@ export const Branches = () => {
     // Check if the file is larger than 5 MB
     const maxSize = 5 * 1024 * 1024; // 5 MB in bytes
     if (file.size > maxSize) {
-      alert('The image size exceeds the 5 MB limit. Please select a smaller image.');
+      alert(uiText("The image size exceeds the 5 MB limit. Please select a smaller image."));
       e.target.value = ''; // Reset the input
       return;
     }
@@ -101,7 +102,7 @@ export const Branches = () => {
     try {
       const response = await branchService.createBranch(branchForm);
       console.log('✅ Branch created:', response);
-      alert('Branch created successfully!');
+      alert(uiText("Branch created successfully!"));
       setShowAddModal(false);
       setBranchForm({ name: '', code: '', phone: '', email: '', address: '', logoUrl: '' });
       // Refresh branches
@@ -111,7 +112,7 @@ export const Branches = () => {
       }
     } catch (err: any) {
       console.error('❌ Error creating branch:', err);
-      alert(err.response?.data?.error?.message || 'Failed to create branch');
+      alert(uiError(err.response?.data?.error?.message || 'Failed to create branch'));
     } finally {
       setCreating(false);
     }
@@ -136,7 +137,7 @@ export const Branches = () => {
     try {
       const response = await branchService.updateBranch(editingBranchId, editForm);
       console.log('✅ Branch updated:', response);
-      alert('Branch updated successfully!');
+      alert(uiText("Branch updated successfully!"));
       setShowEditModal(false);
       setEditingBranchId(null);
       setEditForm({ name: '', code: '', phone: '', email: '', address: '' });
@@ -147,7 +148,7 @@ export const Branches = () => {
       }
     } catch (err: any) {
       console.error('❌ Error updating branch:', err);
-      alert(err.response?.data?.error?.message || 'Failed to update branch');
+      alert(uiError(err.response?.data?.error?.message || 'Failed to update branch'));
     } finally {
       setUpdating(false);
     }
@@ -165,7 +166,7 @@ export const Branches = () => {
     try {
       const response = await branchService.deleteBranch(deletingBranchId);
       console.log('✅ Branch deleted:', response);
-      alert('Branch deleted successfully!');
+      alert(uiText("Branch deleted successfully!"));
       setShowDeleteConfirm(false);
       if (deletingBranchId === selectedBranchId) {
         setSelectedBranchId(null);
@@ -180,7 +181,7 @@ export const Branches = () => {
       }
     } catch (err: any) {
       console.error('❌ Error deleting branch:', err);
-      alert(err.response?.data?.error?.message || 'Failed to delete branch');
+      alert(uiError(err.response?.data?.error?.message || 'Failed to delete branch'));
     } finally {
       setDeleting(false);
     }
@@ -191,7 +192,7 @@ export const Branches = () => {
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <div className="inline-block w-10 h-10 border-4 border-blue-600/30 border-t-blue-600 rounded-full animate-spin" />
-          <p className="text-sm text-slate-500 mt-4">Loading branches...</p>
+          <p className="text-sm text-slate-500 mt-4">{uiText("Loading branches...")}</p>
         </div>
       </div>
     );
@@ -205,16 +206,14 @@ export const Branches = () => {
           onClick={() => navigate(-1)}
           className="flex items-center gap-1 text-blue-600 hover:underline text-xs font-bold uppercase tracking-widest"
         >
-          <ArrowLeft size={14} />
-          Back
-        </button>
+          <ArrowLeft size={14} />{uiText("Back")}</button>
       </div>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl md:text-2xl font-bold text-slate-800 dark:text-white">{t('branches.title', 'School Branches')}</h2>
           <p className="text-sm text-slate-500 dark:text-slate-400">
             {t('branches.subtitle', 'Manage and monitor all school locations from one place.')}
-            {error && <span className="text-amber-600 ml-2">⚠️ {t('branches.cachedData', 'Using cached data')}</span>}
+            {uiText(error && <span className="text-amber-600 ml-2">{uiText("⚠️ ")}{t('branches.cachedData', 'Using cached data')}</span>)}
           </p>
         </div>
         <button
@@ -242,20 +241,20 @@ export const Branches = () => {
                     <button
                       onClick={() => handleOpenEditModal(branch)}
                       className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-slate-500 hover:text-blue-600"
-                      title="Edit branch"
+                      title={uiText("Edit branch")}
                     >
                       <Edit size={18} />
                     </button>
                     <button
                       onClick={() => handleOpenDeleteConfirm(branch)}
                       className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-slate-500 hover:text-rose-600"
-                      title="Delete branch"
+                      title={uiText("Delete branch")}
                     >
                       <Trash2 size={18} />
                     </button>
                   </div>
                   <span className={`text-xs font-bold px-2 py-1 rounded-full uppercase ${selectedBranchId === branch.id ? 'bg-blue-600 text-white' : 'bg-emerald-50 text-emerald-600'}`}>
-                    {selectedBranchId === branch.id ? t('branches.selected', 'Selected') : t('branches.active', 'Active')}
+                    {uiText(selectedBranchId === branch.id ? t('branches.selected', 'Selected') : t('branches.active', 'Active'))}
                   </span>
                 </div>
               </div>
@@ -263,7 +262,7 @@ export const Branches = () => {
               <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-1">{branch.name}</h3>
               <div className="flex items-center gap-1 text-slate-500 dark:text-slate-400 text-sm mb-6">
                 <MapPin size={14} />
-                <span>{branch.address || 'No location'}</span>
+                <span>{uiText(branch.address || 'No location')}</span>
               </div>
 
               <button
@@ -288,7 +287,7 @@ export const Branches = () => {
                 </div>
                 <h3 className="font-bold text-slate-800 dark:text-slate-100">{t('branches.addModalTitle', 'Add New Branch')}</h3>
               </div>
-              <button onClick={() => setShowAddModal(false)} title="Close add branch modal" aria-label="Close add branch modal" className="text-slate-400 hover:text-slate-600">
+              <button onClick={() => setShowAddModal(false)} title={uiText("Close add branch modal")} aria-label={uiText("Close add branch modal")} className="text-slate-400 hover:text-slate-600">
                 <X size={20} />
               </button>
             </div>
@@ -298,19 +297,19 @@ export const Branches = () => {
               <div>
                 <label className="text-xs font-bold text-slate-500 uppercase">{t('branches.imageUploadLabel', 'Branch Image (Max 5MB)')}</label>
                 <div className="mt-1 flex items-center gap-4">
-                  {branchForm.logoUrl && (
+                  {uiText(branchForm.logoUrl && (
                     <img
                       src={branchForm.logoUrl}
-                      alt="Branch preview"
+                      alt={uiText("Branch preview")}
                       className="w-16 h-16 rounded-lg object-cover border border-slate-200 shadow-sm"
                     />
-                  )}
+                  ))}
                   <input
                     type="file"
                     accept="image/*"
                     onChange={handleImageUpload}
-                    title="Upload branch image"
-                    aria-label="Upload branch image"
+                    title={uiText("Upload branch image")}
+                    aria-label={uiText("Upload branch image")}
                     className="w-full text-sm text-slate-500 dark:text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-blue-900/30 dark:file:text-blue-400 cursor-pointer"
                   />
                 </div>
@@ -322,7 +321,7 @@ export const Branches = () => {
                   type="text"
                   value={branchForm.name}
                   onChange={(e) => setBranchForm({ ...branchForm, name: e.target.value })}
-                  placeholder="e.g. Main Branch"
+                  placeholder={uiText("e.g. Main Branch")}
                   className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
@@ -334,7 +333,7 @@ export const Branches = () => {
                   type="text"
                   value={branchForm.code}
                   onChange={(e) => setBranchForm({ ...branchForm, code: e.target.value })}
-                  placeholder="e.g. MB"
+                  placeholder={uiText("e.g. MB")}
                   className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
@@ -346,7 +345,7 @@ export const Branches = () => {
                   type="tel"
                   value={branchForm.phone}
                   onChange={(e) => setBranchForm({ ...branchForm, phone: e.target.value })}
-                  placeholder="+251911000000"
+                  placeholder={uiText("+251911000000")}
                   className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
@@ -358,7 +357,7 @@ export const Branches = () => {
                   type="email"
                   value={branchForm.email}
                   onChange={(e) => setBranchForm({ ...branchForm, email: e.target.value })}
-                  placeholder="branch@ziqualaabo.edu.et"
+                  placeholder={uiText("branch@ziqualaabo.edu.et")}
                   className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
@@ -370,7 +369,7 @@ export const Branches = () => {
                   type="text"
                   value={branchForm.address}
                   onChange={(e) => setBranchForm({ ...branchForm, address: e.target.value })}
-                  placeholder="Addis Ababa, Ethiopia"
+                  placeholder={uiText("Addis Ababa, Ethiopia")}
                   className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
@@ -382,16 +381,14 @@ export const Branches = () => {
                   onClick={() => setShowAddModal(false)}
                   className="flex-1 px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg font-bold text-sm text-slate-500 hover:bg-slate-50"
                   disabled={creating}
-                >
-                  Cancel
-                </button>
+                >{uiText("Cancel")}</button>
                 <button
                   type="submit"
                   className="flex-1 bg-blue-600 text-white font-bold py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-blue-700 disabled:opacity-50"
                   disabled={creating}
                 >
                   {creating ? <Loader2 className="animate-spin" size={18} /> : <Check size={18} />}
-                  <span>{creating ? t('branches.creating', 'Creating...') : t('branches.createBranch', 'Create Branch')}</span>
+                  <span>{uiText(creating ? t('branches.creating', 'Creating...') : t('branches.createBranch', 'Create Branch'))}</span>
                 </button>
               </div>
             </form>
@@ -410,64 +407,64 @@ export const Branches = () => {
                 </div>
                 <h3 className="font-bold text-slate-800 dark:text-slate-100">{t('branches.editModalTitle', 'Edit Branch')}</h3>
               </div>
-              <button onClick={() => setShowEditModal(false)} title="Close edit branch modal" aria-label="Close edit branch modal" className="text-slate-400 hover:text-slate-600">
+              <button onClick={() => setShowEditModal(false)} title={uiText("Close edit branch modal")} aria-label={uiText("Close edit branch modal")} className="text-slate-400 hover:text-slate-600">
                 <X size={20} />
               </button>
             </div>
 
             <form className="p-6 space-y-4" onSubmit={handleEditBranch}>
               <div>
-                <label className="text-xs font-bold text-slate-500 uppercase">Branch Name</label>
+                <label className="text-xs font-bold text-slate-500 uppercase">{uiText("Branch Name")}</label>
                 <input
                   type="text"
                   value={editForm.name}
                   onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                  placeholder="e.g. Main Branch"
+                  placeholder={uiText("e.g. Main Branch")}
                   className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
               </div>
 
               <div>
-                <label className="text-xs font-bold text-slate-500 uppercase">Branch Code</label>
+                <label className="text-xs font-bold text-slate-500 uppercase">{uiText("Branch Code")}</label>
                 <input
                   type="text"
                   value={editForm.code}
                   onChange={(e) => setEditForm({ ...editForm, code: e.target.value })}
-                  placeholder="e.g. MB"
+                  placeholder={uiText("e.g. MB")}
                   className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-bold text-slate-500 uppercase">Phone</label>
+                <label className="text-xs font-bold text-slate-500 uppercase">{uiText("Phone")}</label>
                 <input
                   type="tel"
                   value={editForm.phone}
                   onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
-                  placeholder="+251911000000"
+                  placeholder={uiText("+251911000000")}
                   className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-bold text-slate-500 uppercase">Email</label>
+                <label className="text-xs font-bold text-slate-500 uppercase">{uiText("Email")}</label>
                 <input
                   type="email"
                   value={editForm.email}
                   onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                  placeholder="branch@ziqualaabo.edu.et"
+                  placeholder={uiText("branch@ziqualaabo.edu.et")}
                   className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-bold text-slate-500 uppercase">Address</label>
+                <label className="text-xs font-bold text-slate-500 uppercase">{uiText("Address")}</label>
                 <input
                   type="text"
                   value={editForm.address}
                   onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
-                  placeholder="Addis Ababa, Ethiopia"
+                  placeholder={uiText("Addis Ababa, Ethiopia")}
                   className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -478,16 +475,14 @@ export const Branches = () => {
                   onClick={() => setShowEditModal(false)}
                   className="flex-1 px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg font-bold text-sm text-slate-500 hover:bg-slate-50"
                   disabled={updating}
-                >
-                  Cancel
-                </button>
+                >{uiText("Cancel")}</button>
                 <button
                   type="submit"
                   className="flex-1 bg-blue-600 text-white font-bold py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-blue-700 disabled:opacity-50"
                   disabled={updating}
                 >
                   {updating ? <Loader2 className="animate-spin" size={18} /> : <Check size={18} />}
-                  <span>{updating ? t('branches.updating', 'Updating...') : t('branches.updateBranch', 'Update Branch')}</span>
+                  <span>{uiText(updating ? t('branches.updating', 'Updating...') : t('branches.updateBranch', 'Update Branch'))}</span>
                 </button>
               </div>
             </form>
@@ -500,14 +495,12 @@ export const Branches = () => {
           <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 w-full max-w-lg">
             <div className="p-6 border-b border-slate-100 dark:border-slate-800">
               <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('branches.deleteModalTitle', 'Delete Branch')}</h3>
-              <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
-                Are you sure you want to delete <span className="font-semibold text-slate-900 dark:text-white">{deletingBranchName}</span>? This action cannot be undone.
-              </p>
+              <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">{uiText("Are you sure you want to delete ")}<span className="font-semibold text-slate-900 dark:text-white">{uiText(deletingBranchName)}</span>{uiText("? This action cannot be undone.")}</p>
             </div>
             <div className="p-6 space-y-4">
               <div className="flex items-center gap-3 text-slate-700 dark:text-slate-300">
                 <Trash2 size={20} className="text-rose-600" />
-                <span className="text-sm">Deleting a branch will remove it from the branch list and clear the active branch selection if necessary.</span>
+                <span className="text-sm">{uiText("Deleting a branch will remove it from the branch list and clear the active branch selection if necessary.")}</span>
               </div>
               <div className="flex flex-col sm:flex-row gap-3">
                 <button
@@ -515,16 +508,14 @@ export const Branches = () => {
                   onClick={() => setShowDeleteConfirm(false)}
                   className="flex-1 px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
                   disabled={deleting}
-                >
-                  Cancel
-                </button>
+                >{uiText("Cancel")}</button>
                 <button
                   type="button"
                   onClick={handleDeleteBranch}
                   className="flex-1 px-4 py-3 bg-rose-600 text-white rounded-2xl hover:bg-rose-700 transition disabled:opacity-50"
                   disabled={deleting}
                 >
-                  {deleting ? t('branches.deleting', 'Deleting...') : t('branches.deleteBranch', 'Delete Branch')}
+                  {uiText(deleting ? t('branches.deleting', 'Deleting...') : t('branches.deleteBranch', 'Delete Branch'))}
                 </button>
               </div>
             </div>
