@@ -64,6 +64,7 @@ import church from '../assets/monastery/church.jpg';
 import monksReading from '../assets/monastery/monks-reading.webp';
 import injeraMaking from '../assets/monastery/projects/injera-making.webp';
 import sewingProject from '../assets/monastery/projects/sewing.webp';
+import textileWeaving from '../assets/monastery/projects/textile-weaving.png';
 import cropHarvest from '../assets/monastery/projects/crop-harvest.webp';
 import oxFarming from '../assets/monastery/projects/ox-farming.webp';
 import livestock from '../assets/monastery/projects/livestock.webp';
@@ -620,6 +621,13 @@ const monasteryProjects = [
     copy: 'The sewing project turns practical skill into useful textile products and repair services while creating a dependable source of income.',
     image: sewingProject,
     alt: 'A member of the monastery community working at a sewing machine',
+  },
+  {
+    title: 'Traditional textile weaving',
+    product: 'Handwoven textiles made on manual looms',
+    copy: 'Traditional floor-loom weaving transforms practical craft into useful textiles while supporting the workshop and the monastery’s livelihood activities.',
+    image: textileWeaving,
+    alt: 'Women weaving textiles on traditional manual floor looms inside a workshop',
   },
   {
     title: 'Shared harvest',
