@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { CheckCircle, XCircle, Clock, ChevronDown, UserCheck, Users, ShieldAlert, ArrowRight, X, Send, Check, Loader2, ArrowLeft, Pencil } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, ChevronDown, UserCheck, Users, ShieldAlert, ArrowRight, X, Send, Check, Loader2, ArrowLeft, Pencil, Sliders, CalendarDays } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useUser } from '../context/UserContext';
 import { useNavigate } from 'react-router-dom';
@@ -8,6 +8,7 @@ import attendanceService from '../services/attendanceService';
 import studentService from '../services/studentService';
 import { getTodayEthiopianDate, parseEthiopianDateString, formatEthiopianLabel } from '../utils/ethiopianCalendar';
 import { EthiopianDatePicker } from '../components/EthiopianDatePicker';
+import { getAttendanceTimes, saveAttendanceTimes, AttendanceTimeWindows } from '../services/schoolAdminService';
 import api from '../services/api';
 
 const ETH_MONTHS = [
@@ -20,6 +21,18 @@ function formatEthDateStr(ethStr: string): string {
   const p = parseEthiopianDateString(ethStr);
   if (!p) return ethStr;
   return `${p.day} ${ETH_MONTHS[p.month - 1]} ${p.year} E.C.`;
+}
+
+function formatWindowTime(timeStr?: string): string {
+  if (!timeStr) return '--:--';
+  const parts = timeStr.split(':');
+  if (parts.length < 2) return timeStr;
+  let h = parseInt(parts[0], 10);
+  const m = parts[1];
+  const meridiem = h >= 12 ? 'PM' : 'AM';
+  h = h % 12;
+  if (h === 0) h = 12;
+  return `${h}:${m} ${meridiem}`;
 }
 
 type AttendanceMode = 'student' | 'staff' | null;
@@ -69,6 +82,78 @@ export const Attendance = () => {
   const [gradeStats, setGradeStats] = useState<any[]>([]);
   const [studentAttendanceHistory, setStudentAttendanceHistory] = useState<Record<string, any>>({});
   const [attendanceSummaryLoading, setAttendanceSummaryLoading] = useState(false);
+  const [attendanceWindows, setAttendanceWindows] = useState<AttendanceTimeWindows | null>(null);
+  const [showWindowsModal, setShowWindowsModal] = useState(false);
+  const [windowsSaving, setWindowsSaving] = useState(false);
+
+  // Fetch attendance windows for selected date
+  const fetchAttendanceWindows = async () => {
+    try {
+      const data = await getAttendanceTimes(selectedDate);
+      setAttendanceWindows(data);
+    } catch (err) {
+      console.error('Failed to fetch attendance times:', err);
+    }
+  };
+
+  useEffect(() => {
+    if (attendanceMode === 'staff') {
+      fetchAttendanceWindows();
+    }
+  }, [selectedDate, attendanceMode]);
+
+  const handleSaveAttendanceTimes = async (formData: any) => {
+    setWindowsSaving(true);
+    try {
+      await saveAttendanceTimes(formData);
+      await fetchAttendanceWindows();
+      // Refresh staff attendance
+      const endpoint = isVP ? '/vice-principal/staff-attendance' : '/school-admin/staff-attendance';
+      const refreshResponse = await api.get(endpoint, {
+        params: { date: selectedDate }
+      });
+      if (refreshResponse.data && refreshResponse.data.success) {
+        const mappedRecords: StaffAttendanceRecord[] = refreshResponse.data.data.map((item: any) => {
+          const rawStatus = (item.attendance_status || '').toLowerCase();
+          const isLateArrival = !!item.is_late_arrival;
+          let status: StaffAttendanceStatus = 'Pending';
+          if (rawStatus === 'present' && isLateArrival) status = 'Present (Late)';
+          else if (rawStatus === 'present') status = 'Present';
+          else if (rawStatus === 'late') status = 'Late';
+          else if (rawStatus === 'half-day') status = 'Half Day';
+          else if (rawStatus === 'absent') status = 'Absent';
+          else if (item.day_off_type === 'Weekend') status = 'Weekend';
+          else if (item.day_off_type === 'Holiday') status = 'Holiday';
+          return {
+            id: item.id,
+            name: item.name,
+            branch: item.branch_name || 'Main',
+            department: item.department || (item.role === 'teacher' ? 'Academics' : item.role),
+            subjects: item.subjects || [],
+            status,
+            isLateArrival,
+            signInTime: item.sign_in_time || undefined,
+            lunchOutTime: item.lunch_out_time || undefined,
+            lunchInTime: item.lunch_in_time || undefined,
+            signOutTime: item.sign_out_time || undefined,
+            zkDeviceId: item.zk_device_id,
+            role: item.role,
+            isBiometric: item.is_biometric,
+            classes: item.classes_count || 0,
+            date: selectedDate,
+          };
+        });
+        setStaffAttendance(mappedRecords);
+      }
+      setShowWindowsModal(false);
+      alert(`Attendance time intervals for ${formatEthDateStr(selectedDate)} saved successfully!`);
+    } catch (error: any) {
+      console.error('Failed to save attendance times:', error);
+      alert('Failed to save attendance times: ' + (error?.response?.data?.message || error.message || 'Unknown error'));
+    } finally {
+      setWindowsSaving(false);
+    }
+  };
 
   // Fetch students for selected grade
   useEffect(() => {
@@ -1228,6 +1313,108 @@ export const Attendance = () => {
               </button>
             )}
           </div>
+
+          {/* Attendance Shift Intervals Card */}
+          <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-5 rounded-2xl shadow-xl border border-indigo-900/30 overflow-hidden relative">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="p-1.5 bg-indigo-500/20 text-indigo-300 rounded-lg">
+                    <Clock size={16} />
+                  </span>
+                  <h4 className="font-bold text-base text-white">
+                    Attendance Shift Intervals
+                  </h4>
+                  <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${attendanceWindows?.isCustomForDate
+                      ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                      : 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
+                    }`}>
+                    {attendanceWindows?.isCustomForDate ? 'Custom for this date' : 'Default Schedule'}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-300">
+                  Target Date: <span className="font-semibold text-white">{formatEthDateStr(selectedDate)}</span> • Staff punches are validated against these intervals.
+                </p>
+              </div>
+
+              {isAdmin && (
+                <button
+                  type="button"
+                  id="editAttendanceTimesBtn"
+                  onClick={() => setShowWindowsModal(true)}
+                  className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl font-bold text-xs shadow-lg shadow-indigo-600/30 transition-all self-start md:self-auto cursor-pointer"
+                >
+                  <Sliders size={14} />
+                  Edit Attendance Times
+                </button>
+              )}
+            </div>
+
+            {/* 4 Intervals Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-4 border-t border-white/10 relative z-10">
+              <div className="bg-white/5 backdrop-blur-sm p-3 rounded-xl border border-white/10">
+                <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+                  Morning Check-In
+                </p>
+                <p className="text-sm font-black text-white mt-1">
+                  {formatWindowTime(attendanceWindows?.morningCheckInStart || '07:30')} – {formatWindowTime(attendanceWindows?.morningCheckInEnd || '08:30')}
+                </p>
+                <p className="text-[9px] text-slate-400 mt-0.5">2:30 Morning (Qen)</p>
+              </div>
+
+              <div className="bg-white/5 backdrop-blur-sm p-3 rounded-xl border border-white/10">
+                <p className="text-[10px] font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-amber-400"></span>
+                  Lunch Check-Out
+                </p>
+                <p className="text-sm font-black text-white mt-1">
+                  {formatWindowTime(attendanceWindows?.lunchCheckOutStart || '12:00')} – {formatWindowTime(attendanceWindows?.lunchCheckOutEnd || '13:00')}
+                </p>
+                <p className="text-[9px] text-slate-400 mt-0.5">Afternoon Window</p>
+              </div>
+
+              <div className="bg-white/5 backdrop-blur-sm p-3 rounded-xl border border-white/10">
+                <p className="text-[10px] font-bold text-sky-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-sky-400"></span>
+                  Lunch Check-In
+                </p>
+                <p className="text-sm font-black text-white mt-1">
+                  {formatWindowTime(attendanceWindows?.lunchCheckInStart || '13:00')} – {formatWindowTime(attendanceWindows?.lunchCheckInEnd || '14:00')}
+                </p>
+                <p className="text-[9px] text-slate-400 mt-0.5">Afternoon Window</p>
+              </div>
+
+              <div className="bg-white/5 backdrop-blur-sm p-3 rounded-xl border border-white/10">
+                <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-indigo-400"></span>
+                  Leave / Sign-Out
+                </p>
+                <p className="text-sm font-black text-white mt-1">
+                  {formatWindowTime(attendanceWindows?.leaveStart || '17:00')} – {formatWindowTime(attendanceWindows?.leaveEnd || '18:00')}
+                </p>
+                <p className="text-[9px] text-slate-400 mt-0.5">Evening Departure</p>
+              </div>
+            </div>
+
+            {/* Policy Rule Bar */}
+            <div className="mt-3 text-[10px] text-slate-300 flex flex-wrap items-center gap-x-4 gap-y-1 pt-2 border-t border-white/5">
+              <span><strong>Status Policy:</strong></span>
+              <span className="flex items-center gap-1 text-emerald-300">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                All 4 in interval = <strong>Present</strong>
+              </span>
+              <span className="flex items-center gap-1 text-amber-300">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                1+ missing = <strong>Half Day</strong>
+              </span>
+              <span className="flex items-center gap-1 text-rose-300">
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
+                All missing = <strong>Full Day Absent</strong>
+              </span>
+            </div>
+          </div>
+
           {/* Export Report Container */}
           <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-6 flex flex-col sm:flex-row items-end gap-4">
             <div className="flex-1 w-full sm:w-auto">
@@ -1515,22 +1702,295 @@ export const Attendance = () => {
       {editRecord && (
         <EditAttendanceModal
           record={editRecord}
+          windows={attendanceWindows}
           onClose={() => setEditRecord(null)}
           onSave={handleSaveManualAttendance}
           saving={editSaving}
+        />
+      )}
+
+      {showWindowsModal && (
+        <EditAttendanceTimesModal
+          windows={attendanceWindows}
+          selectedDate={selectedDate}
+          onClose={() => setShowWindowsModal(false)}
+          onSave={handleSaveAttendanceTimes}
+          saving={windowsSaving}
         />
       )}
     </div>
   );
 };
 
+const EditAttendanceTimesModal = ({
+  windows,
+  selectedDate,
+  onClose,
+  onSave,
+  saving,
+}: {
+  windows: AttendanceTimeWindows | null;
+  selectedDate: string;
+  onClose: () => void;
+  onSave: (data: any) => Promise<void>;
+  saving: boolean;
+}) => {
+  const [morningStart, setMorningStart] = useState(windows?.morningCheckInStart || '07:30');
+  const [morningEnd, setMorningEnd] = useState(windows?.morningCheckInEnd || '08:30');
+  const [lunchOutStart, setLunchOutStart] = useState(windows?.lunchCheckOutStart || '12:00');
+  const [lunchOutEnd, setLunchOutEnd] = useState(windows?.lunchCheckOutEnd || '13:00');
+  const [lunchInStart, setLunchInStart] = useState(windows?.lunchCheckInStart || '13:00');
+  const [lunchInEnd, setLunchInEnd] = useState(windows?.lunchCheckInEnd || '14:00');
+  const [leaveStart, setLeaveStart] = useState(windows?.leaveStart || '17:00');
+  const [leaveEnd, setLeaveEnd] = useState(windows?.leaveEnd || '18:00');
+  const [applyToAll, setApplyToAll] = useState(false);
+
+  const handleResetDefaults = () => {
+    setMorningStart('07:30');
+    setMorningEnd('08:30');
+    setLunchOutStart('12:00');
+    setLunchOutEnd('13:00');
+    setLunchInStart('13:00');
+    setLunchInEnd('14:00');
+    setLeaveStart('17:00');
+    setLeaveEnd('18:00');
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSave({
+      date: selectedDate,
+      morningCheckInStart: morningStart,
+      morningCheckInEnd: morningEnd,
+      lunchCheckOutStart: lunchOutStart,
+      lunchCheckOutEnd: lunchOutEnd,
+      lunchCheckInStart: lunchInStart,
+      lunchCheckInEnd: lunchInEnd,
+      leaveStart: leaveStart,
+      leaveEnd: leaveEnd,
+      applyToAll,
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-3xl shadow-2xl animate-in zoom-in duration-300 flex flex-col max-h-[90vh] border border-slate-100 dark:border-slate-800">
+        <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/50">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-xl">
+              <Clock size={20} />
+            </div>
+            <div>
+              <h3 className="font-bold text-slate-800 dark:text-white">Configure Attendance Times</h3>
+              <p className="text-xs text-slate-500 font-medium tracking-tight mt-0.5">
+                Target Date: <span className="font-bold text-blue-600 dark:text-blue-400">{formatEthDateStr(selectedDate)}</span>
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            title="Close attendance times modal"
+            className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-4">
+          <div className="space-y-3.5">
+            {/* Morning Check-In */}
+            <div className="p-3 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                  Morning Check-In (Arrival)
+                </span>
+                <span className="text-[10px] text-slate-400 font-semibold">Default: 07:30 – 08:30 (2:30 Morning)</span>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase">Start Time</label>
+                  <input
+                    type="time"
+                    value={morningStart}
+                    onChange={(e) => setMorningStart(e.target.value)}
+                    required
+                    className="w-full px-3 py-1.5 mt-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-800 dark:text-white text-sm font-semibold focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase">End Time</label>
+                  <input
+                    type="time"
+                    value={morningEnd}
+                    onChange={(e) => setMorningEnd(e.target.value)}
+                    required
+                    className="w-full px-3 py-1.5 mt-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-800 dark:text-white text-sm font-semibold focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Lunch Check-Out */}
+            <div className="p-3 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+                  Lunch Check-Out (Afternoon)
+                </span>
+                <span className="text-[10px] text-slate-400 font-semibold">Default: 12:00 – 13:00 (1:00 PM)</span>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase">Start Time</label>
+                  <input
+                    type="time"
+                    value={lunchOutStart}
+                    onChange={(e) => setLunchOutStart(e.target.value)}
+                    required
+                    className="w-full px-3 py-1.5 mt-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-800 dark:text-white text-sm font-semibold focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase">End Time</label>
+                  <input
+                    type="time"
+                    value={lunchOutEnd}
+                    onChange={(e) => setLunchOutEnd(e.target.value)}
+                    required
+                    className="w-full px-3 py-1.5 mt-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-800 dark:text-white text-sm font-semibold focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Lunch Check-In */}
+            <div className="p-3 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-sky-500"></span>
+                  Lunch Check-In (Afternoon)
+                </span>
+                <span className="text-[10px] text-slate-400 font-semibold">Default: 13:00 – 14:00 (2:00 PM)</span>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase">Start Time</label>
+                  <input
+                    type="time"
+                    value={lunchInStart}
+                    onChange={(e) => setLunchInStart(e.target.value)}
+                    required
+                    className="w-full px-3 py-1.5 mt-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-800 dark:text-white text-sm font-semibold focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase">End Time</label>
+                  <input
+                    type="time"
+                    value={lunchInEnd}
+                    onChange={(e) => setLunchInEnd(e.target.value)}
+                    required
+                    className="w-full px-3 py-1.5 mt-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-800 dark:text-white text-sm font-semibold focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Leave / Sign-Out */}
+            <div className="p-3 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
+                  Leave / Sign-Out (Departure)
+                </span>
+                <span className="text-[10px] text-slate-400 font-semibold">Default: 17:00 – 18:00 (5:00-6:00 PM)</span>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase">Start Time</label>
+                  <input
+                    type="time"
+                    value={leaveStart}
+                    onChange={(e) => setLeaveStart(e.target.value)}
+                    required
+                    className="w-full px-3 py-1.5 mt-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-800 dark:text-white text-sm font-semibold focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase">End Time</label>
+                  <input
+                    type="time"
+                    value={leaveEnd}
+                    onChange={(e) => setLeaveEnd(e.target.value)}
+                    required
+                    className="w-full px-3 py-1.5 mt-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-800 dark:text-white text-sm font-semibold focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between pt-1">
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={applyToAll}
+                onChange={(e) => setApplyToAll(e.target.checked)}
+                className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 dark:border-slate-700 dark:bg-slate-800"
+              />
+              <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+                Save as default schedule template for all dates
+              </span>
+            </label>
+            <button
+              type="button"
+              onClick={handleResetDefaults}
+              className="text-xs font-bold text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+            >
+              Reset Defaults
+            </button>
+          </div>
+
+          <div className="pt-3 flex items-center justify-end gap-3 border-t border-slate-100 dark:border-slate-800">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-sm font-bold text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-600/20 transition-all flex items-center gap-2 disabled:opacity-50 cursor-pointer"
+            >
+              {saving ? (
+                <>
+                  <Loader2 size={16} className="animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                'Save Attendance Times'
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
 const EditAttendanceModal = ({
   record,
+  windows,
   onClose,
   onSave,
   saving
 }: {
   record: StaffAttendanceRecord;
+  windows?: AttendanceTimeWindows | null;
   onClose: () => void;
   onSave: (userId: string, date: string, formData: any) => Promise<void>;
   saving: boolean;
@@ -1602,7 +2062,10 @@ const EditAttendanceModal = ({
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div className="space-y-4">
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Arrival Time</label>
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Arrival Time</label>
+                <span className="text-[10px] text-slate-400">Interval: {formatWindowTime(windows?.morningCheckInStart || '07:30')} – {formatWindowTime(windows?.morningCheckInEnd || '08:30')}</span>
+              </div>
               <div className="flex gap-2">
                 <input
                   type="time"
@@ -1625,7 +2088,10 @@ const EditAttendanceModal = ({
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Lunch Out Time</label>
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Lunch Out Time</label>
+                <span className="text-[10px] text-slate-400">Interval: {formatWindowTime(windows?.lunchCheckOutStart || '12:00')} – {formatWindowTime(windows?.lunchCheckOutEnd || '13:00')}</span>
+              </div>
               <div className="flex gap-2">
                 <input
                   type="time"
@@ -1648,7 +2114,10 @@ const EditAttendanceModal = ({
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Lunch In Time</label>
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Lunch In Time</label>
+                <span className="text-[10px] text-slate-400">Interval: {formatWindowTime(windows?.lunchCheckInStart || '13:00')} – {formatWindowTime(windows?.lunchCheckInEnd || '14:00')}</span>
+              </div>
               <div className="flex gap-2">
                 <input
                   type="time"
@@ -1671,7 +2140,10 @@ const EditAttendanceModal = ({
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Departure Time</label>
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Departure Time</label>
+                <span className="text-[10px] text-slate-400">Interval: {formatWindowTime(windows?.leaveStart || '17:00')} – {formatWindowTime(windows?.leaveEnd || '18:00')}</span>
+              </div>
               <div className="flex gap-2">
                 <input
                   type="time"

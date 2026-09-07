@@ -56,7 +56,6 @@ const TeacherClasses = lazy(() => import('./pages/TeacherClasses').then((m) => (
 const TeacherGrades = lazy(() => import('./pages/TeacherGrades').then((m) => ({ default: m.TeacherGrades })));
 const TeacherStudentGrades = lazy(() => import('./pages/TeacherStudentGrades').then((m) => ({ default: m.TeacherStudentGrades })));
 const VPAttendanceOversight = lazy(() => import('./pages/VPAttendanceOversight').then((m) => ({ default: m.VPAttendanceOversight })));
-const VPGradeLocks = lazy(() => import('./pages/VPGradeLocks').then((m) => ({ default: m.VPGradeLocks })));
 const VPGradeManagement = lazy(() => import('./pages/VPGradeManagement').then((m) => ({ default: m.VPGradeManagement })));
 const VPTranscripts = lazy(() => import('./pages/VPTranscripts').then((m) => ({ default: m.VPTranscripts })));
 const VPCommunication = lazy(() => import('./pages/VPCommunication').then((m) => ({ default: m.VPCommunication })));
@@ -284,7 +283,7 @@ function App() {
 
               <Route path="vp-grade-locks" element={
                 <ProtectedRoute allowedRoles={['vice-principal', 'super-admin', 'academic-manager']}>
-                  <VPGradeLocks />
+                  <Navigate to="/vp-grade-management" replace />
                 </ProtectedRoute>
               } />
 

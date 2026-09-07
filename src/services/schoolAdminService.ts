@@ -692,3 +692,43 @@ export const linkParentStudent = async (parentUserId: string, studentUserId: str
   const response = await api.post('/school-admin/link-parent-student', { parentUserId, studentUserId });
   return response.data;
 };
+
+// Attendance Time Windows / Shift Configuration
+export interface AttendanceTimeWindows {
+  id?: string | null;
+  branchId?: string;
+  date?: string | null;
+  isCustomForDate?: boolean;
+  isDefault?: boolean;
+  morningCheckInStart: string;
+  morningCheckInEnd: string;
+  lunchCheckOutStart: string;
+  lunchCheckOutEnd: string;
+  lunchCheckInStart: string;
+  lunchCheckInEnd: string;
+  leaveStart: string;
+  leaveEnd: string;
+}
+
+export const getAttendanceTimes = async (date?: string): Promise<AttendanceTimeWindows> => {
+  const response = await api.get('/school-admin/attendance-times', {
+    params: { date }
+  });
+  return response.data.data;
+};
+
+export const saveAttendanceTimes = async (data: {
+  date?: string | null;
+  morningCheckInStart: string;
+  morningCheckInEnd: string;
+  lunchCheckOutStart: string;
+  lunchCheckOutEnd: string;
+  lunchCheckInStart: string;
+  lunchCheckInEnd: string;
+  leaveStart: string;
+  leaveEnd: string;
+  applyToAll?: boolean;
+}): Promise<any> => {
+  const response = await api.post('/school-admin/attendance-times', data);
+  return response.data;
+};

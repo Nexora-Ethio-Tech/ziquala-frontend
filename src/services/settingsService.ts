@@ -71,7 +71,7 @@ const settingsService = {
     return response.data.data;
   },
 
-  updateSmtpSettings: async (settings: Partial<SmtpSettings & { smtp_pass?: string }>) => {
+  updateSmtpSettings: async (settings: Partial<SmtpSettings>) => {
     const response = await api.put('/super-admin/smtp-settings', settings);
     return response.data;
   },

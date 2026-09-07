@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Building, Palette, Save, HelpCircle, CreditCard, GraduationCap, Plus, Trash2, AlertCircle, Lock, Unlock, CheckCircle, Shield, Mail } from 'lucide-react';
+import { Building, Palette, Save, HelpCircle, CreditCard, GraduationCap, Plus, Trash2, AlertCircle, Lock, Unlock, CheckCircle, Shield, Mail, ChevronDown, Check, X } from 'lucide-react';
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAppearance, type UIStyle } from '../context/AppearanceContext';
@@ -11,6 +11,24 @@ import { authService } from '../services/authService';
 import { SettingsSubTabs, SettingsPanel } from '../components/settings/SettingsSubTabs';
 import { formatEthiopianLabel } from '../utils/ethiopianCalendar';
 import { SUPER_ADMIN_SUBTABS, getDefaultSubTab, getSubTabLabel } from './settings/subtabConfig';
+
+const ALL_GRADES = ['KG 1', 'KG 2', 'KG 3', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
+
+const GRADE_OPTIONS = ALL_GRADES.map((g) => ({
+  value: g,
+  label: g.startsWith('KG') ? g : `Grade ${g}`,
+}));
+
+const sortGradesList = (grades: string[]): string[] => {
+  return [...grades].sort((a, b) => {
+    const idxA = ALL_GRADES.findIndex(g => g.toLowerCase().replace(/\s+/g, '') === a.toLowerCase().replace(/\s+/g, ''));
+    const idxB = ALL_GRADES.findIndex(g => g.toLowerCase().replace(/\s+/g, '') === b.toLowerCase().replace(/\s+/g, ''));
+    if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+    if (idxA !== -1) return -1;
+    if (idxB !== -1) return 1;
+    return a.localeCompare(b);
+  });
+};
 
 const MultiSelectDropdown = ({
   options,
@@ -29,40 +47,97 @@ const MultiSelectDropdown = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
+  const handleToggleAll = (selectAll: boolean) => {
+    options.forEach(opt => {
+      const isChecked = selectedValues.includes(opt.value);
+      if (selectAll && !isChecked) {
+        onChange(opt.value, true);
+      } else if (!selectAll && isChecked) {
+        onChange(opt.value, false);
+      }
+    });
+  };
+
   return (
     <div className={`relative ${className}`}>
       <button
         type="button"
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}
-        className={`w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-left flex justify-between items-center outline-none focus:ring-2 focus:ring-blue-500 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+        className={`w-full min-h-[42px] px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-left flex justify-between items-center outline-none focus:ring-2 focus:ring-blue-500 shadow-sm transition-all ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:border-slate-300 dark:hover:border-slate-600'}`}
       >
-        <span className="text-slate-700 dark:text-slate-200 truncate pr-2">
-          {selectedValues.length === 0
-            ? placeholder
-            : `${selectedValues.length} selected`}
-        </span>
-        <span className="text-slate-400 font-bold ml-2">▼</span>
+        <div className="flex flex-wrap items-center gap-1.5 py-0.5 max-w-[calc(100%-1.5rem)]">
+          {selectedValues.length === 0 ? (
+            <span className="text-slate-400 font-semibold">{placeholder}</span>
+          ) : (
+            selectedValues.map((val) => {
+              const opt = options.find(o => o.value === val);
+              const displayLabel = opt ? opt.label : val;
+              return (
+                <span
+                  key={val}
+                  className="inline-flex items-center gap-1 bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 px-2 py-0.5 rounded-lg text-[11px] font-black"
+                >
+                  {displayLabel}
+                  <span
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onChange(val, false);
+                    }}
+                    className="hover:text-rose-500 cursor-pointer ml-0.5 text-xs font-black"
+                    title="Remove grade"
+                  >
+                    ×
+                  </span>
+                </span>
+              );
+            })
+          )}
+        </div>
+        <ChevronDown size={16} className={`text-slate-400 font-bold transition-transform duration-200 flex-shrink-0 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && !disabled && (
         <>
-          <div className="fixed inset-0 z-10" onClick={() => setIsOpen(false)} />
-          <div className="absolute left-0 mt-1 w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg max-h-60 overflow-y-auto z-20 p-2 space-y-1">
+          <div className="fixed inset-0 z-20" onClick={() => setIsOpen(false)} />
+          <div className="absolute left-0 right-0 mt-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl max-h-64 overflow-y-auto z-30 p-2 space-y-1 animate-in fade-in slide-in-from-top-1 duration-150">
+            <div className="flex items-center justify-between px-3 py-1.5 border-b border-slate-100 dark:border-slate-800 text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">
+              <span>{selectedValues.length} of {options.length} Selected</span>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleToggleAll(true)}
+                  className="text-blue-600 dark:text-blue-400 hover:underline uppercase font-extrabold"
+                >
+                  Select All
+                </button>
+                <span>·</span>
+                <button
+                  type="button"
+                  onClick={() => handleToggleAll(false)}
+                  className="text-rose-500 hover:underline uppercase font-extrabold"
+                >
+                  Clear
+                </button>
+              </div>
+            </div>
             {options.map((option) => {
               const isChecked = selectedValues.includes(option.value);
               return (
                 <label
                   key={option.value}
-                  className="flex items-center gap-3 px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-700/50 rounded-lg cursor-pointer text-xs font-bold text-slate-800 dark:text-slate-200 select-none"
+                  className={`flex items-center justify-between px-3.5 py-2 rounded-xl cursor-pointer text-xs font-bold transition-all select-none ${isChecked ? 'bg-blue-50/80 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' : 'hover:bg-slate-50 dark:hover:bg-slate-800/60 text-slate-700 dark:text-slate-300'}`}
                 >
-                  <input
-                    type="checkbox"
-                    checked={isChecked}
-                    onChange={(e) => onChange(option.value, e.target.checked)}
-                    className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-4 h-4"
-                  />
-                  <span>{option.label}</span>
+                  <span className="flex items-center gap-2.5">
+                    <input
+                      type="checkbox"
+                      checked={isChecked}
+                      onChange={(e) => onChange(option.value, e.target.checked)}
+                      className="rounded border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer"
+                    />
+                    <span>{option.label}</span>
+                  </span>
+                  {isChecked && <Check size={14} className="text-blue-600 dark:text-blue-400" />}
                 </label>
               );
             })}
@@ -72,6 +147,7 @@ const MultiSelectDropdown = ({
     </div>
   );
 };
+
 
 export const Settings = () => {
   const { t } = useTranslation();
@@ -109,8 +185,7 @@ export const Settings = () => {
   const [staffPayoutEdited, setStaffPayoutEdited] = useState(false);
   // Lock target editing after 4th of each Gregorian month
   const isTargetSettingLocked = (() => { const d = new Date().getDate(); return d > 4; })();
-  const [smtpSettings, setSmtpSettings] = useState({ smtp_host: 'smtp.gmail.com', smtp_port: '587', smtp_user: '', smtp_from: '' });
-  const [smtpPass, setSmtpPass] = useState('gdgg eify uzec fhox');
+  const [smtpSettings, setSmtpSettings] = useState({ smtp_host: '', smtp_port: '', smtp_user: '', smtp_from: '' });
   const [smtpTestEmail, setSmtpTestEmail] = useState('');
   const [smtpSaving, setSmtpSaving] = useState(false);
   const [smtpMessage, setSmtpMessage] = useState('');
@@ -362,7 +437,7 @@ export const Settings = () => {
 
   const groupConfigsIntoSystems = (dbConfigs: Record<string, GradingMethod[]>): GradingSystem[] => {
     const systemMap = new Map<string, { name: string; grades: string[]; methods: GradingMethod[] }>();
-    const grades = Object.keys(dbConfigs).sort((a, b) => parseInt(a) - parseInt(b));
+    const grades = sortGradesList(Object.keys(dbConfigs));
 
     grades.forEach((grade) => {
       const methods = dbConfigs[grade] || [];
@@ -374,7 +449,7 @@ export const Settings = () => {
         systemMap.get(key)!.grades.push(grade);
       } else {
         systemMap.set(key, {
-          name: `Grade ${grade} Grading System`,
+          name: grade.startsWith('KG') ? `${grade} Grading System` : `Grade ${grade} Grading System`,
           grades: [grade],
           methods: JSON.parse(JSON.stringify(methods)),
         });
@@ -386,7 +461,7 @@ export const Settings = () => {
       systems.push({
         id: 'system-default',
         name: 'General Grading System',
-        grades: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'],
+        grades: ['KG 1', 'KG 2', 'KG 3', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'],
         methods: [
           { id: 'quiz-1', label: 'Quiz 1', maxWeight: 10 },
           { id: 'mid-exam', label: 'Mid Exam', maxWeight: 30 },
@@ -400,7 +475,7 @@ export const Settings = () => {
         systems.push({
           id: `system-${Math.random().toString(36).substr(2, 9)}`,
           name: sys.name,
-          grades: sys.grades,
+          grades: sortGradesList(sys.grades),
           methods: sys.methods,
           published: true,
         });
@@ -453,6 +528,14 @@ export const Settings = () => {
     setGeneralSaving(true);
     setSuccessMessage('');
     try {
+      const active = academicYears.find((y) => y.is_active);
+      const shouldActivateYear = Boolean(
+        selectedAcademicYearId && (!active || active.id !== selectedAcademicYearId)
+      );
+      if (shouldActivateYear) {
+        await settingsService.activateAcademicYear(selectedAcademicYearId);
+      }
+
       await settingsService.updateSystemSettings({
         school_name_oromic: schoolName.oromic,
         school_name_amharic: schoolName.amharic,
@@ -465,14 +548,9 @@ export const Settings = () => {
         address,
         grades_locked: gradesLocked ? 'true' : 'false',
         registration_open: registrationOpen ? 'true' : 'false',
-        active_academic_year_id: selectedAcademicYearId || '',
       });
-      if (selectedAcademicYearId) {
-        const active = academicYears.find((y) => y.is_active);
-        if (!active || active.id !== selectedAcademicYearId) {
-          await settingsService.activateAcademicYear(selectedAcademicYearId);
-          await loadGeneralSettings();
-        }
+      if (shouldActivateYear) {
+        await loadGeneralSettings();
       }
       setSuccessMessage('System settings saved successfully!');
       setTimeout(() => setSuccessMessage(''), 4000);
@@ -563,10 +641,7 @@ export const Settings = () => {
     setSmtpSaving(true);
     setSmtpMessage('');
     try {
-      const payload: Record<string, string> = { ...smtpSettings };
-      if (smtpPass.trim()) payload.smtp_pass = smtpPass;
-      await settingsService.updateSmtpSettings(payload);
-      setSmtpPass('');
+      await settingsService.updateSmtpSettings(smtpSettings);
       setSmtpMessage('SMTP settings saved');
     } catch (err: any) {
       setSmtpMessage(err.response?.data?.error?.message || 'Failed to save SMTP settings');
@@ -1152,15 +1227,8 @@ export const Settings = () => {
                             className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm"
                           />
                         </div>
-                        <div className="space-y-1 md:col-span-2">
-                          <label htmlFor="smtp-password" className="text-xs font-bold text-slate-500 uppercase">SMTP Password (leave blank to keep current)</label>
-                          <input
-                            id="smtp-password"
-                            type="password"
-                            value={smtpPass}
-                            onChange={(e) => setSmtpPass(e.target.value)}
-                            className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm"
-                          />
+                        <div className="md:col-span-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-200">
+                          SMTP password is managed securely in the server environment as <code>SMTP_PASS</code>. It cannot be viewed or changed here.
                         </div>
                         <div className="space-y-1 md:col-span-2">
                           <label htmlFor="smtp-test-email" className="text-xs font-bold text-slate-500 uppercase">Test recipient email</label>
@@ -1245,31 +1313,21 @@ export const Settings = () => {
                         />
                       </div>
 
-                      {/* Grade Checkboxes */}
-                      <div className="space-y-2">
+                      {/* Grade Selection Dropdown */}
+                      <div className="space-y-1">
                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Applies to Grades</label>
-                        <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-12 gap-2 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
-                          {Array.from({ length: 12 }, (_, i) => String(i + 1)).map((g) => {
-                            const isChecked = draftGrades.includes(g);
-                            return (
-                              <label key={g} className={`flex items-center gap-2 p-2 rounded-xl border text-xs font-bold cursor-pointer transition-all ${isChecked ? 'bg-blue-50 border-blue-200 text-blue-600 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-400' : 'border-slate-100 dark:border-slate-800 hover:border-slate-200 hover:bg-slate-550'}`}>
-                                <input
-                                  type="checkbox"
-                                  checked={isChecked}
-                                  onChange={(e) => {
-                                    if (e.target.checked) {
-                                      setDraftGrades([...draftGrades, g]);
-                                    } else {
-                                      setDraftGrades(draftGrades.filter(x => x !== g));
-                                    }
-                                  }}
-                                  className="hidden"
-                                />
-                                <span>G{g}</span>
-                              </label>
-                            );
-                          })}
-                        </div>
+                        <MultiSelectDropdown
+                          options={GRADE_OPTIONS}
+                          selectedValues={draftGrades}
+                          placeholder="Select Grade Levels (e.g. KG 1, KG 2, KG 3, Grade 1...)"
+                          onChange={(val, checked) => {
+                            if (checked) {
+                              if (!draftGrades.includes(val)) setDraftGrades(sortGradesList([...draftGrades, val]));
+                            } else {
+                              setDraftGrades(draftGrades.filter(x => x !== val));
+                            }
+                          }}
+                        />
                       </div>
 
                       {/* Methods Setup */}
@@ -1388,7 +1446,7 @@ export const Settings = () => {
                                 )}
                               </h5>
                               <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
-                                Grades: {[...grades].sort((a, b) => parseInt(a) - parseInt(b)).join(', ') || 'None selected'} · {methods.length} components
+                                Grades: {sortGradesList(grades).map(g => g.startsWith('KG') ? g : `G${g}`).join(', ') || 'None selected'} · {methods.length} components
                               </p>
                             </div>
                             <div className="flex items-center gap-4">
@@ -1422,33 +1480,23 @@ export const Settings = () => {
                                 />
                               </div>
 
-                              {/* Edit Grades */}
-                              <div className="space-y-2">
+                              {/* Edit Grades Dropdown */}
+                              <div className="space-y-1">
                                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Applies to Grades</label>
-                                <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-12 gap-2 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-850">
-                                  {Array.from({ length: 12 }, (_, i) => String(i + 1)).map((g) => {
-                                    const isChecked = grades.includes(g);
-                                    return (
-                                      <label key={g} className={`flex items-center gap-2 p-2 rounded-xl border text-xs font-bold cursor-pointer transition-all ${isChecked ? 'bg-blue-50 border-blue-200 text-blue-600 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-400' : 'border-slate-100 dark:border-slate-800 hover:border-slate-200 hover:bg-slate-550'}`}>
-                                        <input
-                                          type="checkbox"
-                                          checked={isChecked}
-                                          onChange={(e) => {
-                                            const updatedGrades = e.target.checked
-                                              ? [...grades, g]
-                                              : grades.filter(x => x !== g);
-                                            const updated = gradingSystems.map(s =>
-                                              s.id === system.id ? { ...s, grades: updatedGrades, published: false } : s
-                                            );
-                                            setGradingSystems(updated);
-                                          }}
-                                          className="hidden"
-                                        />
-                                        <span>G{g}</span>
-                                      </label>
+                                <MultiSelectDropdown
+                                  options={GRADE_OPTIONS}
+                                  selectedValues={grades}
+                                  placeholder="Select Grade Levels..."
+                                  onChange={(val, checked) => {
+                                    const updatedGrades = checked
+                                      ? sortGradesList([...grades, val])
+                                      : grades.filter(x => x !== val);
+                                    const updated = gradingSystems.map(s =>
+                                      s.id === system.id ? { ...s, grades: updatedGrades, published: false } : s
                                     );
-                                  })}
-                                </div>
+                                    setGradingSystems(updated);
+                                  }}
+                                />
                               </div>
 
                               {/* Edit Methods */}
@@ -1700,4 +1748,3 @@ export const Settings = () => {
     </div>
   );
 };
-

@@ -690,13 +690,6 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
     }
   };
 
-  const handlePromote = () => {
-    setSuccessMessage(`${selectedStudent.name} has been promoted!`);
-    setSelectedStudent(null);
-    setSearchQuery('');
-    setTimeout(() => setSuccessMessage(null), 3000);
-  };
-
   const showPhoneNotice = (phone: string, message: string) => {
     const contact = displayValue(phone) === '—' ? 'the parent phone on file' : phone;
     setEmailToast(`📱 Notify ${contact}: ${message}`);
@@ -893,15 +886,18 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
             {t('registration.newAdmissions')}
           </button>
           {isAcademicAdmin && (
-            <button
-              onClick={() => setActiveTab('existing')}
-              className={`px-8 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'existing'
-                ? 'bg-white dark:bg-slate-900 text-blue-600 shadow-xl shadow-slate-200/50 dark:shadow-none'
-                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
-                }`}
-            >
-              {t('registration.reEnrollment')}
-            </button>
+            <div className="flex items-center gap-3 px-4 py-2 text-slate-400" title="Student promotion will be enabled after the reviewed academic rollover workflow is implemented.">
+              <button
+                type="button"
+                disabled
+                className="px-4 py-1 text-xs font-black uppercase tracking-widest cursor-not-allowed opacity-60"
+              >
+                {t('registration.reEnrollment')} unavailable
+              </button>
+              <span className="hidden lg:inline text-[10px] font-bold uppercase tracking-wide">
+                Academic rollover is not yet available
+              </span>
+            </div>
           )}
         </div>
       )}
@@ -1747,14 +1743,12 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                     Cancel
                   </button>
                   <button
-                    onClick={handlePromote}
-                    disabled={selectedStudent.id !== '1'}
-                    className={`px-8 py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg ${selectedStudent.id === '1'
-                      ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-200 dark:shadow-none'
-                      : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
-                      }`}
+                    type="button"
+                    disabled
+                    title="Student promotion requires the reviewed academic rollover workflow."
+                    className="px-8 py-2.5 rounded-xl font-bold text-sm bg-slate-200 text-slate-400 cursor-not-allowed shadow-none"
                   >
-                    Confirm Promotion
+                    Promotion Unavailable
                   </button>
                 </div>
               </div>

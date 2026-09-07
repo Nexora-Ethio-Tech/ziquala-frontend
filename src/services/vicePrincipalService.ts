@@ -36,21 +36,6 @@ export const reviewWeeklyPlan = async (planId: string, data: {
   return response.data;
 };
 
-// Grade Locks
-export const getGradeLocks = async () => {
-  const response = await api.get('/vice-principal/grade-locks');
-  return response.data;
-};
-
-export const toggleGradeLock = async (data: {
-  gradeLevel: string;
-  isLocked: boolean;
-  academicYearId?: string;
-}) => {
-  const response = await api.post('/vice-principal/grade-locks', data);
-  return response.data;
-};
-
 // Student Transcript
 export const getStudentTranscript = async (studentId: string, academicYear?: string, semester?: number) => {
   const params = new URLSearchParams();
@@ -200,24 +185,56 @@ export const approveAttendance = async (alertId: string, data: { status: 'Approv
 };
 
 // Grade Submissions
-export const getVPGradeSubmissions = async () => {
-  const response = await api.get('/vice-principal/grade-submissions');
+export const getVPGradeSubmissions = async (academicYear?: string, semester?: number) => {
+  const params = new URLSearchParams();
+  if (academicYear) params.append('academicYear', academicYear);
+  if (semester !== undefined) params.append('semester', String(semester));
+  const query = params.toString() ? `?${params.toString()}` : '';
+  const response = await api.get(`/vice-principal/grade-submissions${query}`);
   return response.data.data;
 };
 
-export const getVPSubmittedGrades = async (courseId: string, submissionType: string) => {
-  const response = await api.get(`/vice-principal/grades/${courseId}/${encodeURIComponent(submissionType)}`);
+export interface GradeSubmissionPolicy {
+  unlockWindowDays: number;
+  activeSemesterOnly: boolean;
+  activePeriod: {
+    academicYear: string;
+    semester: number;
+  };
+}
+
+export const getGradeSubmissionPolicy = async (): Promise<GradeSubmissionPolicy> => {
+  const response = await api.get('/vice-principal/grade-submission-policy');
   return response.data.data;
 };
 
 export const unlockGradeSubmission = async (data: {
   courseId: string;
   submissionType: string;
-  academicYear?: string;
-  semester?: number;
+  academicYear: string;
+  semester: number;
 }) => {
   const response = await api.post('/vice-principal/unlock-grade-submission', data);
   return response.data;
+};
+
+export const setGradeSubmissionOpen = async (open: boolean) => {
+  const response = await api.post('/vice-principal/grade-submission-settings', { open });
+  return response.data;
+};
+
+export const getVPSubmittedGrades = async (
+  courseId: string,
+  submissionType: string,
+  academicYear?: string,
+  semester?: number
+) => {
+  const params = new URLSearchParams();
+  if (academicYear) params.append('academicYear', academicYear);
+  if (semester !== undefined) params.append('semester', String(semester));
+  const query = params.toString() ? `?${params.toString()}` : '';
+  const response = await api.get(`/vice-principal/grades/${courseId}/${encodeURIComponent(submissionType)}${query}`);
+  return response.data.data;
 };
 
 export const toggleGradeSubmission = async (open: boolean): Promise<void> => {
@@ -262,4 +279,3 @@ export const getCommunicationSummary = async (sectionId: string, weekEnding: str
   const response = await api.get(`/vice-principal/communication-logs/summary?${params}`);
   return response.data.data;
 };
-

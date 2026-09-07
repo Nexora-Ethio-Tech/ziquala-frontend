@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Award, Edit2, X, Plus, TrendingUp, Trash2, Users, Save, Lock, Loader2, CheckCircle2 } from 'lucide-react';
 import * as teacherService from '../services/teacherService';
+import { ecYearToGregorian, getCurrentECYear, getCurrentSemester } from '../utils/ethiopianCalendar';
 
 interface Course {
   id: string;
@@ -37,6 +38,8 @@ interface GradingConfig {
 }
 
 export const TeacherGrades = () => {
+  const academicYear = ecYearToGregorian(getCurrentECYear());
+  const semester = getCurrentSemester();
   const [courses, setCourses] = useState<Course[]>([]);
   const [selectedCourse, setSelectedCourse] = useState('');
   const [students, setStudents] = useState<Student[]>([]);
@@ -102,7 +105,7 @@ export const TeacherGrades = () => {
       if (!courseObj) return;
 
       const [gradesData, rosterData, subsData] = await Promise.all([
-        teacherService.getCourseGrades(selectedCourse),
+        teacherService.getCourseGrades(selectedCourse, academicYear, semester),
         teacherService.getClassStudents(selectedCourse),
         teacherService.getGradeSubmissions()
       ]);
@@ -142,7 +145,13 @@ export const TeacherGrades = () => {
   };
 
   const isComponentLocked = (typeId: string) => {
-    return submissions.some(s => s.course_id === selectedCourse && s.submission_type === typeId);
+    return submissions.some(s =>
+      s.course_id === selectedCourse
+      && s.submission_type === typeId
+      && (!s.academic_year || s.academic_year === academicYear)
+      && (s.semester === undefined || s.semester === null || Number(s.semester) === semester)
+      && s.is_locked !== false
+    );
   };
 
   const handleSubmitGrade = async (e: React.FormEvent) => {
@@ -152,7 +161,7 @@ export const TeacherGrades = () => {
       return;
     }
     try {
-      await teacherService.enterGrade(formData);
+      await teacherService.enterGrade({ ...formData, academicYear, semester });
       setShowAddModal(false);
       resetForm();
       fetchGrades();
@@ -185,6 +194,8 @@ export const TeacherGrades = () => {
 
       await teacherService.bulkEnterGrades({
         courseId: selectedCourse,
+        academicYear,
+        semester,
         grades: gradesArray,
       });
       
@@ -245,7 +256,7 @@ export const TeacherGrades = () => {
 
     setSubmittingLock(prev => ({ ...prev, [typeId]: true }));
     try {
-      await teacherService.submitCourseGrades(selectedCourse, typeId);
+      await teacherService.submitCourseGrades(selectedCourse, typeId, { academicYear, semester });
       alert('Grades locked and submitted successfully!');
       fetchGrades();
     } catch (err: any) {
