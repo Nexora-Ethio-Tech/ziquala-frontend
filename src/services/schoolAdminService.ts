@@ -21,7 +21,7 @@ export interface SchoolAdminDashboard {
 export interface RegisterUserData {
   name: string;
   email: string;
-  role: 'teacher' | 'student' | 'parent' | 'librarian' | 'storekeeper';
+  role: 'teacher' | 'student' | 'parent' | 'librarian' | 'storekeeper' | 'vice-principal' | string;
   grade?: string; // Required for students
   password?: string; // Optional, auto-generated if not provided
   staffProfile?: Record<string, any>;
@@ -408,22 +408,33 @@ export const removeStudentFromClass = async (studentId: string) => {
 };
 
 // At-Risk Students Interface
+export interface AtRiskStudentCourse {
+  course_id: string;
+  course_name: string;
+  course_code?: string;
+  score: number;
+  total: number;
+  percentage: number;
+  status: 'Passing' | 'Needs Improvement';
+}
+
 export interface AtRiskStudent {
   student_id: string;
   user_id: string;
-  digital_id: string;
+  digital_id?: string;
   name: string;
-  email: string;
+  email?: string;
   grade: string;
-  risk_level: 'High' | 'Medium';
+  risk_level: 'High' | 'Medium' | 'Low';
   risk_factor: string;
-  absence_count: string;
-  average_grade: string;
-  monthly_fee: string;
-  bus_fee: string;
-  penalty_fee: string;
-  fee_status: 'standard' | 'reduced';
-  created_at: string;
+  absence_count?: string | number;
+  average_grade: string | number;
+  courses?: AtRiskStudentCourse[];
+  monthly_fee?: string;
+  bus_fee?: string;
+  penalty_fee?: string;
+  fee_status?: 'standard' | 'reduced';
+  created_at?: string;
 }
 
 export interface AtRiskStudentsResponse {
@@ -541,10 +552,12 @@ export interface StructureRowInput {
 }
 
 export interface ScheduleCandidate {
-  index: number;
+  index?: number;
+  candidateIndex?: number;
   slotsFilled: number;
   totalSlots: number;
   fillRate: string;
+  isApproved?: boolean;
   entries: Array<{
     teacherId: string;
     teacherName: string;
@@ -560,6 +573,7 @@ export interface ScheduleCandidate {
 
 export interface GenerateTimetableResult {
   runId: string;
+  status?: string;
   candidateCount: number;
   totalSlotsPossible: number;
   candidates: ScheduleCandidate[];
@@ -649,6 +663,12 @@ export const getScheduleStructure = async (academicYear?: string) => {
 // Timetable Generation
 export const generateTimetable = async (academicYear?: string): Promise<GenerateTimetableResult> => {
   const response = await api.post('/schedule/generate', { academicYear });
+  return response.data.data;
+};
+
+export const getLatestScheduleRun = async (academicYear?: string) => {
+  const params = academicYear ? { academicYear } : {};
+  const response = await api.get('/schedule/latest', { params });
   return response.data.data;
 };
 

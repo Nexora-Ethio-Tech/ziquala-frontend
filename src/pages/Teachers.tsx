@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
-import { UserPlus, X, Check, ArrowLeft, MoreVertical, CheckCircle, XCircle, Trash2, Printer, Eye, Edit2, Loader2, FileText, Download, Upload, Users } from 'lucide-react';
+import { Plus, UserPlus, X, Check, ArrowLeft, MoreVertical, CheckCircle, XCircle, Trash2, Printer, Eye, Edit2, Loader2, FileText, Download, Upload, Users, Calendar, Clock, BookOpen, FileCheck, AlertCircle, CheckCircle2, MessageSquare, Filter, Lock, Unlock, AlertTriangle } from 'lucide-react';
 import PhoneInput from '../components/PhoneInput';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import { registerUser, getBranchTeachers, approveTeacher, revokeTeacher, deleteTeacher, promoteTeacher, updateUser, resetUserPIN, removeTeacherPromotion, replaceUserDocument } from '../services/schoolAdminService';
@@ -9,10 +9,10 @@ import api from '../services/api';
 import classService from '../services/classService';
 import { StaffProfileModal } from '../components/StaffProfileModal';
 import subjectService, { CourseWithGrade } from '../services/subjectService';
-import { getVPTeachers, getLeaderboard, rateTeacher, resetLeaderboard } from '../services/vicePrincipalService';
-import { Star, Trophy, RefreshCcw, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { getVPTeachers, getLeaderboard, rateTeacher, resetLeaderboard, getVPAnnualPlans, reviewVPAnnualPlan, getWeeklyPlans } from '../services/vicePrincipalService';
+import { Star, Trophy, RefreshCcw, Search, ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
 import { TeacherAttendanceModal } from '../components/TeacherAttendanceModal';
-import { formatEthiopianLabel } from '../utils/ethiopianCalendar';
+import { formatEthiopianLabel, gregorianToEthiopian, ethiopianToGregorianIso } from '../utils/ethiopianCalendar';
 import { EthiopianDatePicker } from '../components/EthiopianDatePicker';
 
 const isTeacherActive = (status?: string | null) => {
@@ -90,9 +90,10 @@ export const Teachers = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { role } = useUser();
-  const isAdmin = role === 'school-admin' || role === 'super-admin' || role === 'academic-manager';
-  const isVP = role === 'vice-principal';
   const isSuperviseRoute = location.pathname === '/teachers';
+  const isAdmin = role === 'school-admin' || role === 'super-admin' || role === 'academic-manager';
+  const canRegisterTeacher = !isSuperviseRoute && (role === 'school-admin' || role === 'super-admin' || role === 'academic-manager');
+  const isVP = role === 'vice-principal';
 
   const [teachers, setTeachers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -102,7 +103,128 @@ export const Teachers = () => {
   const [successModal, setSuccessModal] = useState<{ show: boolean; data: any }>({ show: false, data: null });
   const [selectedStaff, setSelectedStaff] = useState<any | null>(null);
   const [attendanceTeacher, setAttendanceTeacher] = useState<any | null>(null);
-  const [activeTab, setActiveTab] = useState<'teachers' | 'leaderboard'>('teachers');
+  const [activeTab, setActiveTab] = useState<'annual-plans' | 'weekly-plans' | 'teachers' | 'leaderboard'>(
+    isSuperviseRoute ? 'annual-plans' : 'teachers'
+  );
+  const [annualPlans, setAnnualPlans] = useState<any[]>([]);
+  const [weeklyPlans, setWeeklyPlans] = useState<any[]>([]);
+  const [plansLoading, setPlansLoading] = useState(false);
+  const [selectedAnnualPlan, setSelectedAnnualPlan] = useState<any | null>(null);
+  const [selectedWeeklyPlan, setSelectedWeeklyPlan] = useState<any | null>(null);
+
+  // Filters matching Grade Management structure
+  const [selectedWeekDate, setSelectedWeekDate] = useState<Date>(new Date());
+  const [weeklyPlanFilter, setWeeklyPlanFilter] = useState<'all' | 'submitted' | 'not_submitted' | 'unlocked'>('all');
+  const [weeklyPlanSearch, setWeeklyPlanSearch] = useState('');
+  const [weeklyGradeFilter, setWeeklyGradeFilter] = useState<string>('all');
+
+  const getWeekRange = (date: Date) => {
+    const d = new Date(date);
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(d.setDate(diff));
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    return { monday, sunday };
+  };
+
+  const formatEthWeekRangeStr = (date: Date) => {
+    const { monday, sunday } = getWeekRange(date);
+    const ethMon = gregorianToEthiopian(monday);
+    const ethSun = gregorianToEthiopian(sunday);
+    const monthNames = [
+      'Meskerem', 'Tikimt', 'Hidar', 'Tahsas', 'Tir', 'Yekatit',
+      'Megabit', 'Miazia', 'Ginbot', 'Sene', 'Hamle', 'Nehase', 'Pagume'
+    ];
+    if (ethMon.month === ethSun.month) {
+      return `${ethMon.day} - ${ethSun.day} ${monthNames[ethMon.month - 1]} ${ethMon.year} E.C.`;
+    } else {
+      return `${ethMon.day} ${monthNames[ethMon.month - 1]} - ${ethSun.day} ${monthNames[ethSun.month - 1]} ${ethMon.year === ethSun.year ? `${ethMon.year} E.C.` : `${ethMon.year} / ${ethSun.year} E.C.`}`;
+    }
+  };
+
+  const isCurrentWeek = (date: Date) => {
+    const { monday: m1 } = getWeekRange(date);
+    const { monday: m2 } = getWeekRange(new Date());
+    return m1.toDateString() === m2.toDateString();
+  };
+
+  const navigateWeek = (direction: 'prev' | 'next' | 'today') => {
+    if (direction === 'today') {
+      setSelectedWeekDate(new Date());
+    } else {
+      const newDate = new Date(selectedWeekDate);
+      newDate.setDate(newDate.getDate() + (direction === 'next' ? 7 : -7));
+      setSelectedWeekDate(newDate);
+    }
+  };
+
+  // Dynamic week generator starting from Current Week (auto-advances dynamically as weeks pass)
+  const getRecentWeekEndings = () => {
+    const list: string[] = [];
+    const today = new Date();
+    const day = today.getDay();
+    let diff = 4 - day; // 4 is Thursday (Week Ending day in Ethiopian academic calendar)
+    if (diff < 0) diff += 7;
+    const currentThursday = new Date(today);
+    currentThursday.setDate(today.getDate() + diff);
+
+    // [0] = Current Week (top item), [-1..-4] = Upcoming weeks, [1] = Previous Week
+    const offsets = [0, -1, -2, -3, -4, 1];
+    for (const i of offsets) {
+      const d = new Date(currentThursday);
+      d.setDate(currentThursday.getDate() - i * 7);
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      list.push(`${yyyy}-${mm}-${dd}`);
+    }
+    return list;
+  };
+
+  const [annualPlanFilter, setAnnualPlanFilter] = useState<'all' | 'submitted' | 'not_submitted' | 'unlocked'>('all');
+  const [annualPlanSearch, setAnnualPlanSearch] = useState('');
+  const [annualGradeFilter, setAnnualGradeFilter] = useState<string>('all');
+
+  const availableAnnualGrades = useMemo(() => {
+    const gradesSet = new Set<string>();
+    annualPlans.forEach(p => {
+      if (p.grade_statuses && Array.isArray(p.grade_statuses)) {
+        p.grade_statuses.forEach((g: any) => { if (g.grade) gradesSet.add(g.grade); });
+      } else if (p.grade) {
+        p.grade.split(',').forEach((g: string) => { if (g.trim()) gradesSet.add(g.trim()); });
+      }
+    });
+    return Array.from(gradesSet).sort((a, b) => {
+      const numA = parseInt(a.replace(/\D/g, '')) || 0;
+      const numB = parseInt(b.replace(/\D/g, '')) || 0;
+      return numA - numB;
+    });
+  }, [annualPlans]);
+
+  const availableWeeklyGrades = useMemo(() => {
+    const gradesSet = new Set<string>();
+    weeklyPlans.forEach(p => {
+      if (p.grade_statuses && Array.isArray(p.grade_statuses)) {
+        p.grade_statuses.forEach((g: any) => { if (g.grade) gradesSet.add(g.grade); });
+      } else if (p.grade_section || p.grade) {
+        (p.grade_section || p.grade).split(',').forEach((g: string) => { if (g.trim()) gradesSet.add(g.trim()); });
+      }
+    });
+    return Array.from(gradesSet).sort((a, b) => {
+      const numA = parseInt(a.replace(/\D/g, '')) || 0;
+      const numB = parseInt(b.replace(/\D/g, '')) || 0;
+      return numA - numB;
+    });
+  }, [weeklyPlans]);
+  const [reviewModal, setReviewModal] = useState<{
+    show: boolean;
+    planId: string;
+    planType: 'annual' | 'weekly';
+    status: 'Approved' | 'Revision Required';
+    feedback: string;
+  }>({ show: false, planId: '', planType: 'annual', status: 'Approved', feedback: '' });
+
   const [leaderboardData, setLeaderboardData] = useState<any[]>([]);
   const [leaderboardLoading, setLeaderboardLoading] = useState(false);
   const [leaderboardSearch, setLeaderboardSearch] = useState('');
@@ -120,7 +242,7 @@ export const Teachers = () => {
     dob: '',
     previousSchool: '',
     experienceYears: '',
-    role: 'teacher' as 'teacher' | 'librarian'
+    role: 'teacher' as 'teacher' | 'librarian' | 'vice-principal'
   });
   const [phoneError, setPhoneError] = useState('');
   const [emergencyPhoneError, setEmergencyPhoneError] = useState('');
@@ -166,6 +288,7 @@ export const Teachers = () => {
     },
   });
   const [promoting, setPromoting] = useState(false);
+  const [customSubjectInput, setCustomSubjectInput] = useState('');
   const [allGrades, setAllGrades] = useState<string[]>([]);
   const [sectionsMap, setSectionsMap] = useState<Record<string, string[]>>({});
   const [allSubjects, setAllSubjects] = useState<any[]>([]);
@@ -228,8 +351,60 @@ export const Teachers = () => {
   useEffect(() => {
     if (activeTab === 'leaderboard') {
       fetchLeaderboardData();
+    } else if (activeTab === 'annual-plans') {
+      fetchAnnualPlansData();
+    } else if (activeTab === 'weekly-plans') {
+      fetchWeeklyPlansData(selectedWeekDate);
     }
-  }, [activeTab]);
+  }, [activeTab, isSuperviseRoute, selectedWeekDate]);
+
+  const fetchAnnualPlansData = async () => {
+    try {
+      setPlansLoading(true);
+      const res = await getVPAnnualPlans();
+      setAnnualPlans(res.data || res || []);
+    } catch (err) {
+      console.error('Error fetching annual plans:', err);
+    } finally {
+      setPlansLoading(false);
+    }
+  };
+
+  const fetchWeeklyPlansData = async (targetWeekDate?: Date) => {
+    try {
+      setPlansLoading(true);
+      const dateToUse = targetWeekDate || selectedWeekDate;
+      const dateStr = dateToUse.toISOString().split('T')[0];
+      const res = await getWeeklyPlans(undefined, undefined, dateStr);
+      setWeeklyPlans(res.data || res || []);
+    } catch (err) {
+      console.error('Error fetching weekly plans:', err);
+    } finally {
+      setPlansLoading(false);
+    }
+  };
+
+  const handleReviewPlanSubmit = async (status: 'Approved' | 'Revision Required', customFeedback?: string) => {
+    const { planId, planType, feedback } = reviewModal;
+    const finalFeedback = customFeedback !== undefined ? customFeedback : feedback;
+    try {
+      setProcessing(true);
+      if (planType === 'annual') {
+        await reviewVPAnnualPlan(planId, {
+          status,
+          feedback: finalFeedback || (status === 'Approved' ? 'Accepted by Academic Manager' : 'Revision Required')
+        });
+        await fetchAnnualPlansData();
+      }
+      setReviewModal({ show: false, planId: '', planType: 'annual', status: 'Approved', feedback: '' });
+      if (selectedAnnualPlan?.id === planId) setSelectedAnnualPlan(null);
+      if (selectedWeeklyPlan?.id === planId) setSelectedWeeklyPlan(null);
+    } catch (err: any) {
+      alert(err?.response?.data?.message || err?.message || 'Failed to review plan');
+    } finally {
+      setProcessing(false);
+    }
+  };
 
   const fetchLeaderboardData = async () => {
     try {
@@ -657,27 +832,32 @@ export const Teachers = () => {
   );
 
   return (
-    <div className="space-y-6">
-      <button
-        onClick={() => navigate(-1)}
-        className="flex items-center gap-1 text-blue-600 hover:underline text-xs font-bold uppercase tracking-widest"
-      >
-        <ArrowLeft size={14} />
-        Back
-      </button>
-
+    <div className="p-4 sm:p-6 md:p-8 space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{isSuperviseRoute ? t("teachers.supervise", "Supervise") : t("teachers.title", "Teachers")}</h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">{t("teachers.subtitle", "Manage teaching staff and assignments")}</p>
+        <div className="space-y-1">
+          <button
+            onClick={() => navigate(-1)}
+            className="inline-flex items-center gap-1.5 text-blue-600 dark:text-blue-400 hover:text-blue-700 text-xs font-bold uppercase tracking-wider transition-colors mb-2"
+          >
+            <ArrowLeft size={14} />
+            Back
+          </button>
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+            {isSuperviseRoute ? t("teachers.supervise", "Supervise") : t("teachers.title", "Teachers")}
+          </h1>
+          <p className="text-slate-500 dark:text-slate-400 text-sm">
+            {isSuperviseRoute
+              ? t("teachers.superviseSubtitle", "Review and accept Annual and Weekly Lesson Plans submitted by teachers")
+              : t("teachers.subtitle", "Manage teaching staff and assignments")}
+          </p>
         </div>
 
-        {isAdmin && (
+        {canRegisterTeacher && (
           <button
             onClick={() => setShowAddModal(true)}
-            className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all text-sm font-bold shadow-lg shadow-blue-200 dark:shadow-none"
+            className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all text-sm font-bold shadow-lg shadow-blue-500/20 dark:shadow-none hover:shadow-blue-500/30 active:scale-[0.98] shrink-0"
           >
-            <UserPlus size={20} />
+            <UserPlus size={18} />
             Register Teacher
           </button>
         )}
@@ -689,24 +869,85 @@ export const Teachers = () => {
         </div>
       )}
 
-      {(isVP || isSuperviseRoute) && (
-        <div className="flex border-b border-slate-200 dark:border-slate-700 mb-6 gap-4">
-          <button
-            onClick={() => setActiveTab('teachers')}
-            className={`pb-2 px-1 text-sm font-bold border-b-2 flex items-center gap-1 ${activeTab === 'teachers' ? 'border-blue-600 text-blue-600 dark:text-blue-400' : 'border-transparent text-slate-500'}`}
-          >
-            <Users size={16} /> {t("teachers.teachersList", "Teachers")}
-          </button>
-          <button
-            onClick={() => setActiveTab('leaderboard')}
-            className={`pb-2 px-1 text-sm font-bold border-b-2 flex items-center gap-1 ${activeTab === 'leaderboard' ? 'border-blue-600 text-blue-600 dark:text-blue-400' : 'border-transparent text-slate-500'}`}
-          >
-            <Trophy size={16} /> {t("teachers.leaderboard", "Leaderboard")}
-          </button>
-        </div>
-      )}
+      <div className="flex border-b border-slate-200 dark:border-slate-700 mb-6 gap-2 sm:gap-4 overflow-x-auto">
+        {isSuperviseRoute ? (
+          <>
+            <button
+              onClick={() => setActiveTab('annual-plans')}
+              className={`pb-2.5 px-3 text-sm font-bold border-b-2 flex items-center gap-2 whitespace-nowrap transition-colors ${
+                activeTab === 'annual-plans'
+                  ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400'
+              }`}
+            >
+              <Calendar size={16} />
+              <span>Annual Plans</span>
+              {annualPlans.filter(p => p.status === 'Pending').length > 0 && (
+                <span className="bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 text-xs px-2 py-0.5 rounded-full font-bold">
+                  {annualPlans.filter(p => p.status === 'Pending').length}
+                </span>
+              )}
+            </button>
 
-      {activeTab === 'teachers' ? (
+            <button
+              onClick={() => setActiveTab('weekly-plans')}
+              className={`pb-2.5 px-3 text-sm font-bold border-b-2 flex items-center gap-2 whitespace-nowrap transition-colors ${
+                activeTab === 'weekly-plans'
+                  ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400'
+              }`}
+            >
+              <Clock size={16} />
+              <span>Weekly Plans</span>
+              {weeklyPlans.filter(p => p.status === 'Pending').length > 0 && (
+                <span className="bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 text-xs px-2 py-0.5 rounded-full font-bold">
+                  {weeklyPlans.filter(p => p.status === 'Pending').length}
+                </span>
+              )}
+            </button>
+
+            <button
+              onClick={() => setActiveTab('leaderboard')}
+              className={`pb-2.5 px-3 text-sm font-bold border-b-2 flex items-center gap-2 whitespace-nowrap transition-colors ${
+                activeTab === 'leaderboard'
+                  ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400'
+              }`}
+            >
+              <Trophy size={16} />
+              <span>{t("teachers.leaderboard", "Leaderboard")}</span>
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              onClick={() => setActiveTab('teachers')}
+              className={`pb-2.5 px-3 text-sm font-bold border-b-2 flex items-center gap-2 whitespace-nowrap transition-colors ${
+                activeTab === 'teachers'
+                  ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400'
+              }`}
+            >
+              <Users size={16} />
+              <span>{t("teachers.teachersList", "Teachers")}</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('leaderboard')}
+              className={`pb-2.5 px-3 text-sm font-bold border-b-2 flex items-center gap-2 whitespace-nowrap transition-colors ${
+                activeTab === 'leaderboard'
+                  ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400'
+              }`}
+            >
+              <Trophy size={16} />
+              <span>{t("teachers.leaderboard", "Leaderboard")}</span>
+            </button>
+          </>
+        )}
+      </div>
+
+      {activeTab === 'teachers' && (
         <div className="space-y-4">
           {/* Mobile Card View */}
           <div className="grid grid-cols-1 gap-4 md:hidden">
@@ -840,8 +1081,8 @@ export const Teachers = () => {
                       </td>
                     </tr>
                   ) : (
-                    teachers.map((teacher) => (
-                      <tr key={teacher.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30">
+                    teachers.map((teacher, idx) => (
+                      <tr key={teacher.id ? `${teacher.id}-${idx}` : `teacher-${idx}`} className="hover:bg-slate-50 dark:hover:bg-slate-800/30">
                         <td className="px-6 py-4">
                           <button type="button" onClick={() => setSelectedStaff(teacher)} className="flex items-center gap-3 text-left">
                             <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 text-purple-600 rounded-xl flex items-center justify-center font-bold">
@@ -938,7 +1179,9 @@ export const Teachers = () => {
             </div>
           </div>
         </div>
-      ) : (
+      )}
+
+      {activeTab === 'leaderboard' && (
         <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 overflow-hidden">
           <div className="p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/30">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -1108,6 +1351,831 @@ export const Teachers = () => {
         </div>
       )}
 
+      {/* Annual Plans View */}
+      {activeTab === 'annual-plans' && (
+        <div className="space-y-6">
+          {/* Search and Status Filter Bar */}
+          <div className="flex flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between">
+            <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center flex-1">
+              {/* Search */}
+              <div className="relative w-full sm:w-64">
+                <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Search annual plans..."
+                  value={annualPlanSearch}
+                  onChange={(e) => setAnnualPlanSearch(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-slate-800 dark:text-slate-200"
+                />
+              </div>
+
+              {/* Grade Filter */}
+              <div className="relative">
+                <select
+                  value={annualGradeFilter}
+                  onChange={(e) => setAnnualGradeFilter(e.target.value)}
+                  className="w-full sm:w-auto px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-slate-800 dark:text-slate-200 cursor-pointer shadow-sm"
+                >
+                  <option value="all">All Grades</option>
+                  {availableAnnualGrades.map(g => (
+                    <option key={g} value={g}>{g}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Status Filter Tabs */}
+            <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl shrink-0 overflow-x-auto">
+              <Filter size={13} className="text-slate-400 ml-1 shrink-0" />
+              {([
+                { key: 'all',           label: 'All' },
+                { key: 'submitted',     label: 'Submitted' },
+                { key: 'not_submitted', label: 'Not Submitted' },
+                { key: 'unlocked',      label: 'Unlocked' },
+              ] as const).map(({ key, label }) => {
+                const submittedCount = annualPlans.filter(p => p.status === 'Approved').length;
+                const notSubmittedCount = annualPlans.filter(p => p.status === 'Not Submitted' || p.status === 'Pending').length;
+                const unlockedCount = annualPlans.filter(p => p.status === 'Revision Required').length;
+                const count = key === 'submitted' ? submittedCount : key === 'not_submitted' ? notSubmittedCount : key === 'unlocked' ? unlockedCount : annualPlans.length;
+
+                return (
+                  <button
+                    key={key}
+                    onClick={() => setAnnualPlanFilter(key)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wide transition-all whitespace-nowrap ${
+                      annualPlanFilter === key
+                        ? 'bg-white dark:bg-slate-700 text-indigo-600 shadow-sm'
+                        : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                    }`}
+                  >
+                    {label}
+                    <span className="ml-1 opacity-70">
+                      ({count})
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Summary Chips */}
+          <div className="flex flex-wrap gap-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-full text-[11px] font-bold text-slate-600 dark:text-slate-300">
+              <span className="w-2 h-2 rounded-full bg-slate-400" />
+              Total Annual Plans: {annualPlans.length}
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 dark:bg-emerald-900/20 rounded-full text-[11px] font-bold text-emerald-700 dark:text-emerald-400">
+              <CheckCircle2 size={11} />
+              Submitted &amp; Approved: {annualPlans.filter(p => p.status === 'Approved').length}
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 dark:bg-amber-900/20 rounded-full text-[11px] font-bold text-amber-700 dark:text-amber-400">
+              <AlertTriangle size={11} />
+              Not Submitted / Pending: {annualPlans.filter(p => p.status === 'Not Submitted' || p.status === 'Pending').length}
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-50 dark:bg-rose-900/20 rounded-full text-[11px] font-bold text-rose-700 dark:text-rose-400">
+              <Unlock size={11} />
+              Unlocked / Revision Required: {annualPlans.filter(p => p.status === 'Revision Required').length}
+            </span>
+          </div>
+
+          {plansLoading ? (
+            <div className="flex justify-center p-12">
+              <Loader2 className="animate-spin text-blue-600" size={32} />
+            </div>
+          ) : (() => {
+            const filteredAnnualPlans = annualPlans
+              .filter(plan => {
+                if (annualGradeFilter === 'all') return true;
+                const statuses: Array<{ grade: string; submitted: boolean }> = plan.grade_statuses || [];
+                if (statuses.length > 0) {
+                  return statuses.some(g => g.grade.toLowerCase() === annualGradeFilter.toLowerCase());
+                }
+                return plan.grade && plan.grade.toLowerCase().includes(annualGradeFilter.toLowerCase());
+              })
+              .filter(plan => {
+                const statuses: Array<{ grade: string; submitted: boolean }> = plan.grade_statuses || [];
+                if (annualPlanFilter === 'submitted') {
+                  return statuses.length > 0 ? statuses.some(g => g.submitted) : plan.status === 'Approved';
+                }
+                if (annualPlanFilter === 'not_submitted') {
+                  return statuses.length > 0 ? statuses.some(g => !g.submitted) : (plan.status === 'Not Submitted' || plan.status === 'Pending');
+                }
+                if (annualPlanFilter === 'unlocked') {
+                  return plan.status === 'Revision Required';
+                }
+                return true;
+              })
+              .filter(plan => {
+                const q = annualPlanSearch.toLowerCase();
+                if (!q) return true;
+                return (
+                  (plan.teacher_name && plan.teacher_name.toLowerCase().includes(q)) ||
+                  (plan.subject && plan.subject.toLowerCase().includes(q)) ||
+                  (plan.grade && plan.grade.toLowerCase().includes(q)) ||
+                  (plan.academic_year && plan.academic_year.toLowerCase().includes(q))
+                );
+              });
+
+            return filteredAnnualPlans.length === 0 ? (
+              <div className="bg-white dark:bg-slate-900 rounded-2xl p-12 text-center border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+                <Calendar className="mx-auto text-slate-400" size={40} />
+                <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">No Annual Plans Found</h3>
+                <p className="text-sm text-slate-500 max-w-md mx-auto">
+                  {annualPlans.length === 0
+                    ? "Teachers' annual plan submissions will appear here."
+                    : 'No annual plans match your current search or filter criteria.'}
+                </p>
+              </div>
+            ) : (
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm">
+                    <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-700 text-xs font-bold uppercase tracking-wider text-slate-500">
+                      <tr>
+                        <th className="px-6 py-4">Teacher</th>
+                        <th className="px-6 py-4">Subject / Grade</th>
+                        <th className="px-6 py-4">Academic Year</th>
+                        <th className="px-6 py-4">Workload</th>
+                        <th className="px-6 py-4">Status</th>
+                        <th className="px-6 py-4 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                      {filteredAnnualPlans.map((plan) => {
+                        const isApproved = plan.status === 'Approved';
+                        const isNotSubmitted = plan.status === 'Not Submitted';
+                        const gradeStatuses: Array<{ grade: string; submitted: boolean; status: string; plan_id?: string }> = plan.grade_statuses || [];
+                        let displayGrades = annualPlanFilter === 'submitted'
+                          ? gradeStatuses.filter(g => g.submitted)
+                          : annualPlanFilter === 'not_submitted'
+                          ? gradeStatuses.filter(g => !g.submitted)
+                          : gradeStatuses;
+
+                        if (annualGradeFilter !== 'all') {
+                          displayGrades = displayGrades.filter(g => g.grade.toLowerCase() === annualGradeFilter.toLowerCase());
+                        }
+                        return (
+                          <tr key={plan.id} className={`hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors ${isNotSubmitted ? 'bg-amber-50/30 dark:bg-amber-900/10' : ''}`}>
+                            <td className="px-6 py-4">
+                              <div className="font-bold text-slate-900 dark:text-white">{plan.teacher_name || 'Teacher'}</div>
+                              <div className="text-xs text-slate-500">{plan.teacher_digital_id || 'N/A'}</div>
+                              <div className="text-xs text-slate-400 dark:text-slate-500">{plan.teacher_email || 'N/A'}</div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="font-semibold text-slate-800 dark:text-slate-200 mb-1">
+                                {plan.subject || 'Subject'}
+                              </div>
+                              {displayGrades.length > 0 ? (
+                                <div className="flex flex-col gap-1 text-xs">
+                                  {displayGrades.map((g, idx) => (
+                                    <div key={idx} className="flex items-center gap-1.5 whitespace-nowrap">
+                                      <span className={g.submitted ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-slate-500 dark:text-slate-400 font-medium'}>
+                                        {g.grade}
+                                      </span>
+                                      {g.submitted ? (
+                                        <CheckCircle2 size={13} className="text-emerald-500 shrink-0" />
+                                      ) : (
+                                        <XCircle size={13} className="text-rose-400 shrink-0" />
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : plan.grade ? (
+                                <div className="flex flex-col gap-1 text-xs">
+                                  {plan.grade.split(',').map((g: string, idx: number) => (
+                                    <div key={idx} className="flex items-center gap-1.5 whitespace-nowrap">
+                                      <span className={!isNotSubmitted ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-slate-500 dark:text-slate-400 font-medium'}>
+                                        {g.trim()}
+                                      </span>
+                                      {!isNotSubmitted ? (
+                                        <CheckCircle2 size={13} className="text-emerald-500 shrink-0" />
+                                      ) : (
+                                        <XCircle size={13} className="text-rose-400 shrink-0" />
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : null}
+                            </td>
+                            <td className="px-6 py-4 font-medium text-slate-700 dark:text-slate-300">
+                              {plan.academic_year || '2018 E.C.'}
+                            </td>
+                            <td className="px-6 py-4 text-xs text-slate-600 dark:text-slate-400">
+                              <div><span className="font-bold text-slate-800 dark:text-slate-200">{plan.working_days_year || 180}</span> Days/Yr</div>
+                              <div><span className="font-bold text-slate-800 dark:text-slate-200">{plan.periods_year || 160}</span> Periods ({plan.periods_week || 4}/wk)</div>
+                            </td>
+                            <td className="px-6 py-4">
+                              {isApproved ? (
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full text-xs font-extrabold border border-emerald-200 dark:border-emerald-800">
+                                  <CheckCircle2 size={12} /> Approved by {plan.reviewer_name || 'Dept Head'}
+                                </span>
+                              ) : plan.status === 'Revision Required' ? (
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 rounded-full text-xs font-extrabold border border-rose-200 dark:border-rose-800">
+                                  <Unlock size={12} /> Unlocked (Revision)
+                                </span>
+                              ) : isNotSubmitted ? (
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-full text-xs font-extrabold border border-amber-200 dark:border-amber-800">
+                                  <AlertTriangle size={12} /> Not Submitted
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-sky-50 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400 rounded-full text-xs font-extrabold border border-sky-200 dark:border-sky-800">
+                                  <Clock size={12} /> Pending Review
+                                </span>
+                              )}
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                              {isNotSubmitted ? (
+                                <span className="text-xs text-amber-600 dark:text-amber-400 font-bold italic">No Plan Received</span>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedAnnualPlan(plan)}
+                                  className="p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                                  title="View Details"
+                                >
+                                  <Eye size={16} />
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+      )}
+
+      {/* Weekly Plans View */}
+      {activeTab === 'weekly-plans' && (
+        <div className="space-y-6">
+          {/* VP Communication Style: Weekly Report (Week Ending) Navigation Banner */}
+          <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-950 p-5 rounded-[2rem] border border-indigo-800/40 shadow-xl text-white flex flex-col lg:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-indigo-600/30 border border-indigo-400/30 flex items-center justify-center shrink-0 shadow-inner">
+                <Calendar className="w-6 h-6 text-indigo-300" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-extrabold text-lg text-white">Weekly Academic Plan Oversight</h3>
+                  {isCurrentWeek(selectedWeekDate) && (
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 tracking-wider">
+                      Current Week
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-indigo-200/90 font-bold mt-0.5">
+                  Academic Week: {formatEthWeekRangeStr(selectedWeekDate)}
+                </p>
+              </div>
+            </div>
+
+            {/* VP Communication Book Style "Weekly Report (Week Ending)" Selector */}
+            <div className="flex items-center gap-3 w-full lg:w-auto">
+              <div className="flex-1 lg:flex-initial flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                <label htmlFor="weekly-report-week-select" className="text-xs font-black text-indigo-300 uppercase tracking-wider shrink-0 hidden sm:inline">
+                  Weekly Report (Week Ending):
+                </label>
+                <div className="relative flex-1 sm:w-72">
+                  <select
+                    id="weekly-report-week-select"
+                    value={(() => {
+                      const iso = selectedWeekDate.toISOString().split('T')[0];
+                      const recent = getRecentWeekEndings();
+                      return recent.includes(iso) ? iso : iso;
+                    })()}
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        setSelectedWeekDate(new Date(e.target.value));
+                      }
+                    }}
+                    className="w-full appearance-none px-4 py-2.5 bg-slate-900/90 dark:bg-slate-800/90 border-2 border-indigo-500/40 rounded-xl text-xs font-bold text-white outline-none focus:border-indigo-400 transition-all cursor-pointer pr-9 shadow-inner"
+                  >
+                    {getRecentWeekEndings().map((weekIso) => {
+                      const isCurrent = isCurrentWeek(new Date(weekIso));
+                      const ethLabel = formatEthiopianLabel(weekIso);
+                      return (
+                        <option key={weekIso} value={weekIso} className="bg-slate-900 text-white font-bold py-1">
+                          {ethLabel} {isCurrent ? '★ (Current Week)' : '(Week Ending)'}
+                        </option>
+                      );
+                    })}
+                  </select>
+                  <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-indigo-300 pointer-events-none" />
+                </div>
+              </div>
+
+              {/* Prev / Next 1-click week navigation */}
+              <div className="flex items-center gap-1 bg-slate-950/60 p-1 rounded-xl border border-indigo-500/30 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => navigateWeek('prev')}
+                  title="Previous Week"
+                  className="p-2 hover:bg-white/10 rounded-lg transition-colors text-indigo-200 hover:text-white"
+                >
+                  <ChevronLeft size={18} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigateWeek('next')}
+                  title="Next Week"
+                  className="p-2 hover:bg-white/10 rounded-lg transition-colors text-indigo-200 hover:text-white"
+                >
+                  <ChevronRight size={18} />
+                </button>
+              </div>
+            </div>
+          </div>
+          {/* Search and Status Filter Bar */}
+          <div className="flex flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between">
+            <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center flex-1">
+              {/* Search */}
+              <div className="relative w-full sm:w-64">
+                <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Search weekly plans..."
+                  value={weeklyPlanSearch}
+                  onChange={(e) => setWeeklyPlanSearch(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-slate-800 dark:text-slate-200"
+                />
+              </div>
+
+              {/* Grade Filter */}
+              <div className="relative">
+                <select
+                  value={weeklyGradeFilter}
+                  onChange={(e) => setWeeklyGradeFilter(e.target.value)}
+                  className="w-full sm:w-auto px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-slate-800 dark:text-slate-200 cursor-pointer shadow-sm"
+                >
+                  <option value="all">All Grades</option>
+                  {availableWeeklyGrades.map(g => (
+                    <option key={g} value={g}>{g}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Status Filter Tabs */}
+            <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl shrink-0 overflow-x-auto">
+              <Filter size={13} className="text-slate-400 ml-1 shrink-0" />
+              {([
+                { key: 'all',           label: 'All' },
+                { key: 'submitted',     label: 'Approved' },
+                { key: 'not_submitted', label: 'Not Submitted' },
+              ] as const).map(({ key, label }) => {
+                const approvedCount = weeklyPlans.filter(p => p.status === 'Approved').length;
+                const notSubmittedCount = weeklyPlans.filter(p => p.status === 'Not Submitted').length;
+                const count = key === 'submitted' ? approvedCount : key === 'not_submitted' ? notSubmittedCount : weeklyPlans.length;
+
+                return (
+                  <button
+                    key={key}
+                    onClick={() => setWeeklyPlanFilter(key)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wide transition-all whitespace-nowrap ${
+                      weeklyPlanFilter === key
+                        ? 'bg-white dark:bg-slate-700 text-indigo-600 shadow-sm'
+                        : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                    }`}
+                  >
+                    {label}
+                    <span className="ml-1 opacity-70">
+                      ({count})
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Summary Chips */}
+          <div className="flex flex-wrap gap-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-full text-[11px] font-bold text-slate-600 dark:text-slate-300">
+              <span className="w-2 h-2 rounded-full bg-slate-400" />
+              Total: {weeklyPlans.length}
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 dark:bg-emerald-900/20 rounded-full text-[11px] font-bold text-emerald-700 dark:text-emerald-400">
+              <CheckCircle2 size={11} />
+              Approved by Dept Head: {weeklyPlans.filter(p => p.status === 'Approved').length}
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 dark:bg-amber-900/20 rounded-full text-[11px] font-bold text-amber-700 dark:text-amber-400">
+              <AlertTriangle size={11} />
+              Not Submitted: {weeklyPlans.filter(p => p.status === 'Not Submitted').length}
+            </span>
+          </div>
+
+          {plansLoading ? (
+            <div className="flex justify-center p-12">
+              <Loader2 className="animate-spin text-blue-600" size={32} />
+            </div>
+          ) : (() => {
+            const filteredWeeklyPlans = weeklyPlans
+              .filter(plan => {
+                if (weeklyGradeFilter === 'all') return true;
+                const statuses: Array<{ grade: string; submitted: boolean }> = plan.grade_statuses || [];
+                if (statuses.length > 0) {
+                  return statuses.some(g => g.grade.toLowerCase() === weeklyGradeFilter.toLowerCase());
+                }
+                return (plan.grade_section || plan.grade || '').toLowerCase().includes(weeklyGradeFilter.toLowerCase());
+              })
+              .filter(plan => {
+                const statuses: Array<{ grade: string; submitted: boolean }> = plan.grade_statuses || [];
+                if (weeklyPlanFilter === 'submitted') {
+                  return statuses.length > 0 ? statuses.some(g => g.submitted) : plan.status === 'Approved';
+                }
+                if (weeklyPlanFilter === 'not_submitted') {
+                  return statuses.length > 0 ? statuses.some(g => !g.submitted) : (plan.status === 'Not Submitted' || plan.status === 'Pending');
+                }
+                return true;
+              })
+              .filter(plan => {
+                const q = weeklyPlanSearch.toLowerCase();
+                if (!q) return true;
+                return (
+                  (plan.teacher_name && plan.teacher_name.toLowerCase().includes(q)) ||
+                  (plan.subject && plan.subject.toLowerCase().includes(q)) ||
+                  (plan.course_name && plan.course_name.toLowerCase().includes(q)) ||
+                  (plan.topic && plan.topic.toLowerCase().includes(q)) ||
+                  (plan.chapter && plan.chapter.toLowerCase().includes(q)) ||
+                  (plan.grade && plan.grade.toLowerCase().includes(q))
+                );
+              });
+
+            return filteredWeeklyPlans.length === 0 ? (
+              <div className="bg-white dark:bg-slate-900 rounded-2xl p-12 text-center border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+                <Clock className="mx-auto text-slate-400" size={40} />
+                <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">No Weekly Plans Found</h3>
+                <p className="text-sm text-slate-500 max-w-md mx-auto">
+                  {weeklyPlans.length === 0
+                    ? 'Weekly lesson plans submitted by teachers will appear here.'
+                    : 'No weekly plans match your current search or filter criteria.'}
+                </p>
+              </div>
+            ) : (
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm">
+                    <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-700 text-xs font-bold uppercase tracking-wider text-slate-500">
+                      <tr>
+                        <th className="px-6 py-4">Teacher</th>
+                        <th className="px-6 py-4">Course / Topic</th>
+                        <th className="px-6 py-4">Date / Periods</th>
+                        <th className="px-6 py-4">Status</th>
+                        <th className="px-6 py-4 text-right">View</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                      {filteredWeeklyPlans.map((plan) => {
+                        const isApproved = plan.status === 'Approved';
+                        const isNotSubmitted = plan.status === 'Not Submitted';
+                        const gradeStatuses: Array<{ grade: string; submitted: boolean; status: string; plan_id?: string }> = plan.grade_statuses || [];
+                        let displayGrades = weeklyPlanFilter === 'submitted'
+                          ? gradeStatuses.filter(g => g.submitted)
+                          : weeklyPlanFilter === 'not_submitted'
+                          ? gradeStatuses.filter(g => !g.submitted)
+                          : gradeStatuses;
+
+                        if (weeklyGradeFilter !== 'all') {
+                          displayGrades = displayGrades.filter(g => g.grade.toLowerCase() === weeklyGradeFilter.toLowerCase());
+                        }
+                        return (
+                          <tr key={plan.id} className={`hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors ${isNotSubmitted ? 'bg-amber-50/30 dark:bg-amber-900/10' : ''}`}>
+                            <td className="px-6 py-4">
+                              <div className="font-bold text-slate-900 dark:text-white">{plan.teacher_name || 'Teacher'}</div>
+                              <div className="text-xs text-slate-500">{plan.teacher_digital_id || 'N/A'}</div>
+                              <div className="text-xs text-slate-400 dark:text-slate-500">{plan.teacher_email || 'N/A'}</div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="font-semibold text-slate-800 dark:text-slate-200 mb-0.5">
+                                {plan.subject || plan.course_name || 'Weekly Lesson Plan'}
+                              </div>
+                              {plan.topic && (
+                                <div className="text-xs text-slate-500 mb-1">
+                                  {plan.topic || plan.chapter || 'Plan Details'}
+                                </div>
+                              )}
+                              {displayGrades.length > 0 ? (
+                                <div className="flex flex-col gap-1 text-xs">
+                                  {displayGrades.map((g, idx) => (
+                                    <div key={idx} className="flex items-center gap-1.5 whitespace-nowrap">
+                                      <span className={g.submitted ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-slate-500 dark:text-slate-400 font-medium'}>
+                                        {g.grade}
+                                      </span>
+                                      {g.submitted ? (
+                                        <CheckCircle2 size={13} className="text-emerald-500 shrink-0" />
+                                      ) : (
+                                        <XCircle size={13} className="text-rose-400 shrink-0" />
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (plan.grade_section || plan.grade) ? (
+                                <div className="flex flex-col gap-1 text-xs">
+                                  {(plan.grade_section || plan.grade).split(',').map((g: string, idx: number) => (
+                                    <div key={idx} className="flex items-center gap-1.5 whitespace-nowrap">
+                                      <span className={!isNotSubmitted ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-slate-500 dark:text-slate-400 font-medium'}>
+                                        {g.trim()}
+                                      </span>
+                                      {!isNotSubmitted ? (
+                                        <CheckCircle2 size={13} className="text-emerald-500 shrink-0" />
+                                      ) : (
+                                        <XCircle size={13} className="text-rose-400 shrink-0" />
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : null}
+                            </td>
+                            <td className="px-6 py-4 text-xs text-slate-600 dark:text-slate-400">
+                              <div><span className="font-bold text-slate-800 dark:text-slate-200">{plan.date ? new Date(plan.date).toLocaleDateString() : 'N/A'}</span></div>
+                              <div>{plan.periods_week || plan.period_count || 1} Period(s)</div>
+                            </td>
+                            <td className="px-6 py-4">
+                              {isApproved ? (
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full text-xs font-extrabold border border-emerald-200 dark:border-emerald-800">
+                                  <CheckCircle2 size={12} /> Approved by {plan.reviewer_name || 'Dept Head'}
+                                </span>
+                              ) : isNotSubmitted ? (
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-full text-xs font-extrabold border border-amber-200 dark:border-amber-800">
+                                  <AlertTriangle size={12} /> Not Submitted
+                                </span>
+                              ) : null}
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                              {isNotSubmitted ? (
+                                <span className="text-xs text-amber-600 dark:text-amber-400 font-bold italic">No Plan Received</span>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedWeeklyPlan(plan)}
+                                  className="p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                                  title="View Details"
+                                >
+                                  <Eye size={16} />
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+      )}
+
+      {/* Modals for Plan Review */}
+      {selectedAnnualPlan && (
+        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
+            <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+              <div>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Annual Plan Details</h3>
+                <p className="text-xs text-slate-500">{selectedAnnualPlan.teacher_name} • {selectedAnnualPlan.subject} ({selectedAnnualPlan.grade})</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedAnnualPlan(null)}
+                className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto space-y-6 flex-1 text-slate-800 dark:text-slate-200">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl text-xs">
+                <div>
+                  <span className="text-slate-500 block font-medium">Academic Year</span>
+                  <span className="font-bold text-sm text-slate-900 dark:text-white">{selectedAnnualPlan.academic_year || '2018 E.C.'}</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 block font-medium">Working Days / Year</span>
+                  <span className="font-bold text-sm text-slate-900 dark:text-white">{selectedAnnualPlan.working_days_year || 180} Days</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 block font-medium">Periods / Year</span>
+                  <span className="font-bold text-sm text-slate-900 dark:text-white">{selectedAnnualPlan.periods_year || 160} Periods</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 block font-medium">Periods / Week</span>
+                  <span className="font-bold text-sm text-slate-900 dark:text-white">{selectedAnnualPlan.periods_week || 4} Periods</span>
+                </div>
+              </div>
+
+              {selectedAnnualPlan.feedback && (
+                <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40 rounded-xl text-xs space-y-1">
+                  <span className="font-bold text-amber-800 dark:text-amber-300">Feedback / Remarks:</span>
+                  <p className="text-amber-900 dark:text-amber-200">{selectedAnnualPlan.feedback}</p>
+                </div>
+              )}
+
+              <div className="space-y-3">
+                <h4 className="font-bold text-sm text-slate-900 dark:text-white">Plan Breakdown / Items</h4>
+                {(!selectedAnnualPlan.items || selectedAnnualPlan.items.length === 0) ? (
+                  <p className="text-xs text-slate-500 italic">No plan items provided in this submission.</p>
+                ) : (
+                  <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden text-xs">
+                    <table className="w-full text-left">
+                      <thead className="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 font-bold text-slate-500">
+                        <tr>
+                          <th className="p-3">Unit / Chapter</th>
+                          <th className="p-3">Topic / Content</th>
+                          <th className="p-3">Periods</th>
+                          <th className="p-3">Objectives</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                        {selectedAnnualPlan.items.map((item: any, idx: number) => (
+                          <tr key={idx}>
+                            <td className="p-3 font-semibold text-slate-800 dark:text-slate-200">{item.unit || item.chapter || `Unit ${idx+1}`}</td>
+                            <td className="p-3 text-slate-700 dark:text-slate-300">{item.topic || item.content || '-'}</td>
+                            <td className="p-3 font-medium text-slate-600 dark:text-slate-400">{item.periods || '-'}</td>
+                            <td className="p-3 text-slate-600 dark:text-slate-400">{item.objectives || '-'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="p-4 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+              <button
+                type="button"
+                onClick={() => setSelectedAnnualPlan(null)}
+                className="px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 rounded-xl text-xs font-bold"
+              >
+                Close
+              </button>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setReviewModal({
+                      show: true,
+                      planId: selectedAnnualPlan.id,
+                      planType: 'annual',
+                      status: 'Revision Required',
+                      feedback: ''
+                    });
+                  }}
+                  className="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold flex items-center gap-1"
+                >
+                  <X size={14} /> Request Revision
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    reviewModal.planId = selectedAnnualPlan.id;
+                    reviewModal.planType = 'annual';
+                    handleReviewPlanSubmit('Approved', 'Accepted by Academic Manager');
+                  }}
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1 shadow-sm"
+                >
+                  <Check size={14} /> Accept & Approve
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {selectedWeeklyPlan && (
+        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
+            <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+              <div>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Weekly Plan Details</h3>
+                <p className="text-xs text-slate-500">{selectedWeeklyPlan.teacher_name} • {selectedWeeklyPlan.subject || 'Lesson Plan'}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedWeeklyPlan(null)}
+                className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto space-y-4 flex-1 text-xs text-slate-800 dark:text-slate-200">
+              <div className="grid grid-cols-2 gap-4 p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl">
+                <div>
+                  <span className="text-slate-500 block font-medium">Submitted Date</span>
+                  <span className="font-bold text-slate-900 dark:text-white">{selectedWeeklyPlan.date ? new Date(selectedWeeklyPlan.date).toLocaleDateString() : 'N/A'}</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 block font-medium">Status</span>
+                  <span className="font-bold text-slate-900 dark:text-white">{selectedWeeklyPlan.status}</span>
+                </div>
+              </div>
+
+              {selectedWeeklyPlan.dean_feedback && (
+                <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40 rounded-xl space-y-1">
+                  <span className="font-bold text-amber-800 dark:text-amber-300">Feedback / Remarks:</span>
+                  <p className="text-amber-900 dark:text-amber-200">{selectedWeeklyPlan.dean_feedback}</p>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <span className="font-bold text-slate-900 dark:text-white block">Topic / Unit:</span>
+                <p className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-800">{selectedWeeklyPlan.topic || selectedWeeklyPlan.chapter || 'N/A'}</p>
+              </div>
+
+              {selectedWeeklyPlan.objectives && (
+                <div className="space-y-2">
+                  <span className="font-bold text-slate-900 dark:text-white block">Objectives:</span>
+                  <p className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-800">{selectedWeeklyPlan.objectives}</p>
+                </div>
+              )}
+
+              {selectedWeeklyPlan.teacher_activity && (
+                <div className="space-y-2">
+                  <span className="font-bold text-slate-900 dark:text-white block">Teacher Activity:</span>
+                  <p className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-800">{selectedWeeklyPlan.teacher_activity}</p>
+                </div>
+              )}
+
+              {selectedWeeklyPlan.student_activity && (
+                <div className="space-y-2">
+                  <span className="font-bold text-slate-900 dark:text-white block">Student Activity:</span>
+                  <p className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-800">{selectedWeeklyPlan.student_activity}</p>
+                </div>
+              )}
+            </div>
+
+            <div className="p-4 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+              <p className="text-xs text-slate-500 italic flex items-center gap-1.5">
+                <span className="inline-block w-2 h-2 rounded-full bg-blue-400"></span>
+                View only — approval is managed by the Department Head
+              </p>
+              <button
+                type="button"
+                onClick={() => setSelectedWeeklyPlan(null)}
+                className="px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-800 rounded-xl text-xs font-bold"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {reviewModal.show && (
+        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-md p-6 space-y-4">
+            <div className="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3">
+              <h3 className="font-bold text-slate-900 dark:text-white text-base">Request Plan Revision</h3>
+              <button
+                type="button"
+                onClick={() => setReviewModal({ show: false, planId: '', planType: 'annual', status: 'Approved', feedback: '' })}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                Reason for Revision / Feedback for Teacher:
+              </label>
+              <textarea
+                value={reviewModal.feedback}
+                onChange={(e) => setReviewModal({ ...reviewModal, feedback: e.target.value })}
+                placeholder="Please state what needs to be revised or corrected in this plan..."
+                rows={4}
+                className="w-full p-3 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-rose-500 text-slate-800 dark:text-slate-200"
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setReviewModal({ show: false, planId: '', planType: 'annual', status: 'Approved', feedback: '' })}
+                className="px-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={processing}
+                onClick={() => handleReviewPlanSubmit('Revision Required')}
+                className="px-4 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow-sm flex items-center gap-1"
+              >
+                {processing ? <Loader2 size={14} className="animate-spin" /> : <MessageSquare size={14} />}
+                Submit Revision Request
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <TeacherAttendanceModal
         open={Boolean(attendanceTeacher)}
         teacher={attendanceTeacher}
@@ -1123,7 +2191,13 @@ export const Teachers = () => {
                 <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
                   <UserPlus size={20} />
                 </div>
-                <h3 className="font-bold text-slate-800 dark:text-slate-100">{t("teachers.registerNewTeacher", "Register New Teacher")}</h3>
+                <h3 className="font-bold text-slate-800 dark:text-slate-100">
+                  {formData.role === 'vice-principal'
+                    ? 'Register Vice Principal'
+                    : formData.role === 'librarian'
+                    ? 'Register Librarian'
+                    : t("teachers.registerNewTeacher", "Register New Teacher")}
+                </h3>
               </div>
               <button type="button" title="Close register teacher dialog" onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-slate-600">
                 <X size={20} />
@@ -1131,6 +2205,21 @@ export const Teachers = () => {
             </div>
 
             <form className="p-6 space-y-4" onSubmit={handleAddTeacher}>
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-500 uppercase">{t("teachers.role", "Role")}</label>
+                <select
+                  required
+                  title="Select staff role"
+                  value={formData.role}
+                  onChange={(e) => setFormData({ ...formData, role: e.target.value as any })}
+                  className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+                >
+                  <option value="vice-principal">Vice Principal</option>
+                  <option value="teacher">{t("teachers.roleTeacher", "Teacher")}</option>
+                  <option value="librarian">{t("teachers.roleLibrarian", "Librarian")}</option>
+                </select>
+              </div>
+
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-500 uppercase">{t("teachers.fullName", "Full Name")}</label>
                 <input
@@ -1154,20 +2243,6 @@ export const Teachers = () => {
                   className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="teacher@school.com"
                 />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-500 uppercase">{t("teachers.role", "Role")}</label>
-                <select
-                  required
-                  title="Select staff role"
-                  value={formData.role}
-                  onChange={(e) => setFormData({ ...formData, role: e.target.value as any })}
-                  className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="teacher">{t("teachers.roleTeacher", "Teacher")}</option>
-                  <option value="librarian">{t("teachers.roleLibrarian", "Librarian")}</option>
-                </select>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1405,12 +2480,7 @@ export const Teachers = () => {
                       onChange={(g, checked) => {
                         setPromotionForm(prev => {
                           const nextGrades = checked ? [...prev.hodGrades, g] : prev.hodGrades.filter(x => x !== g);
-                          const allowed = new Set(nextGrades);
-                          const nextSubjects = prev.hodSubjects.filter(sname => {
-                            const s = allSubjects.find(sub => sub.name === sname);
-                            return s ? allowed.has(s.gradeLevel) : false;
-                          });
-                          return { ...prev, hodGrades: nextGrades, hodSubjects: nextSubjects };
+                          return { ...prev, hodGrades: nextGrades };
                         });
                       }}
                     />
@@ -1425,67 +2495,107 @@ export const Teachers = () => {
                     )}
                   </div>
 
-                  {promotionForm.hodGrades.length > 0 && (() => {
+                  {(() => {
                     const normalizeGrade = (g: string) => {
                       const trimmed = g.trim();
                       return /^\d+$/.test(trimmed) ? `Grade ${trimmed}` : trimmed;
                     };
                     const selectedGradeSet = new Set(promotionForm.hodGrades.map(normalizeGrade));
-                    const filteredCourseNames = Array.from(
-                      new Set(
-                        allCoursesWithGrade
-                          .filter(c => selectedGradeSet.has(normalizeGrade(c.grade_level)))
-                          .map(c => c.name)
-                      )
-                    ).sort();
-                    const gradeSet = new Set(promotionForm.hodGrades);
-                    const fallbackNames = Array.from(
-                      new Set(
-                        allSubjects
-                          .filter((s: any) => gradeSet.has(s.gradeLevel))
-                          .map((s: any) => s.name)
-                      )
-                    );
-                    const courseNames = filteredCourseNames.length > 0 ? filteredCourseNames : fallbackNames;
-                    const usingFallback = filteredCourseNames.length === 0 && fallbackNames.length > 0;
+                    
+                    const matchingCourses = selectedGradeSet.size > 0
+                      ? allCoursesWithGrade.filter(c => selectedGradeSet.has(normalizeGrade(c.grade_level)))
+                      : allCoursesWithGrade;
+
+                    const courseNamesFromCourses = Array.from(new Set(matchingCourses.map(c => c.name))).sort();
+                    const courseNamesFromSubjects = Array.from(new Set(allSubjects.map((s: any) => s.name))).sort();
+                    
+                    const combinedOptions = Array.from(new Set([
+                      ...courseNamesFromCourses,
+                      ...courseNamesFromSubjects
+                    ])).sort();
+
+                    const handleAddCustomSubject = () => {
+                      if (!customSubjectInput.trim()) return;
+                      const newSub = customSubjectInput.trim();
+                      setPromotionForm(prev => {
+                        const next = new Set(prev.hodSubjects || []);
+                        next.add(newSub);
+                        return { ...prev, hodSubjects: Array.from(next) };
+                      });
+                      setCustomSubjectInput('');
+                    };
 
                     return (
-                      <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-500 uppercase">Step 2 — Select Courses / Subjects</label>
-                        <p className="text-xs text-slate-500">
-                          {usingFallback
-                            ? 'Showing subjects (no courses found in course management for selected grades).'
-                            : 'Only courses taught in the selected grades are shown.'}
-                        </p>
-                        {courseNames.length === 0 ? (
-                          <div className="px-4 py-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-lg text-sm text-amber-700 dark:text-amber-300">
-                            No courses found for the selected grades. Please add courses via Course Management (Classes → select class → add course) first.
+                      <div className="space-y-3">
+                        <div className="space-y-1">
+                          <label className="text-xs font-bold text-slate-500 uppercase">Step 2 — Select Courses / Subjects</label>
+                          <p className="text-xs text-slate-500">
+                            Choose or add the subjects/courses this department head will supervise.
+                          </p>
+                        </div>
+
+                        {combinedOptions.length > 0 && (
+                          <MultiSelectDropdown
+                            options={combinedOptions}
+                            selectedValues={promotionForm.hodSubjects}
+                            placeholder="Select Courses / Subjects"
+                            shortDisplay={false}
+                            onChange={(subName, checked) => {
+                              setPromotionForm(prev => {
+                                const next = new Set(prev.hodSubjects || []);
+                                if (checked) next.add(subName); else next.delete(subName);
+                                return { ...prev, hodSubjects: Array.from(next) };
+                              });
+                            }}
+                          />
+                        )}
+
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={customSubjectInput}
+                            onChange={(e) => setCustomSubjectInput(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                handleAddCustomSubject();
+                              }
+                            }}
+                            placeholder="Add custom subject/course name (e.g. Physics)"
+                            className="flex-1 px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 dark:text-slate-200"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleAddCustomSubject}
+                            className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg text-xs flex items-center gap-1 transition"
+                          >
+                            <Plus size={14} /> Add
+                          </button>
+                        </div>
+
+                        {promotionForm.hodSubjects.length > 0 && (
+                          <div className="space-y-1">
+                            <span className="text-xs text-slate-400 font-medium">Assigned Subjects ({promotionForm.hodSubjects.length}):</span>
+                            <div className="flex flex-wrap gap-2">
+                              {promotionForm.hodSubjects.map(s => (
+                                <span key={s} className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-xs font-semibold rounded-full border border-emerald-200 dark:border-emerald-700">
+                                  {s}
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setPromotionForm(prev => ({
+                                        ...prev,
+                                        hodSubjects: prev.hodSubjects.filter(x => x !== s)
+                                      }));
+                                    }}
+                                    className="hover:text-emerald-900 dark:hover:text-emerald-100 font-bold ml-0.5"
+                                  >
+                                    ×
+                                  </button>
+                                </span>
+                              ))}
+                            </div>
                           </div>
-                        ) : (
-                          <>
-                            <MultiSelectDropdown
-                              options={courseNames as string[]}
-                              selectedValues={promotionForm.hodSubjects}
-                              placeholder="Select Courses / Subjects"
-                              shortDisplay={true}
-                              onChange={(subName, checked) => {
-                                setPromotionForm(prev => {
-                                  const next = new Set(prev.hodSubjects || []);
-                                  if (checked) next.add(subName); else next.delete(subName);
-                                  return { ...prev, hodSubjects: Array.from(next) };
-                                });
-                              }}
-                            />
-                            {promotionForm.hodSubjects.length > 0 && (
-                              <div className="flex flex-wrap gap-2 pt-1">
-                                {promotionForm.hodSubjects.map(s => (
-                                  <span key={s} className="px-2.5 py-1 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-xs font-semibold rounded-full border border-emerald-200 dark:border-emerald-700">
-                                    {s}
-                                  </span>
-                                ))}
-                              </div>
-                            )}
-                          </>
                         )}
                       </div>
                     );
@@ -1655,10 +2765,11 @@ export const Teachers = () => {
               {promotionTarget?.staffProfile?.promotion && (
                 <button
                   onClick={async () => {
+                    const targetUserId = promotionTarget.user_id || promotionTarget.userId || promotionTarget.id;
                     if (window.confirm('Are you sure you want to remove this teacher\'s promotion?')) {
                       setPromoting(true);
                       try {
-                        await removeTeacherPromotion(promotionTarget.userId);
+                        await removeTeacherPromotion(targetUserId);
                         setShowPromoteModal(false);
                         setPromotionTarget(null);
                         fetchTeachers();
@@ -1680,7 +2791,8 @@ export const Teachers = () => {
                 onClick={async () => {
                   setPromoting(true);
                   try {
-                    await promoteTeacher(promotionTarget.userId, {
+                    const targetUserId = promotionTarget.user_id || promotionTarget.userId || promotionTarget.id;
+                    await promoteTeacher(targetUserId, {
                       roles: promotionForm.roles,
                       headOfDepartment: {
                         grades: promotionForm.hodGrades,
@@ -1696,7 +2808,9 @@ export const Teachers = () => {
                         endTime: promotionForm.beforeSchool.endTime,
                         useConfiguredRate: promotionForm.beforeSchool.useConfiguredRate,
                         extraPayAmount: promotionForm.beforeSchool.extraPayAmount ? Number(promotionForm.beforeSchool.extraPayAmount) : undefined
-                      }
+                      },
+                      subjects: promotionForm.hodSubjects,
+                      grades: promotionForm.hodGrades
                     });
                     setShowPromoteModal(false);
                     setPromotionTarget(null);

@@ -58,7 +58,7 @@ export const userService = {
   },
 
   // Update user status
-  updateUserStatus: async (userId: string, status: 'Approved' | 'Pending' | 'Revoked') => {
+  updateUserStatus: async (userId: string, status: 'Approved' | 'Pending' | 'Revoked' | 'Active' | string) => {
     const role = getRole();
     const endpoint = role === 'super-admin'
       ? API_ENDPOINTS.UPDATE_USER_STATUS(userId)

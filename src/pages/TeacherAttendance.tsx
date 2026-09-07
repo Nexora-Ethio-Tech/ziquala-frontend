@@ -65,7 +65,7 @@ export const TeacherAttendance = () => {
         } else if (rawStatus === 'late') {
           loadedAttendance[s.id] = 'present';
         } else {
-          loadedAttendance[s.id] = 'absent';
+          loadedAttendance[s.id] = 'present';
         }
       });
       setAttendance(loadedAttendance);
@@ -154,7 +154,7 @@ export const TeacherAttendance = () => {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center h-96">
-        <Loader2 className="animate-spin text-indigo-600 dark:text-indigo-400 mb-4" size={40} />
+        <Loader2 className="animate-spin text-emerald-600 dark:text-emerald-400 mb-4" size={40} />
         <p className="text-slate-500 dark:text-slate-400 animate-pulse font-medium">Loading assigned classes...</p>
       </div>
     );
@@ -163,7 +163,7 @@ export const TeacherAttendance = () => {
   if (!selectedClass) {
     return (
       <div className="space-y-8 animate-in fade-in slide-in-from-bottom duration-300">
-        <div className="relative overflow-hidden bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 text-white p-8 rounded-3xl shadow-xl shadow-indigo-500/10">
+        <div className="relative overflow-hidden bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 text-white p-8 rounded-3xl shadow-xl shadow-emerald-500/10">
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl transform translate-x-20 -translate-y-20"></div>
           <h2 className="text-3xl font-extrabold mb-2 tracking-tight">{t('teacherAttendance.attendanceRoster', 'Attendance Roster')}</h2>
           <p className="text-indigo-100/90 font-medium max-w-xl">
@@ -174,8 +174,8 @@ export const TeacherAttendance = () => {
         {classes.length === 0 ? (
           <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl p-12 text-center shadow-sm">
             <Users className="mx-auto text-slate-300 dark:text-slate-600 mb-4" size={48} />
-            <p className="text-slate-500 dark:text-slate-400 font-semibold mb-1">{t('teacherAttendance.noClassesAssigned', 'No Classes Assigned')}</p>
-            <p className="text-sm text-slate-400 dark:text-slate-500">{t('teacherAttendance.noClassesAssignedSub', 'You are not currently set as a teacher for any class. Please contact the administrator.')}</p>
+            <p className="text-slate-500 dark:text-slate-400 font-semibold mb-1">{t('teacherAttendance.noClassesAssigned', 'No Homeroom Section Assigned')}</p>
+            <p className="text-sm text-slate-400 dark:text-slate-500">{t('teacherAttendance.noClassesAssignedSub', 'You are not currently designated as a Home Teacher for any section. Daily section attendance is recorded by assigned Home Teachers.')}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -183,19 +183,19 @@ export const TeacherAttendance = () => {
               <button
                 key={cls.id}
                 onClick={() => handleSelectClass(cls)}
-                className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-6 rounded-3xl border border-slate-100 dark:border-slate-800/80 shadow-sm hover:shadow-xl hover:border-indigo-500 dark:hover:border-indigo-500 hover:-translate-y-1 transition-all duration-300 text-left group flex flex-col justify-between h-48"
+                className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-6 rounded-3xl border border-slate-100 dark:border-slate-800/80 shadow-sm hover:shadow-xl hover:border-emerald-500 dark:hover:border-emerald-500 hover:-translate-y-1 transition-all duration-300 text-left group flex flex-col justify-between h-48"
               >
                 <div className="flex justify-between items-start w-full">
-                  <div className="bg-indigo-50 dark:bg-indigo-900/30 p-3 rounded-2xl text-indigo-600 dark:text-indigo-400 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300">
+                  <div className="bg-emerald-50 dark:bg-emerald-900/30 p-3 rounded-2xl text-emerald-600 dark:text-emerald-400 group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300">
                     <Users size={22} />
                   </div>
-                  <div className="flex items-center gap-1 text-slate-300 dark:text-slate-700 group-hover:text-indigo-500 transition-colors">
+                  <div className="flex items-center gap-1 text-slate-300 dark:text-slate-700 group-hover:text-emerald-500 transition-colors">
                     <span className="text-xs font-semibold uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity duration-300">Open</span>
                     <ChevronRight size={20} />
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-slate-800 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                  <h3 className="text-xl font-bold text-slate-800 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
                     {cls.name} {cls.section ? `• Section ${cls.section}` : ''}
                   </h3>
                   <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">{cls.enrolledStudents} Enrolled Students</p>
@@ -215,7 +215,7 @@ export const TeacherAttendance = () => {
         <div className="flex flex-col gap-3 w-full lg:w-auto">
           <button
             onClick={() => { setSelectedClass(null); setStudents([]); }}
-            className="flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 text-xs font-semibold transition-colors uppercase tracking-wider self-start"
+            className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 text-xs font-semibold transition-colors uppercase tracking-wider self-start"
           >
             <ArrowLeft size={14} /> Back to Classes
           </button>
@@ -260,7 +260,7 @@ export const TeacherAttendance = () => {
           <button
             onClick={handleSubmit}
             disabled={submitting || loadingStudents}
-            className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl flex items-center gap-2 font-bold shadow-lg shadow-indigo-600/10 hover:shadow-indigo-600/20 active:scale-95 transition-all disabled:opacity-50"
+            className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl flex items-center gap-2 font-bold shadow-lg shadow-emerald-600/10 hover:shadow-emerald-600/20 active:scale-95 transition-all disabled:opacity-50"
           >
             {submitting ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
             <span>{submitting ? 'Submitting...' : 'Submit Attendance'}</span>
@@ -301,13 +301,13 @@ export const TeacherAttendance = () => {
           placeholder="Search student by name or ID..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800/80 rounded-2xl py-3 pl-12 pr-4 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
+          className="w-full bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800/80 rounded-2xl py-3 pl-12 pr-4 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
         />
       </div>
 
       {loadingStudents ? (
         <div className="flex flex-col items-center justify-center py-16">
-          <Loader2 className="animate-spin text-indigo-600 dark:text-indigo-400 mb-2" size={32} />
+          <Loader2 className="animate-spin text-emerald-600 dark:text-emerald-400 mb-2" size={32} />
           <p className="text-sm text-slate-400 dark:text-slate-500 font-medium">Fetching students list...</p>
         </div>
       ) : (
@@ -335,7 +335,7 @@ export const TeacherAttendance = () => {
                       <tr key={student.id} className="hover:bg-slate-50/40 dark:hover:bg-slate-800/20 transition-colors duration-200">
                         <td className="px-6 py-4.5">
                           <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 rounded-full flex items-center justify-center font-bold text-xs">
+                            <div className="w-9 h-9 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center font-bold text-xs">
                               {student.name?.split(' ').map((n: string) => n[0]).slice(0, 2).join('') || '?'}
                             </div>
                             <span className="font-bold text-slate-800 dark:text-slate-200">{student.name}</span>

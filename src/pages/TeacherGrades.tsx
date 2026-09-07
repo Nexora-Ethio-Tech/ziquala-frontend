@@ -160,6 +160,11 @@ export const TeacherGrades = () => {
       alert('This assessment type has been submitted and locked.');
       return;
     }
+    const config = gradingConfigs.find(c => c.id === formData.type);
+    if (config && formData.score > config.maxWeight) {
+      alert(`⚠️ Validation Failed: Score (${formData.score}) exceeds the maximum allowed weight of ${config.maxWeight} for "${config.label}".`);
+      return;
+    }
     try {
       await teacherService.enterGrade({ ...formData, academicYear, semester });
       setShowAddModal(false);
@@ -190,6 +195,16 @@ export const TeacherGrades = () => {
       if (gradesArray.length === 0) {
         alert('Please enter at least one grade');
         return;
+      }
+
+      const config = gradingConfigs.find(c => c.id === formData.type);
+      if (config) {
+        const invalid = gradesArray.find(g => g.score > config.maxWeight || g.score < 0);
+        if (invalid) {
+          const student = students.find(s => s.id === invalid.studentId);
+          alert(`⚠️ Validation Failed: Score (${invalid.score}) for ${student ? student.name : 'student'} exceeds the maximum allowed weight of ${config.maxWeight} for "${config.label}".`);
+          return;
+        }
       }
 
       await teacherService.bulkEnterGrades({

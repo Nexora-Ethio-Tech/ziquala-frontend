@@ -49,6 +49,7 @@ export const GradeEntry = () => {
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [selectedSubmissionMethods, setSelectedSubmissionMethods] = useState<Set<string>>(new Set());
   const [saveError, setSaveError] = useState('');
+  const [showValidationErrors, setShowValidationErrors] = useState(false);
   const [selectedYear, setSelectedYear] = useState<string>(() => ecYearToGregorian(getCurrentECYear()));
   const [selectedSemester, setSelectedSemester] = useState<'First Semester' | 'Second Semester'>(
     () => formatSemester(getCurrentSemester()) as 'First Semester' | 'Second Semester'
@@ -188,8 +189,35 @@ export const GradeEntry = () => {
     return score !== '' && score !== undefined;
   }).length;
 
+  const getInvalidEntries = useCallback(() => {
+    const invalidList: Array<{ studentId: string; studentName: string; methodId: string; methodLabel: string; score: number; maxWeight: number }> = [];
+    for (const student of students) {
+      const studentScores = scores[student.id] || {};
+      const studentName = (student.firstName || student.lastName)
+        ? `${student.firstName || ''} ${student.lastName || ''}`.trim()
+        : ((student as any).name || 'Student');
+      for (const method of gradingMethods) {
+        if (lockedMethods.has(method.id)) continue;
+        const value = studentScores[method.id];
+        if (value !== '' && value !== undefined && value !== null) {
+          const score = Number(value);
+          if (score > method.maxWeight || score < 0) invalidList.push({ studentId: student.id, studentName, methodId: method.id, methodLabel: method.label, score, maxWeight: method.maxWeight });
+        }
+      }
+    }
+    return invalidList;
+  }, [students, scores, gradingMethods, lockedMethods]);
+
   const handleSave = async (showConfirmation = true, methodIds?: Set<string>): Promise<boolean> => {
     if (gradesLocked || !gradeSubmissionOpen || !selectedCourseId || periodBlocked) return false;
+    const invalidEntries = getInvalidEntries();
+    if (invalidEntries.length > 0) {
+      setShowValidationErrors(true);
+      const firstErr = invalidEntries[0];
+      setSaveError(`Cannot save: ${firstErr.studentName}'s ${firstErr.methodLabel} score (${firstErr.score}) exceeds the maximum ${firstErr.maxWeight}.`);
+      return false;
+    }
+    setShowValidationErrors(false);
     setSaving(true);
     setSaveError('');
     try {
@@ -255,7 +283,16 @@ export const GradeEntry = () => {
       && getAssessmentScoreCount(method.id) > 0
     );
     if (methodsToSubmit.length === 0) return;
-
+    const invalidEntries = getInvalidEntries();
+    if (invalidEntries.length > 0) {
+      setShowValidationErrors(true);
+      const firstErr = invalidEntries[0];
+      setSaveError(
+        `Cannot submit: ${firstErr.studentName}'s ${firstErr.methodLabel} score (${firstErr.score}) exceeds the maximum ${firstErr.maxWeight}.`
+      );
+      return;
+    }
+    setShowValidationErrors(false);
     setSubmittingGrades(true);
     setSaveError('');
     try {
@@ -440,7 +477,7 @@ export const GradeEntry = () => {
               className="px-6 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-60 text-slate-800 dark:text-white rounded-xl flex items-center gap-2 font-bold transition-all"
             >
               {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
-              <span>{saving ? 'Saving…' : 'Save Draft'}</span>
+              <span>{saving ? 'Saving…' : 'Save Grades'}</span>
             </button>
             <button
               onClick={handleOpenSubmitModal}
@@ -491,6 +528,8 @@ export const GradeEntry = () => {
         </div>
       )}
 
+
+
       {saveError && (
         <div className="flex gap-3 items-center p-4 bg-rose-50 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/30 rounded-xl text-rose-600 text-sm font-medium">
           <AlertCircle size={18} className="flex-shrink-0" />
@@ -532,13 +571,18 @@ export const GradeEntry = () => {
                     return (
                       <tr key={student.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
                         <td className="px-6 py-4">
-                          <p className="text-sm font-bold text-slate-800 dark:text-white">{student.firstName} {student.lastName}</p>
+                          <p className="text-sm font-bold text-slate-800 dark:text-white">{(student.firstName || student.lastName) ? `${student.firstName || ''} ${student.lastName || ''}`.trim() : ((student as any).name || 'Student')}</p>
                         </td>
                         <td className="px-6 py-4">
-                          <p className="text-xs font-mono text-slate-500">{student.digitalId}</p>
+                          <p className="text-xs font-mono text-slate-500">{student.digitalId || (student as any).digital_id || '—'}</p>
                         </td>
                         {gradingMethods.map((method) => {
                           const isLocked = lockedMethods.has(method.id);
+                          const val = scores[student.id]?.[method.id];
+                          const numVal = val !== '' && val !== undefined && val !== null ? Number(val) : null;
+                          const isExceeded = numVal !== null && numVal > method.maxWeight;
+                          const isNegative = numVal !== null && numVal < 0;
+                          const isInvalid = showValidationErrors && (isExceeded || isNegative);
                           return (
                             <td key={method.id} className="px-4 py-4">
                               <input
@@ -549,8 +593,24 @@ export const GradeEntry = () => {
                                 placeholder="0"
                                 value={scores[student.id]?.[method.id] ?? ''}
                                 onChange={(e) => handleScoreChange(student.id, method.id, e.target.value)}
-                                className={`w-full text-center p-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-70 font-bold ${isLocked ? 'text-slate-500 dark:text-slate-500' : 'text-blue-600 dark:text-blue-400'}`}
+                                className={`w-full text-center p-2 rounded-lg text-sm outline-none transition-all font-bold ${
+                                  isInvalid
+                                    ? 'bg-rose-50 dark:bg-rose-950/60 border-2 border-rose-500 text-rose-600 dark:text-rose-300 focus:ring-2 focus:ring-rose-500 animate-pulse shadow-sm shadow-rose-200'
+                                    : isLocked
+                                    ? 'bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-500 disabled:opacity-70'
+                                    : 'bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-blue-600 dark:text-blue-400 focus:ring-2 focus:ring-blue-500'
+                                }`}
                               />
+                              {showValidationErrors && isExceeded && (
+                                <span className="block text-[10px] font-black text-rose-600 dark:text-rose-400 text-center mt-1 uppercase tracking-tight">
+                                  Exceeds {method.maxWeight}!
+                                </span>
+                              )}
+                              {showValidationErrors && isNegative && (
+                                <span className="block text-[10px] font-black text-rose-600 dark:text-rose-400 text-center mt-1 uppercase tracking-tight">
+                                  Negative!
+                                </span>
+                              )}
                             </td>
                           );
                         })}

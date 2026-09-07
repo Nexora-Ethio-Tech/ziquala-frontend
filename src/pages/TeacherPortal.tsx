@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { BookOpen, Users, Calendar, ArrowRight, ArrowLeft, ClipboardList, FileText, Plus, X, CheckCircle2, XCircle, Loader2, Star, Save, Send, Search, ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react';
+import { BookOpen, Users, Calendar, ArrowRight, ArrowLeft, ClipboardList, FileText, Plus, X, CheckCircle2, XCircle, Loader2, Star, Save, Send, Search, ChevronLeft, ChevronRight, ChevronDown, AlertCircle, ShieldCheck } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useCallback } from 'react';
 import { useUser } from '../context/UserContext';
@@ -41,6 +41,23 @@ const normalizeGrade = (grade: any): string => {
   if (!grade) return '';
   const trimmed = String(grade).trim();
   return /^\d+$/.test(trimmed) ? `Grade ${trimmed}` : trimmed;
+};
+
+export const cleanSubjectName = (name: string): string => {
+  if (!name) return '';
+  return name
+    .replace(/\s*[\-\–\—\(]\s*grade[- ]*\d+.*$/i, '')
+    .replace(/\s*[\-\–\—\(]\s*class[- ]*\d+.*$/i, '')
+    .replace(/\s*[\-\–\—\(]\s*g\d+.*$/i, '')
+    .trim();
+};
+
+export const capitalizeWords = (str: string): string => {
+  if (!str) return str;
+  return str
+    .split(' ')
+    .map(word => word ? word.charAt(0).toUpperCase() + word.slice(1) : '')
+    .join(' ');
 };
 
 const matchGrade = (hodGrades: any[], courseGrade: any): boolean => {
@@ -172,13 +189,102 @@ export const TeacherPortal = () => {
   };
   const [annualForm, setAnnualForm] = useState(emptyAnnualForm);
 
+  const [selectedWeekDate, setSelectedWeekDate] = useState<Date>(() => {
+    const today = new Date();
+    const day = today.getDay();
+    let diff = 4 - day; // Thursday week ending
+    if (diff < 0) diff += 7;
+    const thursday = new Date(today);
+    thursday.setDate(today.getDate() + diff);
+    return thursday;
+  });
+
+  const formatEthWeekRangeStr = (date: Date): string => {
+    const thu = new Date(date);
+    const mon = new Date(thu);
+    mon.setDate(thu.getDate() - 3);
+
+    const ethMonStr = formatEthiopianLabel(mon);
+    const ethThuStr = formatEthiopianLabel(thu);
+
+    return `${ethMonStr} – ${ethThuStr}`;
+  };
+
+  const isPlanInWeek = (plan: any, weekThuDate: Date) => {
+    if (!plan) return false;
+
+    const selectedWeekIso = weekThuDate.toISOString().split('T')[0];
+
+    const mon = new Date(weekThuDate);
+    mon.setDate(weekThuDate.getDate() - 3);
+    mon.setHours(0, 0, 0, 0);
+
+    const sun = new Date(weekThuDate);
+    sun.setDate(weekThuDate.getDate() + 3);
+    sun.setHours(23, 59, 59, 999);
+
+    const ethThuStr = formatEthiopianLabel(weekThuDate);
+    const ethMonStr = formatEthiopianLabel(mon);
+
+    const candidateDates = [
+      plan.date_from, plan.dateFrom, plan.date,
+      plan.date_to, plan.dateTo,
+      plan.created_at, plan.createdAt, plan.updated_at
+    ].filter(Boolean);
+
+    for (const cand of candidateDates) {
+      if (typeof cand === 'string') {
+        if (cand.includes(ethThuStr) || cand.includes(ethMonStr)) return true;
+
+        if (cand.match(/^\d{4}-\d{2}-\d{2}/) || cand.includes('T')) {
+          const parsed = new Date(cand);
+          if (!isNaN(parsed.getTime())) {
+            if (parsed >= mon && parsed <= sun) return true;
+
+            const pDay = parsed.getDay();
+            let pDiff = 4 - pDay;
+            if (pDiff < 0) pDiff += 7;
+            const pThu = new Date(parsed);
+            pThu.setDate(parsed.getDate() + pDiff);
+            if (pThu.toISOString().split('T')[0] === selectedWeekIso) return true;
+          }
+        }
+      } else if (cand instanceof Date && !isNaN(cand.getTime())) {
+        if (cand >= mon && cand <= sun) return true;
+        const pDay = cand.getDay();
+        let pDiff = 4 - pDay;
+        if (pDiff < 0) pDiff += 7;
+        const pThu = new Date(cand);
+        pThu.setDate(cand.getDate() + pDiff);
+        if (pThu.toISOString().split('T')[0] === selectedWeekIso) return true;
+      }
+    }
+
+    // Fallback for active/current week if dates are missing or freshly created
+    const now = new Date();
+    const nowDay = now.getDay();
+    let nowDiff = 4 - nowDay;
+    if (nowDiff < 0) nowDiff += 7;
+    const nowThu = new Date(now);
+    nowThu.setDate(now.getDate() + nowDiff);
+    if (selectedWeekIso === nowThu.toISOString().split('T')[0]) {
+      if (candidateDates.length === 0) return true;
+    }
+
+    return false;
+  };
+
   const filteredDeptPlans = deptPlans.filter(plan => {
     const teacherName = plan.teacher_name || plan.teacherName || '';
     const subject = plan.subject || '';
     const matchesSearch = teacherName.toLowerCase().includes(deptSearch.toLowerCase()) || subject.toLowerCase().includes(deptSearch.toLowerCase());
     const matchesFilter = deptFilter === 'All' || plan.status === deptFilter;
-    return matchesSearch && matchesFilter;
+    const matchesWeek = isPlanInWeek(plan, selectedWeekDate);
+
+    return matchesSearch && matchesFilter && matchesWeek;
   });
+
+  const filteredMyPlans = plans.filter(plan => isPlanInWeek(plan, selectedWeekDate));
 
   const handleApproveDeptPlan = async (id: string, rating: number, feedback: string) => {
     const defaultFeedback = feedback.trim() || 'Approved by Department Head';
@@ -372,7 +478,10 @@ export const TeacherPortal = () => {
           { id: 'c-3', name: 'Calculus', code: 'MATH-12', class_name: 'Grade 12A' }
         ]);
       } else {
-        setMyCourses(rawCourses);
+        const uniqueCourses = rawCourses.filter((course: any, index: number, self: any[]) =>
+          index === self.findIndex((c: any) => (c.name || '').toLowerCase() === (course.name || '').toLowerCase())
+        );
+        setMyCourses(uniqueCourses);
       }
 
       // Load exams from backend
@@ -394,7 +503,7 @@ export const TeacherPortal = () => {
         setDeptHeads(rawDeptHeads);
       }
 
-      if (dash?.teacherInfo?.is_dean || dash?.teacherInfo?.is_hod || simulateDeanMode) {
+      if (dash?.teacherInfo?.is_dean || dash?.teacherInfo?.is_hod || dash?.teacherInfo?.promotion?.promotion_type === 'head-of-department' || (Array.isArray(dash?.teacherInfo?.promotion?.roles) && dash?.teacherInfo?.promotion?.roles.includes('head-of-department')) || (user as any)?.role === 'head-of-department' || (user as any)?.staff_profile?.is_hod) {
         const dPlans = await getDeptPlans().catch(() => []);
         setDeptPlans(Array.isArray(dPlans) ? dPlans : []);
       }
@@ -479,6 +588,40 @@ export const TeacherPortal = () => {
     const mm = String(thursday.getMonth() + 1).padStart(2, '0');
     const dd = String(thursday.getDate()).padStart(2, '0');
     return `${yyyy}-${mm}-${dd}`;
+  };
+
+  const getRecentWeekEndings = (): string[] => {
+    const list: string[] = [];
+    const today = new Date();
+    const day = today.getDay();
+    let diff = 4 - day;
+    if (diff < 0) diff += 7;
+    const currentThursday = new Date(today);
+    currentThursday.setDate(today.getDate() + diff);
+
+    const offsets = [0, -1, -2, -3, -4, 1];
+    for (const i of offsets) {
+      const d = new Date(currentThursday);
+      d.setDate(currentThursday.getDate() - i * 7);
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      list.push(`${yyyy}-${mm}-${dd}`);
+    }
+    return list;
+  };
+
+  const isCurrentWeek = (date: Date): boolean => {
+    const today = new Date();
+    const dayToday = today.getDay();
+    const diffToday = today.getDate() - dayToday + (dayToday === 0 ? -6 : 1);
+    const monToday = new Date(new Date(today).setDate(diffToday));
+
+    const dayD = date.getDay();
+    const diffD = date.getDate() - dayD + (dayD === 0 ? -6 : 1);
+    const monD = new Date(new Date(date).setDate(diffD));
+
+    return monToday.toDateString() === monD.toDateString();
   };
 
   // Load all homeroom sections + their students for global search
@@ -793,7 +936,7 @@ export const TeacherPortal = () => {
 
   const todaySchedule = dashboard?.todaySchedule || [];
   const pendingPlans = plans.filter(p => p.status === 'Pending').length;
-  const isDean = dashboard?.teacherInfo?.is_dean === true || dashboard?.teacherInfo?.is_hod === true || simulateDeanMode === true;
+  const isDean = dashboard?.teacherInfo?.is_dean === true || dashboard?.teacherInfo?.is_hod === true || (user as any)?.role === 'head-of-department' || (user as any)?.staff_profile?.is_hod === true || (dashboard?.teacherInfo?.promotion && (dashboard?.teacherInfo?.promotion?.promotion_type === 'head-of-department' || (Array.isArray(dashboard?.teacherInfo?.promotion?.roles) && dashboard?.teacherInfo?.promotion?.roles.includes('head-of-department'))));
 
   // Exam Handlers
   const handlePublishExam = async (examId: string) => {
@@ -988,72 +1131,14 @@ export const TeacherPortal = () => {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-xl">
-              <div className="bg-amber-50 dark:bg-amber-900/20 text-amber-600 w-14 h-14 rounded-2xl flex items-center justify-center mb-6"><Users size={28} /></div>
-              <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">Assigned Classes</p>
-              <h3 className="text-3xl font-black text-slate-800 dark:text-white">{dashboard?.assignedClassesCount ?? '—'}</h3>
-            </div>
-            <Link to="/schedule" className="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-xl hover:border-purple-300 dark:hover:border-purple-700 transition-colors block">
-              <div className="bg-purple-50 dark:bg-purple-900/20 text-purple-600 w-14 h-14 rounded-2xl flex items-center justify-center mb-6"><Calendar size={28} /></div>
+          <div className="grid grid-cols-1 gap-6">
+            
+            <Link to="/schedule" className="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-xl hover:border-emerald-300 dark:hover:border-emerald-700 transition-colors block">
+              <div className="bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 w-14 h-14 rounded-2xl flex items-center justify-center mb-6"><Calendar size={28} /></div>
               <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">My Schedule</p>
               <h3 className="text-3xl font-black text-slate-800 dark:text-white">{todaySchedule.length}</h3>
               <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-4">Classes today · View full schedule →</p>
             </Link>
-          </div>
-
-          {/* My Assigned Classes */}
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
-            <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-              <div>
-                <h3 className="font-bold text-slate-800 dark:text-white">My Assigned Classes</h3>
-                <p className="text-xs text-slate-500 mt-0.5">Classes assigned to you from the school administration</p>
-              </div>
-              <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-xs font-bold">{myClasses.length} class{myClasses.length !== 1 ? 'es' : ''}</span>
-            </div>
-            {myClasses.length === 0 ? (
-              <div className="p-12 text-center">
-                <div className="bg-slate-50 dark:bg-slate-800 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"><Users size={28} className="text-slate-400" /></div>
-                <p className="font-bold text-slate-500 dark:text-slate-400">No classes assigned yet</p>
-                <p className="text-xs text-slate-400 mt-1">Contact the school admin to assign classes to you.</p>
-              </div>
-            ) : (
-              <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                {myClasses.map((cls: any) => (
-                  <div key={cls.id} className="px-6 py-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                    <div className="flex items-center gap-4">
-                      <div className="bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0">
-                        <BookOpen size={18} />
-                      </div>
-                      <div>
-                        <p className="font-bold text-slate-800 dark:text-white">
-                          {cls.name || cls.class_name || `Grade ${cls.grade_level}`}
-                          {cls.section ? ` — Section ${cls.section}` : ''}
-                        </p>
-                        <p className="text-xs text-slate-500 mt-0.5">
-                          {cls.subject && cls.subject !== 'Assigned Class' ? cls.subject : 'General Class'}
-                          {cls.grade_level ? ` · Grade ${cls.grade_level}` : ''}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4 text-right">
-                      <div>
-                        <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Students</p>
-                        <p className="font-black text-slate-800 dark:text-white">{cls.enrolledStudents ?? '—'}</p>
-                      </div>
-                      <div className="flex gap-2">
-                        <Link
-                          to={`/grades?classId=${cls.id || cls.class_id}&courseId=${cls.course_id || cls.id}&subject=${encodeURIComponent(cls.subject || 'General')}`}
-                          className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-colors"
-                        >
-                          Enter Grades
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
 
           {/* School Announcements */}
@@ -1147,24 +1232,12 @@ export const TeacherPortal = () => {
               </button>
             </div>
 
-            {/* Elegant simulation toggle to facilitate testing both states easily */}
-            <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-800 p-2.5 rounded-2xl border border-slate-200/50 dark:border-slate-700/50">
-              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
-                🧪 Promote to Department Head (Simulation)
-              </span>
-              <input
-                title="Toggle Department Head simulation"
-                type="checkbox"
-                checked={simulateDeanMode}
-                onChange={e => {
-                  setSimulateDeanMode(e.target.checked);
-                  if (!e.target.checked) {
-                    setWeeklyPlanSubTab('my-plans');
-                  }
-                }}
-                className="w-4 h-4 text-blue-600 bg-slate-100 border-slate-300 rounded focus:ring-blue-500 cursor-pointer"
-              />
-            </div>
+            {isDean && (
+              <div className="flex items-center gap-2 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-3.5 py-1.5 rounded-xl border border-purple-200 dark:border-purple-800 text-xs font-bold shadow-sm">
+                <ShieldCheck size={14} className="text-purple-600 dark:text-purple-400" />
+                Department Head
+              </div>
+            )}
           </div>
 
           {(weeklyPlanSubTab as any) === 'annual-plans' ? (
@@ -1527,6 +1600,92 @@ export const TeacherPortal = () => {
             </div>
           ) : (
             <div className="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-xl overflow-hidden animate-in fade-in duration-200">
+              {/* Ethiopian Weekly Calendar Banner for Teacher Role */}
+              <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 p-6 rounded-3xl text-white shadow-xl mb-8 border border-blue-800/40 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-blue-500/20 rounded-2xl border border-blue-400/30 text-blue-300">
+                    <Calendar size={28} />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-extrabold text-lg text-white uppercase tracking-tight">Weekly Lesson Plan Calendar</h3>
+                      {isCurrentWeek(selectedWeekDate) && (
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 tracking-wider">
+                          Current Week
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-indigo-200/90 font-bold mt-0.5">
+                      Ethiopian Calendar Week: {formatEthWeekRangeStr(selectedWeekDate)}
+                    </p>
+                  </div>
+                </div>
+
+                {/* "Weekly Report (Week Ending)" Selector & Quick Prev/Next */}
+                <div className="flex items-center gap-3 w-full lg:w-auto">
+                  <div className="flex-1 lg:flex-initial flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                    <label htmlFor="teacher-report-week-select" className="text-xs font-black text-indigo-300 uppercase tracking-wider shrink-0 hidden sm:inline">
+                      Weekly Report (Week Ending):
+                    </label>
+                    <div className="relative flex-1 sm:w-72">
+                      <select
+                        id="teacher-report-week-select"
+                        value={(() => {
+                          const iso = selectedWeekDate.toISOString().split('T')[0];
+                          const recent = getRecentWeekEndings();
+                          return recent.includes(iso) ? iso : iso;
+                        })()}
+                        onChange={(e) => {
+                          if (e.target.value) {
+                            setSelectedWeekDate(new Date(e.target.value));
+                          }
+                        }}
+                        className="w-full appearance-none px-4 py-2.5 bg-slate-900/90 dark:bg-slate-800/90 border-2 border-indigo-500/40 rounded-xl text-xs font-bold text-white outline-none focus:border-indigo-400 transition-all cursor-pointer pr-9 shadow-inner"
+                      >
+                        {getRecentWeekEndings().map((weekIso) => {
+                          const isCurrent = isCurrentWeek(new Date(weekIso));
+                          const ethLabel = formatEthiopianLabel(weekIso);
+                          return (
+                            <option key={weekIso} value={weekIso} className="bg-slate-900 text-white font-bold py-1">
+                              {ethLabel} {isCurrent ? '★ (Current Week)' : '(Week Ending)'}
+                            </option>
+                          );
+                        })}
+                      </select>
+                      <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-indigo-300 pointer-events-none" />
+                    </div>
+                  </div>
+
+                  {/* Prev / Next Week Navigation */}
+                  <div className="flex items-center gap-1 bg-slate-900/80 p-1 rounded-xl border border-indigo-500/30">
+                    <button
+                      type="button"
+                      title="Previous Week"
+                      onClick={() => {
+                        const prev = new Date(selectedWeekDate);
+                        prev.setDate(prev.getDate() - 7);
+                        setSelectedWeekDate(prev);
+                      }}
+                      className="p-1.5 rounded-lg text-indigo-300 hover:text-white hover:bg-indigo-600/40 transition-all"
+                    >
+                      <ChevronLeft size={18} />
+                    </button>
+                    <button
+                      type="button"
+                      title="Next Week"
+                      onClick={() => {
+                        const next = new Date(selectedWeekDate);
+                        next.setDate(next.getDate() + 7);
+                        setSelectedWeekDate(next);
+                      }}
+                      className="p-1.5 rounded-lg text-indigo-300 hover:text-white hover:bg-indigo-600/40 transition-all"
+                    >
+                      <ChevronRight size={18} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
                 <div>
                   <h2 className="text-3xl font-black text-slate-800 dark:text-white tracking-tight uppercase">Weekly Plans</h2>
@@ -1535,9 +1694,10 @@ export const TeacherPortal = () => {
                 <div className="flex gap-4 flex-wrap">
                   <button onClick={() => {
                     setEditingPlan(null);
-                    // Restore locally-saved draft if one exists
                     const draft = loadLocalDraft();
-                    setPlanForm(draft ?? emptyPlan);
+                    const targetIso = selectedWeekDate.toISOString().split('T')[0];
+                    const baseForm = draft ?? emptyPlan;
+                    setPlanForm({ ...baseForm, dateFrom: targetIso, dateTo: targetIso, date: targetIso });
                     setIsPlanModalOpen(true);
                   }}
                     className="flex items-center gap-3 px-8 py-4 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-700 transition-all shadow-xl shadow-blue-500/20">
@@ -1545,7 +1705,8 @@ export const TeacherPortal = () => {
                   </button>
                   <button onClick={() => {
                     setEditingPlan(null);
-                    setPlanForm({ ...emptyPlan, status: 'Pending' });
+                    const targetIso = selectedWeekDate.toISOString().split('T')[0];
+                    setPlanForm({ ...emptyPlan, dateFrom: targetIso, dateTo: targetIso, date: targetIso, status: 'Pending' });
                     setIsPlanModalOpen(true);
                   }}
                     className="flex items-center gap-3 px-8 py-4 bg-emerald-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-500/20">
@@ -1554,109 +1715,154 @@ export const TeacherPortal = () => {
                 </div>
               </div>
 
-              <div className="overflow-x-auto">
-                <table className="w-full text-left min-w-[900px]">
-                  <thead>
-                    <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
-                      {['Date', 'Subject', 'Content', 'Objectives', 'Method', 'Duration', 'Status', 'Feedback', 'Actions'].map(h => (
-                        <th key={h} className="px-4 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                    {plans.length === 0 ? (
-                      <tr><td colSpan={9} className="px-6 py-12 text-center text-slate-500">No plans yet. Create your first plan!</td></tr>
-                    ) : (
-                      plans.map((plan: any) => (
-                        <tr key={plan.id} className="hover:bg-blue-50/30 dark:hover:bg-blue-900/5 transition-colors">
-                          <td className="px-4 py-4 text-xs font-bold text-slate-800 dark:text-slate-200">{plan.date?.slice(0, 10)}</td>
-                          <td className="px-4 py-4 text-xs font-semibold text-blue-600 dark:text-blue-400">{plan.subject || '—'}</td>
-                          <td className="px-4 py-4 text-xs text-slate-600 dark:text-slate-400 max-w-[120px] truncate">{plan.content}</td>
-                          <td className="px-4 py-4 text-xs text-slate-600 dark:text-slate-400 max-w-[120px] truncate">{plan.objectives}</td>
-                          <td className="px-4 py-4 text-xs text-slate-600 dark:text-slate-400 max-w-[100px] truncate">{plan.teaching_method || plan.teachingMethod}</td>
-                          <td className="px-4 py-4 text-xs text-slate-600 dark:text-slate-400">{plan.time_duration || plan.timeDuration}</td>
-                          <td className="px-4 py-4">
-                            <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase ${plan.status === 'Approved' ? 'bg-emerald-100 text-emerald-600' :
-                              plan.status === 'Revision Required' ? 'bg-orange-100 text-orange-600' :
-                                plan.status === 'Draft' ? 'bg-slate-100 text-slate-600' :
-                                  'bg-amber-100 text-amber-600'
-                              }`}>{plan.status}</span>
-                          </td>
-                          <td className="px-4 py-4">
-                            {plan.dean_feedback ? (
-                              <div>
-                                <p className="text-xs text-slate-600 dark:text-slate-400 max-w-[120px] truncate">{plan.dean_feedback}</p>
-                                {plan.dean_rating && (
-                                  <div className="flex gap-0.5 mt-1">
-                                    {[1, 2, 3].map(n => (
-                                      <Star key={n} size={10} className={n <= plan.dean_rating ? 'text-amber-500 fill-amber-500' : 'text-slate-300'} />
-                                    ))}
-                                  </div>
-                                )}
-                              </div>
-                            ) : <span className="text-xs text-slate-400">—</span>}
-                          </td>
-                          <td className="px-4 py-4 flex gap-2">
-                            {(plan.status === 'Draft' || plan.status === 'Revision Required') && (
-                              <>
-                                <button onClick={() => openEditModal(plan)}
-                                  className="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-xs font-bold hover:bg-blue-200 transition-colors">
-                                  Edit
-                                </button>
-                                <button onClick={async () => {
-                                  // Guard: sim-IDs mean the plan was never saved to DB — user must open modal and save properly
-                                  if (!plan.id || String(plan.id).startsWith('sim-')) {
-                                    showToast('Please open and re-save the plan as a Draft first before submitting.', 'error');
-                                    return;
-                                  }
-                                  const submittedPlan = { ...plan, status: 'Pending', teacher_name: user?.name || 'Assigned Teacher', teacherName: user?.name || 'Assigned Teacher' };
-                                  try {
-                                    const payload = {
-                                      date: plan.date ? new Date(plan.date).toISOString() : new Date().toISOString(),
-                                      content: plan.content || '',
-                                      objectives: plan.objectives || '',
-                                      teacherActivity: plan.teacher_activity || plan.teacherActivity || '',
-                                      timeDuration: plan.time_duration || plan.timeDuration || '',
-                                      studentActivity: plan.student_activity || plan.studentActivity || '',
-                                      teachingMethod: plan.teaching_method || plan.teachingMethod || '',
-                                      teachingAids: plan.teaching_aids || plan.teachingAids || '',
-                                      evaluation: plan.evaluation || '',
-                                      remark: plan.remark || '',
-                                      status: 'Pending' as const,
-                                      courseId: plan.course_id || plan.courseId || '',
-                                      subject: plan.subject || '',
-                                      deptHeadId: plan.dept_head_id || plan.deptHeadId || '',
-                                      weekNumber: plan.week_number || plan.weekNumber || 1
-                                    };
-                                    await updateWeeklyPlan(plan.id, payload);
-                                    showToast('Plan submitted to Department Head!', 'success');
-                                    const updatedPlans = await getMyWeeklyPlans();
-                                    setPlans(Array.isArray(updatedPlans) ? updatedPlans : []);
-                                  } catch (err: any) {
-                                    const msg = err?.message || 'Submission failed. Please try again.';
-                                    showToast(msg, 'error');
-                                    console.error('Submission error:', err);
-                                  }
-                                  // Optimistically update local state regardless of API result
-                                  setPlans(prev => prev.map(p => p.id === plan.id ? submittedPlan : p));
-                                  setDeptPlans(prev => {
-                                    const exists = prev.some(p => p.id === plan.id);
-                                    if (exists) return prev.map(p => p.id === plan.id ? submittedPlan : p);
-                                    return [submittedPlan, ...prev];
-                                  });
-                                }}
-                                  className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-lg text-xs font-bold hover:bg-emerald-200 transition-colors flex items-center gap-1">
-                                  <CheckCircle2 size={14} /> Submit
-                                </button>
-                              </>
-                            )}
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
+              {/* Submitted and Drafted Plans Card Grid */}
+              {filteredMyPlans.length === 0 ? (
+                <div className="bg-slate-50 dark:bg-slate-800/40 rounded-3xl p-10 border-2 border-dashed border-slate-200 dark:border-slate-700/80 text-center space-y-4">
+                  <div className="w-16 h-16 bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-2xl flex items-center justify-center mx-auto">
+                    <FileText size={32} />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black text-slate-800 dark:text-white uppercase tracking-tight">No Weekly Plans Found</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto mt-1 font-semibold">
+                      Use the "+ Create New Plan" or "Submit New Plan" buttons above to draft or submit your lesson plans.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filteredMyPlans.map((plan: any) => (
+                    <div
+                      key={plan.id}
+                      className="bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-3xl p-6 shadow-sm hover:shadow-lg transition-all flex flex-col justify-between gap-5 relative overflow-hidden group"
+                    >
+                      <div className="space-y-3">
+                        <div className="flex items-start justify-between gap-3 border-b border-slate-200 dark:border-slate-700/60 pb-3">
+                          <div>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-indigo-500 dark:text-indigo-400 block mb-0.5">
+                              {plan.grade_section || plan.gradeSection || 'Assigned Class'}
+                            </span>
+                            <h4 className="font-extrabold text-base text-slate-900 dark:text-white uppercase tracking-tight">
+                              {plan.subject || 'Weekly Lesson Plan'}
+                            </h4>
+                          </div>
+                          <span
+                            className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                              plan.status === 'Approved'
+                                ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
+                                : plan.status === 'Revision Required'
+                                ? 'bg-orange-500/15 text-orange-600 dark:text-orange-400 border border-orange-500/30'
+                                : plan.status === 'Draft'
+                                ? 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
+                                : 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30'
+                            }`}
+                          >
+                            {plan.status === 'Approved' ? 'Approved ✔' : plan.status === 'Draft' ? 'Draft 📝' : plan.status}
+                          </span>
+                        </div>
+
+                        {/* Plan Content Summary */}
+                        <div className="space-y-2 text-xs">
+                          {(plan.chapter_unit || plan.topic_title) && (
+                            <p className="text-slate-700 dark:text-slate-300 font-bold">
+                              📖 <span className="text-slate-500 dark:text-slate-400 font-medium">Topic/Unit:</span> {plan.chapter_unit ? `${plan.chapter_unit} — ` : ''}{plan.topic_title || ''}
+                            </p>
+                          )}
+                          {plan.content && (
+                            <p className="text-slate-600 dark:text-slate-400 line-clamp-2">
+                              <span className="font-bold text-slate-700 dark:text-slate-300">Content:</span> {plan.content}
+                            </p>
+                          )}
+                          {plan.objectives && (
+                            <p className="text-slate-600 dark:text-slate-400 line-clamp-2">
+                              <span className="font-bold text-slate-700 dark:text-slate-300">Objectives:</span> {plan.objectives}
+                            </p>
+                          )}
+                          <div className="flex items-center gap-4 text-[11px] text-slate-500 dark:text-slate-400 pt-1">
+                            {plan.teaching_method || plan.teachingMethod ? (
+                              <span>💡 <strong className="text-slate-700 dark:text-slate-300">{plan.teaching_method || plan.teachingMethod}</strong></span>
+                            ) : null}
+                            {plan.time_duration || plan.timeDuration ? (
+                              <span>⏱️ <strong className="text-slate-700 dark:text-slate-300">{plan.time_duration || plan.timeDuration}</strong></span>
+                            ) : null}
+                          </div>
+                        </div>
+
+                        {/* Feedback from Department Head */}
+                        {plan.dean_feedback || plan.feedback ? (
+                          <div className="bg-amber-500/10 dark:bg-amber-950/30 border border-amber-500/30 rounded-2xl p-3 text-xs space-y-1">
+                            <p className="font-extrabold text-amber-700 dark:text-amber-400 uppercase text-[10px] tracking-wider">
+                              Department Head Feedback:
+                            </p>
+                            <p className="text-slate-700 dark:text-slate-300 font-medium">{plan.dean_feedback || plan.feedback}</p>
+                          </div>
+                        ) : null}
+                      </div>
+
+                      {/* Card Action Controls */}
+                      <div className="pt-3 border-t border-slate-200 dark:border-slate-700/60 flex items-center justify-between gap-2">
+                        <span className="text-[10px] font-bold text-slate-400">
+                          {plan.date ? `Date: ${plan.date.slice(0, 10)}` : 'Weekly Plan'}
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => openEditModal(plan)}
+                            className="px-3 py-1.5 bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-100 rounded-xl text-xs font-bold hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
+                          >
+                            Edit
+                          </button>
+                          {(plan.status === 'Draft' || plan.status === 'Revision Required') && (
+                            <button
+                              onClick={async () => {
+                                if (!plan.id || String(plan.id).startsWith('sim-')) {
+                                  showToast('Please open and re-save the plan as a Draft first before submitting.', 'error');
+                                  return;
+                                }
+                                const submittedPlan = { ...plan, status: 'Pending', teacher_name: user?.name || 'Assigned Teacher', teacherName: user?.name || 'Assigned Teacher' };
+                                try {
+                                  const payload = {
+                                    date: plan.date ? new Date(plan.date).toISOString() : new Date().toISOString(),
+                                    content: plan.content || '',
+                                    objectives: plan.objectives || '',
+                                    teacherActivity: plan.teacher_activity || plan.teacherActivity || '',
+                                    timeDuration: plan.time_duration || plan.timeDuration || '',
+                                    studentActivity: plan.student_activity || plan.studentActivity || '',
+                                    teachingMethod: plan.teaching_method || plan.teachingMethod || '',
+                                    teachingAids: plan.teaching_aids || plan.teachingAids || '',
+                                    evaluation: plan.evaluation || '',
+                                    remark: plan.remark || '',
+                                    status: 'Pending' as const,
+                                    courseId: plan.course_id || plan.courseId || '',
+                                    subject: plan.subject || '',
+                                    deptHeadId: plan.dept_head_id || plan.deptHeadId || '',
+                                    weekNumber: plan.week_number || plan.weekNumber || 1
+                                  };
+                                  await updateWeeklyPlan(plan.id, payload);
+                                  showToast('Plan submitted to Department Head!', 'success');
+                                  const updatedPlans = await getMyWeeklyPlans();
+                                  setPlans(Array.isArray(updatedPlans) ? updatedPlans : []);
+                                } catch (err: any) {
+                                  const msg = err?.message || 'Submission failed. Please try again.';
+                                  showToast(msg, 'error');
+                                  console.error('Submission error:', err);
+                                }
+                                setPlans(prev => prev.map(p => p.id === plan.id ? submittedPlan : p));
+                                setDeptPlans(prev => {
+                                  const exists = prev.some(p => p.id === plan.id);
+                                  if (exists) return prev.map(p => p.id === plan.id ? submittedPlan : p);
+                                  return [submittedPlan, ...prev];
+                                });
+                              }}
+                              className="px-3.5 py-1.5 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 transition-colors flex items-center gap-1.5 shadow-md"
+                            >
+                              <CheckCircle2 size={14} /> Submit
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -1769,6 +1975,92 @@ export const TeacherPortal = () => {
             </div>
           ) : (
             <>
+          {/* Ethiopian Weekly Calendar Oversight Banner */}
+          <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 p-6 rounded-3xl text-white shadow-xl mb-6 border border-blue-800/40 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-blue-500/20 rounded-2xl border border-blue-400/30 text-blue-300">
+                <Calendar size={28} />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-extrabold text-lg text-white uppercase tracking-tight">Weekly Academic Plan Oversight</h3>
+                  {isCurrentWeek(selectedWeekDate) && (
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 tracking-wider">
+                      Current Week
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-indigo-200/90 font-bold mt-0.5">
+                  Ethiopian Calendar Week: {formatEthWeekRangeStr(selectedWeekDate)}
+                </p>
+              </div>
+            </div>
+
+            {/* "Weekly Report (Week Ending)" Selector & Quick Prev/Next */}
+            <div className="flex items-center gap-3 w-full lg:w-auto">
+              <div className="flex-1 lg:flex-initial flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                <label htmlFor="weekly-report-week-select" className="text-xs font-black text-indigo-300 uppercase tracking-wider shrink-0 hidden sm:inline">
+                  Weekly Report (Week Ending):
+                </label>
+                <div className="relative flex-1 sm:w-72">
+                  <select
+                    id="weekly-report-week-select"
+                    value={(() => {
+                      const iso = selectedWeekDate.toISOString().split('T')[0];
+                      const recent = getRecentWeekEndings();
+                      return recent.includes(iso) ? iso : iso;
+                    })()}
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        setSelectedWeekDate(new Date(e.target.value));
+                      }
+                    }}
+                    className="w-full appearance-none px-4 py-2.5 bg-slate-900/90 dark:bg-slate-800/90 border-2 border-indigo-500/40 rounded-xl text-xs font-bold text-white outline-none focus:border-indigo-400 transition-all cursor-pointer pr-9 shadow-inner"
+                  >
+                    {getRecentWeekEndings().map((weekIso) => {
+                      const isCurrent = isCurrentWeek(new Date(weekIso));
+                      const ethLabel = formatEthiopianLabel(weekIso);
+                      return (
+                        <option key={weekIso} value={weekIso} className="bg-slate-900 text-white font-bold py-1">
+                          {ethLabel} {isCurrent ? '★ (Current Week)' : '(Week Ending)'}
+                        </option>
+                      );
+                    })}
+                  </select>
+                  <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-indigo-300 pointer-events-none" />
+                </div>
+              </div>
+
+              {/* Prev / Next Week Navigation */}
+              <div className="flex items-center gap-1 bg-slate-900/80 p-1 rounded-xl border border-indigo-500/30">
+                <button
+                  type="button"
+                  title="Previous Week"
+                  onClick={() => {
+                    const prev = new Date(selectedWeekDate);
+                    prev.setDate(prev.getDate() - 7);
+                    setSelectedWeekDate(prev);
+                  }}
+                  className="p-1.5 rounded-lg text-indigo-300 hover:text-white hover:bg-indigo-600/40 transition-all"
+                >
+                  <ChevronLeft size={18} />
+                </button>
+                <button
+                  type="button"
+                  title="Next Week"
+                  onClick={() => {
+                    const next = new Date(selectedWeekDate);
+                    next.setDate(next.getDate() + 7);
+                    setSelectedWeekDate(next);
+                  }}
+                  className="p-1.5 rounded-lg text-indigo-300 hover:text-white hover:bg-indigo-600/40 transition-all"
+                >
+                  <ChevronRight size={18} />
+                </button>
+              </div>
+            </div>
+          </div>
+
           {/* Filter Bar */}
           <div className="flex flex-col md:flex-row gap-4 mb-6">
             <input
@@ -1940,7 +2232,7 @@ export const TeacherPortal = () => {
                       type="text"
                       placeholder="Teacher Name"
                       value={planForm.teacherName || (user as any)?.name || ''}
-                      onChange={e => setPlanForm({ ...planForm, teacherName: e.target.value })}
+                      onChange={e => setPlanForm({ ...planForm, teacherName: capitalizeWords(e.target.value) })}
                       className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
@@ -1951,16 +2243,16 @@ export const TeacherPortal = () => {
                       onChange={e => {
                         const selectedCourseId = e.target.value;
                         const selectedCourse = myCourses.find((c: any) => c.id === selectedCourseId);
-                        const newSubject = selectedCourse?.name || '';
+                        const cleanName = capitalizeWords(cleanSubjectName(selectedCourse?.name || ''));
                         const matchingHods = filterDeptHeadsForCourse(selectedCourseId);
                         let newDeptHeadId = matchingHods.length > 0 ? (matchingHods[0].teacher_id || matchingHods[0].id) : '';
-                        setPlanForm({ ...planForm, courseId: selectedCourseId, subject: newSubject, deptHeadId: newDeptHeadId });
+                        setPlanForm({ ...planForm, courseId: selectedCourseId, subject: cleanName, deptHeadId: newDeptHeadId });
                       }}
                       className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="">Select Course / Subject</option>
                       {myCourses.map((c: any) => (
-                        <option key={c.id} value={c.id}>{c.name}{c.code ? ` (${c.code})` : ''}</option>
+                        <option key={c.id} value={c.id}>{capitalizeWords(cleanSubjectName(c.name))}</option>
                       ))}
                     </select>
                   </div>
@@ -1970,7 +2262,7 @@ export const TeacherPortal = () => {
                       type="text"
                       placeholder="e.g. Unit 3: Linear Equations"
                       value={planForm.chapterUnit || ''}
-                      onChange={e => setPlanForm({ ...planForm, chapterUnit: e.target.value })}
+                      onChange={e => setPlanForm({ ...planForm, chapterUnit: capitalizeWords(e.target.value) })}
                       className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-white"
                     />
                   </div>
@@ -1980,7 +2272,7 @@ export const TeacherPortal = () => {
                       type="text"
                       placeholder="e.g. Solving 2-step equations"
                       value={planForm.topicTitle || ''}
-                      onChange={e => setPlanForm({ ...planForm, topicTitle: e.target.value })}
+                      onChange={e => setPlanForm({ ...planForm, topicTitle: capitalizeWords(e.target.value) })}
                       className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-white"
                     />
                   </div>
@@ -1990,7 +2282,7 @@ export const TeacherPortal = () => {
                       type="text"
                       placeholder="e.g. Grade 7 Section A"
                       value={planForm.gradeSection || ''}
-                      onChange={e => setPlanForm({ ...planForm, gradeSection: e.target.value })}
+                      onChange={e => setPlanForm({ ...planForm, gradeSection: capitalizeWords(e.target.value) })}
                       className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-white"
                     />
                   </div>
@@ -2004,23 +2296,30 @@ export const TeacherPortal = () => {
                       className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-white"
                     />
                   </div>
-                  <div>
-                    <label className="text-[10px] font-black uppercase text-slate-400 block mb-1">Date (From)</label>
-                    <input
-                      type="date"
-                      value={planForm.dateFrom || planForm.date}
-                      onChange={e => setPlanForm({ ...planForm, dateFrom: e.target.value, date: e.target.value })}
-                      className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-black uppercase text-slate-400 block mb-1">Date (To)</label>
-                    <input
-                      type="date"
-                      value={planForm.dateTo || planForm.date}
-                      onChange={e => setPlanForm({ ...planForm, dateTo: e.target.value })}
-                      className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-white"
-                    />
+                  <div className="col-span-1 md:col-span-2">
+                    <label className="text-[10px] font-black uppercase text-indigo-500 dark:text-indigo-400 block mb-1">Target Academic Week (Week Ending)</label>
+                    <select
+                      value={(() => {
+                        const val = planForm.dateFrom || planForm.date;
+                        const weeks = getRecentWeekEndings();
+                        return weeks.includes(val) ? val : weeks[0];
+                      })()}
+                      onChange={e => {
+                        const val = e.target.value;
+                        setPlanForm({ ...planForm, dateFrom: val, dateTo: val, date: val });
+                      }}
+                      className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border-2 border-indigo-500/40 rounded-xl text-xs font-bold text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+                    >
+                      {getRecentWeekEndings().map((weekIso) => {
+                        const isCurrent = isCurrentWeek(new Date(weekIso));
+                        const ethLabel = formatEthiopianLabel(weekIso);
+                        return (
+                          <option key={weekIso} value={weekIso}>
+                            {ethLabel} {isCurrent ? '★ (Current Week)' : '(Week Ending)'}
+                          </option>
+                        );
+                      })}
+                    </select>
                   </div>
                   <div>
                     <label className="text-[10px] font-black uppercase text-slate-400 block mb-1">Department Head Reviewer</label>
@@ -2096,11 +2395,12 @@ export const TeacherPortal = () => {
                     };
 
                     const updateDayAct = (field: string, val: string) => {
+                      const formattedVal = field === 'timeDuration' ? val : capitalizeWords(val);
                       const newArr = [...planForm.dailyActivities];
                       if (dayActIndex >= 0) {
-                        newArr[dayActIndex] = { ...newArr[dayActIndex], [field]: val };
+                        newArr[dayActIndex] = { ...newArr[dayActIndex], [field]: formattedVal };
                       } else {
-                        newArr.push({ day: activePlanDay, [field]: val } as any);
+                        newArr.push({ day: activePlanDay, [field]: formattedVal } as any);
                       }
                       setPlanForm({ ...planForm, dailyActivities: newArr });
                     };
@@ -2309,11 +2609,12 @@ export const TeacherPortal = () => {
                         };
 
                         const updateDayAct = (field: string, val: string) => {
+                          const formattedVal = field === 'timeDuration' ? val : capitalizeWords(val);
                           const newArr = [...planForm.dailyActivities];
                           if (dayActIndex >= 0) {
-                            newArr[dayActIndex] = { ...newArr[dayActIndex], [field]: val };
+                            newArr[dayActIndex] = { ...newArr[dayActIndex], [field]: formattedVal };
                           } else {
-                            newArr.push({ day: dayName, [field]: val } as any);
+                            newArr.push({ day: dayName, [field]: formattedVal } as any);
                           }
                           setPlanForm({ ...planForm, dailyActivities: newArr });
                         };
@@ -2477,7 +2778,7 @@ export const TeacherPortal = () => {
               <div>
                 <label htmlFor="examTitle" className="text-xs font-bold text-slate-500 uppercase">Exam Title</label>
                 <input id="examTitle" type="text" placeholder="e.g., Mid Exam - Mathematics"
-                  value={examForm.title} onChange={e => setExamForm({ ...examForm, title: e.target.value })}
+                  value={examForm.title} onChange={e => setExamForm({ ...examForm, title: capitalizeWords(e.target.value) })}
                   className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
 
@@ -2574,7 +2875,7 @@ export const TeacherPortal = () => {
               <div>
                 <label htmlFor="examInstructions" className="text-xs font-bold text-slate-500 uppercase">Instructions for Students</label>
                 <textarea id="examInstructions" rows={3} placeholder="e.g., Answer all questions. No calculators allowed. Duration: 1 hour"
-                  value={examForm.instructions} onChange={e => setExamForm({ ...examForm, instructions: e.target.value })}
+                  value={examForm.instructions} onChange={e => setExamForm({ ...examForm, instructions: capitalizeWords(e.target.value) })}
                   className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
               </div>
 
@@ -2877,9 +3178,7 @@ export const TeacherPortal = () => {
                   </button>
                 </div>
               </div>
-
             </div>
-
           </div>
         </div>
       )}
@@ -2887,8 +3186,7 @@ export const TeacherPortal = () => {
       {/* Toast */}
       {toast.show && (
         <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-top-2 duration-300">
-          <div className={`flex items-center gap-3 px-6 py-4 rounded-xl shadow-2xl border ${toast.type === 'success' ? 'bg-green-50 dark:bg-green-900/20 border-green-200' : 'bg-red-50 dark:bg-red-900/20 border-red-200'
-            }`}>
+          <div className={`flex items-center gap-3 px-6 py-4 rounded-xl shadow-2xl border ${toast.type === 'success' ? 'bg-green-50 dark:bg-green-900/20 border-green-200' : 'bg-red-50 dark:bg-red-900/20 border-red-200'}`}>
             {toast.type === 'success' ? <CheckCircle2 className="text-green-600" size={20} /> : <XCircle className="text-red-600" size={20} />}
             <p className={`text-sm font-bold ${toast.type === 'success' ? 'text-green-800' : 'text-red-800'}`}>{toast.message}</p>
           </div>
@@ -2937,31 +3235,32 @@ export const TeacherPortal = () => {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div>
                     <label className="text-[10px] font-black uppercase text-slate-500">Academic Year</label>
-                    <input value={annualForm.academicYear} onChange={e => setAnnualForm(f => ({ ...f, academicYear: e.target.value }))}
+                    <input value={annualForm.academicYear} onChange={e => setAnnualForm(f => ({ ...f, academicYear: capitalizeWords(e.target.value) }))}
                       className="w-full mt-1 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-violet-500" />
                   </div>
                   <div>
                     <label className="text-[10px] font-black uppercase text-slate-500">Subject</label>
                     <select value={annualForm.courseId} onChange={e => {
                       const c = myCourses.find((x: any) => x.id === e.target.value);
-                      setAnnualForm(f => ({ ...f, courseId: e.target.value, subject: c?.name || f.subject }));
+                      const cleanName = capitalizeWords(cleanSubjectName(c?.name || ''));
+                      setAnnualForm(f => ({ ...f, courseId: e.target.value, subject: cleanName || f.subject }));
                     }} className="w-full mt-1 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-violet-500">
                       <option value="">Select course…</option>
-                      {myCourses.map((c: any) => <option key={c.id} value={c.id}>{c.name}{c.class_name ? ` — ${c.class_name}` : ''}</option>)}
+                      {myCourses.map((c: any) => <option key={c.id} value={c.id}>{capitalizeWords(cleanSubjectName(c.name))}</option>)}
                     </select>
                     {!annualForm.courseId && (
-                      <input placeholder="Or type subject…" value={annualForm.subject} onChange={e => setAnnualForm(f => ({ ...f, subject: e.target.value }))}
+                      <input placeholder="Or type subject…" value={annualForm.subject} onChange={e => setAnnualForm(f => ({ ...f, subject: capitalizeWords(e.target.value) }))}
                         className="w-full mt-1 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-violet-500" />
                     )}
                   </div>
                   <div>
                     <label className="text-[10px] font-black uppercase text-slate-500">Grade</label>
-                    <input value={annualForm.grade} onChange={e => setAnnualForm(f => ({ ...f, grade: e.target.value }))}
+                    <input value={annualForm.grade} onChange={e => setAnnualForm(f => ({ ...f, grade: capitalizeWords(e.target.value) }))}
                       placeholder="e.g. Grade 9" className="w-full mt-1 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-violet-500" />
                   </div>
                   <div>
                     <label className="text-[10px] font-black uppercase text-slate-500">Duration / Period</label>
-                    <input value={annualForm.durationPeriod} onChange={e => setAnnualForm(f => ({ ...f, durationPeriod: e.target.value }))}
+                    <input value={annualForm.durationPeriod} onChange={e => setAnnualForm(f => ({ ...f, durationPeriod: capitalizeWords(e.target.value) }))}
                       className="w-full mt-1 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-violet-500" />
                   </div>
                   <div>
@@ -3013,7 +3312,7 @@ export const TeacherPortal = () => {
                                   value={(item as any)[field]}
                                   onChange={e => {
                                     const newItems = [...annualForm.items];
-                                    (newItems[idx] as any)[field] = e.target.value;
+                                    (newItems[idx] as any)[field] = field === 'noOfPeriods' ? e.target.value : capitalizeWords(e.target.value);
                                     setAnnualForm(f => ({ ...f, items: newItems }));
                                   }}
                                   className="w-full px-2 py-1.5 bg-transparent border border-transparent hover:border-violet-300 focus:border-violet-500 focus:bg-white dark:focus:bg-slate-800 rounded-lg outline-none transition-all text-slate-800 dark:text-slate-200 min-w-[80px]"

@@ -19,10 +19,11 @@ export const updateAbsenceStatus = async (id: string, status: 'pending' | 'excus
 };
 
 // Weekly Plans
-export const getWeeklyPlans = async (status?: string, teacherId?: string) => {
+export const getWeeklyPlans = async (status?: string, teacherId?: string, weekDate?: string) => {
   const params = new URLSearchParams();
   if (status) params.append('status', status);
   if (teacherId) params.append('teacherId', teacherId);
+  if (weekDate) params.append('weekDate', weekDate);
   const response = await api.get(`/vice-principal/weekly-plans?${params}`);
   return response.data;
 };
@@ -33,6 +34,39 @@ export const reviewWeeklyPlan = async (planId: string, data: {
   deanRating?: number;
 }) => {
   const response = await api.post(`/vice-principal/weekly-plans/${planId}/review`, data);
+  return response.data;
+};
+
+// Annual Plans
+export const getVPAnnualPlans = async (status?: string, teacherId?: string) => {
+  const params = new URLSearchParams();
+  if (status) params.append('status', status);
+  if (teacherId) params.append('teacherId', teacherId);
+  const response = await api.get(`/vice-principal/annual-plans?${params}`);
+  return response.data;
+};
+
+export const reviewVPAnnualPlan = async (planId: string, data: {
+  status: 'Approved' | 'Revision Required';
+  feedback?: string;
+  rating?: number;
+}) => {
+  const response = await api.post(`/vice-principal/annual-plans/${planId}/review`, data);
+  return response.data;
+};
+
+// Grade Locks
+export const getGradeLocks = async () => {
+  const response = await api.get('/vice-principal/grade-locks');
+  return response.data;
+};
+
+export const toggleGradeLock = async (data: {
+  gradeLevel: string;
+  isLocked: boolean;
+  academicYearId?: string;
+}) => {
+  const response = await api.post('/vice-principal/grade-locks', data);
   return response.data;
 };
 

@@ -60,6 +60,7 @@ export const Dashboard = () => {
   const [dashboardStats, setDashboardStats] = useState<any>(null);
   const [schoolAdminStats, setSchoolAdminStats] = useState<any>(null);
   const [atRiskStudents, setAtRiskStudents] = useState<AtRiskStudent[]>([]);
+  const [selectedAtRiskStudent, setSelectedAtRiskStudent] = useState<AtRiskStudent | null>(null);
   const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -758,18 +759,30 @@ export const Dashboard = () => {
                   </div>
                 ) : (
                   atRiskStudents.slice(0, 4).map((student) => (
-                    <div key={student.student_id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700">
+                    <div 
+                      key={student.student_id} 
+                      onClick={() => setSelectedAtRiskStudent(student)}
+                      className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600 transition-all cursor-pointer group"
+                    >
                       <div className="flex items-center gap-3">
-                        <div className={`w-2 h-2 rounded-full ${student.risk_level === 'High' ? 'bg-rose-500' : 'bg-amber-500'}`} />
+                        <div className={`w-2.5 h-2.5 rounded-full ${student.risk_level === 'High' ? 'bg-rose-500 animate-pulse' : 'bg-amber-500'}`} />
                         <div>
-                          <p className="text-sm font-bold text-slate-800 dark:text-slate-100">{student.name}</p>
+                          <p className="text-sm font-bold text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{student.name}</p>
                           <p className="text-[10px] text-slate-400 font-medium uppercase">{student.grade} • {student.risk_level} Risk</p>
-                          <p className="text-[10px] text-slate-500 mt-1">{student.risk_factor}</p>
+                          <p className="text-[10px] text-rose-500 dark:text-rose-400 font-semibold mt-0.5">{student.risk_factor}</p>
                         </div>
                       </div>
-                      <Link to={`/students/${student.student_id}`} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-white dark:hover:bg-slate-800 rounded-lg transition-all">
+                      <button 
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedAtRiskStudent(student);
+                        }}
+                        className="p-2 text-slate-400 hover:text-blue-600 hover:bg-white dark:hover:bg-slate-800 rounded-lg transition-all"
+                        title="View 1st Semester Detailed Results"
+                      >
                         <ArrowRight size={16} />
-                      </Link>
+                      </button>
                     </div>
                   ))
                 )}
@@ -1043,6 +1056,133 @@ export const Dashboard = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* At-Risk Student Detail Modal */}
+      {selectedAtRiskStudent && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+            {/* Header */}
+            <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/80 dark:bg-slate-800/50 shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400 rounded-xl">
+                  <ShieldAlert size={22} />
+                </div>
+                <div>
+                  <h3 className="font-black text-slate-800 dark:text-slate-100 text-lg">First Semester Academic Performance</h3>
+                  <p className="text-xs text-slate-500 font-medium">Priority Watchlist Student Detailed Results</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedAtRiskStudent(null)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-2 rounded-xl transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-6 space-y-6 flex-1 overflow-y-auto">
+              {/* Student Summary Card */}
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-md">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                      {selectedAtRiskStudent.risk_level} Risk (&lt; 50%)
+                    </span>
+                    <span className="text-xs text-slate-400 font-mono">{selectedAtRiskStudent.digital_id || 'N/A'}</span>
+                  </div>
+                  <h4 className="text-xl font-black text-white">{selectedAtRiskStudent.name}</h4>
+                  <p className="text-xs text-slate-300 font-medium mt-0.5">{selectedAtRiskStudent.grade} • {selectedAtRiskStudent.risk_factor}</p>
+                </div>
+
+                <div className="text-left sm:text-right bg-white/10 p-3 rounded-xl backdrop-blur-sm border border-white/10 w-full sm:w-auto">
+                  <p className="text-[10px] uppercase font-bold text-slate-300 tracking-wider">1st Sem Average</p>
+                  <p className={`text-2xl font-black ${Number(selectedAtRiskStudent.average_grade) < 50 ? 'text-rose-400' : 'text-emerald-400'}`}>
+                    {selectedAtRiskStudent.average_grade}%
+                  </p>
+                </div>
+              </div>
+
+              {/* Course Scores Table */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h5 className="text-sm font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wider">
+                    Course Breakdown ({selectedAtRiskStudent.courses?.length || 0} Subjects)
+                  </h5>
+                  <span className="text-xs font-semibold text-rose-500">Passing Grade: 50%</span>
+                </div>
+
+                {!selectedAtRiskStudent.courses || selectedAtRiskStudent.courses.length === 0 ? (
+                  <div className="text-center py-8 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
+                    <p className="text-sm text-slate-500">No course grades recorded yet for this semester.</p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-slate-100 dark:bg-slate-800/80 text-[11px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider border-b border-slate-200 dark:border-slate-800">
+                          <th className="py-3 px-4">Subject</th>
+                          <th className="py-3 px-4 text-center">Score / Max</th>
+                          <th className="py-3 px-4 text-center">Percentage</th>
+                          <th className="py-3 px-4 text-right">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm font-medium">
+                        {selectedAtRiskStudent.courses.map((course) => (
+                          <tr key={course.course_id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                            <td className="py-3 px-4">
+                              <span className="font-bold text-slate-800 dark:text-slate-100 capitalize">{course.course_name}</span>
+                              {course.course_code && (
+                                <span className="block text-[10px] text-slate-400 font-mono">{course.course_code}</span>
+                              )}
+                            </td>
+                            <td className="py-3 px-4 text-center font-semibold text-slate-700 dark:text-slate-300">
+                              {course.score} / {course.total}
+                            </td>
+                            <td className="py-3 px-4 text-center">
+                              <span className={`font-black ${course.percentage < 50 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                                {course.percentage}%
+                              </span>
+                            </td>
+                            <td className="py-3 px-4 text-right">
+                              <span className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                                course.percentage < 50
+                                  ? 'bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-800'
+                                  : 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'
+                              }`}>
+                                {course.percentage < 50 ? 'Needs Improvement' : 'Passing'}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="p-4 md:p-6 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex flex-col sm:flex-row justify-between items-center gap-3 shrink-0">
+              <Link
+                to={`/students/${selectedAtRiskStudent.student_id}`}
+                onClick={() => setSelectedAtRiskStudent(null)}
+                className="w-full sm:w-auto px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-2"
+              >
+                <span>View Full Student Profile</span>
+                <ArrowRight size={14} />
+              </Link>
+              <button
+                type="button"
+                onClick={() => setSelectedAtRiskStudent(null)}
+                className="w-full sm:w-auto px-6 py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold rounded-xl text-xs transition-colors"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}
