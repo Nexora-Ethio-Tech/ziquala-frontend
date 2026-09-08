@@ -542,9 +542,9 @@ export const VPGradeManagement = () => {
                       <Filter size={13} className="text-slate-400 ml-1 shrink-0" />
                       {([
                         { key: 'all',           label: 'All' },
-                        { key: 'submitted',     label: 'Submitted' },
-                        { key: 'not_submitted', label: 'Not Submitted' },
-                        { key: 'unlocked',      label: 'Unlocked' },
+                        { key: 'submitted',     label: 'Submitted / Locked' },
+                        { key: 'not_submitted', label: 'Not Submitted / Pending' },
+                        { key: 'unlocked',      label: 'Unlocked (Editable)' },
                       ] as const).map(({ key, label }) => {
                         const submittedCount = scopedSubmissions.filter(s => s.is_locked || s.submission_stage === 'submitted' || s.submission_stage === 'finalized').length;
                         const notSubmittedCount = scopedSubmissions.filter(s => s.submission_stage === 'not_submitted' || !s.submitted_at).length;
