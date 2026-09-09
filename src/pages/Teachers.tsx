@@ -1389,9 +1389,9 @@ export const Teachers = () => {
               <Filter size={13} className="text-slate-400 ml-1 shrink-0" />
               {([
                 { key: 'all',           label: 'All' },
-                { key: 'submitted',     label: 'Submitted' },
-                { key: 'not_submitted', label: 'Not Submitted' },
-                { key: 'unlocked',      label: 'Unlocked' },
+                { key: 'submitted',     label: 'Approved' },
+                { key: 'not_submitted', label: 'Pending' },
+                { key: 'unlocked',      label: 'Revision Requested' },
               ] as const).map(({ key, label }) => {
                 const submittedCount = annualPlans.filter(p => p.status === 'Approved').length;
                 const notSubmittedCount = annualPlans.filter(p => p.status === 'Not Submitted' || p.status === 'Pending').length;
@@ -1426,15 +1426,15 @@ export const Teachers = () => {
             </span>
             <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 dark:bg-emerald-900/20 rounded-full text-[11px] font-bold text-emerald-700 dark:text-emerald-400">
               <CheckCircle2 size={11} />
-              Submitted &amp; Approved: {annualPlans.filter(p => p.status === 'Approved').length}
+              Approved: {annualPlans.filter(p => p.status === 'Approved').length}
             </span>
             <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 dark:bg-amber-900/20 rounded-full text-[11px] font-bold text-amber-700 dark:text-amber-400">
               <AlertTriangle size={11} />
-              Not Submitted / Pending: {annualPlans.filter(p => p.status === 'Not Submitted' || p.status === 'Pending').length}
+              Pending: {annualPlans.filter(p => p.status === 'Not Submitted' || p.status === 'Pending').length}
             </span>
             <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-50 dark:bg-rose-900/20 rounded-full text-[11px] font-bold text-rose-700 dark:text-rose-400">
               <Unlock size={11} />
-              Unlocked / Revision Required: {annualPlans.filter(p => p.status === 'Revision Required').length}
+              Revision Requested: {annualPlans.filter(p => p.status === 'Revision Required').length}
             </span>
           </div>
 
@@ -1571,7 +1571,7 @@ export const Teachers = () => {
                                 </span>
                               ) : plan.status === 'Revision Required' ? (
                                 <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 rounded-full text-xs font-extrabold border border-rose-200 dark:border-rose-800">
-                                  <Unlock size={12} /> Unlocked (Revision)
+                                  <Unlock size={12} /> Revision Requested
                                 </span>
                               ) : isNotSubmitted ? (
                                 <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-full text-xs font-extrabold border border-amber-200 dark:border-amber-800">
@@ -1724,8 +1724,8 @@ export const Teachers = () => {
               <Filter size={13} className="text-slate-400 ml-1 shrink-0" />
               {([
                 { key: 'all',           label: 'All' },
-                { key: 'submitted',     label: 'Approved' },
-                { key: 'not_submitted', label: 'Not Submitted' },
+                { key: 'submitted',     label: 'Submitted / Approved' },
+                { key: 'not_submitted', label: 'Not Submitted / Pending' },
               ] as const).map(({ key, label }) => {
                 const approvedCount = weeklyPlans.filter(p => p.status === 'Approved').length;
                 const notSubmittedCount = weeklyPlans.filter(p => p.status === 'Not Submitted').length;
