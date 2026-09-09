@@ -1453,15 +1453,15 @@ export const Teachers = () => {
                 return plan.grade && plan.grade.toLowerCase().includes(annualGradeFilter.toLowerCase());
               })
               .filter(plan => {
-                const statuses: Array<{ grade: string; submitted: boolean }> = plan.grade_statuses || [];
+                const statuses: Array<{ grade: string; submitted: boolean; status?: string }> = plan.grade_statuses || [];
                 if (annualPlanFilter === 'submitted') {
-                  return statuses.length > 0 ? statuses.some(g => g.submitted) : plan.status === 'Approved';
+                  return statuses.length > 0 ? statuses.some(g => g.status === 'Approved') : plan.status === 'Approved';
                 }
                 if (annualPlanFilter === 'not_submitted') {
-                  return statuses.length > 0 ? statuses.some(g => !g.submitted) : (plan.status === 'Not Submitted' || plan.status === 'Pending');
+                  return statuses.length > 0 ? statuses.some(g => g.status === 'Not Submitted' || g.status === 'Pending') : (plan.status === 'Not Submitted' || plan.status === 'Pending');
                 }
                 if (annualPlanFilter === 'unlocked') {
-                  return plan.status === 'Revision Required';
+                  return plan.status === 'Revision Required' || (statuses.length > 0 && statuses.some(g => g.status === 'Revision Required'));
                 }
                 return true;
               })
@@ -1612,321 +1612,318 @@ export const Teachers = () => {
       {/* Weekly Plans View */}
       {activeTab === 'weekly-plans' && (
         <div className="space-y-6">
-          {/* VP Communication Style: Weekly Report (Week Ending) Navigation Banner */}
-          <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-950 p-5 rounded-[2rem] border border-indigo-800/40 shadow-xl text-white flex flex-col lg:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-indigo-600/30 border border-indigo-400/30 flex items-center justify-center shrink-0 shadow-inner">
-                <Calendar className="w-6 h-6 text-indigo-300" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="font-extrabold text-lg text-white">Weekly Academic Plan Oversight</h3>
-                  {isCurrentWeek(selectedWeekDate) && (
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 tracking-wider">
-                      Current Week
-                    </span>
-                  )}
+          {/* Header Controls & Filters */}
+          <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+            {/* Calendar Week Selector */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 rounded-xl">
+                  <Calendar size={20} />
                 </div>
-                <p className="text-xs text-indigo-200/90 font-bold mt-0.5">
-                  Academic Week: {formatEthWeekRangeStr(selectedWeekDate)}
-                </p>
-              </div>
-            </div>
-
-            {/* VP Communication Book Style "Weekly Report (Week Ending)" Selector */}
-            <div className="flex items-center gap-3 w-full lg:w-auto">
-              <div className="flex-1 lg:flex-initial flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                <label htmlFor="weekly-report-week-select" className="text-xs font-black text-indigo-300 uppercase tracking-wider shrink-0 hidden sm:inline">
-                  Weekly Report (Week Ending):
-                </label>
-                <div className="relative flex-1 sm:w-72">
-                  <select
-                    id="weekly-report-week-select"
-                    value={(() => {
-                      const iso = selectedWeekDate.toISOString().split('T')[0];
-                      const recent = getRecentWeekEndings();
-                      return recent.includes(iso) ? iso : iso;
-                    })()}
-                    onChange={(e) => {
-                      if (e.target.value) {
-                        setSelectedWeekDate(new Date(e.target.value));
-                      }
-                    }}
-                    className="w-full appearance-none px-4 py-2.5 bg-slate-900/90 dark:bg-slate-800/90 border-2 border-indigo-500/40 rounded-xl text-xs font-bold text-white outline-none focus:border-indigo-400 transition-all cursor-pointer pr-9 shadow-inner"
-                  >
-                    {getRecentWeekEndings().map((weekIso) => {
-                      const isCurrent = isCurrentWeek(new Date(weekIso));
-                      const ethLabel = formatEthiopianLabel(weekIso);
-                      return (
-                        <option key={weekIso} value={weekIso} className="bg-slate-900 text-white font-bold py-1">
-                          {ethLabel} {isCurrent ? '★ (Current Week)' : '(Week Ending)'}
-                        </option>
-                      );
-                    })}
-                  </select>
-                  <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-indigo-300 pointer-events-none" />
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">Ethiopian Academic Week</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                    {formatEthWeekRangeStr(selectedWeekDate)}
+                  </p>
                 </div>
               </div>
 
-              {/* Prev / Next 1-click week navigation */}
-              <div className="flex items-center gap-1 bg-slate-950/60 p-1 rounded-xl border border-indigo-500/30 shrink-0">
+              {/* Navigation Controls */}
+              <div className="flex items-center gap-2 self-end sm:self-auto">
                 <button
                   type="button"
                   onClick={() => navigateWeek('prev')}
+                  className="p-2 bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl border border-slate-200 dark:border-slate-700 transition-colors"
                   title="Previous Week"
-                  className="p-2 hover:bg-white/10 rounded-lg transition-colors text-indigo-200 hover:text-white"
                 >
-                  <ChevronLeft size={18} />
+                  <ChevronLeft size={16} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigateWeek('today')}
+                  disabled={isCurrentWeek(selectedWeekDate)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
+                    isCurrentWeek(selectedWeekDate)
+                      ? 'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-600 border-slate-200 dark:border-slate-800 cursor-not-allowed'
+                      : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100 border-indigo-200 dark:bg-indigo-900/30 dark:border-indigo-800'
+                  }`}
+                >
+                  Current Week
                 </button>
                 <button
                   type="button"
                   onClick={() => navigateWeek('next')}
+                  className="p-2 bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl border border-slate-200 dark:border-slate-700 transition-colors"
                   title="Next Week"
-                  className="p-2 hover:bg-white/10 rounded-lg transition-colors text-indigo-200 hover:text-white"
                 >
-                  <ChevronRight size={18} />
+                  <ChevronRight size={16} />
                 </button>
               </div>
             </div>
-          </div>
-          {/* Search and Status Filter Bar */}
-          <div className="flex flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between">
-            <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center flex-1">
-              {/* Search */}
-              <div className="relative w-full sm:w-64">
-                <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
-                  type="text"
-                  placeholder="Search weekly plans..."
-                  value={weeklyPlanSearch}
-                  onChange={(e) => setWeeklyPlanSearch(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-slate-800 dark:text-slate-200"
-                />
-              </div>
 
-              {/* Grade Filter */}
-              <div className="relative">
-                <select
-                  value={weeklyGradeFilter}
-                  onChange={(e) => setWeeklyGradeFilter(e.target.value)}
-                  className="w-full sm:w-auto px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-slate-800 dark:text-slate-200 cursor-pointer shadow-sm"
-                >
-                  <option value="all">All Grades</option>
-                  {availableWeeklyGrades.map(g => (
-                    <option key={g} value={g}>{g}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
+            {/* Filters Row */}
+            <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+              {/* Search & Grade */}
+              <div className="flex flex-col sm:flex-row items-center gap-3 flex-1">
+                <div className="relative flex-1 w-full">
+                  <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    placeholder="Search weekly plans..."
+                    value={weeklyPlanSearch}
+                    onChange={(e) => setWeeklyPlanSearch(e.target.value)}
+                    className="w-full pl-9 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-slate-800 dark:text-slate-200"
+                  />
+                </div>
 
-            {/* Status Filter Tabs */}
-            <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl shrink-0 overflow-x-auto">
-              <Filter size={13} className="text-slate-400 ml-1 shrink-0" />
-              {([
-                { key: 'all',           label: 'All' },
-                { key: 'submitted',     label: 'Submitted / Approved' },
-                { key: 'not_submitted', label: 'Not Submitted / Pending' },
-              ] as const).map(({ key, label }) => {
-                const approvedCount = weeklyPlans.filter(p => p.status === 'Approved').length;
-                const notSubmittedCount = weeklyPlans.filter(p => p.status === 'Not Submitted').length;
-                const count = key === 'submitted' ? approvedCount : key === 'not_submitted' ? notSubmittedCount : weeklyPlans.length;
-
-                return (
-                  <button
-                    key={key}
-                    onClick={() => setWeeklyPlanFilter(key)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wide transition-all whitespace-nowrap ${
-                      weeklyPlanFilter === key
-                        ? 'bg-white dark:bg-slate-700 text-indigo-600 shadow-sm'
-                        : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
-                    }`}
+                {/* Grade Filter */}
+                <div className="relative">
+                  <select
+                    value={weeklyGradeFilter}
+                    onChange={(e) => setWeeklyGradeFilter(e.target.value)}
+                    className="w-full sm:w-auto px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-slate-800 dark:text-slate-200 cursor-pointer shadow-sm"
                   >
-                    {label}
-                    <span className="ml-1 opacity-70">
-                      ({count})
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Summary Chips */}
-          <div className="flex flex-wrap gap-2">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-full text-[11px] font-bold text-slate-600 dark:text-slate-300">
-              <span className="w-2 h-2 rounded-full bg-slate-400" />
-              Total: {weeklyPlans.length}
-            </span>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 dark:bg-emerald-900/20 rounded-full text-[11px] font-bold text-emerald-700 dark:text-emerald-400">
-              <CheckCircle2 size={11} />
-              Approved by Dept Head: {weeklyPlans.filter(p => p.status === 'Approved').length}
-            </span>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 dark:bg-amber-900/20 rounded-full text-[11px] font-bold text-amber-700 dark:text-amber-400">
-              <AlertTriangle size={11} />
-              Not Submitted: {weeklyPlans.filter(p => p.status === 'Not Submitted').length}
-            </span>
-          </div>
-
-          {plansLoading ? (
-            <div className="flex justify-center p-12">
-              <Loader2 className="animate-spin text-blue-600" size={32} />
-            </div>
-          ) : (() => {
-            const filteredWeeklyPlans = weeklyPlans
-              .filter(plan => {
-                if (weeklyGradeFilter === 'all') return true;
-                const statuses: Array<{ grade: string; submitted: boolean }> = plan.grade_statuses || [];
-                if (statuses.length > 0) {
-                  return statuses.some(g => g.grade.toLowerCase() === weeklyGradeFilter.toLowerCase());
-                }
-                return (plan.grade_section || plan.grade || '').toLowerCase().includes(weeklyGradeFilter.toLowerCase());
-              })
-              .filter(plan => {
-                const statuses: Array<{ grade: string; submitted: boolean }> = plan.grade_statuses || [];
-                if (weeklyPlanFilter === 'submitted') {
-                  return statuses.length > 0 ? statuses.some(g => g.submitted) : plan.status === 'Approved';
-                }
-                if (weeklyPlanFilter === 'not_submitted') {
-                  return statuses.length > 0 ? statuses.some(g => !g.submitted) : (plan.status === 'Not Submitted' || plan.status === 'Pending');
-                }
-                return true;
-              })
-              .filter(plan => {
-                const q = weeklyPlanSearch.toLowerCase();
-                if (!q) return true;
-                return (
-                  (plan.teacher_name && plan.teacher_name.toLowerCase().includes(q)) ||
-                  (plan.subject && plan.subject.toLowerCase().includes(q)) ||
-                  (plan.course_name && plan.course_name.toLowerCase().includes(q)) ||
-                  (plan.topic && plan.topic.toLowerCase().includes(q)) ||
-                  (plan.chapter && plan.chapter.toLowerCase().includes(q)) ||
-                  (plan.grade && plan.grade.toLowerCase().includes(q))
-                );
-              });
-
-            return filteredWeeklyPlans.length === 0 ? (
-              <div className="bg-white dark:bg-slate-900 rounded-2xl p-12 text-center border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
-                <Clock className="mx-auto text-slate-400" size={40} />
-                <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">No Weekly Plans Found</h3>
-                <p className="text-sm text-slate-500 max-w-md mx-auto">
-                  {weeklyPlans.length === 0
-                    ? 'Weekly lesson plans submitted by teachers will appear here.'
-                    : 'No weekly plans match your current search or filter criteria.'}
-                </p>
-              </div>
-            ) : (
-              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-sm">
-                    <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-700 text-xs font-bold uppercase tracking-wider text-slate-500">
-                      <tr>
-                        <th className="px-6 py-4">Teacher</th>
-                        <th className="px-6 py-4">Course / Topic</th>
-                        <th className="px-6 py-4">Date / Periods</th>
-                        <th className="px-6 py-4">Status</th>
-                        <th className="px-6 py-4 text-right">View</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                      {filteredWeeklyPlans.map((plan) => {
-                        const isApproved = plan.status === 'Approved';
-                        const isNotSubmitted = plan.status === 'Not Submitted';
-                        const gradeStatuses: Array<{ grade: string; submitted: boolean; status: string; plan_id?: string }> = plan.grade_statuses || [];
-                        let displayGrades = weeklyPlanFilter === 'submitted'
-                          ? gradeStatuses.filter(g => g.submitted)
-                          : weeklyPlanFilter === 'not_submitted'
-                          ? gradeStatuses.filter(g => !g.submitted)
-                          : gradeStatuses;
-
-                        if (weeklyGradeFilter !== 'all') {
-                          displayGrades = displayGrades.filter(g => g.grade.toLowerCase() === weeklyGradeFilter.toLowerCase());
-                        }
-                        return (
-                          <tr key={plan.id} className={`hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors ${isNotSubmitted ? 'bg-amber-50/30 dark:bg-amber-900/10' : ''}`}>
-                            <td className="px-6 py-4">
-                              <div className="font-bold text-slate-900 dark:text-white">{plan.teacher_name || 'Teacher'}</div>
-                              <div className="text-xs text-slate-500">{plan.teacher_digital_id || 'N/A'}</div>
-                              <div className="text-xs text-slate-400 dark:text-slate-500">{plan.teacher_email || 'N/A'}</div>
-                            </td>
-                            <td className="px-6 py-4">
-                              <div className="font-semibold text-slate-800 dark:text-slate-200 mb-0.5">
-                                {plan.subject || plan.course_name || 'Weekly Lesson Plan'}
-                              </div>
-                              {plan.topic && (
-                                <div className="text-xs text-slate-500 mb-1">
-                                  {plan.topic || plan.chapter || 'Plan Details'}
-                                </div>
-                              )}
-                              {displayGrades.length > 0 ? (
-                                <div className="flex flex-col gap-1 text-xs">
-                                  {displayGrades.map((g, idx) => (
-                                    <div key={idx} className="flex items-center gap-1.5 whitespace-nowrap">
-                                      <span className={g.submitted ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-slate-500 dark:text-slate-400 font-medium'}>
-                                        {g.grade}
-                                      </span>
-                                      {g.submitted ? (
-                                        <CheckCircle2 size={13} className="text-emerald-500 shrink-0" />
-                                      ) : (
-                                        <XCircle size={13} className="text-rose-400 shrink-0" />
-                                      )}
-                                    </div>
-                                  ))}
-                                </div>
-                              ) : (plan.grade_section || plan.grade) ? (
-                                <div className="flex flex-col gap-1 text-xs">
-                                  {(plan.grade_section || plan.grade).split(',').map((g: string, idx: number) => (
-                                    <div key={idx} className="flex items-center gap-1.5 whitespace-nowrap">
-                                      <span className={!isNotSubmitted ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-slate-500 dark:text-slate-400 font-medium'}>
-                                        {g.trim()}
-                                      </span>
-                                      {!isNotSubmitted ? (
-                                        <CheckCircle2 size={13} className="text-emerald-500 shrink-0" />
-                                      ) : (
-                                        <XCircle size={13} className="text-rose-400 shrink-0" />
-                                      )}
-                                    </div>
-                                  ))}
-                                </div>
-                              ) : null}
-                            </td>
-                            <td className="px-6 py-4 text-xs text-slate-600 dark:text-slate-400">
-                              <div><span className="font-bold text-slate-800 dark:text-slate-200">{plan.date ? new Date(plan.date).toLocaleDateString() : 'N/A'}</span></div>
-                              <div>{plan.periods_week || plan.period_count || 1} Period(s)</div>
-                            </td>
-                            <td className="px-6 py-4">
-                              {isApproved ? (
-                                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full text-xs font-extrabold border border-emerald-200 dark:border-emerald-800">
-                                  <CheckCircle2 size={12} /> Approved by {plan.reviewer_name || 'Dept Head'}
-                                </span>
-                              ) : isNotSubmitted ? (
-                                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-full text-xs font-extrabold border border-amber-200 dark:border-amber-800">
-                                  <AlertTriangle size={12} /> Not Submitted
-                                </span>
-                              ) : null}
-                            </td>
-                            <td className="px-6 py-4 text-right">
-                              {isNotSubmitted ? (
-                                <span className="text-xs text-amber-600 dark:text-amber-400 font-bold italic">No Plan Received</span>
-                              ) : (
-                                <button
-                                  type="button"
-                                  onClick={() => setSelectedWeeklyPlan(plan)}
-                                  className="p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
-                                  title="View Details"
-                                >
-                                  <Eye size={16} />
-                                </button>
-                              )}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+                    <option value="all">All Grades</option>
+                    {availableWeeklyGrades.map(g => (
+                      <option key={g} value={g}>{g}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
-            );
-          })()}
+
+              {/* Status Filter Tabs */}
+              <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl shrink-0 overflow-x-auto">
+                <Filter size={13} className="text-slate-400 ml-1 shrink-0" />
+                {([
+                  { key: 'all',           label: 'All' },
+                  { key: 'submitted',     label: 'Approved' },
+                  { key: 'not_submitted', label: 'Pending / Not Submitted' },
+                  { key: 'unlocked',      label: 'Revision Requested' },
+                ] as const).map(({ key, label }) => {
+                  const approvedCount = weeklyPlans.filter(p => p.status === 'Approved').length;
+                  const notSubmittedCount = weeklyPlans.filter(p => p.status === 'Not Submitted' || p.status === 'Pending').length;
+                  const unlockedCount = weeklyPlans.filter(p => p.status === 'Revision Required').length;
+                  const count = key === 'submitted' ? approvedCount : key === 'not_submitted' ? notSubmittedCount : key === 'unlocked' ? unlockedCount : weeklyPlans.length;
+
+                  return (
+                    <button
+                      key={key}
+                      onClick={() => setWeeklyPlanFilter(key)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wide transition-all whitespace-nowrap ${
+                        weeklyPlanFilter === key
+                          ? 'bg-white dark:bg-slate-700 text-indigo-600 shadow-sm'
+                          : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                      }`}
+                    >
+                      {label}
+                      <span className="ml-1 opacity-70">
+                        ({count})
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Summary Chips */}
+            <div className="flex flex-wrap gap-2">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-full text-[11px] font-bold text-slate-600 dark:text-slate-300">
+                <span className="w-2 h-2 rounded-full bg-slate-400" />
+                Total: {weeklyPlans.length}
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 dark:bg-emerald-900/20 rounded-full text-[11px] font-bold text-emerald-700 dark:text-emerald-400">
+                <CheckCircle2 size={11} />
+                Approved: {weeklyPlans.filter(p => p.status === 'Approved').length}
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 dark:bg-amber-900/20 rounded-full text-[11px] font-bold text-amber-700 dark:text-amber-400">
+                <AlertTriangle size={11} />
+                Pending / Not Submitted: {weeklyPlans.filter(p => p.status === 'Not Submitted' || p.status === 'Pending').length}
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-50 dark:bg-rose-900/20 rounded-full text-[11px] font-bold text-rose-700 dark:text-rose-400">
+                <Unlock size={11} />
+                Revision Requested: {weeklyPlans.filter(p => p.status === 'Revision Required').length}
+              </span>
+            </div>
+
+            {plansLoading ? (
+              <div className="flex justify-center p-12">
+                <Loader2 className="animate-spin text-blue-600" size={32} />
+              </div>
+            ) : (() => {
+              const filteredWeeklyPlans = weeklyPlans
+                .filter(plan => {
+                  if (weeklyGradeFilter === 'all') return true;
+                  const statuses: Array<{ grade: string; submitted: boolean }> = plan.grade_statuses || [];
+                  if (statuses.length > 0) {
+                    return statuses.some(g => g.grade.toLowerCase() === weeklyGradeFilter.toLowerCase());
+                  }
+                  return (plan.grade_section || plan.grade || '').toLowerCase().includes(weeklyGradeFilter.toLowerCase());
+                })
+                .filter(plan => {
+                  const statuses: Array<{ grade: string; submitted: boolean; status?: string }> = plan.grade_statuses || [];
+                  if (weeklyPlanFilter === 'submitted') {
+                    return statuses.length > 0 ? statuses.some(g => g.status === 'Approved') : plan.status === 'Approved';
+                  }
+                  if (weeklyPlanFilter === 'not_submitted') {
+                    return statuses.length > 0 ? statuses.some(g => g.status === 'Not Submitted' || g.status === 'Pending') : (plan.status === 'Not Submitted' || plan.status === 'Pending');
+                  }
+                  if (weeklyPlanFilter === 'unlocked') {
+                    return plan.status === 'Revision Required' || (statuses.length > 0 && statuses.some(g => g.status === 'Revision Required'));
+                  }
+                  return true;
+                })
+                .filter(plan => {
+                  const q = weeklyPlanSearch.toLowerCase();
+                  if (!q) return true;
+                  return (
+                    (plan.teacher_name && plan.teacher_name.toLowerCase().includes(q)) ||
+                    (plan.subject && plan.subject.toLowerCase().includes(q)) ||
+                    (plan.course_name && plan.course_name.toLowerCase().includes(q)) ||
+                    (plan.topic && plan.topic.toLowerCase().includes(q)) ||
+                    (plan.chapter && plan.chapter.toLowerCase().includes(q)) ||
+                    (plan.grade && plan.grade.toLowerCase().includes(q))
+                  );
+                });
+
+              return filteredWeeklyPlans.length === 0 ? (
+                <div className="bg-white dark:bg-slate-900 rounded-2xl p-12 text-center border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+                  <Clock className="mx-auto text-slate-400" size={40} />
+                  <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">No Weekly Plans Found</h3>
+                  <p className="text-sm text-slate-500 max-w-md mx-auto">
+                    {weeklyPlans.length === 0
+                      ? 'Weekly lesson plans submitted by teachers will appear here.'
+                      : 'No weekly plans match your current search or filter criteria.'}
+                  </p>
+                </div>
+              ) : (
+                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm">
+                      <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-700 text-xs font-bold uppercase tracking-wider text-slate-500">
+                        <tr>
+                          <th className="px-6 py-4">Teacher</th>
+                          <th className="px-6 py-4">Course / Topic</th>
+                          <th className="px-6 py-4">Date / Periods</th>
+                          <th className="px-6 py-4">Status</th>
+                          <th className="px-6 py-4 text-right">View</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                        {filteredWeeklyPlans.map((plan) => {
+                          const isApproved = plan.status === 'Approved';
+                          const isRevisionRequired = plan.status === 'Revision Required';
+                          const isNotSubmitted = plan.status === 'Not Submitted';
+                          const gradeStatuses: Array<{ grade: string; submitted: boolean; status: string; plan_id?: string }> = plan.grade_statuses || [];
+                          let displayGrades = weeklyPlanFilter === 'submitted'
+                            ? gradeStatuses.filter(g => g.status === 'Approved')
+                            : weeklyPlanFilter === 'not_submitted'
+                            ? gradeStatuses.filter(g => g.status === 'Not Submitted' || g.status === 'Pending')
+                            : weeklyPlanFilter === 'unlocked'
+                            ? gradeStatuses.filter(g => g.status === 'Revision Required')
+                            : gradeStatuses;
+
+                          if (weeklyGradeFilter !== 'all') {
+                            displayGrades = displayGrades.filter(g => g.grade.toLowerCase() === weeklyGradeFilter.toLowerCase());
+                          }
+                          return (
+                            <tr key={plan.id} className={`hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors ${isNotSubmitted ? 'bg-amber-50/30 dark:bg-amber-900/10' : ''}`}>
+                              <td className="px-6 py-4">
+                                <div className="font-bold text-slate-900 dark:text-white">{plan.teacher_name || 'Teacher'}</div>
+                                <div className="text-xs text-slate-500">{plan.teacher_digital_id || 'N/A'}</div>
+                                <div className="text-xs text-slate-400 dark:text-slate-500">{plan.teacher_email || 'N/A'}</div>
+                              </td>
+                              <td className="px-6 py-4">
+                                <div className="font-semibold text-slate-800 dark:text-slate-200 mb-0.5">
+                                  {plan.subject || plan.course_name || 'Weekly Lesson Plan'}
+                                </div>
+                                {plan.topic && (
+                                  <div className="text-xs text-slate-500 mb-1">
+                                    {plan.topic || plan.chapter || 'Plan Details'}
+                                  </div>
+                                )}
+                                {displayGrades.length > 0 ? (
+                                  <div className="flex flex-col gap-1 text-xs">
+                                    {displayGrades.map((g, idx) => (
+                                      <div key={idx} className="flex items-center gap-1.5 whitespace-nowrap">
+                                        <span className={g.status === 'Approved' ? 'text-emerald-600 dark:text-emerald-400 font-bold' : g.status === 'Revision Required' ? 'text-rose-600 dark:text-rose-400 font-bold' : 'text-slate-500 dark:text-slate-400 font-medium'}>
+                                          {g.grade}
+                                        </span>
+                                        {g.status === 'Approved' ? (
+                                          <CheckCircle2 size={13} className="text-emerald-500 shrink-0" />
+                                        ) : g.status === 'Revision Required' ? (
+                                          <Unlock size={13} className="text-rose-500 shrink-0" />
+                                        ) : (
+                                          <XCircle size={13} className="text-amber-400 shrink-0" />
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : (plan.grade_section || plan.grade) ? (
+                                  <div className="flex flex-col gap-1 text-xs">
+                                    {(plan.grade_section || plan.grade).split(',').map((g: string, idx: number) => (
+                                      <div key={idx} className="flex items-center gap-1.5 whitespace-nowrap">
+                                        <span className={isApproved ? 'text-emerald-600 dark:text-emerald-400 font-bold' : isRevisionRequired ? 'text-rose-600 dark:text-rose-400 font-bold' : 'text-slate-500 dark:text-slate-400 font-medium'}>
+                                          {g.trim()}
+                                        </span>
+                                        {isApproved ? (
+                                          <CheckCircle2 size={13} className="text-emerald-500 shrink-0" />
+                                        ) : isRevisionRequired ? (
+                                          <Unlock size={13} className="text-rose-500 shrink-0" />
+                                        ) : (
+                                          <XCircle size={13} className="text-amber-400 shrink-0" />
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : null}
+                              </td>
+                              <td className="px-6 py-4 text-xs text-slate-600 dark:text-slate-400">
+                                <div><span className="font-bold text-slate-800 dark:text-slate-200">{plan.date ? new Date(plan.date).toLocaleDateString() : 'N/A'}</span></div>
+                                <div>{plan.periods_week || plan.period_count || 1} Period(s)</div>
+                              </td>
+                              <td className="px-6 py-4">
+                                {isApproved ? (
+                                  <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full text-xs font-extrabold border border-emerald-200 dark:border-emerald-800">
+                                    <CheckCircle2 size={12} /> Approved by {plan.reviewer_name || 'Dept Head'}
+                                  </span>
+                                ) : isRevisionRequired ? (
+                                  <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 rounded-full text-xs font-extrabold border border-rose-200 dark:border-rose-800">
+                                    <Unlock size={12} /> Revision Requested
+                                  </span>
+                                ) : isNotSubmitted ? (
+                                  <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-full text-xs font-extrabold border border-amber-200 dark:border-amber-800">
+                                    <AlertTriangle size={12} /> Not Submitted
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-sky-50 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400 rounded-full text-xs font-extrabold border border-sky-200 dark:border-sky-800">
+                                    <Clock size={12} /> Pending Review
+                                  </span>
+                                )}
+                              </td>
+                              <td className="px-6 py-4 text-right">
+                                {isNotSubmitted ? (
+                                  <span className="text-xs text-amber-600 dark:text-amber-400 font-bold italic">No Plan Received</span>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={() => setSelectedWeeklyPlan(plan)}
+                                    className="p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                                    title="View Details"
+                                  >
+                                    <Eye size={16} />
+                                  </button>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
         </div>
       )}
 
