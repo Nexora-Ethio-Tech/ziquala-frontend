@@ -1,9 +1,10 @@
-name: Deploy to cPanel
+name: Deploy frontend to cPanel
 
 on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -11,28 +12,32 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Setup Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version: 22
+          cache: npm
 
-      - name: Install Dependencies
+      - name: Install dependencies
         run: npm ci
 
-      - name: Build
+      - name: Build frontend
         run: npm run build
+        env:
+          VITE_API_URL: ${{ vars.VITE_API_URL }}
 
-      - name: Copy .htaccess to build folder
+      - name: Copy routing file
         run: cp .htaccess dist/.htaccess
 
-      - name: Upload to cPanel
+      - name: Deploy to cPanel
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
           local-dir: ./dist/
-          server-dir: /frontend/
-          dangerous-clean-slate: true
+          server-dir: public_html/
+          dangerous-clean-slate: false
