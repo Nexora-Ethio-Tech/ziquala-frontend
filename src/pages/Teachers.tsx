@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Plus, UserPlus, X, Check, ArrowLeft, MoreVertical, CheckCircle, XCircle, Trash2, Printer, Eye, Edit2, Loader2, FileText, Download, Upload, Users, Calendar, Clock, BookOpen, FileCheck, AlertCircle, CheckCircle2, MessageSquare, Filter, Lock, Unlock, AlertTriangle } from 'lucide-react';
 import PhoneInput from '../components/PhoneInput';
-import { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, Fragment } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import { registerUser, getBranchTeachers, approveTeacher, revokeTeacher, deleteTeacher, promoteTeacher, updateUser, resetUserPIN, removeTeacherPromotion, replaceUserDocument } from '../services/schoolAdminService';
@@ -1930,42 +1930,54 @@ export const Teachers = () => {
         </div>
       )}
 
-      {/* Modals for Plan Review */}
+      {/* ── Annual Plan Review Modal (Academic Manager / VP) ── */}
       {selectedAnnualPlan && (
-        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
-            <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+        <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-start justify-center p-4 overflow-y-auto print:p-0 print:bg-white">
+          <div className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl border border-slate-100 dark:border-slate-800 w-full max-w-5xl my-4 print:my-0 print:shadow-none print:border-none print:w-full">
+            {/* Header */}
+            <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-gradient-to-r from-slate-800 to-slate-900 text-white rounded-t-[2rem] print:hidden">
               <div>
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Annual Plan Details</h3>
-                <p className="text-xs text-slate-500">{selectedAnnualPlan.teacher_name} • {selectedAnnualPlan.subject} ({selectedAnnualPlan.grade})</p>
+                <h3 className="font-black text-white uppercase tracking-tight text-lg">Annual Plan Review</h3>
+                <p className="text-xs text-slate-400 mt-0.5 font-bold">
+                  {selectedAnnualPlan.teacher_name || selectedAnnualPlan.teacherName || 'Assigned Teacher'} · {selectedAnnualPlan.subject || '—'} · {selectedAnnualPlan.grade || '—'}
+                </p>
               </div>
-              <button
-                type="button"
-                onClick={() => setSelectedAnnualPlan(null)}
-                className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
-              >
-                <X size={18} />
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 shadow-md"
+                >
+                  <Printer size={14} /> Print / Save PDF
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedAnnualPlan(null)}
+                  className="p-2 hover:bg-white/10 rounded-xl text-white transition-all"
+                >
+                  <X size={20} />
+                </button>
+              </div>
             </div>
 
-            <div className="p-6 overflow-y-auto space-y-6 flex-1 text-slate-800 dark:text-slate-200">
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl text-xs">
-                <div>
-                  <span className="text-slate-500 block font-medium">Academic Year</span>
-                  <span className="font-bold text-sm text-slate-900 dark:text-white">{selectedAnnualPlan.academic_year || '2018 E.C.'}</span>
-                </div>
-                <div>
-                  <span className="text-slate-500 block font-medium">Working Days / Year</span>
-                  <span className="font-bold text-sm text-slate-900 dark:text-white">{selectedAnnualPlan.working_days_year || 180} Days</span>
-                </div>
-                <div>
-                  <span className="text-slate-500 block font-medium">Periods / Year</span>
-                  <span className="font-bold text-sm text-slate-900 dark:text-white">{selectedAnnualPlan.periods_year || 160} Periods</span>
-                </div>
-                <div>
-                  <span className="text-slate-500 block font-medium">Periods / Week</span>
-                  <span className="font-bold text-sm text-slate-900 dark:text-white">{selectedAnnualPlan.periods_week || 4} Periods</span>
-                </div>
+            <div className="p-6 space-y-6 max-h-[75vh] overflow-y-auto print:max-h-none print:overflow-visible print:p-2 text-slate-800 dark:text-slate-200">
+              {/* Plan Summary / Stats Cards */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl p-4 border border-slate-200/60 dark:border-slate-700/60">
+                {[
+                  { label: 'Academic Year', value: selectedAnnualPlan.academic_year || '2018 E.C.' },
+                  { label: 'Subject', value: selectedAnnualPlan.subject || '—' },
+                  { label: 'Grade', value: selectedAnnualPlan.grade || '—' },
+                  { label: 'Periods / Week', value: selectedAnnualPlan.periods_week || selectedAnnualPlan.periodsPerWeek || 4 },
+                  { label: 'Working Days / Year', value: selectedAnnualPlan.working_days_year || 180 },
+                  { label: 'Total Periods / Year', value: selectedAnnualPlan.periods_year || 160 },
+                  { label: 'Duration / Period', value: selectedAnnualPlan.duration_period || '45 minutes' },
+                  { label: 'Weeks Planned', value: Array.isArray(selectedAnnualPlan.items) ? selectedAnnualPlan.items.length : 40 },
+                ].map(({ label, value }) => (
+                  <div key={label}>
+                    <p className="text-[9px] font-black uppercase text-slate-400">{label}</p>
+                    <p className="font-bold text-slate-800 dark:text-white text-sm mt-0.5">{value || '—'}</p>
+                  </div>
+                ))}
               </div>
 
               {selectedAnnualPlan.feedback && (
@@ -1975,42 +1987,60 @@ export const Teachers = () => {
                 </div>
               )}
 
-              <div className="space-y-3">
-                <h4 className="font-bold text-sm text-slate-900 dark:text-white">Plan Breakdown / Items</h4>
-                {(!selectedAnnualPlan.items || selectedAnnualPlan.items.length === 0) ? (
-                  <p className="text-xs text-slate-500 italic">No plan items provided in this submission.</p>
-                ) : (
-                  <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden text-xs">
-                    <table className="w-full text-left">
-                      <thead className="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 font-bold text-slate-500">
-                        <tr>
-                          <th className="p-3">Unit / Chapter</th>
-                          <th className="p-3">Topic / Content</th>
-                          <th className="p-3">Periods</th>
-                          <th className="p-3">Objectives</th>
+              {/* Yearly Matrix */}
+              <div>
+                <h4 className="text-xs font-black uppercase tracking-widest text-slate-500 mb-3 flex items-center gap-2">
+                  <span>📅</span> Yearly Matrix
+                </h4>
+                {Array.isArray(selectedAnnualPlan.items) && selectedAnnualPlan.items.length > 0 ? (
+                  <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-700">
+                    <table className="w-full text-left min-w-[1200px] text-xs border-collapse">
+                      <thead>
+                        <tr className="bg-slate-800 text-white">
+                          {['Month','Week','# Periods','Unit','Main Content','Sub Content','Competence','Method','Aid','Evaluation','Remark'].map(h => (
+                            <th key={h} className="px-3 py-2.5 font-black uppercase tracking-wide whitespace-nowrap border-r border-slate-700 last:border-r-0">{h}</th>
+                          ))}
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                        {selectedAnnualPlan.items.map((item: any, idx: number) => (
-                          <tr key={idx}>
-                            <td className="p-3 font-semibold text-slate-800 dark:text-slate-200">{item.unit || item.chapter || `Unit ${idx+1}`}</td>
-                            <td className="p-3 text-slate-700 dark:text-slate-300">{item.topic || item.content || '-'}</td>
-                            <td className="p-3 font-medium text-slate-600 dark:text-slate-400">{item.periods || '-'}</td>
-                            <td className="p-3 text-slate-600 dark:text-slate-400">{item.objectives || '-'}</td>
-                          </tr>
-                        ))}
+                      <tbody>
+                        {selectedAnnualPlan.items.map((item: any, idx: number) => {
+                          const isFirst = item.week === 1 || !selectedAnnualPlan.items.slice(0, idx).some((i: any) => i.month === item.month);
+                          const monthRows = selectedAnnualPlan.items.filter((i: any) => i.month === item.month).length;
+                          return (
+                            <tr key={idx} className={`border-b border-slate-100 dark:border-slate-700 ${idx % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-slate-50 dark:bg-slate-800/30'}`}>
+                              {isFirst ? (
+                                <td className="px-3 py-2 font-black text-violet-700 dark:text-violet-400 whitespace-nowrap border-r border-slate-200 dark:border-slate-700 bg-violet-50 dark:bg-violet-900/10" rowSpan={monthRows}>{item.month || '—'}</td>
+                              ) : null}
+                              <td className="px-3 py-2 text-center font-bold text-slate-500 border-r border-slate-100 dark:border-slate-700 whitespace-nowrap">Week {item.week || idx + 1}</td>
+                              <td className="px-3 py-2 text-slate-700 dark:text-slate-300 border-r border-slate-100 dark:border-slate-700">{item.noOfPeriods || item.periods || '—'}</td>
+                              <td className="px-3 py-2 text-slate-700 dark:text-slate-300 border-r border-slate-100 dark:border-slate-700">{item.unit || item.chapter || '—'}</td>
+                              <td className="px-3 py-2 text-slate-700 dark:text-slate-300 border-r border-slate-100 dark:border-slate-700">{item.mainContent || item.topic || item.content || '—'}</td>
+                              <td className="px-3 py-2 text-slate-700 dark:text-slate-300 border-r border-slate-100 dark:border-slate-700">{item.subContent || '—'}</td>
+                              <td className="px-3 py-2 text-slate-700 dark:text-slate-300 border-r border-slate-100 dark:border-slate-700">{item.competence || item.objectives || '—'}</td>
+                              <td className="px-3 py-2 text-slate-700 dark:text-slate-300 border-r border-slate-100 dark:border-slate-700">{item.teachingMethod || item.method || '—'}</td>
+                              <td className="px-3 py-2 text-slate-700 dark:text-slate-300 border-r border-slate-100 dark:border-slate-700">{item.teachingAid || item.aid || '—'}</td>
+                              <td className="px-3 py-2 text-slate-700 dark:text-slate-300 border-r border-slate-100 dark:border-slate-700">{item.evaluation || '—'}</td>
+                              <td className="px-3 py-2 text-slate-700 dark:text-slate-300 border-r border-slate-100 dark:border-slate-700 last:border-r-0">{item.remark || '—'}</td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
+                  </div>
+                ) : (
+                  <div className="p-8 text-center text-slate-400 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
+                    No plan items provided in this submission.
                   </div>
                 )}
               </div>
             </div>
 
-            <div className="p-4 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+            {/* Footer Buttons */}
+            <div className="p-6 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 rounded-b-[2rem] print:hidden">
               <button
                 type="button"
                 onClick={() => setSelectedAnnualPlan(null)}
-                className="px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 rounded-xl text-xs font-bold"
+                className="px-5 py-2.5 text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-700 rounded-xl text-xs font-bold transition-all"
               >
                 Close
               </button>
@@ -2026,7 +2056,7 @@ export const Teachers = () => {
                       feedback: ''
                     });
                   }}
-                  className="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold flex items-center gap-1"
+                  className="px-4 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all"
                 >
                   <X size={14} /> Request Revision
                 </button>
@@ -2037,7 +2067,7 @@ export const Teachers = () => {
                     reviewModal.planType = 'annual';
                     handleReviewPlanSubmit('Approved', 'Accepted by Academic Manager');
                   }}
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1 shadow-sm"
+                  className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all"
                 >
                   <Check size={14} /> Accept & Approve
                 </button>
@@ -2047,81 +2077,235 @@ export const Teachers = () => {
         </div>
       )}
 
+      {/* ── Official Weekly Plan Document Modal (Academic Manager / VP) ── */}
       {selectedWeeklyPlan && (
-        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
-            <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+        <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-start justify-center p-4 overflow-y-auto print:p-0 print:bg-white">
+          <div className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl border border-slate-100 dark:border-slate-800 w-full max-w-6xl my-4 print:my-0 print:shadow-none print:border-none print:w-full">
+            {/* Header Banner */}
+            <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-900 text-white rounded-t-[2rem] print:hidden">
               <div>
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Weekly Plan Details</h3>
-                <p className="text-xs text-slate-500">{selectedWeeklyPlan.teacher_name} • {selectedWeeklyPlan.subject || 'Lesson Plan'}</p>
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400 block">Official Weekly Lesson Plan Document</span>
+                <h3 className="font-black text-white text-lg tracking-tight uppercase">
+                  Ziquala Abo 1st Primary School Weekly Lesson Plan Form
+                </h3>
               </div>
-              <button
-                type="button"
-                onClick={() => setSelectedWeeklyPlan(null)}
-                className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
-              >
-                <X size={18} />
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 shadow-md"
+                >
+                  <Printer size={14} /> Print / Save PDF
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedWeeklyPlan(null)}
+                  className="p-2 hover:bg-white/10 rounded-xl text-white transition-all"
+                >
+                  <X size={20} />
+                </button>
+              </div>
             </div>
 
-            <div className="p-6 overflow-y-auto space-y-4 flex-1 text-xs text-slate-800 dark:text-slate-200">
-              <div className="grid grid-cols-2 gap-4 p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl">
-                <div>
-                  <span className="text-slate-500 block font-medium">Submitted Date</span>
-                  <span className="font-bold text-slate-900 dark:text-white">{selectedWeeklyPlan.date ? new Date(selectedWeeklyPlan.date).toLocaleDateString() : 'N/A'}</span>
+            <div className="p-6 space-y-6 max-h-[75vh] overflow-y-auto print:max-h-none print:overflow-visible print:p-2 text-slate-800 dark:text-slate-200">
+              {/* Document Header Table Block */}
+              <div className="border border-slate-300 dark:border-slate-700 rounded-2xl overflow-hidden text-xs">
+                <div className="bg-slate-100 dark:bg-slate-800 p-3 font-black text-slate-800 dark:text-white uppercase tracking-wider text-center border-b border-slate-300 dark:border-slate-700">
+                  ZIQUALA ABO 1ST PRIMARY SCHOOL WEEKLY LESSON PLAN FORM
                 </div>
-                <div>
-                  <span className="text-slate-500 block font-medium">Status</span>
-                  <span className="font-bold text-slate-900 dark:text-white">{selectedWeeklyPlan.status}</span>
+                <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-y divide-slate-200 dark:divide-slate-700 bg-slate-50/50 dark:bg-slate-900/50">
+                  <div className="p-3">
+                    <span className="text-[9px] font-black uppercase text-slate-400 block">Teacher Name</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-100">{selectedWeeklyPlan.teacher_name || selectedWeeklyPlan.teacherName || 'Assigned Teacher'}</span>
+                  </div>
+                  <div className="p-3">
+                    <span className="text-[9px] font-black uppercase text-slate-400 block">Subject / Lesson Type</span>
+                    <span className="font-bold text-blue-600 dark:text-blue-400">{selectedWeeklyPlan.subject || '—'}</span>
+                  </div>
+                  <div className="p-3">
+                    <span className="text-[9px] font-black uppercase text-slate-400 block">Chapter / Unit</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-100">{selectedWeeklyPlan.chapter_unit || selectedWeeklyPlan.chapterUnit || selectedWeeklyPlan.chapter || selectedWeeklyPlan.unit || '—'}</span>
+                  </div>
+                  <div className="p-3">
+                    <span className="text-[9px] font-black uppercase text-slate-400 block">Topic / Title</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-100">{selectedWeeklyPlan.topic_title || selectedWeeklyPlan.topicTitle || selectedWeeklyPlan.topic || '—'}</span>
+                  </div>
+                  <div className="p-3">
+                    <span className="text-[9px] font-black uppercase text-slate-400 block">Grade & Section</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-100">{selectedWeeklyPlan.grade_section || selectedWeeklyPlan.gradeSection || selectedWeeklyPlan.grade || '—'}</span>
+                  </div>
+                  <div className="p-3">
+                    <span className="text-[9px] font-black uppercase text-slate-400 block">Date Range</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-100">
+                      {selectedWeeklyPlan.date_from || selectedWeeklyPlan.date ? (selectedWeeklyPlan.date_from || new Date(selectedWeeklyPlan.date).toLocaleDateString()) : '—'} to {selectedWeeklyPlan.date_to || selectedWeeklyPlan.date ? (selectedWeeklyPlan.date_to || new Date(selectedWeeklyPlan.date).toLocaleDateString()) : '—'}
+                    </span>
+                  </div>
+                  <div className="p-3">
+                    <span className="text-[9px] font-black uppercase text-slate-400 block">Periods / Week</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-100">{selectedWeeklyPlan.periods_per_week || selectedWeeklyPlan.periodsPerWeek || selectedWeeklyPlan.periods_week || '—'}</span>
+                  </div>
+                  <div className="p-3">
+                    <span className="text-[9px] font-black uppercase text-slate-400 block">Status</span>
+                    <span className={`inline-block px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase ${
+                      selectedWeeklyPlan.status === 'Approved' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
+                      selectedWeeklyPlan.status === 'Revision Required' ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' :
+                      'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                    }`}>{selectedWeeklyPlan.status}</span>
+                  </div>
                 </div>
               </div>
 
               {selectedWeeklyPlan.dean_feedback && (
-                <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40 rounded-xl space-y-1">
+                <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40 rounded-xl space-y-1 text-xs">
                   <span className="font-bold text-amber-800 dark:text-amber-300">Feedback / Remarks:</span>
                   <p className="text-amber-900 dark:text-amber-200">{selectedWeeklyPlan.dean_feedback}</p>
                 </div>
               )}
 
-              <div className="space-y-2">
-                <span className="font-bold text-slate-900 dark:text-white block">Topic / Unit:</span>
-                <p className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-800">{selectedWeeklyPlan.topic || selectedWeeklyPlan.chapter || 'N/A'}</p>
+              {/* 5-Day Matrix Table matching paper layout with 4 sub-rows for Teacher Activity */}
+              <div className="space-y-3">
+                <h4 className="text-xs font-black uppercase tracking-widest text-slate-500 print:hidden">📅 Daily Lesson Plan Matrix Table</h4>
+                <div className="overflow-x-auto rounded-2xl border border-slate-300 dark:border-slate-700">
+                  <table className="w-full text-left min-w-[1100px] text-xs border-collapse">
+                    <thead>
+                      <tr className="bg-slate-800 text-white border-b border-slate-700">
+                        <th className="px-3 py-2.5 font-black uppercase w-20 border-r border-slate-700 text-center">Day (ቀን)</th>
+                        <th className="px-3 py-2.5 font-black uppercase w-56 border-r border-slate-700">Content & Outcome (ይዘት እና ብቃት)</th>
+                        <th className="px-2 py-2.5 font-black uppercase w-20 border-r border-slate-700 text-center">Time (ጊዜ)</th>
+                        <th className="px-3 py-2.5 font-black uppercase w-60 border-r border-slate-700">Teacher Activity (የመምህሩ ተግባር)</th>
+                        <th className="px-3 py-2.5 font-black uppercase border-r border-slate-700">Student Activity (የተማሪው)</th>
+                        <th className="px-3 py-2.5 font-black uppercase border-r border-slate-700">Method (ማስተማሪያ ዘዴ)</th>
+                        <th className="px-3 py-2.5 font-black uppercase border-r border-slate-700">Aid (መርጃ መሣሪያ)</th>
+                        <th className="px-3 py-2.5 font-black uppercase">Remark (ምዘና)</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-300 dark:divide-slate-700">
+                      {(Array.isArray(selectedWeeklyPlan.daily_activities || selectedWeeklyPlan.dailyActivities) && (selectedWeeklyPlan.daily_activities || selectedWeeklyPlan.dailyActivities).length > 0
+                        ? (selectedWeeklyPlan.daily_activities || selectedWeeklyPlan.dailyActivities)
+                        : ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].map(day => ({
+                            day,
+                            content: selectedWeeklyPlan.content || selectedWeeklyPlan.topic || '—',
+                            competence: selectedWeeklyPlan.objectives || '—',
+                            timeDuration: selectedWeeklyPlan.time_duration || selectedWeeklyPlan.timeDuration || '45 mins',
+                            teacherIntro: selectedWeeklyPlan.teacher_activity || selectedWeeklyPlan.teacherActivity || '—',
+                            teacherPresentation: selectedWeeklyPlan.presentation || 'Core presentation',
+                            teacherSummary: selectedWeeklyPlan.summary || 'Summary',
+                            teacherAssessment: selectedWeeklyPlan.evaluation || '—',
+                            studentActivity: selectedWeeklyPlan.student_activity || selectedWeeklyPlan.studentActivity || '—',
+                            teachingMethod: selectedWeeklyPlan.teaching_method || selectedWeeklyPlan.teachingMethod || selectedWeeklyPlan.method || '—',
+                            teachingAid: selectedWeeklyPlan.teaching_aids || selectedWeeklyPlan.teachingAids || selectedWeeklyPlan.aid || '—',
+                            evaluationRemark: selectedWeeklyPlan.remark || '—'
+                          }))
+                      ).map((act: any, idx: number) => (
+                        <Fragment key={idx}>
+                          {/* Sub-row 1: Introduction */}
+                          <tr className="bg-white dark:bg-slate-900 border-t-2 border-slate-300 dark:border-slate-700">
+                            <td rowSpan={4} className="px-3 py-3 font-black text-center text-blue-800 dark:text-blue-400 border-r border-slate-300 dark:border-slate-700 align-middle bg-slate-50/80 dark:bg-slate-800/40">
+                              <span className="text-sm">{act.day}</span>
+                            </td>
+                            <td rowSpan={4} className="px-3 py-3 border-r border-slate-300 dark:border-slate-700 align-top space-y-2 max-w-[200px]">
+                              <div>
+                                <span className="text-[9px] font-black uppercase text-slate-400 block border-b border-slate-200 dark:border-slate-800 pb-0.5 mb-1">Content (ይዘት)</span>
+                                <p className="font-semibold text-slate-900 dark:text-slate-100 whitespace-pre-wrap">{act.content || '—'}</p>
+                              </div>
+                              <div className="pt-2 border-t border-slate-200 dark:border-slate-800">
+                                <span className="text-[9px] font-black uppercase text-slate-400 block border-b border-slate-200 dark:border-slate-800 pb-0.5 mb-1">Expected Outcome / Competence (ብቃት)</span>
+                                <p className="font-medium text-slate-600 dark:text-slate-400 whitespace-pre-wrap">{act.competence || '—'}</p>
+                              </div>
+                            </td>
+                            <td rowSpan={4} className="px-2 py-3 font-bold text-center text-slate-600 dark:text-slate-400 border-r border-slate-300 dark:border-slate-700 align-middle whitespace-nowrap">
+                              {act.timeDuration || '45 mins'}
+                            </td>
+                            <td className="px-3 py-2 border-r border-b border-slate-200 dark:border-slate-800 bg-blue-50/30 dark:bg-blue-950/20">
+                              <span className="text-[9px] font-black uppercase text-blue-700 dark:text-blue-400 block">1. Intro (መግቢያ)</span>
+                              <p className="text-slate-800 dark:text-slate-200 font-medium mt-0.5">{act.teacherIntro || '—'}</p>
+                            </td>
+                            <td rowSpan={4} className="px-3 py-3 border-r border-slate-300 dark:border-slate-700 align-top text-slate-800 dark:text-slate-200 whitespace-pre-wrap max-w-[160px]">
+                              {act.studentActivity || '—'}
+                            </td>
+                            <td rowSpan={4} className="px-3 py-3 border-r border-slate-300 dark:border-slate-700 align-top text-slate-800 dark:text-slate-200 whitespace-pre-wrap max-w-[140px]">
+                              {act.teachingMethod || '—'}
+                            </td>
+                            <td rowSpan={4} className="px-3 py-3 border-r border-slate-300 dark:border-slate-700 align-top text-slate-800 dark:text-slate-200 whitespace-pre-wrap max-w-[140px]">
+                              {act.teachingAid || '—'}
+                            </td>
+                            <td rowSpan={4} className="px-3 py-3 align-top text-slate-800 dark:text-slate-200 whitespace-pre-wrap max-w-[140px]">
+                              {act.evaluationRemark || '—'}
+                            </td>
+                          </tr>
+
+                          {/* Sub-row 2: Lesson Presentation */}
+                          <tr className="bg-white dark:bg-slate-900">
+                            <td className="px-3 py-2 border-r border-b border-slate-200 dark:border-slate-800 bg-indigo-50/30 dark:bg-indigo-950/20">
+                              <span className="text-[9px] font-black uppercase text-indigo-700 dark:text-indigo-400 block">2. Presentation (አቀራረብ)</span>
+                              <p className="text-slate-800 dark:text-slate-200 font-medium mt-0.5">{act.teacherPresentation || '—'}</p>
+                            </td>
+                          </tr>
+
+                          {/* Sub-row 3: Summary */}
+                          <tr className="bg-white dark:bg-slate-900">
+                            <td className="px-3 py-2 border-r border-b border-slate-200 dark:border-slate-800 bg-violet-50/30 dark:bg-violet-950/20">
+                              <span className="text-[9px] font-black uppercase text-violet-700 dark:text-violet-400 block">3. Summary (ማጠቃለያ)</span>
+                              <p className="text-slate-800 dark:text-slate-200 font-medium mt-0.5">{act.teacherSummary || '—'}</p>
+                            </td>
+                          </tr>
+
+                          {/* Sub-row 4: Assessment */}
+                          <tr className="bg-white dark:bg-slate-900">
+                            <td className="px-3 py-2 border-r border-slate-200 dark:border-slate-800 bg-amber-50/30 dark:bg-amber-950/20">
+                              <span className="text-[9px] font-black uppercase text-amber-700 dark:text-amber-400 block">4. Assessment (ምዘና)</span>
+                              <p className="text-slate-800 dark:text-slate-200 font-medium mt-0.5">{act.teacherAssessment || '—'}</p>
+                            </td>
+                          </tr>
+                        </Fragment>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
 
-              {selectedWeeklyPlan.objectives && (
-                <div className="space-y-2">
-                  <span className="font-bold text-slate-900 dark:text-white block">Objectives:</span>
-                  <p className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-800">{selectedWeeklyPlan.objectives}</p>
+              {/* Signatures & Approvals Footer Block */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 dark:bg-slate-800/40 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 print:bg-white print:border-slate-400">
+                <div className="border border-dashed border-slate-300 dark:border-slate-700 p-3 rounded-xl text-center print:border-solid print:border-slate-400">
+                  <p className="text-[10px] font-black uppercase text-slate-400">Teacher Signature & Date</p>
+                  <p className="font-bold text-slate-800 dark:text-white text-xs mt-2">{selectedWeeklyPlan.teacher_name || selectedWeeklyPlan.teacherName || 'Assigned Teacher'}</p>
+                  <p className="text-[10px] text-slate-400 mt-1">Date: {selectedWeeklyPlan.created_at ? new Date(selectedWeeklyPlan.created_at).toLocaleDateString() : selectedWeeklyPlan.date || '—'}</p>
                 </div>
-              )}
-
-              {selectedWeeklyPlan.teacher_activity && (
-                <div className="space-y-2">
-                  <span className="font-bold text-slate-900 dark:text-white block">Teacher Activity:</span>
-                  <p className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-800">{selectedWeeklyPlan.teacher_activity}</p>
+                <div className="border border-dashed border-slate-300 dark:border-slate-700 p-3 rounded-xl text-center print:border-solid print:border-slate-400">
+                  <p className="text-[10px] font-black uppercase text-slate-400">Department Head Signature & Date</p>
+                  <p className="font-bold text-slate-800 dark:text-white text-xs mt-2">{selectedWeeklyPlan.status === 'Approved' ? 'Verified & Approved' : 'Pending Approval'}</p>
+                  <p className="text-[10px] text-slate-400 mt-1">Date: {selectedWeeklyPlan.updated_at ? new Date(selectedWeeklyPlan.updated_at).toLocaleDateString() : '—'}</p>
                 </div>
-              )}
-
-              {selectedWeeklyPlan.student_activity && (
-                <div className="space-y-2">
-                  <span className="font-bold text-slate-900 dark:text-white block">Student Activity:</span>
-                  <p className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-800">{selectedWeeklyPlan.student_activity}</p>
+                <div className="border border-dashed border-slate-300 dark:border-slate-700 p-3 rounded-xl text-center print:border-solid print:border-slate-400">
+                  <p className="text-[10px] font-black uppercase text-slate-400">Principal / VP Signature & Date</p>
+                  <p className="font-bold text-slate-800 dark:text-white text-xs mt-2">{selectedWeeklyPlan.status === 'Approved' ? 'Signed for Academic Oversight' : 'Awaiting Review'}</p>
+                  <p className="text-[10px] text-slate-400 mt-1">Date: {selectedWeeklyPlan.updated_at ? new Date(selectedWeeklyPlan.updated_at).toLocaleDateString() : '—'}</p>
                 </div>
-              )}
+              </div>
             </div>
 
-            <div className="p-4 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 rounded-b-[2rem] print:hidden">
               <p className="text-xs text-slate-500 italic flex items-center gap-1.5">
                 <span className="inline-block w-2 h-2 rounded-full bg-blue-400"></span>
-                View only — approval is managed by the Department Head
+                Official Lesson Plan Matrix Document View
               </p>
-              <button
-                type="button"
-                onClick={() => setSelectedWeeklyPlan(null)}
-                className="px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-800 rounded-xl text-xs font-bold"
-              >
-                Close
-              </button>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-bold hover:bg-slate-300 transition-colors flex items-center gap-1.5"
+                >
+                  <Printer size={14} /> Print
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedWeeklyPlan(null)}
+                  className="px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-800 rounded-xl text-xs font-bold transition-colors"
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
         </div>
