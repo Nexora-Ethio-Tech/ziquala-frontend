@@ -15,6 +15,7 @@ import { Star, Trophy, RefreshCcw, Search, ChevronLeft, ChevronRight, ChevronDow
 import { TeacherAttendanceModal } from '../components/TeacherAttendanceModal';
 import { formatEthiopianLabel, gregorianToEthiopian, ethiopianToGregorianIso } from '../utils/ethiopianCalendar';
 import { EthiopianDatePicker } from '../components/EthiopianDatePicker';
+import { exportToExcel } from '../utils/exportUtils';
 
 const isTeacherActive = (status?: string | null) => {
   const s = String(status || '').toLowerCase();
@@ -1983,7 +1984,7 @@ export const Teachers = () => {
       {/* ── Annual Plan Review Modal (Academic Manager / VP) ── */}
       {selectedAnnualPlan && (
         <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-start justify-center p-4 overflow-y-auto print:p-0 print:bg-white">
-          <div className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl border border-slate-100 dark:border-slate-800 w-full max-w-5xl my-4 print:my-0 print:shadow-none print:border-none print:w-full">
+          <div className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl border border-slate-100 dark:border-slate-800 w-full max-w-5xl my-4 print:my-0 print:shadow-none print:border-none print:w-full printable-document-modal">
             {/* Header */}
             <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-gradient-to-r from-slate-800 to-slate-900 text-white rounded-t-[2rem] print:hidden">
               <div>
@@ -1995,10 +1996,39 @@ export const Teachers = () => {
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => window.print()}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 shadow-md"
+                  onClick={() => {
+                    const teacherName = selectedAnnualPlan.teacher_name || selectedAnnualPlan.teacherName || 'Assigned Teacher';
+                    const subject = selectedAnnualPlan.subject || '—';
+                    const grade = selectedAnnualPlan.grade || '—';
+                    const items = Array.isArray(selectedAnnualPlan.items) ? selectedAnnualPlan.items : [];
+                    const rows = items.length > 0 ? items.map((item: any, idx: number) => ({
+                      'Week #': idx + 1,
+                      'Teacher': teacherName,
+                      'Subject': subject,
+                      'Grade': grade,
+                      'Academic Year': selectedAnnualPlan.academic_year || '2018 E.C.',
+                      'Month': item.month || '—',
+                      'Chapter / Unit': item.unit || item.chapter_unit || '—',
+                      'Main Topic': item.topic || item.topic_title || '—',
+                      'Sub Topic': item.subTopic || '—',
+                      'Periods': item.periods || '—',
+                      'Teaching Method': item.method || item.teaching_method || '—',
+                      'Teaching Aids': item.aids || item.teaching_aids || '—',
+                      'Assessment / Remark': item.assessment || item.remark || '—'
+                    })) : [{ 'Teacher': teacherName, 'Subject': subject, 'Grade': grade, 'Status': selectedAnnualPlan.status || 'Pending' }];
+                    exportToExcel([{ name: 'Annual Lesson Plan', rows }], `Annual_Plan_${teacherName.replace(/\s+/g, '_')}_${grade.replace(/\s+/g, '_')}`);
+                  }}
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 shadow-md"
                 >
-                  <Printer size={14} />{uiText(" Print / Save PDF ")}</button>
+                  <Printer size={14} />{uiText(" Print / Export Excel (.xlsx) ")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="px-3.5 py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-sm"
+                >
+                  <Printer size={13} />{uiText(" Print PDF ")}
+                </button>
                 <button
                   type="button"
                   onClick={() => setSelectedAnnualPlan(null)}
@@ -2122,7 +2152,7 @@ export const Teachers = () => {
       {/* ── Official Weekly Plan Document Modal (Academic Manager / VP) ── */}
       {selectedWeeklyPlan && (
         <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-start justify-center p-4 overflow-y-auto print:p-0 print:bg-white">
-          <div className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl border border-slate-100 dark:border-slate-800 w-full max-w-6xl my-4 print:my-0 print:shadow-none print:border-none print:w-full">
+          <div className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl border border-slate-100 dark:border-slate-800 w-full max-w-6xl my-4 print:my-0 print:shadow-none print:border-none print:w-full printable-document-modal">
             {/* Header Banner */}
             <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-900 text-white rounded-t-[2rem] print:hidden">
               <div>
@@ -2132,10 +2162,74 @@ export const Teachers = () => {
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => window.print()}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 shadow-md"
+                  onClick={() => {
+                    const teacherName = selectedWeeklyPlan.teacher_name || selectedWeeklyPlan.teacherName || 'Assigned Teacher';
+                    const subject = selectedWeeklyPlan.subject || '—';
+                    const gradeSection = selectedWeeklyPlan.grade_section || selectedWeeklyPlan.gradeSection || selectedWeeklyPlan.grade || '—';
+                    const chapterUnit = selectedWeeklyPlan.chapter_unit || selectedWeeklyPlan.chapterUnit || selectedWeeklyPlan.chapter || selectedWeeklyPlan.unit || '—';
+                    const topicTitle = selectedWeeklyPlan.topic_title || selectedWeeklyPlan.topicTitle || selectedWeeklyPlan.topic || '—';
+                    const dateFrom = selectedWeeklyPlan.date_from || selectedWeeklyPlan.date || '—';
+                    const dateTo = selectedWeeklyPlan.date_to || selectedWeeklyPlan.date || '—';
+                    const periodsWeek = selectedWeeklyPlan.periods_per_week || selectedWeeklyPlan.periodsPerWeek || selectedWeeklyPlan.periods_week || '—';
+                    const status = selectedWeeklyPlan.status || 'Pending';
+
+                    const dailyList = (Array.isArray(selectedWeeklyPlan.daily_activities || selectedWeeklyPlan.dailyActivities) && (selectedWeeklyPlan.daily_activities || selectedWeeklyPlan.dailyActivities).length > 0)
+                      ? (selectedWeeklyPlan.daily_activities || selectedWeeklyPlan.dailyActivities)
+                      : ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].map(day => ({
+                          day,
+                          content: selectedWeeklyPlan.content || selectedWeeklyPlan.topic || '—',
+                          competence: selectedWeeklyPlan.objectives || '—',
+                          timeDuration: selectedWeeklyPlan.time_duration || selectedWeeklyPlan.timeDuration || '45 mins',
+                          teacherIntro: selectedWeeklyPlan.teacher_activity || selectedWeeklyPlan.teacherActivity || '—',
+                          teacherPresentation: selectedWeeklyPlan.presentation || 'Core presentation',
+                          teacherSummary: selectedWeeklyPlan.summary || 'Summary',
+                          teacherAssessment: selectedWeeklyPlan.evaluation || '—',
+                          studentActivity: selectedWeeklyPlan.student_activity || selectedWeeklyPlan.studentActivity || '—',
+                          teachingMethod: selectedWeeklyPlan.teaching_method || selectedWeeklyPlan.teachingMethod || selectedWeeklyPlan.method || '—',
+                          teachingAid: selectedWeeklyPlan.teaching_aids || selectedWeeklyPlan.teachingAids || selectedWeeklyPlan.aid || '—',
+                          evaluationRemark: selectedWeeklyPlan.remark || '—'
+                        }));
+
+                    const rows = dailyList.map((act: any) => ({
+                      'Day (ቀን)': act.day || '—',
+                      'Teacher Name': teacherName,
+                      'Subject / Lesson Type': subject,
+                      'Grade & Section': gradeSection,
+                      'Chapter / Unit': chapterUnit,
+                      'Topic / Title': topicTitle,
+                      'Date From': dateFrom,
+                      'Date To': dateTo,
+                      'Periods / Week': periodsWeek,
+                      'Status': status,
+                      'Content (ይዘት)': act.content || '—',
+                      'Competence (ብቃት)': act.competence || '—',
+                      'Time (ጊዜ)': act.timeDuration || '45 mins',
+                      '1. Intro (መግቢያ)': act.teacherIntro || '—',
+                      '2. Presentation (አቀራረብ)': act.teacherPresentation || '—',
+                      '3. Summary (ማጠቃለያ)': act.teacherSummary || '—',
+                      '4. Assessment (ምዘና)': act.teacherAssessment || '—',
+                      'Student Activity (የተማሪው)': act.studentActivity || '—',
+                      'Teaching Method (ማስተማሪያ ዘዴ)': act.teachingMethod || '—',
+                      'Teaching Aid (መርጃ መሣሪያ)': act.teachingAid || '—',
+                      'Evaluation Remark (ምዘና)': act.evaluationRemark || '—'
+                    }));
+
+                    exportToExcel(
+                      [{ name: 'Weekly Lesson Plan', rows }],
+                      `Weekly_Plan_${teacherName.replace(/\s+/g, '_')}_${gradeSection.replace(/\s+/g, '_')}`
+                    );
+                  }}
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 shadow-md"
                 >
-                  <Printer size={14} />{uiText(" Print / Save PDF ")}</button>
+                  <Printer size={14} />{uiText(" Print / Export Excel (.xlsx) ")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="px-3.5 py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-sm"
+                >
+                  <Printer size={13} />{uiText(" Print PDF ")}
+                </button>
                 <button
                   type="button"
                   onClick={() => setSelectedWeeklyPlan(null)}

@@ -333,3 +333,71 @@ html[lang="am"] textarea,
 [data-lang="am"] textarea {
   font-size: 1.025rem !important;
 }
+
+/* ── Global Print Styles for Lesson Plans & Reports ── */
+@media print {
+  @page {
+    size: landscape;
+    margin: 5mm;
+  }
+
+  html, body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 11px !important;
+  }
+
+  /* Hide header, navigation, sidebar, background tabs, background modals, non-print UI */
+  header, nav, aside, footer,
+  .print\:hidden,
+  [role="dialog"] > div:not(.printable-document-modal) {
+    display: none !important;
+  }
+
+  /* Ensure background page content is hidden when modal is printing */
+  body > div:not(#root),
+  #root > div > div:not(:has(.printable-document-modal)) {
+    visibility: hidden;
+  }
+
+  .printable-document-modal {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: white !important;
+    color: black !important;
+    visibility: visible !important;
+  }
+
+  .printable-document-modal * {
+    visibility: visible !important;
+  }
+
+  .printable-document-modal table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    border: 1.5px solid #334155 !important;
+  }
+
+  .printable-document-modal th,
+  .printable-document-modal td {
+    border: 1px solid #64748b !important;
+    padding: 5px 8px !important;
+    color: #0f172a !important;
+  }
+
+  .printable-document-modal th {
+    background-color: #f1f5f9 !important;
+    color: #0f172a !important;
+    font-weight: 800 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
