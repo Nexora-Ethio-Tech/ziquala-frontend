@@ -1,3 +1,4 @@
+import { uiText, uiError } from "../localization";
 import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Calendar, BookOpen, Loader2, Info, Layers, GraduationCap } from 'lucide-react';
@@ -78,7 +79,7 @@ export const TeacherSchedule = () => {
     return (
       <div className="flex flex-col items-center justify-center h-96">
         <Loader2 className="animate-spin text-indigo-600 dark:text-indigo-400 mb-4" size={40} />
-        <p className="text-slate-500 dark:text-slate-400 animate-pulse font-medium">Loading your weekly timetable...</p>
+        <p className="text-slate-500 dark:text-slate-400 animate-pulse font-medium">{uiText("Loading your weekly timetable...")}</p>
       </div>
     );
   }
@@ -114,22 +115,22 @@ export const TeacherSchedule = () => {
             <div className="bg-slate-800/80 border border-slate-700/60 px-4 py-2 rounded-xl flex items-center gap-2">
               <BookOpen size={16} className="text-indigo-400" />
               <div>
-                <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Total Classes</p>
-                <p className="text-sm font-black text-white">{totalSlots} Periods</p>
+                <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">{uiText("Total Classes")}</p>
+                <p className="text-sm font-black text-white">{totalSlots}{uiText(" Periods")}</p>
               </div>
             </div>
             <div className="bg-slate-800/80 border border-slate-700/60 px-4 py-2 rounded-xl flex items-center gap-2">
               <GraduationCap size={16} className="text-emerald-400" />
               <div>
-                <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Grades</p>
-                <p className="text-sm font-black text-white">{uniqueClassesCount} Assigned</p>
+                <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">{uiText("Grades")}</p>
+                <p className="text-sm font-black text-white">{uniqueClassesCount}{uiText(" Assigned")}</p>
               </div>
             </div>
             <div className="bg-slate-800/80 border border-slate-700/60 px-4 py-2 rounded-xl flex items-center gap-2">
               <Layers size={16} className="text-cyan-400" />
               <div>
-                <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Subjects</p>
-                <p className="text-sm font-black text-white">{uniqueSubjectsCount} Taught</p>
+                <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">{uiText("Subjects")}</p>
+                <p className="text-sm font-black text-white">{uniqueSubjectsCount}{uiText(" Taught")}</p>
               </div>
             </div>
           </div>
@@ -138,7 +139,7 @@ export const TeacherSchedule = () => {
 
       {error && (
         <div className="bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-400 p-4 rounded-xl text-sm font-medium">
-          {error}
+          {uiError(error)}
         </div>
       )}
 
@@ -157,12 +158,10 @@ export const TeacherSchedule = () => {
             <table className="w-full min-w-[750px] border-collapse text-left text-xs">
               <thead>
                 <tr className="bg-slate-100 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-black uppercase tracking-wider">
-                  <th className="px-4 py-3.5 w-32 border-r border-slate-200 dark:border-slate-700 text-center bg-slate-200/50 dark:bg-slate-800">
-                    Time / Period
-                  </th>
+                  <th className="px-4 py-3.5 w-32 border-r border-slate-200 dark:border-slate-700 text-center bg-slate-200/50 dark:bg-slate-800">{uiText(" Time / Period ")}</th>
                   {WEEKDAYS.map(day => (
                     <th key={day} className="px-4 py-3.5 border-r border-slate-200 dark:border-slate-700 last:border-r-0 text-center">
-                      {day}
+                      {uiText(day)}
                     </th>
                   ))}
                 </tr>
@@ -172,7 +171,7 @@ export const TeacherSchedule = () => {
                   <tr key={periodName} className={pIdx % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-slate-50/50 dark:bg-slate-800/30'}>
                     {/* Period Label Column */}
                     <td className="px-3 py-3 border-r border-slate-200 dark:border-slate-700 text-center align-middle font-extrabold text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/40 whitespace-nowrap">
-                      <span className="block text-xs uppercase tracking-tight text-emerald-600 dark:text-emerald-400">{periodName}</span>
+                      <span className="block text-xs uppercase tracking-tight text-emerald-600 dark:text-emerald-400">{uiText(periodName)}</span>
                     </td>
 
                     {/* Day Columns */}
@@ -224,8 +223,7 @@ export const TeacherSchedule = () => {
       <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/60 p-4 rounded-xl flex items-center gap-3 text-slate-600 dark:text-slate-400 text-xs">
         <Info size={18} className="text-indigo-500 shrink-0" />
         <p>
-          <strong className="text-slate-800 dark:text-slate-200">Note:</strong> Timetable changes are configured by administrators in the Schedule Builder. If you observe any period conflicts, please inform your department head.
-        </p>
+          <strong className="text-slate-800 dark:text-slate-200">{uiText("Note:")}</strong>{uiText(" Timetable changes are configured by administrators in the Schedule Builder. If you observe any period conflicts, please inform your department head. ")}</p>
       </div>
     </div>
   );

@@ -1,3 +1,4 @@
+import { uiText, uiError } from "../localization";
 import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Users, MessageSquare, Send, Loader, CheckCircle, AlertCircle, Phone, Trash2, Calendar } from 'lucide-react';
@@ -218,7 +219,7 @@ export const VPAttendanceOversight = () => {
       const data = response.data;
       setAbsentStudents(data.data || []);
     } catch (err: any) {
-      setError(err.message || 'Failed to load absent students data');
+      setError(uiError(err.message || 'Failed to load absent students data'));
       console.error('Error fetching absent students:', err);
     } finally {
       setLoading(false);
@@ -385,8 +386,8 @@ export const VPAttendanceOversight = () => {
                   id="studentDatePicker"
                   value={selectedDate}
                   onChange={setSelectedDate}
-                  placeholder="YYYY-MM-DD"
-                  title="Choose date to review student attendance"
+                  placeholder={uiText("YYYY-MM-DD")}
+                  title={uiText("Choose date to review student attendance")}
                 />
               </div>
               <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 px-3 py-2 rounded-xl border border-indigo-100 dark:border-indigo-900/30">
@@ -447,14 +448,12 @@ export const VPAttendanceOversight = () => {
             <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/50 rounded-2xl p-6 flex items-start gap-4">
               <AlertCircle className="text-red-600 dark:text-red-400 flex-shrink-0 mt-1" size={20} />
               <div>
-                <h3 className="font-bold text-red-900 dark:text-red-300">Error Loading Data</h3>
-                <p className="text-sm text-red-700 dark:text-red-200 mt-1">{error}</p>
+                <h3 className="font-bold text-red-900 dark:text-red-300">{uiText("Error Loading Data")}</h3>
+                <p className="text-sm text-red-700 dark:text-red-200 mt-1">{uiError(error)}</p>
                 <button
                   onClick={fetchAbsentStudents}
                   className="mt-3 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium text-sm transition-colors"
-                >
-                  Try Again
-                </button>
+                >{uiText(" Try Again ")}</button>
               </div>
             </div>
           )}
@@ -485,7 +484,7 @@ export const VPAttendanceOversight = () => {
                       className="w-5 h-5 rounded border-slate-300 text-indigo-600 cursor-pointer"
                     />
                     <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                      {selectAll ? t('vp.deselectAll', 'Deselect All') : t('vp.selectAll', 'Select All')}
+                      {(selectAll ? uiText(t('vp.deselectAll', 'Deselect All')) : uiText(t('vp.selectAll', 'Select All')))}
                     </span>
                   </label>
                   <span className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
@@ -528,9 +527,7 @@ export const VPAttendanceOversight = () => {
                                     ? 'bg-rose-100 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-900/40'
                                     : 'bg-blue-100 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-900/40'
                                 }`}>
-                                {student.status === 'exceeded' || (student.totalAbsences && student.totalAbsences >= 3)
-                                  ? `Exceeded Limit (${student.totalAbsences || 0} Absences)`
-                                  : student.status}
+                                {(student.status === 'exceeded' || (student.totalAbsences && student.totalAbsences >= 3) ? uiText("Exceeded Limit ({{value0}} Absences)", {value0: student.totalAbsences || 0}) : uiText(student.status))}
                               </span>
                             )}
                             {notifiedStudents.has(student.id) && (
@@ -554,7 +551,7 @@ export const VPAttendanceOversight = () => {
                         <div className="mt-2 text-xs text-slate-500 dark:text-slate-400 flex flex-wrap items-center gap-4">
                           <p>{t("vp.roomTeacherLabel", "Room Teacher:")} <span className="font-medium text-slate-700 dark:text-slate-300">{student.roomTeacher}</span></p>
                           {student.totalAbsences !== undefined && (
-                            <p>Total Absences Traced: <span className="font-bold text-rose-600 dark:text-rose-400">{student.totalAbsences} days</span></p>
+                            <p>{uiText("Total Absences Traced: ")}<span className="font-bold text-rose-600 dark:text-rose-400">{student.totalAbsences}{uiText(" days")}</span></p>
                           )}
                         </div>
                       </div>
@@ -591,12 +588,12 @@ export const VPAttendanceOversight = () => {
                   id="teacherDatePicker"
                   value={selectedTeacherDate}
                   onChange={setSelectedTeacherDate}
-                  placeholder="YYYY-MM-DD"
-                  title="Choose date to review schedules"
+                  placeholder={uiText("YYYY-MM-DD")}
+                  title={uiText("Choose date to review schedules")}
                 />
               </div>
               <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 px-3 py-2 rounded-xl border border-indigo-100 dark:border-indigo-900/30">
-                {formatEthiopianDateString(selectedTeacherDate)} {dayOfWeek ? `(${dayOfWeek})` : ''}
+                {uiText(formatEthiopianDateString(selectedTeacherDate))} {(dayOfWeek ? uiText("({{value0}})", {value0: dayOfWeek}) : uiText(''))}
               </span>
             </div>
           </div>
@@ -607,11 +604,10 @@ export const VPAttendanceOversight = () => {
               <div className="inline-flex p-4 bg-amber-100 dark:bg-amber-950/50 text-amber-600 rounded-full">
                 <Calendar size={48} />
               </div>
-              <h3 className="text-2xl font-black text-slate-900 dark:text-white">
-                Non-Working Day: {nonWorkingTitle || 'School Closed'}
+              <h3 className="text-2xl font-black text-slate-900 dark:text-white">{uiText(" Non-Working Day: ")}{uiText(nonWorkingTitle || 'School Closed')}
               </h3>
               <p className="text-slate-600 dark:text-slate-300 max-w-md mx-auto text-sm font-medium">
-                {nonWorkingReason || 'Today is marked as a weekend or holiday in the School Calendar. Attendance records are not tracked for this date.'}
+                {uiText(nonWorkingReason || 'Today is marked as a weekend or holiday in the School Calendar. Attendance records are not tracked for this date.')}
               </p>
             </div>
           ) : (
@@ -688,7 +684,7 @@ export const VPAttendanceOversight = () => {
               {loadingTeachers ? (
                 <div className="flex flex-col items-center justify-center py-20">
                   <div className="w-16 h-16 border-4 border-indigo-200 dark:border-indigo-900 border-t-indigo-600 dark:border-t-indigo-400 rounded-full animate-spin mb-4" />
-                  <p className="text-slate-600 dark:text-slate-300 font-medium">Loading teachers and proxy timetables...</p>
+                  <p className="text-slate-600 dark:text-slate-300 font-medium">{uiText("Loading teachers and proxy timetables...")}</p>
                 </div>
               ) : filteredTeachers.length === 0 ? (
                 <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700 p-12 text-center shadow-sm">
@@ -720,14 +716,14 @@ export const VPAttendanceOversight = () => {
                                 </div>
                                 <div>
                                   <p className="font-bold text-slate-900 dark:text-white">{teacher.name}</p>
-                                  <p className="text-xs text-slate-500 dark:text-slate-400">{teacher.email || 'No Email'}</p>
+                                  <p className="text-xs text-slate-500 dark:text-slate-400">{teacher.email || uiText('No Email')}</p>
                                 </div>
                               </div>
                             </td>
                             <td className="p-4">
-                              <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">{teacher.department || 'General'}</p>
+                              <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">{teacher.department || uiText('General')}</p>
                               <p className="text-xs text-slate-500 dark:text-slate-400 max-w-[200px] truncate">
-                                {Array.isArray(teacher.subjects) ? teacher.subjects.join(', ') : (teacher.subjects || 'N/A')}
+                                {(Array.isArray(teacher.subjects) ? teacher.subjects.join(', ') : (teacher.subjects || uiText('N/A')))}
                               </p>
                             </td>
                             <td className="p-4">
@@ -757,7 +753,7 @@ export const VPAttendanceOversight = () => {
                                   {(() => {
                                     const teacherSchedules = schedules.filter(s => s.teacher_id === teacher.teacher_id);
                                     if (teacherSchedules.length === 0) {
-                                      return <span className="text-xs text-slate-400 dark:text-slate-500 italic">No classes scheduled on this day ({dayOfWeek})</span>;
+                                      return <span className="text-xs text-slate-400 dark:text-slate-500 italic">{uiText("No classes scheduled on this day (")}{uiText(dayOfWeek)})</span>;
                                     }
                                     return teacherSchedules.map((s, idx) => {
                                       const proxy = proxies.find(p =>
@@ -768,34 +764,29 @@ export const VPAttendanceOversight = () => {
                                       return (
                                         <div key={idx} className="flex items-center justify-between gap-4 p-2 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-800">
                                           <div className="text-xs font-medium">
-                                            <span className="font-bold text-slate-700 dark:text-slate-300">Period {s.period_number}:</span>{' '}
+                                            <span className="font-bold text-slate-700 dark:text-slate-300">{uiText("Period ")}{uiText(s.period_number)}:</span>{uiText(' ')}
                                             <span className="text-slate-500 dark:text-slate-400">{s.class_name}-{s.section} ({s.subject})</span>
                                           </div>
                                           <div>
                                             {proxy ? (
                                               <div className="flex items-center gap-2">
-                                                <span className="px-2 py-0.5 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/30 rounded text-[10px] font-bold">
-                                                  Covered by {proxy.proxy_teacher_name}
+                                                <span className="px-2 py-0.5 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/30 rounded text-[10px] font-bold">{uiText(" Covered by ")}{uiText(proxy.proxy_teacher_name)}
                                                 </span>
                                                 <button
                                                   onClick={() => handleRemoveProxy(proxy.id)}
                                                   className="p-1 text-rose-600 hover:text-rose-800 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded transition-colors"
-                                                  title="Remove Proxy Cover"
+                                                  title={uiText("Remove Proxy Cover")}
                                                 >
                                                   <Trash2 size={12} />
                                                 </button>
                                               </div>
                                             ) : (
                                               <div className="flex items-center gap-2">
-                                                <span className="px-2 py-0.5 bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400 border border-rose-100 dark:border-rose-900/30 rounded text-[10px] font-bold">
-                                                  Uncovered
-                                                </span>
+                                                <span className="px-2 py-0.5 bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400 border border-rose-100 dark:border-rose-900/30 rounded text-[10px] font-bold">{uiText(" Uncovered ")}</span>
                                                 <button
                                                   onClick={() => handleOpenProxyModal(teacher, s)}
                                                   className="px-2 py-0.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded text-[10px] font-bold transition-all shadow"
-                                                >
-                                                  Assign Proxy
-                                                </button>
+                                                >{uiText(" Assign Proxy ")}</button>
                                               </div>
                                             )}
                                           </div>
@@ -825,12 +816,8 @@ export const VPAttendanceOversight = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-2xl font-black flex items-center gap-3">
-                    <MessageSquare size={28} />
-                    Send Absence Notification
-                  </h2>
-                  <p className="text-indigo-100 text-sm mt-1">
-                    SMS will be sent to {selectedStudents.size} parent(s)
-                  </p>
+                    <MessageSquare size={28} />{uiText(" Send Absence Notification ")}</h2>
+                  <p className="text-indigo-100 text-sm mt-1">{uiText(" SMS will be sent to ")}{selectedStudents.size}{uiText(" parent(s) ")}</p>
                 </div>
                 <button
                   onClick={() => setShowSMSModal(false)}
@@ -844,21 +831,17 @@ export const VPAttendanceOversight = () => {
             {smsStatus === 'sent' ? (
               <div className="p-8 text-center">
                 <CheckCircle className="mx-auto mb-4 text-emerald-500" size={48} />
-                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Messages Sent Successfully!</h3>
-                <p className="text-slate-600 dark:text-slate-300 mb-6">
-                  SMS notifications have been sent to {selectedStudents.size} parent(s).
-                </p>
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{uiText("Messages Sent Successfully!")}</h3>
+                <p className="text-slate-600 dark:text-slate-300 mb-6">{uiText(" SMS notifications have been sent to ")}{selectedStudents.size}{uiText(" parent(s). ")}</p>
                 <button
                   onClick={() => setShowSMSModal(false)}
                   className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-colors"
-                >
-                  Close
-                </button>
+                >{uiText(" Close ")}</button>
               </div>
             ) : (
               <div className="p-6 space-y-6">
                 <div>
-                  <h3 className="font-bold text-slate-900 dark:text-white mb-3">Selected Students ({selectedStudents.size})</h3>
+                  <h3 className="font-bold text-slate-900 dark:text-white mb-3">{uiText("Selected Students (")}{selectedStudents.size})</h3>
                   <div className="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-4 max-h-40 overflow-y-auto">
                     <div className="space-y-2 text-sm">
                       {absentStudents
@@ -877,23 +860,22 @@ export const VPAttendanceOversight = () => {
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-900 dark:text-white mb-2">SMS Message</label>
+                  <label className="block font-bold text-slate-900 dark:text-white mb-2">{uiText("SMS Message")}</label>
                   <textarea
                     value={smsMessage}
                     onChange={(e) => setSmsMessage(e.target.value)}
                     maxLength={160}
-                    placeholder="Enter your message here..."
+                    placeholder={uiText("Enter your message here...")}
                     className="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-600 resize-none"
                     rows={4}
                   />
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
-                    {smsMessage.length}/160 characters
-                  </p>
+                    {smsMessage.length}{uiText("/160 characters ")}</p>
                 </div>
 
                 {smsStatus === 'error' && smsError && (
                   <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/50 rounded-xl p-4">
-                    <p className="text-sm text-red-700 dark:text-red-300">{smsError}</p>
+                    <p className="text-sm text-red-700 dark:text-red-300">{uiError(smsError)}</p>
                   </div>
                 )}
 
@@ -902,9 +884,7 @@ export const VPAttendanceOversight = () => {
                     onClick={() => setShowSMSModal(false)}
                     disabled={smsSending}
                     className="px-6 py-2.5 rounded-xl font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors disabled:opacity-50"
-                  >
-                    Cancel
-                  </button>
+                  >{uiText(" Cancel ")}</button>
                   <button
                     onClick={handleSendSMS}
                     disabled={smsSending || smsMessage.trim().length === 0}
@@ -915,13 +895,10 @@ export const VPAttendanceOversight = () => {
                   >
                     {smsSending ? (
                       <>
-                        <Loader size={18} className="animate-spin" />
-                        Sending...
-                      </>
+                        <Loader size={18} className="animate-spin" />{uiText(" Sending... ")}</>
                     ) : (
                       <>
-                        <Send size={18} />
-                        Send to {selectedStudents.size} Parent{selectedStudents.size !== 1 ? 's' : ''}
+                        <Send size={18} />{uiText(" Send to ")}{selectedStudents.size}{uiText(" Parent")}{(selectedStudents.size !== 1 ? uiText('s') : uiText(''))}
                       </>
                     )}
                   </button>
@@ -940,11 +917,8 @@ export const VPAttendanceOversight = () => {
               <div className="flex items-center justify-between relative z-10">
                 <div>
                   <h2 className="text-xl font-extrabold flex items-center gap-2.5">
-                    <Users size={24} />
-                    Assign Proxy Teacher
-                  </h2>
-                  <p className="text-indigo-100 text-xs mt-1.5 font-medium">
-                    Select a coverage replacement for <strong className="text-white">{selectedTeacherForProxy.name}</strong>
+                    <Users size={24} />{uiText(" Assign Proxy Teacher ")}</h2>
+                  <p className="text-indigo-100 text-xs mt-1.5 font-medium">{uiText(" Select a coverage replacement for ")}<strong className="text-white">{selectedTeacherForProxy.name}</strong>
                   </p>
                 </div>
                 <button
@@ -959,56 +933,52 @@ export const VPAttendanceOversight = () => {
             <div className="p-6 space-y-5">
               <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-2 text-xs">
                 <div>
-                  <span className="text-slate-400 dark:text-slate-500 block uppercase font-bold tracking-widest">Class to Cover</span>
-                  <span className="font-bold text-slate-800 dark:text-slate-200">
-                    Grade {selectedScheduleForProxy.class_name} - {selectedScheduleForProxy.section}
+                  <span className="text-slate-400 dark:text-slate-500 block uppercase font-bold tracking-widest">{uiText("Class to Cover")}</span>
+                  <span className="font-bold text-slate-800 dark:text-slate-200">{uiText(" Grade ")}{selectedScheduleForProxy.class_name} - {selectedScheduleForProxy.section}
                   </span>
                 </div>
                 <div>
-                  <span className="text-slate-400 dark:text-slate-500 block uppercase font-bold tracking-widest">Period & Subject</span>
-                  <span className="font-bold text-slate-800 dark:text-slate-200">
-                    Period {selectedScheduleForProxy.period_number} • {selectedScheduleForProxy.subject}
+                  <span className="text-slate-400 dark:text-slate-500 block uppercase font-bold tracking-widest">{uiText("Period & Subject")}</span>
+                  <span className="font-bold text-slate-800 dark:text-slate-200">{uiText(" Period ")}{selectedScheduleForProxy.period_number} • {selectedScheduleForProxy.subject}
                   </span>
                 </div>
               </div>
 
               <div>
-                <label htmlFor="proxyTeacherSelector" className="block text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">
-                  Select Proxy Teacher
-                </label>
+                <label htmlFor="proxyTeacherSelector" className="block text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">{uiText(" Select Proxy Teacher ")}</label>
                 <select
                   id="proxyTeacherSelector"
                   value={proxyTeacherId}
                   onChange={(e) => setProxyTeacherId(e.target.value)}
                   className="w-full px-4 py-3.5 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 text-sm cursor-pointer font-medium"
                 >
-                  <option value="">-- Choose a Teacher --</option>
+                  <option value="">{uiText("-- Choose a Teacher --")}</option>
                   {loadingCandidates ? (
-                    <option disabled>Loading available teachers...</option>
+                    <option disabled value="Loading available teachers...">{uiText("Loading available teachers...")}</option>
                   ) : proxyCandidates.length === 0 ? (
-                    <option disabled>No available teachers found for this period</option>
+                    <option disabled value="No available teachers found for this period">{uiText("No available teachers found for this period")}</option>
                   ) : (
                     <>
                       {/* Recommended Candidates */}
                       {proxyCandidates.some(c => c.teaches_section) && (
-                        <optgroup label="⭐ Recommended (Teaches in this section)">
+                        <optgroup label={uiText("⭐ Recommended (Teaches in this section)")}>
                           {proxyCandidates
                             .filter(c => c.teaches_section)
                             .map(c => (
                               <option key={c.teacher_id} value={c.teacher_id}>
-                                {c.name} ({c.department || 'General'})
+                                {c.name} ({uiText(c.department || 'General')})
                               </option>
                             ))
                           }
                         </optgroup>
                       )}
                       {/* Other Candidates */}
-                      <optgroup label="Available Teachers">
+                      <optgroup label={uiText("Available Teachers")}>
                         {proxyCandidates
                           .filter(c => !c.teaches_section)
                           .map(c => (
                             <option key={c.teacher_id} value={c.teacher_id}>
-                              {c.name} ({c.department || 'General'})
+                              {c.name} ({uiText(c.department || 'General')})
                             </option>
                           ))
                         }
@@ -1022,16 +992,12 @@ export const VPAttendanceOversight = () => {
                 <button
                   onClick={() => setShowProxyModal(false)}
                   className="px-6 py-3 rounded-xl font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-xs"
-                >
-                  Cancel
-                </button>
+                >{uiText(" Cancel ")}</button>
                 <button
                   onClick={handleAssignProxy}
                   disabled={loadingCandidates || !proxyTeacherId}
                   className="px-6 py-3 bg-indigo-650 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-lg shadow-indigo-600/25 transition-colors text-xs disabled:opacity-50"
-                >
-                  Save Coverage
-                </button>
+                >{uiText(" Save Coverage ")}</button>
               </div>
             </div>
           </div>
@@ -1051,7 +1017,7 @@ export const VPAttendanceOversight = () => {
             ) : (
               <AlertCircle size={20} />
             )}
-            <p className="font-medium">{toast.message}</p>
+            <p className="font-medium">{uiText(toast.message)}</p>
           </div>
         </div>
       )}

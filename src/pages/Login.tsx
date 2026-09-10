@@ -1,3 +1,5 @@
+import { LanguageSelector } from '../components/LanguageSelector';
+import { uiError, uiText } from "../localization";
 
 import { useState, useEffect } from 'react';
 import { DEMO_ACCOUNTS, useUser } from '../context/UserContext';
@@ -36,48 +38,49 @@ export const Login = () => {
 
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fan.trim()) { setError('Please enter your Fayda Alias Number.'); return; }
-    setError(''); setOtpSending(true);
+    if (!fan.trim()) { setError(uiText("Please enter your Fayda Alias Number.")); return; }
+    setError(uiText("")); setOtpSending(true);
     // Simulate OTP send — backend will handle real dispatch
     await new Promise(r => setTimeout(r, 1200));
     setOtpSending(false);
     setOtpStep('enter-otp');
-    setSuccess(`OTP sent to the contact linked with FAN: ${fan}`);
+    setSuccess(uiText("OTP sent to the contact linked with FAN: {{value0}}", { value0: fan }));
   };
 
   const handleOtpVerify = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (otp.length < 6) { setError('Please enter the 6-digit OTP.'); return; }
-    setError(''); setLoading(true);
+    if (otp.length < 6) { setError(uiText("Please enter the 6-digit OTP.")); return; }
+    setError(uiText("")); setLoading(true);
     try {
       const result = await login({ digitalIdOrEmail: fan, password: '', otp });
       if (result.success) {
         console.log('[Login OTP] Setting pending redirect to:', result.redirect);
         setPendingRedirect(result.redirect || '/');
       }
-      else setError(result.error || 'Invalid OTP. Please try again.');
-    } catch { setError('An error occurred. Please try again.'); }
+      else setError(uiError(result.error || 'Invalid OTP. Please try again.'));
+    } catch { setError(uiError("An error occurred. Please try again.")); }
     finally { setLoading(false); }
   };
 
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(''); setLoading(true);
+    setError(uiText("")); setLoading(true);
     try {
       const result = await login({ digitalIdOrEmail, password, otp: '' });
       if (result.success) {
         console.log('[Login Password] Setting pending redirect to:', result.redirect);
         setPendingRedirect(result.redirect || '/');
       }
-      else setError(result.error || 'Invalid credentials.');
-    } catch { setError('An error occurred during login.'); }
+      else setError(uiError(result.error || 'Invalid credentials.'));
+    } catch { setError(uiError("An error occurred during login.")); }
     finally { setLoading(false); }
   };
 
-  const resetOtp = () => { setOtpStep('enter-fan'); setFan(''); setOtp(''); setSuccess(''); setError(''); };
+  const resetOtp = () => { setOtpStep('enter-fan'); setFan(''); setOtp(''); setSuccess(uiText("")); setError(uiText("")); };
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="absolute right-4 top-4 z-20"><LanguageSelector /></div>
       <ShootingStars />
 
       <div className="w-full max-w-md relative z-10">
@@ -88,9 +91,9 @@ export const Login = () => {
               <BookOpen size={44} aria-hidden="true" />
             </div>
           </div>
-          <h1 className="text-3xl font-black text-slate-900 dark:text-white">Welcome Back</h1>
+          <h1 className="text-3xl font-black text-slate-900 dark:text-white">{uiText("Welcome Back")}</h1>
           <p className="text-slate-500 dark:text-slate-400 mt-2 text-sm">
-            {loginMode === 'otp' ? 'Sign in with your Fayda ID (FAN) + OTP' : 'Access the Ziquala Abo School Portal'}
+            {uiText(loginMode === 'otp' ? 'Sign in with your Fayda ID (FAN) + OTP' : 'Access the Ziquala Abo School Portal')}
           </p>
         </div>
 
@@ -114,40 +117,40 @@ export const Login = () => {
            */ }
 
           {/* Alerts */}
-          {error && (
+          {uiText(error && (
             <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4 rounded-xl flex items-center gap-3 text-red-600 dark:text-red-400 text-sm mb-6">
-              <AlertCircle size={18} className="shrink-0" /> {error}
+              <AlertCircle size={18} className="shrink-0" /> {uiError(error)}
             </div>
-          )}
-          {success && (
+          ))}
+          {uiText(success && (
             <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 p-4 rounded-xl flex items-center gap-3 text-emerald-600 dark:text-emerald-400 text-sm mb-6">
-              <CheckCircle size={18} className="shrink-0" /> {success}
+              <CheckCircle size={18} className="shrink-0" /> {uiText(success)}
             </div>
-          )}
+          ))}
 
           {/* ── PASSWORD MODE ── */}
           {loginMode === 'password' && (
             <form onSubmit={handlePasswordSubmit} className="space-y-5">
               <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">Digital ID / Email</label>
+                <label className="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">{uiText("Digital ID / Email")}</label>
                 <div className="relative">
                   <Fingerprint className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
                   <input
                     type="text" required value={digitalIdOrEmail}
                     onChange={e => setDigitalIdOrEmail(e.target.value)}
-                    placeholder="e.g. SA-1001 or email@school.com"
+                    placeholder={uiText("e.g. SA-1001 or email@school.com")}
                     className="w-full pl-12 pr-4 py-4 bg-slate-50 dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-2xl focus:border-school-primary focus:ring-4 focus:ring-school-primary/10 transition-all outline-none"
                   />
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">Password</label>
+                <label className="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">{uiText("Password")}</label>
                 <div className="relative">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
                   <input
                     type={showPassword ? "text" : "password"} required value={password}
                     onChange={e => setPassword(e.target.value)}
-                    placeholder="••••••••"
+                    placeholder={uiText("••••••••")}
                     className="w-full pl-12 pr-12 py-4 bg-slate-50 dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-2xl focus:border-school-primary focus:ring-4 focus:ring-school-primary/10 transition-all outline-none"
                   />
                   <button
@@ -164,7 +167,7 @@ export const Login = () => {
                 type="submit" disabled={loading}
                 className="w-full bg-school-primary hover:bg-school-primary/90 text-white py-4 rounded-2xl font-bold text-lg shadow-xl shadow-school-primary/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
               >
-                {loading ? <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <><LogIn size={20} /> Sign In Securely</>}
+                {loading ? <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <><LogIn size={20} />{uiText(" Sign In Securely")}</>}
               </button>
             </form>
           )}
@@ -175,12 +178,12 @@ export const Login = () => {
               {/* Step indicator */}
               <div className="flex items-center gap-3">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black transition-all ${otpStep === 'enter-fan' ? 'bg-school-primary text-white' : 'bg-emerald-100 text-emerald-600'}`}>
-                  {otpStep === 'enter-otp' ? <CheckCircle size={16} /> : '1'}
+                  {uiText(otpStep === 'enter-otp' ? <CheckCircle size={16} /> : '1')}
                 </div>
                 <div className={`flex-1 h-1 rounded-full transition-all ${otpStep === 'enter-otp' ? 'bg-school-primary' : 'bg-slate-200 dark:bg-slate-700'}`} />
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black transition-all ${otpStep === 'enter-otp' ? 'bg-school-primary text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}>2</div>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black transition-all ${otpStep === 'enter-otp' ? 'bg-school-primary text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}>{uiText("2")}</div>
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
-                  {otpStep === 'enter-fan' ? 'Enter FAN' : 'Enter OTP'}
+                  {uiText(otpStep === 'enter-fan' ? 'Enter FAN' : 'Enter OTP')}
                 </span>
               </div>
 
@@ -188,23 +191,23 @@ export const Login = () => {
               {otpStep === 'enter-fan' && (
                 <form onSubmit={handleSendOtp} className="space-y-5">
                   <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">Fayda Alias Number (FAN)</label>
+                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">{uiText("Fayda Alias Number (FAN)")}</label>
                     <div className="relative">
                       <ShieldCheck className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
                       <input
                         type="text" required value={fan}
                         onChange={e => setFan(e.target.value)}
-                        placeholder="e.g. FAN-12345678"
+                        placeholder={uiText("e.g. FAN-12345678")}
                         className="w-full pl-12 pr-4 py-4 bg-slate-50 dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-2xl focus:border-school-primary focus:ring-4 focus:ring-school-primary/10 transition-all outline-none"
                       />
                     </div>
-                    <p className="text-[11px] text-slate-400 ml-1">Your alias number from the Ethiopia Digital ID (Fayda) system</p>
+                    <p className="text-[11px] text-slate-400 ml-1">{uiText("Your alias number from the Ethiopia Digital ID (Fayda) system")}</p>
                   </div>
                   <button
                     type="submit" disabled={otpSending}
                     className="w-full bg-school-primary hover:bg-school-primary/90 text-white py-4 rounded-2xl font-bold text-base shadow-xl shadow-school-primary/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                   >
-                    {otpSending ? <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <><Send size={18} /> Send OTP Code</>}
+                    {otpSending ? <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <><Send size={18} />{uiText(" Send OTP Code")}</>}
                   </button>
                 </form>
               )}
@@ -213,27 +216,25 @@ export const Login = () => {
               {otpStep === 'enter-otp' && (
                 <form onSubmit={handleOtpVerify} className="space-y-5">
                   <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">6-Digit OTP Code</label>
+                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">{uiText("6-Digit OTP Code")}</label>
                     <div className="relative">
                       <Key className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
                       <input
                         type="text" required maxLength={6} value={otp}
                         onChange={e => setOtp(e.target.value.replace(/\D/g, ''))}
-                        placeholder="● ● ● ● ● ●"
+                        placeholder={uiText("● ● ● ● ● ●")}
                         className="w-full pl-12 pr-4 py-4 bg-slate-50 dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-2xl focus:border-school-primary focus:ring-4 focus:ring-school-primary/10 transition-all outline-none text-2xl tracking-[0.5em] font-black text-center"
                       />
                     </div>
-                    <p className="text-[11px] text-slate-400 ml-1">Enter the 6-digit code sent to your registered contact</p>
+                    <p className="text-[11px] text-slate-400 ml-1">{uiText("Enter the 6-digit code sent to your registered contact")}</p>
                   </div>
                   <button
                     type="submit" disabled={loading || otp.length < 6}
                     className="w-full bg-school-primary hover:bg-school-primary/90 text-white py-4 rounded-2xl font-bold text-base shadow-xl shadow-school-primary/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                   >
-                    {loading ? <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <><ArrowRight size={18} /> Verify & Sign In</>}
+                    {loading ? <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <><ArrowRight size={18} />{uiText(" Verify & Sign In")}</>}
                   </button>
-                  <button type="button" onClick={resetOtp} className="w-full text-sm font-bold text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 py-2 transition-colors">
-                    ← Use a different FAN
-                  </button>
+                  <button type="button" onClick={resetOtp} className="w-full text-sm font-bold text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 py-2 transition-colors">{uiText("← Use a different FAN")}</button>
                 </form>
               )}
             </div>
@@ -241,27 +242,24 @@ export const Login = () => {
 
           {/* Footer link */}
           <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800 text-center">
-            <p className="text-slate-500 dark:text-slate-400 text-sm">
-              New student?{' '}
-              <Link to="/register" className="text-school-primary font-bold hover:underline">
-                Apply for Admission
-              </Link>
+            <p className="text-slate-500 dark:text-slate-400 text-sm">{uiText("New student?")}{uiText(" ")}
+              <Link to="/register" className="text-school-primary font-bold hover:underline">{uiText("Apply for Admission")}</Link>
             </p>
           </div>
           {import.meta.env.DEV && (
             <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-left text-xs text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-200">
-              <p className="font-black uppercase tracking-wider">Frontend demo access</p>
-              <p className="mt-1 text-[11px] opacity-80">Choose any approved role. All use password <code className="font-black">demo123</code>.</p>
+              <p className="font-black uppercase tracking-wider">{uiText("Frontend demo access")}</p>
+              <p className="mt-1 text-[11px] opacity-80">{uiText("Choose any approved role. All use password ")}<code className="font-black">{uiText("demo123")}</code>{uiText(".")}</p>
               <div className="mt-3 grid grid-cols-2 gap-2">
                 {DEMO_ACCOUNTS.map((account) => (
                   <button
                     key={account.id}
                     type="button"
-                    onClick={() => { setDigitalIdOrEmail(account.id); setPassword(account.password); setError(''); }}
+                    onClick={() => { setDigitalIdOrEmail(account.id); setPassword(account.password); setError(uiText("")); }}
                     className="rounded-lg border border-amber-200 bg-white/70 px-2.5 py-2 text-left transition hover:border-amber-500 hover:bg-white dark:border-amber-900/60 dark:bg-slate-900/50"
                   >
                     <span className="block font-black">{account.name}</span>
-                    <code className="mt-0.5 block text-[9px] font-bold opacity-70">{account.id}</code>
+                    <code className="mt-0.5 block text-[9px] font-bold opacity-70">{uiText(account.id)}</code>
                   </button>
                 ))}
               </div>
@@ -270,9 +268,7 @@ export const Login = () => {
         </div>
 
         <div className="mt-6 text-center">
-          <Link to="/" className="text-slate-400 hover:text-school-primary text-sm font-medium transition-colors">
-            ← Back to Homepage
-          </Link>
+          <Link to="/" className="text-slate-400 hover:text-school-primary text-sm font-medium transition-colors">{uiText("← Back to Homepage")}</Link>
         </div>
       </div>
     </div>

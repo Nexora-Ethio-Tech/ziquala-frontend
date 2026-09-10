@@ -1,3 +1,4 @@
+import { uiError, uiText, localeTag } from "../localization";
 
 import { Users, GraduationCap, Clock, TrendingUp, Lock, Unlock, Megaphone, Plus, X, Bell, Book, BookOpen, AlertTriangle, ShieldAlert, ArrowRight, ArrowLeft, Trash2, Edit, Calendar, CheckCircle } from 'lucide-react';
 import { useUser } from '../context/UserContext';
@@ -14,7 +15,7 @@ import { userService } from '../services/userService';
 import api from '../services/api';
 
 const StatCard = ({ icon: Icon, label, value, trend, color, onClick }: any) => (
-  <div 
+  <div
     onClick={onClick}
     className={`bg-white dark:bg-slate-900 p-4 md:p-6 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 transition-all duration-300 ${onClick ? 'cursor-pointer hover:shadow-md hover:border-slate-200 dark:hover:border-slate-700' : ''}`}
   >
@@ -22,14 +23,14 @@ const StatCard = ({ icon: Icon, label, value, trend, color, onClick }: any) => (
       <div className={`${color} p-2 md:p-3 rounded-lg text-white`}>
         <Icon size={20} className="md:w-6 md:h-6" />
       </div>
-      {trend && (
+      {uiText(trend && (
         <span className="text-emerald-500 text-sm font-medium bg-emerald-50 dark:bg-emerald-900/30 px-2 py-1 rounded-full">
-          {trend}
+          {uiText(trend)}
         </span>
-      )}
+      ))}
     </div>
-    <h3 className="text-slate-500 dark:text-slate-400 text-[10px] md:text-sm font-bold md:font-medium uppercase md:normal-case tracking-wider md:tracking-normal">{label}</h3>
-    <p className="text-xl md:text-2xl font-black md:font-bold text-slate-800 dark:text-slate-100 mt-1">{value}</p>
+    <h3 className="text-slate-500 dark:text-slate-400 text-[10px] md:text-sm font-bold md:font-medium uppercase md:normal-case tracking-wider md:tracking-normal">{uiText(label)}</h3>
+    <p className="text-xl md:text-2xl font-black md:font-bold text-slate-800 dark:text-slate-100 mt-1">{uiText(value)}</p>
   </div>
 );
 
@@ -56,11 +57,11 @@ export const Dashboard = () => {
         grades_locked: newVal ? 'true' : 'false'
       });
       setGradesLocked(newVal);
-      setSuccessMessage(newVal ? 'Grade insertion is now locked' : 'Grade insertion is now open');
-      setTimeout(() => setSuccessMessage(''), 3000);
+      setSuccessMessage(uiText(newVal ? 'Grade insertion is now locked' : 'Grade insertion is now open'));
+      setTimeout(() => setSuccessMessage(uiText("")), 3000);
     } catch (err: any) {
       console.error('Failed to toggle grades lock', err);
-      setError(err.response?.data?.message || 'Failed to update grades lock state');
+      setError(uiError(err.response?.data?.message || 'Failed to update grades lock state'));
     }
   };
 
@@ -86,7 +87,7 @@ export const Dashboard = () => {
     try {
       const response = await userService.getAllUsers({ status: 'Pending' });
       const list = response.data || response || [];
-      const filtered = list.filter((u: any) => 
+      const filtered = list.filter((u: any) =>
         ['academic-manager', 'school-admin', 'vice-principal'].includes(u.role)
       );
       setPendingUsersList(filtered);
@@ -108,10 +109,10 @@ export const Dashboard = () => {
     setUpdatingUserId(userId);
     try {
       await userService.updateUserStatus(userId, newStatus);
-      setSuccessMessage(`User status updated to ${newStatus}`);
-      setTimeout(() => setSuccessMessage(''), 3000);
+      setSuccessMessage(uiText("User status updated to {{value0}}", { value0: uiText(newStatus) }));
+      setTimeout(() => setSuccessMessage(uiText("")), 3000);
       await fetchPendingUsers();
-      
+
       // Refresh dashboard count
       if (role === 'super-admin') {
         const response = await dashboardService.getSuperAdminDashboard();
@@ -121,7 +122,7 @@ export const Dashboard = () => {
       }
     } catch (err: any) {
       console.error('Failed to update status', err);
-      alert(err.response?.data?.message || 'Failed to update status');
+      alert(uiError(err.response?.data?.message || 'Failed to update status'));
     } finally {
       setUpdatingUserId(null);
     }
@@ -174,7 +175,7 @@ export const Dashboard = () => {
         }
       } catch (err: any) {
         console.error('❌ Dashboard API Error:', err);
-        setError(err.message || 'Failed to fetch dashboard stats');
+        setError(uiError(err.message || 'Failed to fetch dashboard stats'));
       } finally {
         setLoading(false);
       }
@@ -199,7 +200,7 @@ export const Dashboard = () => {
     const formData = new FormData(e.currentTarget);
     const gregDate = ethiopianToGregorianIso(eventEthDate);
     if (!gregDate) {
-      setError('Please select a valid Ethiopian date.');
+      setError(uiText("Please select a valid Ethiopian date."));
       return;
     }
     try {
@@ -212,10 +213,10 @@ export const Dashboard = () => {
       setShowEventModal(false);
       setEventEthDate('');
       refreshEvents();
-      setSuccessMessage('Event created successfully!');
-      setTimeout(() => setSuccessMessage(''), 3000);
+      setSuccessMessage(uiText("Event created successfully!"));
+      setTimeout(() => setSuccessMessage(uiText("")), 3000);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to create event');
+      setError(uiError(err.response?.data?.message || 'Failed to create event'));
     }
   };
 
@@ -225,7 +226,7 @@ export const Dashboard = () => {
     const formData = new FormData(e.currentTarget);
     const gregDate = ethiopianToGregorianIso(eventEthDate);
     if (!gregDate) {
-      setError('Please select a valid Ethiopian date.');
+      setError(uiText("Please select a valid Ethiopian date."));
       return;
     }
     try {
@@ -239,10 +240,10 @@ export const Dashboard = () => {
       setEditingEvent(null);
       setEventEthDate('');
       refreshEvents();
-      setSuccessMessage('Event updated successfully!');
-      setTimeout(() => setSuccessMessage(''), 3000);
+      setSuccessMessage(uiText("Event updated successfully!"));
+      setTimeout(() => setSuccessMessage(uiText("")), 3000);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to update event');
+      setError(uiError(err.response?.data?.message || 'Failed to update event'));
     }
   };
 
@@ -253,12 +254,12 @@ export const Dashboard = () => {
       setUpcomingEvents(prev => prev.filter(e => e.id !== deletingEvent.id));
       setShowDeleteConfirm(false);
       setDeletingEvent(null);
-      setSuccessMessage('Event deleted successfully!');
-      setTimeout(() => setSuccessMessage(''), 3000);
+      setSuccessMessage(uiText("Event deleted successfully!"));
+      setTimeout(() => setSuccessMessage(uiText("")), 3000);
     } catch (err: any) {
       setShowDeleteConfirm(false);
       setDeletingEvent(null);
-      setError(err.response?.data?.message || 'Failed to delete event');
+      setError(uiError(err.response?.data?.message || 'Failed to delete event'));
     }
   };
 
@@ -381,13 +382,13 @@ export const Dashboard = () => {
               </div>
             ) : error ? (
               <div className="col-span-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
-                <p className="text-sm text-amber-700 dark:text-amber-400">⚠️ Using mock data (API: {error})</p>
+                <p className="text-sm text-amber-700 dark:text-amber-400">{uiText("⚠️ Using mock data (API: ")}{uiError(error)}{uiText(")")}</p>
               </div>
             ) : null}
             <StatCard
               icon={Users}
               label={t('dashboard.totalStudents')}
-              value={dashboardStats?.totalStudents?.toLocaleString() || "0"}
+              value={dashboardStats?.totalStudents?.toLocaleString(localeTag()) || "0"}
               trend={dashboardStats?.totalStudents > 0 ? "+4.3%" : undefined}
               color="bg-blue-600"
             />
@@ -424,22 +425,22 @@ export const Dashboard = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mt-6">
                 <div className="rounded-3xl border border-slate-100 dark:border-slate-800 p-4 bg-slate-50 dark:bg-slate-950">
                   <p className="text-[10px] uppercase tracking-widest text-slate-400 mb-2">{t('dashboard.totalStudents', 'Total Students')}</p>
-                  <p className="text-2xl font-black text-slate-900 dark:text-slate-100">{totalStudentsCount.toLocaleString()}</p>
+                  <p className="text-2xl font-black text-slate-900 dark:text-slate-100">{uiText(totalStudentsCount.toLocaleString(localeTag()))}</p>
                 </div>
                 <div className="rounded-3xl border border-slate-100 dark:border-slate-800 p-4 bg-slate-50 dark:bg-slate-950">
                   <p className="text-[10px] uppercase tracking-widest text-slate-400 mb-2">{t('dashboard.totalTeachers', 'Total Teachers')}</p>
-                  <p className="text-2xl font-black text-slate-900 dark:text-slate-100">{teacherCount.toLocaleString()}</p>
+                  <p className="text-2xl font-black text-slate-900 dark:text-slate-100">{uiText(teacherCount.toLocaleString(localeTag()))}</p>
                 </div>
                 <div className="rounded-3xl border border-slate-100 dark:border-slate-800 p-4 bg-slate-50 dark:bg-slate-950">
                   <p className="text-[10px] uppercase tracking-widest text-slate-400 mb-2">{t('dashboard.teacherAttendance', 'Teacher Attendance')}</p>
                   <p className={`text-2xl font-black ${Number(teacherAttendance) >= 80 ? 'text-emerald-600' : Number(teacherAttendance) >= 60 ? 'text-amber-600' : 'text-rose-600'}`}>
-                    {loading ? '...' : `${teacherAttendance}%`}
+                    {uiText(loading ? '...' : `${teacherAttendance}%`)}
                   </p>
                 </div>
                 <div className="rounded-3xl border border-slate-100 dark:border-slate-800 p-4 bg-slate-50 dark:bg-slate-950">
                   <p className="text-[10px] uppercase tracking-widest text-slate-400 mb-2">{t('dashboard.studentAttendance', 'Student Attendance')}</p>
                   <p className={`text-2xl font-black ${Number(studentAttendance) >= 80 ? 'text-emerald-600' : Number(studentAttendance) >= 60 ? 'text-amber-600' : 'text-rose-600'}`}>
-                    {loading ? '...' : `${studentAttendance}%`}
+                    {uiText(loading ? '...' : `${studentAttendance}%`)}
                   </p>
                 </div>
               </div>
@@ -477,23 +478,23 @@ export const Dashboard = () => {
                     ) : branchHealth.length === 0 ? (
                       <tr>
                         <td colSpan={5} className="px-6 py-8 text-center">
-                          <div className="text-sm text-slate-500">No branch reports are available yet. Please refresh or check your branch report configuration.</div>
+                          <div className="text-sm text-slate-500">{uiText("No branch reports are available yet. Please refresh or check your branch report configuration.")}</div>
                         </td>
                       </tr>
                     ) : branchHealth.map((branch) => (
                       <tr key={branch?.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-black text-sm">{branch?.name?.[0] || ''}</div>
+                            <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-black text-sm">{uiText(branch?.name?.[0] || '')}</div>
                             <div>
-                              <p className="font-bold text-slate-800 dark:text-slate-100">{branch?.name || ''}</p>
-                              <p className="text-xs text-slate-500">{branch?.location || ''}</p>
+                              <p className="font-bold text-slate-800 dark:text-slate-100">{uiText(branch?.name || '')}</p>
+                              <p className="text-xs text-slate-500">{uiText(branch?.location || '')}</p>
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-center font-bold text-slate-700 dark:text-slate-200">{branch?.students ?? 0}</td>
-                        <td className="px-6 py-4 text-center font-bold text-slate-700 dark:text-slate-200">{branch?.teachers ?? 0}</td>
-                        <td className="px-6 py-4 text-center font-bold text-emerald-600">{branch?.attendance ?? 0}%</td>
+                        <td className="px-6 py-4 text-center font-bold text-slate-700 dark:text-slate-200">{uiText(branch?.students ?? 0)}</td>
+                        <td className="px-6 py-4 text-center font-bold text-slate-700 dark:text-slate-200">{uiText(branch?.teachers ?? 0)}</td>
+                        <td className="px-6 py-4 text-center font-bold text-emerald-600">{uiText(branch?.attendance ?? 0)}{uiText("%")}</td>
                         <td className="px-6 py-4 text-right">
                           <button
                             onClick={() => {
@@ -504,7 +505,7 @@ export const Dashboard = () => {
                             }}
                             className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${branch?.risk === 'Normal' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}
                           >
-                            {branch?.risk || ''}
+                            {uiText(branch?.risk || '')}
                           </button>
                         </td>
                       </tr>
@@ -519,11 +520,11 @@ export const Dashboard = () => {
               <div className="bg-white dark:bg-slate-900 rounded-3xl border border-amber-200 dark:border-amber-800/40 shadow-sm overflow-hidden">
                 <div className="p-6 border-b border-amber-100 dark:border-amber-800/30 flex items-center justify-between bg-amber-50/50 dark:bg-amber-950/10">
                   <div>
-                    <h3 className="text-lg font-bold text-amber-800 dark:text-amber-300">⚠️ Branches Needing Attention</h3>
-                    <p className="text-sm text-amber-600 dark:text-amber-400">Branches with attendance below the academic follow-up threshold.</p>
+                    <h3 className="text-lg font-bold text-amber-800 dark:text-amber-300">{uiText("⚠️ Branches Needing Attention")}</h3>
+                    <p className="text-sm text-amber-600 dark:text-amber-400">{uiText("Branches with attendance below the academic follow-up threshold.")}</p>
                   </div>
                   <span className="text-xs font-black uppercase tracking-widest text-amber-700 bg-amber-100 dark:bg-amber-900/40 px-3 py-1 rounded-full">
-                    {branchesNeedingAttention} branch{branchesNeedingAttention !== 1 ? 'es' : ''}
+                    {branchesNeedingAttention}{uiText(" branch")}{uiText(branchesNeedingAttention !== 1 ? 'es' : '')}
                   </span>
                 </div>
                 <div className="divide-y divide-amber-50 dark:divide-amber-900/20">
@@ -531,24 +532,22 @@ export const Dashboard = () => {
                     <div key={branch.id} className="p-4 flex items-center justify-between hover:bg-amber-50/30 dark:hover:bg-amber-950/10 transition-colors">
                       <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-xl bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 flex items-center justify-center font-black text-sm">
-                          {branch.name?.[0] || '?'}
+                          {uiText(branch.name?.[0] || '?')}
                         </div>
                         <div>
                           <p className="font-bold text-slate-800 dark:text-slate-100">{branch.name}</p>
-                          <p className="text-xs text-slate-500">{branch.location || ''}</p>
+                          <p className="text-xs text-slate-500">{uiText(branch.location || '')}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-4">
                         <div className="text-right hidden sm:block">
-                          <p className="text-xs text-slate-400">Attendance</p>
-                          <p className="font-black text-rose-600">{branch.attendance ?? '0'}%</p>
+                          <p className="text-xs text-slate-400">{uiText("Attendance")}</p>
+                          <p className="font-black text-rose-600">{uiText(branch.attendance ?? '0')}{uiText("%")}</p>
                         </div>
                         <button
                           onClick={() => { setSelectedBranchId(branch.id); setSelectedBranch(branch); }}
                           className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold transition-colors"
-                        >
-                          Review
-                        </button>
+                        >{uiText("Review")}</button>
                       </div>
                     </div>
                   ))}
@@ -570,13 +569,13 @@ export const Dashboard = () => {
                     </div>
                     <div>
                       <h3 className="font-bold text-slate-800 dark:text-slate-100 text-lg">{t("dashboard.pendingApprovals","Pending Approvals")}</h3>
-                      <p className="text-xs text-slate-500">Academic Managers, School Admins, and Vice Principals waiting for activation.</p>
+                      <p className="text-xs text-slate-500">{uiText("Academic Managers, School Admins, and Vice Principals waiting for activation.")}</p>
                     </div>
                   </div>
                   <button
                     onClick={() => setShowPendingModal(false)}
                     className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                    aria-label="Close modal"
+                    aria-label={uiText("Close modal")}
                   >
                     <X size={20} />
                   </button>
@@ -587,25 +586,23 @@ export const Dashboard = () => {
                   {fetchingPending ? (
                     <div className="flex flex-col items-center justify-center py-16">
                       <div className="inline-block w-10 h-10 border-4 border-emerald-600/30 border-t-emerald-600 rounded-full animate-spin" />
-                      <p className="text-sm text-slate-500 mt-4">Fetching pending applications...</p>
+                      <p className="text-sm text-slate-500 mt-4">{uiText("Fetching pending applications...")}</p>
                     </div>
                   ) : pendingError ? (
                     <div className="bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-2xl p-4 text-center">
-                      <p className="text-sm text-rose-800 dark:text-rose-200">{pendingError}</p>
+                      <p className="text-sm text-rose-800 dark:text-rose-200">{uiError(pendingError)}</p>
                       <button
                         onClick={fetchPendingUsers}
                         className="mt-3 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition-colors"
-                      >
-                        Try Again
-                      </button>
+                      >{uiText("Try Again")}</button>
                     </div>
                   ) : pendingUsersList.length === 0 ? (
                     <div className="text-center py-16">
                       <div className="w-16 h-16 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
                         <CheckCircle size={32} />
                       </div>
-                      <h4 className="font-bold text-slate-800 dark:text-slate-100 text-lg">All caught up!</h4>
-                      <p className="text-sm text-slate-500 mt-1 max-w-sm mx-auto">No pending Academic Manager, School Admin, or Vice Principal accounts require approval at this time.</p>
+                      <h4 className="font-bold text-slate-800 dark:text-slate-100 text-lg">{uiText("All caught up!")}</h4>
+                      <p className="text-sm text-slate-500 mt-1 max-w-sm mx-auto">{uiText("No pending Academic Manager, School Admin, or Vice Principal accounts require approval at this time.")}</p>
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -618,15 +615,15 @@ export const Dashboard = () => {
                             <div className="flex items-start justify-between gap-3">
                               <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-sm">
-                                  {pendingUser.name?.charAt(0).toUpperCase() || 'U'}
+                                  {(pendingUser.name?.charAt(0).toUpperCase() || 'U')}
                                 </div>
                                 <div>
                                   <h4 className="font-bold text-slate-800 dark:text-slate-100 text-sm leading-snug">{pendingUser.name}</h4>
-                                  <p className="text-xs text-slate-400 font-mono mt-0.5">{pendingUser.digital_id || pendingUser.digitalId || '—'}</p>
+                                  <p className="text-xs text-slate-400 font-mono mt-0.5">{uiText(pendingUser.digital_id || pendingUser.digitalId || '—')}</p>
                                 </div>
                               </div>
                               <span className="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg text-[10px] font-black uppercase tracking-wider">
-                                {pendingUser.role}
+                                {uiText(pendingUser.role)}
                               </span>
                             </div>
 
@@ -638,7 +635,7 @@ export const Dashboard = () => {
                               <div className="flex justify-between">
                                 <span>{t("dashboard.registeredLabel","Registered:")}</span>
                                 <span className="font-semibold text-slate-700 dark:text-slate-300">
-                                  {pendingUser.created_at ? new Date(pendingUser.created_at).toLocaleDateString() : '—'}
+                                  {uiText(pendingUser.created_at ? new Date(pendingUser.created_at).toLocaleDateString(localeTag()) : '—')}
                                 </span>
                               </div>
                             </div>
@@ -649,9 +646,7 @@ export const Dashboard = () => {
                               disabled={updatingUserId !== null}
                               onClick={() => handlePendingUserStatus(pendingUser.id, 'Revoked')}
                               className="flex-1 py-2 px-3 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl font-bold text-xs transition-colors disabled:opacity-50"
-                            >
-                              Reject
-                            </button>
+                            >{uiText("Reject")}</button>
                             <button
                               disabled={updatingUserId !== null}
                               onClick={() => handlePendingUserStatus(pendingUser.id, 'Approved')}
@@ -661,9 +656,7 @@ export const Dashboard = () => {
                                 <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                               ) : (
                                 <CheckCircle size={14} />
-                              )}
-                              Approve
-                            </button>
+                              )}{uiText("Approve")}</button>
                           </div>
                         </div>
                       ))}
@@ -676,9 +669,7 @@ export const Dashboard = () => {
                   <button
                     onClick={() => setShowPendingModal(false)}
                     className="px-6 py-2.5 bg-slate-900 dark:bg-slate-800 text-white font-bold rounded-xl text-xs hover:bg-slate-800 dark:hover:bg-slate-700 transition-colors"
-                  >
-                    Close
-                  </button>
+                  >{uiText("Close")}</button>
                 </div>
               </div>
             </div>
@@ -702,7 +693,7 @@ export const Dashboard = () => {
             <div className="flex items-center gap-3">
               <div className="px-4 py-3 rounded-2xl bg-white/10 border border-white/10 backdrop-blur-sm">
                 <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">{t('dashboard.currentBranch')}</p>
-                <p className="font-black text-white text-sm">{selectedBranch.location}</p>
+                <p className="font-black text-white text-sm">{uiText(selectedBranch.location)}</p>
               </div>
               <button
                 onClick={() => {
@@ -725,7 +716,7 @@ export const Dashboard = () => {
               <div className="p-2.5 bg-blue-100 text-blue-600 rounded-xl"><Users size={20} /></div>
               <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('dashboard.students')}</span>
             </div>
-            <p className="text-3xl font-black text-slate-800 dark:text-slate-100">{selectedBranchReport?.totalStudents ?? 0}</p>
+            <p className="text-3xl font-black text-slate-800 dark:text-slate-100">{uiText(selectedBranchReport?.totalStudents ?? 0)}</p>
             <p className="text-xs text-emerald-600 font-bold mt-1">{t("dashboard.branchStudentTotal","Branch-wide student total")}</p>
           </div>
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-6 shadow-sm hover:shadow-md transition-all">
@@ -733,7 +724,7 @@ export const Dashboard = () => {
               <div className="p-2.5 bg-purple-100 text-purple-600 rounded-xl"><GraduationCap size={20} /></div>
               <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('dashboard.teachers')}</span>
             </div>
-            <p className="text-3xl font-black text-slate-800 dark:text-slate-100">{selectedBranchTeacherCount}</p>
+            <p className="text-3xl font-black text-slate-800 dark:text-slate-100">{uiText(selectedBranchTeacherCount)}</p>
             <p className="text-xs text-slate-500 font-bold mt-1">{t("dashboard.teachingStaff","Teaching staff in branch")}</p>
           </div>
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-6 shadow-sm hover:shadow-md transition-all">
@@ -741,7 +732,7 @@ export const Dashboard = () => {
               <div className="p-2.5 bg-orange-100 text-orange-600 rounded-xl"><Clock size={20} /></div>
               <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('dashboard.attendance')}</span>
             </div>
-            <p className="text-3xl font-black text-slate-800 dark:text-slate-100">{selectedBranchReport?.attendance ? `${selectedBranchReport.attendance}%` : 'N/A'}</p>
+            <p className="text-3xl font-black text-slate-800 dark:text-slate-100">{uiText(selectedBranchReport?.attendance ? `${selectedBranchReport.attendance}%` : 'N/A')}</p>
             <p className="text-xs text-emerald-600 font-bold mt-1">{t("dashboard.branchAttendanceRate","Branch attendance rate")}</p>
           </div>
         </div>
@@ -761,22 +752,22 @@ export const Dashboard = () => {
               <h2 className="text-2xl md:text-3xl font-black">{user.name}</h2>
               <p className="text-blue-100 mt-2 flex items-center gap-2">
                 <span className="font-semibold">
-                  {(() => {
+                  {uiText((() => {
                     const branchId = (user as any).branchId;
                     console.log('🔍 Debug - User branchId:', branchId);
                     console.log('🔍 Debug - Branches array:', branches);
                     const foundBranch = branches.find(b => b.id === branchId);
                     console.log('🔍 Debug - Found branch:', foundBranch);
                     return foundBranch?.name || 'School';
-                  })()}
+                  })())}
                 </span>
-                <span className="text-blue-300">•</span>
-                <span className="text-sm">{formatEthiopianLabel(new Date())}</span>
+                <span className="text-blue-300">{uiText("•")}</span>
+                <span className="text-sm">{uiText(formatEthiopianLabel(new Date()))}</span>
               </p>
             </div>
             <div className="hidden md:block">
               <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-                <span className="text-3xl font-black">{user.name?.charAt(0)}</span>
+                <span className="text-3xl font-black">{uiText(user.name?.charAt(0))}</span>
               </div>
             </div>
           </div>
@@ -795,13 +786,13 @@ export const Dashboard = () => {
             </div>
             <div>
               <h3 className="font-bold text-slate-800 dark:text-slate-100">
-                {gradesLocked ? t("dashboard.gradeLocked","Grade Insertion is LOCKED") : t("dashboard.gradeOpen","Grade Insertion is OPEN")}
+                {uiText(gradesLocked ? t("dashboard.gradeLocked","Grade Insertion is LOCKED") : t("dashboard.gradeOpen","Grade Insertion is OPEN"))}
               </h3>
               <p className="text-sm text-slate-600 dark:text-slate-400">
-                {gradesLocked
+                {uiText(gradesLocked
                   ? 'System is currently performing averages and ranking.'
-                  : 'Teachers can currently enter and modify student grades.'}
-                {isSuperAdmin && ' (Super Admin: Read-only access)'}
+                  : 'Teachers can currently enter and modify student grades.')}
+                {uiText(isSuperAdmin && ' (Super Admin: Read-only access)')}
               </p>
             </div>
           </div>
@@ -809,13 +800,11 @@ export const Dashboard = () => {
             {isVP && (
               <button
                 onClick={() => {
-                  alert('Calculating Student Ranks for all sections...');
+                  alert(uiText("Calculating Student Ranks for all sections..."));
                 }}
                 className="w-full sm:w-auto px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold flex items-center justify-center gap-2 transition-colors shadow-lg shadow-blue-200 dark:shadow-none"
               >
-                <TrendingUp size={18} />
-                Calculate Ranks
-              </button>
+                <TrendingUp size={18} />{uiText("Calculate Ranks")}</button>
             )}
             {isSuperAdmin && (
               <button
@@ -825,7 +814,7 @@ export const Dashboard = () => {
                     : 'bg-amber-600 hover:bg-amber-700 text-white'
                   }`}
               >
-                {gradesLocked ? t('dashboard.openInsertion','Open Insertion') : t('dashboard.closeInsertion','Close Insertion')}
+                {uiText(gradesLocked ? t('dashboard.openInsertion','Open Insertion') : t('dashboard.closeInsertion','Close Insertion'))}
               </button>
             )}
           </div>
@@ -837,26 +826,26 @@ export const Dashboard = () => {
           <>
             <StatCard
               icon={Book}
-              label="Total Books"
+              label={uiText("Total Books")}
               value="2,450"
               color="bg-blue-600"
             />
             <StatCard
               icon={BookOpen}
-              label="Active Loans"
+              label={uiText("Active Loans")}
               value="184"
               trend="+12%"
               color="bg-purple-600"
             />
             <StatCard
               icon={AlertTriangle}
-              label="Overdue Books"
+              label={uiText("Overdue Books")}
               value="12"
               color="bg-rose-500"
             />
             <StatCard
               icon={Users}
-              label="Visitors Today"
+              label={uiText("Visitors Today")}
               value="42"
               color="bg-emerald-500"
             />
@@ -866,7 +855,7 @@ export const Dashboard = () => {
             <StatCard
               icon={Users}
               label={t("dashboard.totalStudents","Total Students")}
-              value={schoolAdminStats.totalStudents?.toLocaleString() || '0'}
+              value={schoolAdminStats.totalStudents?.toLocaleString(localeTag()) || '0'}
               trend="+4.3%"
               color="bg-blue-600"
             />
@@ -922,16 +911,16 @@ export const Dashboard = () => {
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <span className="rounded bg-blue-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-blue-700">
-                    {notice.category}
+                    {uiText(notice.category)}
                   </span>
                   <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${notice.priority === 'High' ? 'bg-rose-100 text-rose-700' : 'bg-slate-100 text-slate-500'
                     }`}>
-                    {notice.priority}
+                    {uiText(notice.priority)}
                   </span>
                 </div>
                 <div className="flex flex-col items-end gap-2">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-slate-400 font-medium">{notice.time}</span>
+                    <span className="text-xs text-slate-400 font-medium">{uiText(notice.time)}</span>
                     {isAdmin && (
                       <button
                         onClick={async () => {
@@ -943,13 +932,13 @@ export const Dashboard = () => {
                           deleteNotice(notice.id);
                         }}
                         className="text-slate-400 hover:text-rose-600 p-1 rounded-lg transition-colors"
-                        title="Delete Notice"
+                        title={uiText("Delete Notice")}
                       >
                         <Trash2 size={14} />
                       </button>
                     )}
                   </div>
-                  {notice.expiresAt && (() => {
+                  {uiText(notice.expiresAt && (() => {
                     // expiresAt is stored as an Ethiopian calendar string (YYYY-MM-DD E.C.)
                     // from the EthiopianDatePicker, so display it directly without
                     // re-converting through gregorianToEthiopian (which would shift the year ~7 years back).
@@ -958,11 +947,11 @@ export const Dashboard = () => {
                     if (parts.length === 3) {
                       const [yr, mo, dy] = parts.map(Number);
                       const label = `${dy} ${ethMonths[mo - 1] ?? ''} ${yr} E.C.`;
-                      return <span className="text-[10px] text-rose-400 italic font-medium">Expires: {label}</span>;
+                      return <span className="text-[10px] text-rose-400 italic font-medium">{uiText("Expires: ")}{uiText(label)}</span>;
                     }
                     // Fallback: if not in Ethiopian string format, try Gregorian conversion
-                    return <span className="text-[10px] text-rose-400 italic font-medium">Expires: {formatEthiopianLabel(notice.expiresAt)}</span>;
-                  })()}
+                    return <span className="text-[10px] text-rose-400 italic font-medium">{uiText("Expires: ")}{uiText(formatEthiopianLabel(notice.expiresAt))}</span>;
+                  })())}
                 </div>
               </div>
               <h4 className="font-bold text-slate-800 dark:text-slate-100 mb-2">{notice.title}</h4>
@@ -973,12 +962,12 @@ export const Dashboard = () => {
                 <div className="mt-3 pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center gap-1.5 flex-wrap">
                   <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{t("dashboard.audienceLabel","Audience:")}</span>
                   {notice.audience.includes('all') || notice.audience.length >= 5 ? (
-                    <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-violet-100 text-violet-700 uppercase">All Users</span>
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-violet-100 text-violet-700 uppercase">{uiText("All Users")}</span>
                   ) : (
                     notice.audience
                       .filter((a: string) => !['school-admin','super-admin'].includes(a))
                       .map((a: string) => (
-                        <span key={a} className="px-2 py-0.5 rounded-full text-[9px] font-black bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 uppercase">{a}</span>
+                        <span key={a} className="px-2 py-0.5 rounded-full text-[9px] font-black bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 uppercase">{uiText(a)}</span>
                       ))
                   )}
                 </div>
@@ -1020,8 +1009,8 @@ export const Dashboard = () => {
                         <div className={`w-2 h-2 rounded-full ${student.risk_level === 'High' ? 'bg-rose-500' : 'bg-amber-500'}`} />
                         <div>
                           <p className="text-sm font-bold text-slate-800 dark:text-slate-100">{student.name}</p>
-                          <p className="text-[10px] text-slate-400 font-medium uppercase">{student.grade} • {student.risk_level} Risk</p>
-                          <p className="text-[10px] text-slate-500 mt-1">{student.risk_factor}</p>
+                          <p className="text-[10px] text-slate-400 font-medium uppercase">{uiText(student.grade)}{uiText(" • ")}{uiText(student.risk_level)}{uiText(" Risk")}</p>
+                          <p className="text-[10px] text-slate-500 mt-1">{uiText(student.risk_factor)}</p>
                         </div>
                       </div>
                       <Link to={`/students/${student.student_id}`} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-white dark:hover:bg-slate-800 rounded-lg transition-all">
@@ -1047,33 +1036,31 @@ export const Dashboard = () => {
                 }}
                 className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-colors"
               >
-                <Plus size={14} />
-                Add Event
-              </button>
+                <Plus size={14} />{uiText("Add Event")}</button>
             )}
           </div>
           <div className="space-y-4">
             {upcomingEvents.length === 0 ? (
               <div className="text-center py-8">
-                <p className="text-sm text-slate-500">No upcoming events scheduled</p>
+                <p className="text-sm text-slate-500">{uiText("No upcoming events scheduled")}</p>
               </div>
             ) : (
               upcomingEvents.map((event) => {
                 const eventDate = new Date(event.date);
                 const day = eventDate.getDate();
-                const month = eventDate.toLocaleDateString('en-US', { month: 'short' });
+                const month = eventDate.toLocaleDateString(localeTag(), { month: 'short' });
                 return (
                   <div key={event.id} className="flex gap-4 p-4 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700">
                     <div className="text-center px-3 border-r border-slate-200 dark:border-slate-700">
                       <p className="text-lg font-bold text-blue-600 dark:text-blue-400">{day}</p>
-                      <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">{month}</p>
+                      <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">{uiText(month)}</p>
                     </div>
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-slate-800 dark:text-slate-200">{event.title}</p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{event.type}</p>
-                      {event.description && (
-                        <p className="text-xs text-slate-600 dark:text-slate-400 mt-2">{event.description}</p>
-                      )}
+                      <p className="text-sm font-medium text-slate-800 dark:text-slate-200">{uiText(event.title)}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{uiText(event.type)}</p>
+                      {uiText(event.description && (
+                        <p className="text-xs text-slate-600 dark:text-slate-400 mt-2">{uiText(event.description)}</p>
+                      ))}
                     </div>
                     {role === 'school-admin' && (
                       <div className="flex items-center gap-2">
@@ -1089,7 +1076,7 @@ export const Dashboard = () => {
                             setShowEventModal(true);
                           }}
                           className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                          title="Edit Event"
+                          title={uiText("Edit Event")}
                         >
                           <Edit size={16} />
                         </button>
@@ -1099,7 +1086,7 @@ export const Dashboard = () => {
                             setShowDeleteConfirm(true);
                           }}
                           className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                          title="Delete Event"
+                          title={uiText("Delete Event")}
                         >
                           <Trash2 size={16} />
                         </button>
@@ -1120,7 +1107,7 @@ export const Dashboard = () => {
               <h3 className="font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wider text-sm">{t('modals.postNoticeTitle', 'Post New Notice')}</h3>
               <button
                 type="button"
-                title="Close notice modal"
+                title={uiText("Close notice modal")}
                 onClick={() => { setShowNoticeModal(false); setNoticeExpiryEthDate(''); }}
                 className="text-slate-400 hover:text-slate-600 transition-colors"
               >
@@ -1184,31 +1171,31 @@ export const Dashboard = () => {
             }}>
               <div className="space-y-1">
                 <label className="text-[10px] font-bold text-slate-500 uppercase">{t('modals.noticeTitle', 'Notice Title')}</label>
-                <input name="title" required type="text" placeholder="e.g. Public Holiday Announcement" className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 transition-all" />
+                <input name="title" required type="text" placeholder={uiText("e.g. Public Holiday Announcement")} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 transition-all" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-slate-500 uppercase">{t('modals.category', 'Category')}</label>
                   <select
                     name="category"
-                    title="Select notice category"
+                    title={uiText("Select notice category")}
                     className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                   >
-                    <option value="Academic">Academic</option>
-                    <option value="General">General</option>
-                    <option value="Event">Event</option>
+                    <option value="Academic">{uiText("Academic")}</option>
+                    <option value="General">{uiText("General")}</option>
+                    <option value="Event">{uiText("Event")}</option>
                   </select>
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-slate-500 uppercase">{t('modals.priority', 'Priority')}</label>
                   <select
                     name="priority"
-                    title="Select notice priority level"
+                    title={uiText("Select notice priority level")}
                     className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                   >
-                    <option value="Normal">Normal</option>
-                    <option value="Medium">Medium</option>
-                    <option value="High">High</option>
+                    <option value="Normal">{uiText("Normal")}</option>
+                    <option value="Medium">{uiText("Medium")}</option>
+                    <option value="High">{uiText("High")}</option>
                   </select>
                 </div>
               </div>
@@ -1235,8 +1222,8 @@ export const Dashboard = () => {
                           : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
                       }`}
                     >
-                      <span className="text-sm font-bold text-slate-800 dark:text-slate-100 flex-1">{opt.label}</span>
-                      <span className="text-[10px] text-slate-400 hidden sm:block">{opt.desc}</span>
+                      <span className="text-sm font-bold text-slate-800 dark:text-slate-100 flex-1">{uiText(opt.label)}</span>
+                      <span className="text-[10px] text-slate-400 hidden sm:block">{uiText(opt.desc)}</span>
                       {selectedAudience === opt.value && (
                         <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
                       )}
@@ -1246,7 +1233,7 @@ export const Dashboard = () => {
               </div>
               <div className="space-y-1">
                 <label className="text-[10px] font-bold text-slate-500 uppercase">{t('modals.content', 'Content')}</label>
-                <textarea name="content" required rows={4} placeholder="Write the details of the notice here..." className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 transition-all" />
+                <textarea name="content" required rows={4} placeholder={uiText("Write the details of the notice here...")} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 transition-all" />
               </div>
               <div className="space-y-1">
                 <label className="text-[10px] font-bold text-slate-500 uppercase">{t('modals.expiryDate', 'Expiry Date (Ethiopian Calendar)')}</label>
@@ -1255,7 +1242,7 @@ export const Dashboard = () => {
                   onChange={(gregorianIso) => {
                     setNoticeExpiryEthDate(gregorianIso);
                   }}
-                  placeholder="Select Ethiopian expiry date"
+                  placeholder={uiText("Select Ethiopian expiry date")}
                   className="w-full"
                 />
                 <input name="expiresAt" type="hidden" value={noticeExpiryEthDate} />
@@ -1271,7 +1258,7 @@ export const Dashboard = () => {
                   ) : (
                     <Bell size={18} />
                   )}
-                  <span>{postingNotice ? t('modals.publishing', 'Publishing...') : t('modals.publishNotice', 'Publish Notice')}</span>
+                  <span>{uiText(postingNotice ? t('modals.publishing', 'Publishing...') : t('modals.publishNotice', 'Publish Notice'))}</span>
                 </button>
               </div>
             </form>
@@ -1279,14 +1266,14 @@ export const Dashboard = () => {
         </div>
       )}
 
-      {successMessage && (
+      {uiText(successMessage && (
         <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-top-2 duration-300">
           <div className="bg-emerald-600 text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3">
             <CheckCircle size={20} />
-            <span className="font-bold">{successMessage}</span>
+            <span className="font-bold">{uiText(successMessage)}</span>
           </div>
         </div>
-      )}
+      ))}
 
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -1298,9 +1285,7 @@ export const Dashboard = () => {
               <h3 className="font-bold text-slate-800 dark:text-slate-100">{t('modals.deleteEvent', 'Delete Event')}</h3>
             </div>
             <div className="p-6">
-              <p className="text-slate-600 dark:text-slate-400 mb-6">
-                Are you sure you want to delete <span className="font-bold text-slate-800 dark:text-slate-100">"{deletingEvent?.title}"</span>? This action cannot be undone.
-              </p>
+              <p className="text-slate-600 dark:text-slate-400 mb-6">{uiText("Are you sure you want to delete ")}<span className="font-bold text-slate-800 dark:text-slate-100">{uiText("\"")}{uiText(deletingEvent?.title)}{uiText("\"")}</span>{uiText("? This action cannot be undone.")}</p>
               <div className="flex gap-3">
                 <button
                   onClick={() => {
@@ -1308,16 +1293,12 @@ export const Dashboard = () => {
                     setDeletingEvent(null);
                   }}
                   className="flex-1 px-4 py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-                >
-                  Cancel
-                </button>
+                >{uiText("Cancel")}</button>
                 <button
                   onClick={handleDeleteEvent}
                   className="flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold transition-colors flex items-center justify-center gap-2"
                 >
-                  <Trash2 size={18} />
-                  Delete Event
-                </button>
+                  <Trash2 size={18} />{uiText("Delete Event")}</button>
               </div>
             </div>
           </div>
@@ -1329,11 +1310,11 @@ export const Dashboard = () => {
           <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/50 shrink-0">
               <h3 className="font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wider text-sm">
-                {editingEvent ? t('modals.editEventTitle','Edit Event') : t('modals.addEventTitle','Create New Event')}
+                {uiText(editingEvent ? t('modals.editEventTitle','Edit Event') : t('modals.addEventTitle','Create New Event'))}
               </h3>
               <button
                 type="button"
-                title="Close event modal"
+                title={uiText("Close event modal")}
                 onClick={() => {
                   setShowEventModal(false);
                   setEditingEvent(null);
@@ -1352,7 +1333,7 @@ export const Dashboard = () => {
                   required
                   type="text"
                   defaultValue={editingEvent?.title}
-                  placeholder="e.g. Parent-Teacher Meeting"
+                  placeholder={uiText("e.g. Parent-Teacher Meeting")}
                   className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                 />
               </div>
@@ -1362,7 +1343,7 @@ export const Dashboard = () => {
                   <EthiopianDatePicker
                     value={eventEthDate}
                     onChange={setEventEthDate}
-                    placeholder="YYYY-MM-DD"
+                    placeholder={uiText("YYYY-MM-DD")}
                     className="w-full"
                   />
                 </div>
@@ -1370,15 +1351,15 @@ export const Dashboard = () => {
                   <label className="text-[10px] font-bold text-slate-500 uppercase">{t('modals.type', 'Type')}</label>
                   <select
                     name="type"
-                    title="Select event type"
+                    title={uiText("Select event type")}
                     required
                     defaultValue={editingEvent?.type}
                     className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                   >
-                    <option value="Meeting">Meeting</option>
-                    <option value="Event">Event</option>
-                    <option value="Exam">Exam</option>
-                    <option value="Holiday">Holiday</option>
+                    <option value="Meeting">{uiText("Meeting")}</option>
+                    <option value="Event">{uiText("Event")}</option>
+                    <option value="Exam">{uiText("Exam")}</option>
+                    <option value="Holiday">{uiText("Holiday")}</option>
                   </select>
                 </div>
               </div>
@@ -1388,14 +1369,14 @@ export const Dashboard = () => {
                   name="description"
                   rows={3}
                   defaultValue={editingEvent?.description || ''}
-                  placeholder="Event details..."
+                  placeholder={uiText("Event details...")}
                   className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                 />
               </div>
               <div className="pt-4">
                 <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-blue-200 dark:shadow-none flex items-center justify-center gap-2">
                   <Calendar size={18} />
-                  <span>{editingEvent ? t('modals.updateEvent', 'Update Event') : t('modals.createEvent', 'Create Event')}</span>
+                  <span>{uiText(editingEvent ? t('modals.updateEvent', 'Update Event') : t('modals.createEvent', 'Create Event'))}</span>
                 </button>
               </div>
             </form>

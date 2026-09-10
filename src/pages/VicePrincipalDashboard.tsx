@@ -1,3 +1,4 @@
+import { uiText } from "../localization";
 import { useTranslation } from 'react-i18next';
 import { Users, GraduationCap, Clock, ChevronRight, BarChart3, Lock, CheckCircle2, Unlock, BookOpen } from 'lucide-react';
 import { useUser } from '../context/UserContext';
@@ -9,8 +10,8 @@ const StatCard = ({ icon: Icon, label, value, color }: any) => (
     <div className="flex items-center justify-between mb-4">
       <div className={`${color} p-3 rounded-2xl text-white`}><Icon size={20} /></div>
     </div>
-    <h3 className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-widest">{label}</h3>
-    <p className="text-3xl font-black text-slate-800 dark:text-slate-100 mt-1">{value}</p>
+    <h3 className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-widest">{uiText(label)}</h3>
+    <p className="text-3xl font-black text-slate-800 dark:text-slate-100 mt-1">{uiText(value)}</p>
   </div>
 );
 
@@ -39,7 +40,7 @@ export const VicePrincipalDashboard = () => {
       setStaffAbsentCount(absentData.absentCount);
     } catch (err: any) {
       console.error('VP Dashboard error:', err);
-      showToast('Failed to load vice principal dashboard data.', 'error');
+      showToast(uiText("Failed to load vice principal dashboard data."), 'error');
     } finally {
       setLoading(false);
     }
@@ -53,7 +54,7 @@ export const VicePrincipalDashboard = () => {
     return (
       <div className="flex flex-col items-center justify-center h-96">
         <div className="w-12 h-12 border-4 border-indigo-600/30 border-t-indigo-600 rounded-full animate-spin mb-4" />
-        <p className="text-slate-500 dark:text-slate-400 animate-pulse font-medium">Assembling VP Portal...</p>
+        <p className="text-slate-500 dark:text-slate-400 animate-pulse font-medium">{uiText("Assembling VP Portal...")}</p>
       </div>
     );
   }
@@ -100,9 +101,9 @@ export const VicePrincipalDashboard = () => {
           <div>
             <h3 className="font-bold text-slate-800 dark:text-white text-lg">{t("vp.staffAbsenceSummary", "Staff Absence Summary")}</h3>
             <p className="text-xs text-slate-500 mt-1">
-              {staffAbsentCount != null
+              {uiText(staffAbsentCount != null
                 ? t("vp.staffAbsentCount", { count: staffAbsentCount, defaultValue: `${staffAbsentCount} staff member(s) have not checked in today` })
-                : t("vp.calculatingAbsent", "Calculating absent staff...")}
+                : t("vp.calculatingAbsent", "Calculating absent staff..."))}
             </p>
           </div>
           <Link
@@ -181,7 +182,7 @@ export const VicePrincipalDashboard = () => {
               : 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900/40 text-red-800 dark:text-red-300'
             }`}>
             <CheckCircle2 className="text-emerald-500" size={20} />
-            <p className="text-sm font-semibold">{toast.message}</p>
+            <p className="text-sm font-semibold">{uiText(toast.message)}</p>
           </div>
         </div>
       )}

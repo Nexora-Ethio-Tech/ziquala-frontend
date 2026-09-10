@@ -1,3 +1,4 @@
+import { uiError, uiText } from "../localization";
 import React from 'react';
 
 type PhoneInputProps = {
@@ -17,11 +18,9 @@ const PhoneInput: React.FC<PhoneInputProps> = ({ label, value, onChange, error, 
 
   return (
     <div className="flex flex-col space-y-1">
-      <label className="text-xs font-bold text-slate-500 uppercase">{label}</label>
+      <label className="text-xs font-bold text-slate-500 uppercase">{uiText(label)}</label>
       <div className="flex items-center space-x-0">
-        <span className="bg-slate-100 dark:bg-slate-800 px-3 py-2 border border-r-0 border-slate-200 dark:border-slate-700 rounded-l-lg text-slate-600 dark:text-slate-300 text-sm font-semibold select-none">
-          +251
-        </span>
+        <span className="bg-slate-100 dark:bg-slate-800 px-3 py-2 border border-r-0 border-slate-200 dark:border-slate-700 rounded-l-lg text-slate-600 dark:text-slate-300 text-sm font-semibold select-none">{uiText("+251")}</span>
         <input
           type="text"
           maxLength={9}
@@ -30,10 +29,10 @@ const PhoneInput: React.FC<PhoneInputProps> = ({ label, value, onChange, error, 
           className={`flex-1 px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-r-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 ${
             error ? 'border-red-500 focus:ring-red-500' : ''
           }`}
-          placeholder={placeholder}
+          placeholder={uiText(placeholder)}
         />
       </div>
-      {error && <p className="text-red-500 text-[11px] font-semibold mt-0.5">{error}</p>}
+      {uiText(error && <p className="text-red-500 text-[11px] font-semibold mt-0.5">{uiError(error)}</p>)}
     </div>
   );
 };

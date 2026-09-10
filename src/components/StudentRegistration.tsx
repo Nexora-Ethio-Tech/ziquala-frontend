@@ -1,3 +1,4 @@
+import { uiError, uiText } from "../localization";
 
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -292,7 +293,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
     try {
       await toggleRegistration(newValue);
       setRegistrationOpen(newValue);
-      setSuccessMessage(`Registration is now ${newValue ? 'open' : 'closed'}.`);
+      setSuccessMessage(uiText("Registration is now {{value0}}.", { value0: uiText(newValue ? 'open' : 'closed') }));
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err: any) {
       console.error('Failed to toggle registration:', err);
@@ -619,7 +620,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
         return;
       }
 
-      setSuccessMessage(isAdminView ? 'Student registered successfully!' : 'Your application has been submitted successfully! We will contact you soon.');
+      setSuccessMessage(uiText(isAdminView ? 'Student registered successfully!' : 'Your application has been submitted successfully! We will contact you soon.'));
       setValidationErrors({});
 
       if (formRef.current) {
@@ -692,7 +693,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
 
   const showPhoneNotice = (phone: string, message: string) => {
     const contact = displayValue(phone) === '—' ? 'the parent phone on file' : phone;
-    setEmailToast(`📱 Notify ${contact}: ${message}`);
+    setEmailToast(uiText("📱 Notify {{value0}}: {{value1}}", { value0: contact, value1: message }));
     setTimeout(() => setEmailToast(null), 4000);
   };
 
@@ -701,7 +702,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
       await updateApplicationStatus(appId, { status: 'declined' });
       const app = pendingApps.find(a => a.id === appId);
       setPendingApps(prev => prev.map(a => a.id === appId ? { ...a, status: 'declined' as AppStatus } : a));
-      setSuccessMessage(`Application ${appId} has been declined.`);
+      setSuccessMessage(uiText("Application {{value0}} has been declined.", { value0: appId }));
       if (app) showPhoneNotice(app.phone, 'Application not accepted — contact family by phone');
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err: any) {
@@ -715,7 +716,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
     try {
       await updateApplicationStatus(appId, { status: 'exam-pending' });
       setPendingApps(prev => prev.map(a => a.id === appId ? { ...a, status: 'exam-pending' as AppStatus } : a));
-      setSuccessMessage('Applicant moved to Pass After Exam queue.');
+      setSuccessMessage(uiText("Applicant moved to Pass After Exam queue."));
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err: any) {
       console.error(err);
@@ -755,7 +756,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
 
       const app = pendingApps.find(a => a.id === selectedAppForGrade);
       setPendingApps(prev => prev.map(a => a.id === selectedAppForGrade ? { ...a, status: 'awaiting-payment' as AppStatus, lastGrade: selectedGrade } : a));
-      setSuccessMessage(`${app?.name} is ready for final enrollment in Grade ${selectedGrade}.`);
+      setSuccessMessage(uiText("{{value0}} is ready for final enrollment in Grade {{value1}}.", { value0: app?.name, value1: selectedGrade }));
       if (app) showPhoneNotice(app.phone, `Grade ${selectedGrade} assigned — final enrollment is ready`);
 
       setShowGradeModal(false);
@@ -802,7 +803,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
         });
         const targetId = appForApproval.id;
         setPendingApps(prev => prev.map(a => a.id === targetId ? { ...a, status: 'payment-confirmed' as AppStatus } : a));
-        setSuccessMessage(`${student.name} enrolled successfully.`);
+        setSuccessMessage(uiText("{{value0}} enrolled successfully.", { value0: student.name }));
         if (appForApproval) showPhoneNotice(phone || appForApproval.phone, 'Application approved — officially enrolled');
 
         setShowApprovalModal(false);
@@ -827,7 +828,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
       } else if (!paid) {
         await updateApplicationStatus(appId, { status: 'declined' });
         setPendingApps(prev => prev.map(a => a.id === appId ? { ...a, status: 'declined' as AppStatus } : a));
-        setSuccessMessage(`${app?.name} application closed.`);
+        setSuccessMessage(uiText("{{value0}} application closed.", { value0: app?.name }));
         if (app) showPhoneNotice(app.phone, 'Application closed by school administration');
         setTimeout(() => setSuccessMessage(null), 3000);
       }
@@ -855,24 +856,24 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
 
   return (
     <div className="space-y-6">
-      {emailToast && (
+      {uiText(emailToast && (
         <div className="fixed top-6 right-6 z-[300] bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 animate-in slide-in-from-right-8 text-sm font-bold max-w-md">
           <Clock size={18} className="text-blue-400 flex-shrink-0" />
-          <span>{emailToast}</span>
+          <span>{uiText(emailToast)}</span>
         </div>
-      )}
-      {successMessage && (
+      ))}
+      {uiText(successMessage && (
         <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 px-6 py-4 rounded-2xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4 shadow-lg shadow-emerald-500/5">
           <CheckCircle size={20} className="text-emerald-500" />
-          <span className="font-bold text-sm">{successMessage}</span>
+          <span className="font-bold text-sm">{uiText(successMessage)}</span>
         </div>
-      )}
-      {submitError && (
+      ))}
+      {uiText(submitError && (
         <div className="bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-400 px-6 py-4 rounded-2xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4 shadow-lg shadow-rose-500/5">
           <AlertCircle size={20} className="text-rose-500" />
-          <span className="font-bold text-sm">{submitError}</span>
+          <span className="font-bold text-sm">{uiError(submitError)}</span>
         </div>
-      )}
+      ))}
 
       {isAdminView && (
         <div className="flex flex-col sm:flex-row gap-2 p-1.5 bg-slate-100 dark:bg-slate-800/50 rounded-2xl w-fit border border-slate-200 dark:border-slate-800">
@@ -886,17 +887,14 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
             {t('registration.newAdmissions')}
           </button>
           {isAcademicAdmin && (
-            <div className="flex items-center gap-3 px-4 py-2 text-slate-400" title="Student promotion will be enabled after the reviewed academic rollover workflow is implemented.">
+            <div className="flex items-center gap-3 px-4 py-2 text-slate-400" title={uiText("Student promotion will be enabled after the reviewed academic rollover workflow is implemented.")}>
               <button
                 type="button"
                 disabled
                 className="px-4 py-1 text-xs font-black uppercase tracking-widest cursor-not-allowed opacity-60"
               >
-                {t('registration.reEnrollment')} unavailable
-              </button>
-              <span className="hidden lg:inline text-[10px] font-bold uppercase tracking-wide">
-                Academic rollover is not yet available
-              </span>
+                {t('registration.reEnrollment')}{uiText(" unavailable")}</button>
+              <span className="hidden lg:inline text-[10px] font-bold uppercase tracking-wide">{uiText("Academic rollover is not yet available")}</span>
             </div>
           )}
         </div>
@@ -909,7 +907,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
             {isAcademicAdmin && (
               <div
                 onClick={() => handleToggleRegistration(!registrationOpen)}
-                title={registrationOpen ? 'Click to close registration' : 'Click to open registration'}
+                title={uiText(registrationOpen ? 'Click to close registration' : 'Click to open registration')}
                 className={`p-4 rounded-2xl border-2 transition-all flex items-center justify-between cursor-pointer select-none hover:opacity-90 active:scale-[0.99] ${registrationOpen ? 'border-emerald-200 bg-emerald-50 dark:bg-emerald-900/10' : 'border-rose-200 bg-rose-50 dark:bg-rose-900/10'}`}
               >
                 <div className="flex items-center gap-3">
@@ -917,11 +915,10 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                     <Shield size={18} />
                   </div>
                   <div>
-                    <p className={`text-sm font-black uppercase tracking-tight ${registrationOpen ? 'text-emerald-700' : 'text-rose-700'}`}>
-                      Registration {registrationOpen ? 'Open' : 'Closed'}
+                    <p className={`text-sm font-black uppercase tracking-tight ${registrationOpen ? 'text-emerald-700' : 'text-rose-700'}`}>{uiText("Registration ")}{uiText(registrationOpen ? 'Open' : 'Closed')}
                     </p>
                     <p className={`text-[10px] font-medium ${registrationOpen ? 'text-emerald-600' : 'text-rose-600'}`}>
-                      {registrationOpen ? 'New applications are being accepted.' : 'Public registration form is disabled.'}
+                      {uiText(registrationOpen ? 'New applications are being accepted.' : 'Public registration form is disabled.')}
                     </p>
                   </div>
                 </div>
@@ -949,7 +946,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                     : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-800 hover:border-slate-300'
                     }`}
                 >
-                  {tab.label}
+                  {uiText(tab.label)}
                   <span className={`px-2 py-0.5 rounded-lg text-[10px] font-black ${pipelineFilter === tab.key ? 'bg-white/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'
                     }`}>
                     {pipelineCounts[tab.key]}
@@ -962,7 +959,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
             <div className="grid grid-cols-1 gap-6">
               {filteredPipelineApps.map(app => (
                 <div key={app.id} className="bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 p-8 hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-500 space-y-6 group">
-                  <div 
+                  <div
                     onClick={() => {
                       setExpandedAppIds(prev => ({
                         ...prev,
@@ -986,10 +983,10 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                         </h4>
                         {expandedAppIds[app.id] && (
                           <>
-                            <p className="text-[10px] text-slate-400 dark:text-slate-500 font-black uppercase tracking-[0.2em] mt-1">Grade {app.lastGrade} • {app.date}</p>
-                            {app.removalReason && (
-                              <p className="text-xs text-rose-600 dark:text-rose-400 font-bold mt-2">Returned to School Admin: {app.removalReason}</p>
-                            )}
+                            <p className="text-[10px] text-slate-400 dark:text-slate-500 font-black uppercase tracking-[0.2em] mt-1">{uiText("Grade ")}{uiText(app.lastGrade)}{uiText(" • ")}{uiText(app.date)}</p>
+                            {uiText(app.removalReason && (
+                              <p className="text-xs text-rose-600 dark:text-rose-400 font-bold mt-2">{uiText("Returned to School Admin: ")}{uiText(app.removalReason)}</p>
+                            ))}
                           </>
                         )}
                       </div>
@@ -1000,7 +997,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                         app.status === 'declined' ? 'bg-rose-100/50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-800/50' :
                           'bg-emerald-100/50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/50'
                       }`}>
-                      {app.status === 'exam-pending' ? 'Pass After Exam' : app.status.replace(/-/g, ' ')}
+                      {uiText(app.status === 'exam-pending' ? 'Pass After Exam' : app.status.replace(/-/g, ' '))}
                     </span>
                   </div>
 
@@ -1008,43 +1005,43 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                     <>
                       <div className="space-y-4">
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
-                          <div><p className="text-[10px] font-bold text-slate-400 uppercase">Date of Birth</p><p className="font-bold dark:text-slate-200">{app.dob ? formatEthiopianDateOnly(app.dob) : '—'}</p></div>
-                          <div><p className="text-[10px] font-bold text-slate-400 uppercase">Gender</p><p className="font-bold dark:text-slate-200">{displayValue(app.gender)}</p></div>
-                          <div><p className="text-[10px] font-bold text-slate-400 uppercase">Grade Applying</p><p className="font-bold dark:text-slate-200">Grade {displayValue(app.lastGrade)}</p></div>
+                          <div><p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Date of Birth")}</p><p className="font-bold dark:text-slate-200">{uiText(app.dob ? formatEthiopianDateOnly(app.dob) : '—')}</p></div>
+                          <div><p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Gender")}</p><p className="font-bold dark:text-slate-200">{uiText(displayValue(app.gender))}</p></div>
+                          <div><p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Grade Applying")}</p><p className="font-bold dark:text-slate-200">{uiText("Grade ")}{uiText(displayValue(app.lastGrade))}</p></div>
                         </div>
 
                         {/* Father & Mother Details */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs pt-3 border-t border-slate-100 dark:border-slate-800">
                           <div className="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl space-y-1">
-                            <p className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest mb-1">Father's Information</p>
-                            <p className="font-bold dark:text-slate-200">Name: {displayValue(app.fatherName)}</p>
-                            <p className="text-slate-600 dark:text-slate-400">Occupation: {displayValue(app.fatherOccupation)}</p>
-                            <p className="text-slate-600 dark:text-slate-400">Phone: {displayValue(app.fatherPhone)}</p>
+                            <p className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest mb-1">{uiText("Father's Information")}</p>
+                            <p className="font-bold dark:text-slate-200">{uiText("Name: ")}{uiText(displayValue(app.fatherName))}</p>
+                            <p className="text-slate-600 dark:text-slate-400">{uiText("Occupation: ")}{uiText(displayValue(app.fatherOccupation))}</p>
+                            <p className="text-slate-600 dark:text-slate-400">{uiText("Phone: ")}{uiText(displayValue(app.fatherPhone))}</p>
                           </div>
                           <div className="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl space-y-1">
-                            <p className="text-[10px] font-black text-purple-600 dark:text-purple-400 uppercase tracking-widest mb-1">Mother's Information</p>
-                            <p className="font-bold dark:text-slate-200">Name: {displayValue(app.motherName)}</p>
-                            <p className="text-slate-600 dark:text-slate-400">Occupation: {displayValue(app.motherOccupation)}</p>
-                            <p className="text-slate-600 dark:text-slate-400">Phone: {displayValue(app.motherPhone)}</p>
+                            <p className="text-[10px] font-black text-purple-600 dark:text-purple-400 uppercase tracking-widest mb-1">{uiText("Mother's Information")}</p>
+                            <p className="font-bold dark:text-slate-200">{uiText("Name: ")}{uiText(displayValue(app.motherName))}</p>
+                            <p className="text-slate-600 dark:text-slate-400">{uiText("Occupation: ")}{uiText(displayValue(app.motherOccupation))}</p>
+                            <p className="text-slate-600 dark:text-slate-400">{uiText("Phone: ")}{uiText(displayValue(app.motherPhone))}</p>
                           </div>
                         </div>
 
                         {/* Residence & Personal Details */}
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs pt-3 border-t border-slate-100 dark:border-slate-800">
-                          <div><p className="text-[10px] font-bold text-slate-400 uppercase">Place of Birth</p><p className="font-bold dark:text-slate-200">{displayValue(app.placeOfBirth)}</p></div>
-                          <div><p className="text-[10px] font-bold text-slate-400 uppercase">Religion</p><p className="font-bold dark:text-slate-200">{displayValue(app.religion)}</p></div>
+                          <div><p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Place of Birth")}</p><p className="font-bold dark:text-slate-200">{uiText(displayValue(app.placeOfBirth))}</p></div>
+                          <div><p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Religion")}</p><p className="font-bold dark:text-slate-200">{uiText(displayValue(app.religion))}</p></div>
                         </div>
 
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs pt-2 border-t border-slate-100 dark:border-slate-800">
-                          <div><p className="text-[10px] font-bold text-slate-400 uppercase">Parent / Guardian</p><p className="font-bold dark:text-slate-200">{displayValue(app.parentName)}</p></div>
-                          <div><p className="text-[10px] font-bold text-slate-400 uppercase">Contact Phone</p><p className="font-bold dark:text-slate-200">{displayValue(app.phone)}</p></div>
-                          <div className="md:col-span-2"><p className="text-[10px] font-bold text-slate-400 uppercase">Address</p><p className="font-bold dark:text-slate-200">{displayValue(app.address)}</p></div>
+                          <div><p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Parent / Guardian")}</p><p className="font-bold dark:text-slate-200">{uiText(displayValue(app.parentName))}</p></div>
+                          <div><p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Contact Phone")}</p><p className="font-bold dark:text-slate-200">{uiText(displayValue(app.phone))}</p></div>
+                          <div className="md:col-span-2"><p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Address")}</p><p className="font-bold dark:text-slate-200">{uiText(displayValue(app.address))}</p></div>
                         </div>
 
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs pt-2 border-t border-slate-100 dark:border-slate-800">
-                          <div><p className="text-[10px] font-bold text-slate-400 uppercase">Previous School</p><p className="font-bold dark:text-slate-200">{displayValue(app.previousSchool)}</p></div>
+                          <div><p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Previous School")}</p><p className="font-bold dark:text-slate-200">{uiText(displayValue(app.previousSchool))}</p></div>
                           <div className="md:col-span-3">
-                            <p className="text-[10px] font-bold text-slate-400 uppercase">Transcript</p>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Transcript")}</p>
                             {app.transcriptFileName ? (
                               <div className="flex items-center gap-2 mt-1">
                                 <a
@@ -1055,38 +1052,38 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                                   className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg text-xs font-bold hover:underline"
                                 >
                                   <FileText size={14} />
-                                  {app.transcriptFileName} {app.transcriptFileSize ? `(${(app.transcriptFileSize / 1024).toFixed(0)} KB)` : ''}
+                                  {uiText(app.transcriptFileName)} {uiText(app.transcriptFileSize ? `(${(app.transcriptFileSize / 1024).toFixed(0)} KB)` : '')}
                                 </a>
                               </div>
                             ) : (
-                              <p className="font-bold dark:text-slate-200">—</p>
+                              <p className="font-bold dark:text-slate-200">{uiText("—")}</p>
                             )}
                           </div>
                         </div>
 
-                        {(app.bloodGroup || app.allergies || app.chronicConditions || app.medications) && (
+                        {uiText((app.bloodGroup || app.allergies || app.chronicConditions || app.medications) && (
                           <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800">
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2"><HeartPulse size={12} /> Medical Information</p>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2"><HeartPulse size={12} />{uiText(" Medical Information")}</p>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-                              <div><span className="text-[10px] text-slate-500 font-bold uppercase">Blood Group</span><p className="font-bold dark:text-slate-200">{displayValue(app.bloodGroup)}</p></div>
-                              <div><span className="text-[10px] text-slate-500 font-bold uppercase">Allergies</span><p className="font-bold dark:text-slate-200">{displayValue(app.allergies)}</p></div>
-                              <div><span className="text-[10px] text-slate-500 font-bold uppercase">Chronic Conditions</span><p className="font-bold dark:text-slate-200">{displayValue(app.chronicConditions)}</p></div>
-                              <div><span className="text-[10px] text-slate-500 font-bold uppercase">Medications</span><p className="font-bold dark:text-slate-200">{displayValue(app.medications)}</p></div>
+                              <div><span className="text-[10px] text-slate-500 font-bold uppercase">{uiText("Blood Group")}</span><p className="font-bold dark:text-slate-200">{uiText(displayValue(app.bloodGroup))}</p></div>
+                              <div><span className="text-[10px] text-slate-500 font-bold uppercase">{uiText("Allergies")}</span><p className="font-bold dark:text-slate-200">{uiText(displayValue(app.allergies))}</p></div>
+                              <div><span className="text-[10px] text-slate-500 font-bold uppercase">{uiText("Chronic Conditions")}</span><p className="font-bold dark:text-slate-200">{uiText(displayValue(app.chronicConditions))}</p></div>
+                              <div><span className="text-[10px] text-slate-500 font-bold uppercase">{uiText("Medications")}</span><p className="font-bold dark:text-slate-200">{uiText(displayValue(app.medications))}</p></div>
                             </div>
                           </div>
-                        )}
+                        ))}
 
-                        {app.notes && (
+                        {uiText(app.notes && (
                           <div className="p-3 bg-blue-50 dark:bg-blue-900/10 rounded-xl border border-blue-100 dark:border-blue-800/30 text-xs">
-                            <p className="text-[10px] font-bold text-blue-600 uppercase mb-1">Notes</p>
-                            <p className="text-blue-900 dark:text-blue-200 font-medium">{app.notes}</p>
+                            <p className="text-[10px] font-bold text-blue-600 uppercase mb-1">{uiText("Notes")}</p>
+                            <p className="text-blue-900 dark:text-blue-200 font-medium">{uiText(app.notes)}</p>
                           </div>
-                        )}
+                        ))}
                       </div>
 
                       {/* Action Buttons per Status */}
                       <div className="flex flex-wrap items-center gap-3 pt-6 border-t border-slate-50 dark:border-slate-800">
-                        {(app.status === 'pending' || app.transcriptFileName) && (
+                        {uiText((app.status === 'pending' || app.transcriptFileName) && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -1095,31 +1092,30 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                             disabled={!app.transcriptFileName}
                             className="px-5 py-2.5 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 disabled:opacity-40 disabled:cursor-not-allowed rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all"
                           >
-                            <FileText size={16} /> View Transcript
-                          </button>
-                        )}
+                            <FileText size={16} />{uiText(" View Transcript")}</button>
+                        ))}
                         {app.status === 'pending' && (
                           <>
-                            <button onClick={(e) => { e.stopPropagation(); handleDecline(app.id); }} className="px-5 py-2.5 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all"><X size={16} /> Decline</button>
-                            <button onClick={(e) => { e.stopPropagation(); handlePassAfterExam(app.id); }} className="px-6 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all shadow-lg shadow-amber-500/20 active:scale-95"><Clock size={16} /> Pass After Exam</button>
-                            <button onClick={(e) => { e.stopPropagation(); handlePass(app.id); }} className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all shadow-lg shadow-emerald-500/20 active:scale-95"><Check size={16} /> Pass</button>
+                            <button onClick={(e) => { e.stopPropagation(); handleDecline(app.id); }} className="px-5 py-2.5 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all"><X size={16} />{uiText(" Decline")}</button>
+                            <button onClick={(e) => { e.stopPropagation(); handlePassAfterExam(app.id); }} className="px-6 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all shadow-lg shadow-amber-500/20 active:scale-95"><Clock size={16} />{uiText(" Pass After Exam")}</button>
+                            <button onClick={(e) => { e.stopPropagation(); handlePass(app.id); }} className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all shadow-lg shadow-emerald-500/20 active:scale-95"><Check size={16} />{uiText(" Pass")}</button>
                           </>
                         )}
                         {app.status === 'exam-pending' && (
                           <>
-                            <span className="text-[10px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-400 flex items-center gap-1.5 mr-2"><Clock size={14} /> Awaiting Entrance Exam</span>
-                            <button onClick={(e) => { e.stopPropagation(); handleDecline(app.id); }} className="px-5 py-2.5 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all"><X size={16} /> Decline</button>
-                            <button onClick={(e) => { e.stopPropagation(); handleExamPass(app.id); }} className="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all shadow-lg shadow-purple-500/20 active:scale-95"><Check size={16} /> Assign Grade</button>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-400 flex items-center gap-1.5 mr-2"><Clock size={14} />{uiText(" Awaiting Entrance Exam")}</span>
+                            <button onClick={(e) => { e.stopPropagation(); handleDecline(app.id); }} className="px-5 py-2.5 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all"><X size={16} />{uiText(" Decline")}</button>
+                            <button onClick={(e) => { e.stopPropagation(); handleExamPass(app.id); }} className="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all shadow-lg shadow-purple-500/20 active:scale-95"><Check size={16} />{uiText(" Assign Grade")}</button>
                           </>
                         )}
                         {app.status === 'awaiting-payment' && (
-                          <button onClick={(e) => { e.stopPropagation(); handlePaymentResult(app.id, true); }} className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all shadow-lg shadow-emerald-500/20 active:scale-95"><Check size={16} /> Complete Enrollment</button>
+                          <button onClick={(e) => { e.stopPropagation(); handlePaymentResult(app.id, true); }} className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all shadow-lg shadow-emerald-500/20 active:scale-95"><Check size={16} />{uiText(" Complete Enrollment")}</button>
                         )}
                         {app.status === 'declined' && (
-                          <span className="text-xs font-bold text-rose-500">Application closed</span>
+                          <span className="text-xs font-bold text-rose-500">{uiText("Application closed")}</span>
                         )}
                         {app.status === 'payment-confirmed' && (
-                          <span className="text-xs font-bold text-emerald-600 flex items-center gap-1.5"><CheckCircle size={14} /> Officially enrolled</span>
+                          <span className="text-xs font-bold text-emerald-600 flex items-center gap-1.5"><CheckCircle size={14} />{uiText(" Officially enrolled")}</span>
                         )}
                       </div>
                     </>
@@ -1129,7 +1125,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
               {filteredPipelineApps.length === 0 && (
                 <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-12 text-center space-y-3">
                   <CheckCircle size={48} className="mx-auto text-slate-200" />
-                  <p className="text-slate-500 font-medium">No applications in this category.</p>
+                  <p className="text-slate-500 font-medium">{uiText("No applications in this category.")}</p>
                 </div>
               )}
             </div>
@@ -1139,17 +1135,15 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
             <div className="w-16 h-16 bg-rose-100 text-rose-500 rounded-full flex items-center justify-center mx-auto">
               <Shield size={32} />
             </div>
-            <h3 className="text-xl font-black text-slate-800 dark:text-white">Online applications are currently closed</h3>
-            <p className="text-sm text-slate-500 max-w-md mx-auto">Please contact the school administration or check back later for registration updates.</p>
+            <h3 className="text-xl font-black text-slate-800 dark:text-white">{uiText("Online applications are currently closed")}</h3>
+            <p className="text-sm text-slate-500 max-w-md mx-auto">{uiText("Please contact the school administration or check back later for registration updates.")}</p>
           </div>
         ) : (
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
             <div className="p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <h3 className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                  <UserPlus size={20} className="text-blue-600" />
-                  Admission Form (New Student)
-                </h3>
+                  <UserPlus size={20} className="text-blue-600" />{uiText("Admission Form (New Student)")}</h3>
                 <div className="flex items-center gap-1 md:gap-2">
                   {[1, 2, 3].map((step) => (
                     <div key={step} className="flex items-center">
@@ -1165,126 +1159,114 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
               </div>
             </div>
             <form ref={formRef} onSubmit={handleRegister} className="p-4 sm:p-6 space-y-6">
-              {activeApplicationError && (
+              {uiText(activeApplicationError && (
                 <div className="rounded-xl border border-rose-200 bg-rose-50 dark:bg-rose-950/30 dark:border-rose-900/50 p-4 flex gap-3">
                   <AlertTriangle className="text-rose-600 dark:text-rose-400 flex-shrink-0 mt-0.5" size={18} />
                   <div className="flex-1">
-                    <h4 className="text-sm font-bold text-rose-700 dark:text-rose-300">Active Application Exists</h4>
-                    <p className="text-sm text-rose-600 dark:text-rose-400 mt-1">{activeApplicationError}</p>
-                    <p className="text-xs text-rose-500 dark:text-rose-400 mt-2">Once your current application is completed, you will be able to submit a new one. If you need assistance, please contact school administration.</p>
+                    <h4 className="text-sm font-bold text-rose-700 dark:text-rose-300">{uiText("Active Application Exists")}</h4>
+                    <p className="text-sm text-rose-600 dark:text-rose-400 mt-1">{uiError(activeApplicationError)}</p>
+                    <p className="text-xs text-rose-500 dark:text-rose-400 mt-2">{uiText("Once your current application is completed, you will be able to submit a new one. If you need assistance, please contact school administration.")}</p>
                   </div>
                 </div>
-              )}
+              ))}
               <div className={`space-y-6 animate-in fade-in slide-in-from-right-4 ${registrationStep !== 1 ? 'hidden' : ''}`}>
-                <h4 className="text-xs font-black text-slate-500 uppercase tracking-wider pb-2 border-b border-slate-100 dark:border-slate-800">
-                  1. Student Information / የተማሪዎች መረጃ
-                </h4>
+                <h4 className="text-xs font-black text-slate-500 uppercase tracking-wider pb-2 border-b border-slate-100 dark:border-slate-800">{uiText("1. Student Information / የተማሪዎች መረጃ")}</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Row 1: Full Name & Place of Birth */}
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
-                      Full Name <span className="text-rose-500">*</span> / የተማሪዎች ስም
-                    </label>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">{uiText("Full Name ")}<span className="text-rose-500">{uiText("*")}</span>{uiText(" / የተማሪዎች ስም")}</label>
                     <input
                       required
                       name="name"
                       type="text"
-                      placeholder="Enter student full name"
+                      placeholder={uiText("Enter student full name")}
                       onBlur={(e) => { e.target.value = toTitleCase(e.target.value); }}
                       className={`w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-sm outline-none focus:ring-2 ${validationErrors.name
                         ? 'border-rose-300 focus:ring-rose-500 dark:border-rose-700'
                         : 'border-slate-200 dark:border-slate-700 focus:ring-blue-500'
                         }`}
                     />
-                    {validationErrors.name && <p className="text-[10px] text-rose-500 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {validationErrors.name}</p>}
+                    {uiText(validationErrors.name && <p className="text-[10px] text-rose-500 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {validationErrors.name}</p>)}
                   </div>
 
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
-                      {t('registration.placeOfBirth', 'Place of Birth')} / የትውልድ ቦታ
-                    </label>
+                      {t('registration.placeOfBirth', 'Place of Birth')}{uiText(" / የትውልድ ቦታ")}</label>
                     <input
                       name="placeOfBirth"
                       type="text"
-                      placeholder="Place of Birth / የትውልድ ቦታ"
+                      placeholder={uiText("Place of Birth / የትውልድ ቦታ")}
                       onBlur={(e) => { e.target.value = toTitleCase(e.target.value); }}
                       className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
-                      Current Address <span className="text-rose-500">*</span> / አሁን ያለበት አድራሻ
-                    </label>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">{uiText("Current Address ")}<span className="text-rose-500">{uiText("*")}</span>{uiText(" / አሁን ያለበት አድራሻ")}</label>
                     <input
                       required
                       name="address"
                       type="text"
-                      placeholder="City, Sub-city, Woreda"
+                      placeholder={uiText("City, Sub-city, Woreda")}
                       onBlur={(e) => { e.target.value = toTitleCase(e.target.value); }}
                       className={`w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-sm outline-none focus:ring-2 ${validationErrors.address
                         ? 'border-rose-300 focus:ring-rose-500 dark:border-rose-700'
                         : 'border-slate-200 dark:border-slate-700 focus:ring-blue-500'
                         }`}
                     />
-                    {validationErrors.address && <p className="text-[10px] text-rose-500 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {validationErrors.address}</p>}
+                    {uiText(validationErrors.address && <p className="text-[10px] text-rose-500 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {uiText(validationErrors.address)}</p>)}
                   </div>
 
                   {/* Row 2: Date of Birth & Card Age */}
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
-                      Date of Birth (Ethiopian Calendar) <span className="text-rose-500">*</span> / የትውልድ ቀን
-                    </label>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">{uiText("Date of Birth (Ethiopian Calendar) ")}<span className="text-rose-500">{uiText("*")}</span>{uiText(" / የትውልድ ቀን")}</label>
                     <EthiopianDatePicker
                       value={ethiopianDob}
                       onChange={(val) => setEthiopianDob(val)}
-                      placeholder="e.g. 2010-01-01"
+                      placeholder={uiText("e.g. 2010-01-01")}
                       className={validationErrors.dob ? 'border-rose-300 dark:border-rose-700 focus:ring-rose-500' : ''}
                     />
                     <input type="hidden" name="dob" value={ethiopianDob ? ethiopianToGregorianIso(ethiopianDob) : ''} />
-                    {validationErrors.dob && <p className="text-[10px] text-rose-500 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {validationErrors.dob}</p>}
+                    {uiText(validationErrors.dob && <p className="text-[10px] text-rose-500 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {uiText(validationErrors.dob)}</p>)}
                   </div>
 
-                  
+
 
                   {/* Row 3: Religion (Dropdown) & Gender (Dropdown) */}
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
-                      {t('registration.religion', 'Religion')} / ሐይማኖት
-                    </label>
+                      {t('registration.religion', 'Religion')}{uiText(" / ሐይማኖት")}</label>
                     <select
                       name="religion"
-                      title="Religion"
-                      aria-label="Religion"
+                      title={uiText("Religion")}
+                      aria-label={uiText("Religion")}
                       className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value="">Select Religion / ሐይማኖት ይምረጡ</option>
-                      <option value="Orthodox">Orthodox / ኦርቶዶክስ</option>
-                      <option value="Muslim">Muslim / ሙስሊም</option>
-                      <option value="Protestant">Protestant / ፕሮቴስታንት</option>
-                      <option value="Catholic">Catholic / ካቶሊክ</option>
-                      <option value="Other">Other / ሌላ</option>
+                      <option value="">{uiText("Select Religion / ሐይማኖት ይምረጡ")}</option>
+                      <option value="Orthodox">{uiText("Orthodox / ኦርቶዶክስ")}</option>
+                      <option value="Muslim">{uiText("Muslim / ሙስሊም")}</option>
+                      <option value="Protestant">{uiText("Protestant / ፕሮቴስታንት")}</option>
+                      <option value="Catholic">{uiText("Catholic / ካቶሊክ")}</option>
+                      <option value="Other">{uiText("Other / ሌላ")}</option>
                     </select>
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
-                      Gender <span className="text-rose-500">*</span> / ጾታ
-                    </label>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">{uiText("Gender ")}<span className="text-rose-500">{uiText("*")}</span>{uiText(" / ጾታ")}</label>
                     <select
                       name="gender"
-                      title="Gender"
-                      aria-label="Gender"
+                      title={uiText("Gender")}
+                      aria-label={uiText("Gender")}
                       className={`w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-sm outline-none focus:ring-2 ${validationErrors.gender
                         ? 'border-rose-300 focus:ring-rose-500 dark:border-rose-700'
                         : 'border-slate-200 dark:border-slate-700 focus:ring-blue-500'
                         }`}
                     >
-                      <option value="">Select Gender / ጾታ ይምረጡ</option>
-                      <option value="Male">Male / ወንድ</option>
-                      <option value="Female">Female / ሴት</option>
+                      <option value="">{uiText("Select Gender / ጾታ ይምረጡ")}</option>
+                      <option value="Male">{uiText("Male / ወንድ")}</option>
+                      <option value="Female">{uiText("Female / ሴት")}</option>
                     </select>
-                    {validationErrors.gender && <p className="text-[10px] text-rose-500 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {validationErrors.gender}</p>}
+                    {uiText(validationErrors.gender && <p className="text-[10px] text-rose-500 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {uiText(validationErrors.gender)}</p>)}
                   </div>
                 </div>
               </div>
@@ -1293,52 +1275,43 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                 {/* Father's Information */}
                 <div className="p-4 rounded-2xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/40 space-y-4">
                   <h4 className="text-xs font-bold text-blue-700 dark:text-blue-400 uppercase tracking-wider flex items-center gap-2">
-                    <User size={14} /> Father's Details / የአባት መረጃ
-                  </h4>
+                    <User size={14} />{uiText(" Father's Details / የአባት መረጃ")}</h4>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
-                        Father's Full Name <span className="text-rose-500">*</span> / የአባት ሙሉ ስም
-                      </label>
+                      <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">{uiText("Father's Full Name ")}<span className="text-rose-500">{uiText("*")}</span>{uiText(" / የአባት ሙሉ ስም")}</label>
                       <input
                         required
                         name="fatherName"
                         type="text"
-                        placeholder="Father's Full Name"
+                        placeholder={uiText("Father's Full Name")}
                         onBlur={(e) => { e.target.value = toTitleCase(e.target.value); }}
                         className={`w-full px-4 py-2 bg-white dark:bg-slate-800 border rounded-xl text-sm outline-none focus:ring-2 ${validationErrors.fatherName
                           ? 'border-rose-300 focus:ring-rose-500 dark:border-rose-700'
                           : 'border-slate-200 dark:border-slate-700 focus:ring-blue-500'
                           }`}
                       />
-                      {validationErrors.fatherName && <p className="text-[10px] text-rose-500 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {validationErrors.fatherName}</p>}
+                      {uiText(validationErrors.fatherName && <p className="text-[10px] text-rose-500 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {uiText(validationErrors.fatherName)}</p>)}
                     </div>
 
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase">
-                        Father's Occupation / የአባት ስራ
-                      </label>
+                      <label className="text-[10px] font-bold text-slate-500 uppercase">{uiText("Father's Occupation / የአባት ስራ")}</label>
                       <input
                         name="fatherOccupation"
                         type="text"
-                        placeholder="e.g. Teacher, Merchant, Engineer"
+                        placeholder={uiText("e.g. Teacher, Merchant, Engineer")}
                         className="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
 
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
-                        Father's Phone / የአባት ስልክ
-                      </label>
+                      <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">{uiText("Father's Phone / የአባት ስልክ")}</label>
                       <div className="flex items-center gap-2">
-                        <div className="flex items-center justify-center px-3 py-2 bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl text-xs font-black text-slate-600 dark:text-slate-300 select-none whitespace-nowrap">
-                          +251
-                        </div>
+                        <div className="flex items-center justify-center px-3 py-2 bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl text-xs font-black text-slate-600 dark:text-slate-300 select-none whitespace-nowrap">{uiText("+251")}</div>
                         <input
                           type="tel"
                           inputMode="numeric"
                           maxLength={9}
-                          placeholder="9xxxxxxxx"
+                          placeholder={uiText("9xxxxxxxx")}
                           name="fatherPhone"
                           onChange={(e) => {
                             e.target.value = e.target.value.replace(/[^\d]/g, '').slice(0, 9);
@@ -1353,52 +1326,43 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                 {/* Mother's Information */}
                 <div className="p-4 rounded-2xl bg-purple-50/50 dark:bg-purple-950/20 border border-purple-100 dark:border-purple-900/40 space-y-4">
                   <h4 className="text-xs font-bold text-purple-700 dark:text-purple-400 uppercase tracking-wider flex items-center gap-2">
-                    <User size={14} /> Mother's Details / የእናት መረጃ
-                  </h4>
+                    <User size={14} />{uiText(" Mother's Details / የእናት መረጃ")}</h4>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
-                        Mother's Full Name <span className="text-rose-500">*</span> / የእናት ሙሉ ስም
-                      </label>
+                      <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">{uiText("Mother's Full Name ")}<span className="text-rose-500">{uiText("*")}</span>{uiText(" / የእናት ሙሉ ስም")}</label>
                       <input
                         required
                         name="motherName"
                         type="text"
-                        placeholder="Mother's Full Name"
+                        placeholder={uiText("Mother's Full Name")}
                         onBlur={(e) => { e.target.value = toTitleCase(e.target.value); }}
                         className={`w-full px-4 py-2 bg-white dark:bg-slate-800 border rounded-xl text-sm outline-none focus:ring-2 ${validationErrors.motherName
                           ? 'border-rose-300 focus:ring-rose-500 dark:border-rose-700'
                           : 'border-slate-200 dark:border-slate-700 focus:ring-blue-500'
                           }`}
                       />
-                      {validationErrors.motherName && <p className="text-[10px] text-rose-500 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {validationErrors.motherName}</p>}
+                      {uiText(validationErrors.motherName && <p className="text-[10px] text-rose-500 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {uiText(validationErrors.motherName)}</p>)}
                     </div>
 
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase">
-                        Mother's Occupation / የእናት ስራ
-                      </label>
+                      <label className="text-[10px] font-bold text-slate-500 uppercase">{uiText("Mother's Occupation / የእናት ስራ")}</label>
                       <input
                         name="motherOccupation"
                         type="text"
-                        placeholder="e.g. Accountant, Doctor, Housewife"
+                        placeholder={uiText("e.g. Accountant, Doctor, Housewife")}
                         className="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
 
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
-                        Mother's Phone / የእናት ስልክ
-                      </label>
+                      <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">{uiText("Mother's Phone / የእናት ስልክ")}</label>
                       <div className="flex items-center gap-2">
-                        <div className="flex items-center justify-center px-3 py-2 bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl text-xs font-black text-slate-600 dark:text-slate-300 select-none whitespace-nowrap">
-                          +251
-                        </div>
+                        <div className="flex items-center justify-center px-3 py-2 bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl text-xs font-black text-slate-600 dark:text-slate-300 select-none whitespace-nowrap">{uiText("+251")}</div>
                         <input
                           type="tel"
                           inputMode="numeric"
                           maxLength={9}
-                          placeholder="9xxxxxxxx"
+                          placeholder={uiText("9xxxxxxxx")}
                           name="motherPhone"
                           onChange={(e) => {
                             e.target.value = e.target.value.replace(/[^\d]/g, '').slice(0, 9);
@@ -1463,15 +1427,15 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
               <div className={`space-y-6 animate-in fade-in slide-in-from-right-4 ${registrationStep !== 3 ? 'hidden' : ''}`}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">Previous School <span className="text-slate-400 text-[10px] font-medium">(optional)</span></label>
-                    <input name="previousSchool" type="text" placeholder="Name of previous school" className={`w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-sm outline-none focus:ring-2 ${validationErrors.previousSchool
+                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">{uiText("Previous School ")}<span className="text-slate-400 text-[10px] font-medium">{uiText("(optional)")}</span></label>
+                    <input name="previousSchool" type="text" placeholder={uiText("Name of previous school")} className={`w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-sm outline-none focus:ring-2 ${validationErrors.previousSchool
                       ? 'border-rose-300 focus:ring-rose-500 dark:border-rose-700'
                       : 'border-slate-200 dark:border-slate-700 focus:ring-blue-500'
                       }`} />
-                    {validationErrors.previousSchool && <p className="text-[10px] text-rose-500 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {validationErrors.previousSchool}</p>}
+                    {uiText(validationErrors.previousSchool && <p className="text-[10px] text-rose-500 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {uiText(validationErrors.previousSchool)}</p>)}
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">Last Grade Completed <span className="text-rose-500">*</span></label>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">{uiText("Last Grade Completed ")}<span className="text-rose-500">{uiText("*")}</span></label>
                     <select
                       name="grade"
                       required
@@ -1489,28 +1453,28 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                         : 'border-slate-200 dark:border-slate-700 focus:ring-blue-500'
                         }`}
                     >
-                      <option value="">Select Last Grade Completed</option>
-                      <option value="First Time">First Time / ትምህርት ያልጀመረ/ች</option>
-                      <option value="KG 1">KG 1</option>
-                      <option value="KG 2">KG 2</option>
-                      <option value="KG 3">KG 3</option>
+                      <option value="">{uiText("Select Last Grade Completed")}</option>
+                      <option value="First Time">{uiText("First Time / ትምህርት ያልጀመረ/ች")}</option>
+                      <option value="KG 1">{uiText("KG 1")}</option>
+                      <option value="KG 2">{uiText("KG 2")}</option>
+                      <option value="KG 3">{uiText("KG 3")}</option>
                       {Array.from({ length: 12 }, (_, i) => String(i + 1)).map(g => (
-                        <option key={g} value={g}>Grade {g}</option>
+                        <option key={g} value={g}>{uiText("Grade ")}{uiText(g)}</option>
                       ))}
                     </select>
-                    {validationErrors.grade && <p className="text-[10px] text-rose-500 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {validationErrors.grade}</p>}
+                    {uiText(validationErrors.grade && <p className="text-[10px] text-rose-500 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {uiText(validationErrors.grade)}</p>)}
                   </div>
                 </div>
 
                 <div className="space-y-3">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase block">Last Transcript (Max 2MB)</label>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase block">{uiText("Last Transcript (Max 2MB)")}</label>
                   <div className={`relative border-2 border-dashed rounded-2xl p-8 transition-all flex flex-col items-center justify-center gap-2 group cursor-pointer ${fileError ? 'border-rose-300 bg-rose-50 dark:bg-rose-900/10' : 'border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-600'
                     }`}>
                     <input
                       type="file"
                       name="transcript"
-                      title="Upload student transcript"
-                      aria-label="Upload student transcript"
+                      title={uiText("Upload student transcript")}
+                      aria-label={uiText("Upload student transcript")}
                       accept=".pdf,.jpg,.jpeg,.png"
                       onChange={handleFileUpload}
                       className="absolute inset-0 opacity-0 cursor-pointer"
@@ -1520,21 +1484,21 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                     </div>
                     <div className="text-center">
                       <p className="text-sm font-bold text-slate-700 dark:text-slate-200">
-                        {fileName || 'Click to upload transcript'}
+                        {uiText(fileName || 'Click to upload transcript')}
                       </p>
-                      <p className="text-xs text-slate-400 mt-1">Accepted formats: PDF, PNG, JPG (Max 2MB)</p>
+                      <p className="text-xs text-slate-400 mt-1">{uiText("Accepted formats: PDF, PNG, JPG (Max 2MB)")}</p>
                     </div>
                   </div>
-                  {fileError && (
+                  {uiText(fileError && (
                     <p className="text-sm text-rose-600 font-bold text-center flex items-center justify-center gap-1 bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-xl py-2 px-4">
-                      <AlertTriangle size={14} /> {fileError}
+                      <AlertTriangle size={14} /> {uiError(fileError)}
                     </p>
-                  )}
+                  ))}
                 </div>
 
                 {/* Branch Selection Section */}
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">Branch <span className="text-rose-500">*</span></label>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">{uiText("Branch ")}<span className="text-rose-500">{uiText("*")}</span></label>
                   {(() => {
                     const displayBranches = [...branchesList];
                     if (selectedBranchName && !displayBranches.some(b => b.name === selectedBranchName)) {
@@ -1549,7 +1513,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                             disabled={user.role === 'school-admin'}
                             className="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none text-slate-500 font-semibold cursor-not-allowed"
                           >
-                            <option value="">Select Branch</option>
+                            <option value="">{uiText("Select Branch")}</option>
                             {displayBranches.map(b => (
                               <option key={b.id} value={b.name}>{b.name}</option>
                             ))}
@@ -1578,18 +1542,18 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                           : 'border-slate-200 dark:border-slate-700 focus:ring-blue-500'
                           }`}
                       >
-                        <option value="">Select Branch</option>
+                        <option value="">{uiText("Select Branch")}</option>
                         {displayBranches.map(b => (
                           <option key={b.id} value={b.name}>{b.name}</option>
                         ))}
                       </select>
                     );
                   })()}
-                  {validationErrors.branchName && (
+                  {uiText(validationErrors.branchName && (
                     <p className="text-[10px] text-rose-500 font-semibold flex items-center gap-1">
-                      <AlertTriangle size={12} /> {validationErrors.branchName}
+                      <AlertTriangle size={12} /> {uiText(validationErrors.branchName)}
                     </p>
-                  )}
+                  ))}
                 </div>
               </div>
 
@@ -1599,31 +1563,25 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                   onClick={prevStep}
                   disabled={registrationStep === 1}
                   className="w-full sm:w-auto px-6 py-2 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-all disabled:hidden"
-                >
-                  Previous
-                </button>
+                >{uiText("Previous")}</button>
                 {registrationStep < 3 ? (
                   <button
                     type="button"
                     onClick={nextStep}
                     className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-10 py-3 rounded-xl font-bold transition-all shadow-lg"
-                  >
-                    Next Step
-                  </button>
+                  >{uiText("Next Step")}</button>
                 ) : (
                   <button
                     type="submit"
                     disabled={isSubmitting || !!activeApplicationError}
                     className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white px-10 py-3 rounded-xl font-bold transition-all shadow-lg disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
-                    {isSubmitting ? (
+                    {uiText(isSubmitting ? (
                       <>
-                        <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        Submitting…
-                      </>
+                        <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />{uiText("Submitting…")}</>
                     ) : (
                       'Submit Application'
-                    )}
+                    ))}
                   </button>
                 )}
               </div>
@@ -1637,14 +1595,14 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
               <input
                 type="text"
-                placeholder="Search existing student by name or ID..."
+                placeholder={uiText("Search existing student by name or ID...")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 w-full"
               />
             </div>
 
-            {searchQuery && (
+            {uiText(searchQuery && (
               <div className="mt-4 border border-slate-100 dark:border-slate-800 rounded-xl overflow-hidden divide-y divide-slate-100 dark:divide-slate-800">
                 {pendingApps.filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase()) || s.id.toLowerCase().includes(searchQuery.toLowerCase())).length > 0 ? (
                   pendingApps.filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase()) || s.id.toLowerCase().includes(searchQuery.toLowerCase())).map(student => (
@@ -1656,35 +1614,30 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                     >
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center text-blue-700 font-bold">
-                          {student.name[0]}
+                          {uiText(student.name[0])}
                         </div>
                         <div className="text-left">
                           <p className="text-sm font-bold text-slate-800 dark:text-slate-100">{student.name}</p>
-                          <p className="text-xs text-slate-500 uppercase font-medium">ID: {student.id} • Grade: {student.lastGrade}</p>
+                          <p className="text-xs text-slate-500 uppercase font-medium">{uiText("ID: ")}{uiText(student.id)}{uiText(" • Grade: ")}{uiText(student.lastGrade)}</p>
                         </div>
                       </div>
                       <CheckCircle size={20} className={selectedStudent?.id === student.id ? 'text-blue-600' : 'text-slate-200'} />
                     </button>
                   ))
                 ) : (
-                  <div className="p-8 text-center text-slate-400 text-sm italic">
-                    No students found matching your search.
-                  </div>
+                  <div className="p-8 text-center text-slate-400 text-sm italic">{uiText("No students found matching your search.")}</div>
                 )}
               </div>
-            )}
+            ))}
           </div>
 
-          {selectedStudent && (
+          {uiText(selectedStudent && (
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4">
               <div className="p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50 flex justify-between items-center">
                 <h3 className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                  <RefreshCw size={20} className="text-blue-600" />
-                  Promotion
-                </h3>
+                  <RefreshCw size={20} className="text-blue-600" />{uiText("Promotion")}</h3>
                 <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${selectedStudent.id === '1' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
-                  }`}>
-                  Fee Status: {selectedStudent.id === '1' ? 'Paid' : 'Pending'}
+                  }`}>{uiText("Fee Status: ")}{uiText(selectedStudent.id === '1' ? 'Paid' : 'Pending')}
                 </span>
               </div>
               <div className="p-6 space-y-6">
@@ -1693,27 +1646,27 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                     <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl space-y-3">
                       <div className="flex items-center gap-2 text-blue-600">
                         <Info size={16} />
-                        <span className="text-xs font-bold uppercase">Current Record</span>
+                        <span className="text-xs font-bold uppercase">{uiText("Current Record")}</span>
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <p className="text-[10px] text-slate-500 uppercase font-bold">Current Grade</p>
-                          <p className="text-sm font-bold dark:text-white">{selectedStudent.grade}</p>
+                          <p className="text-[10px] text-slate-500 uppercase font-bold">{uiText("Current Grade")}</p>
+                          <p className="text-sm font-bold dark:text-white">{uiText(selectedStudent.grade)}</p>
                         </div>
                         <div>
-                          <p className="text-[10px] text-slate-500 uppercase font-bold">Academic Status</p>
-                          <p className="text-sm font-bold text-emerald-600">Cleared</p>
+                          <p className="text-[10px] text-slate-500 uppercase font-bold">{uiText("Academic Status")}</p>
+                          <p className="text-sm font-bold text-emerald-600">{uiText("Cleared")}</p>
                         </div>
                       </div>
                     </div>
 
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase">Promote To Grade</label>
-                      <select title="Promote To Grade" aria-label="Promote To Grade" className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500">
-                        <option>Grade 9</option>
-                        <option>Grade 10</option>
-                        <option>Grade 11</option>
-                        <option>Grade 12</option>
+                      <label className="text-[10px] font-bold text-slate-500 uppercase">{uiText("Promote To Grade")}</label>
+                      <select title={uiText("Promote To Grade")} aria-label={uiText("Promote To Grade")} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="Grade 9">{uiText("Grade 9")}</option>
+                        <option value="Grade 10">{uiText("Grade 10")}</option>
+                        <option value="Grade 11">{uiText("Grade 11")}</option>
+                        <option value="Grade 12">{uiText("Grade 12")}</option>
                       </select>
                     </div>
                   </div>
@@ -1721,16 +1674,12 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                   <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/30 rounded-2xl p-6 space-y-3">
                     <div className="flex items-center gap-2 text-amber-600">
                       <AlertCircle size={20} />
-                      <h4 className="font-bold text-sm uppercase">Verification Check</h4>
+                      <h4 className="font-bold text-sm uppercase">{uiText("Verification Check")}</h4>
                     </div>
-                    <p className="text-sm text-amber-800 dark:text-amber-200">
-                      Before promoting <strong>{selectedStudent.name}</strong>, confirm that the student has completed the current academic requirements.
-                    </p>
+                    <p className="text-sm text-amber-800 dark:text-amber-200">{uiText("Before promoting ")}<strong>{selectedStudent.name}</strong>{uiText(", confirm that the student has completed the current academic requirements.")}</p>
                     {selectedStudent.id !== '1' && (
                       <div className="p-3 bg-white dark:bg-slate-900 rounded-lg border border-amber-200 text-xs font-bold text-rose-600 flex items-center gap-2">
-                        <AlertCircle size={14} />
-                        Outstanding Balance Found: 2,500 ETB
-                      </div>
+                        <AlertCircle size={14} />{uiText("Outstanding Balance Found: 2,500 ETB")}</div>
                     )}
                   </div>
                 </div>
@@ -1739,32 +1688,28 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                   <button
                     onClick={() => setSelectedStudent(null)}
                     className="px-6 py-2.5 rounded-xl font-bold text-sm text-slate-500 hover:bg-slate-100 transition-all"
-                  >
-                    Cancel
-                  </button>
+                  >{uiText("Cancel")}</button>
                   <button
                     type="button"
                     disabled
-                    title="Student promotion requires the reviewed academic rollover workflow."
+                    title={uiText("Student promotion requires the reviewed academic rollover workflow.")}
                     className="px-8 py-2.5 rounded-xl font-bold text-sm bg-slate-200 text-slate-400 cursor-not-allowed shadow-none"
-                  >
-                    Promotion Unavailable
-                  </button>
+                  >{uiText("Promotion Unavailable")}</button>
                 </div>
               </div>
             </div>
-          )}
+          ))}
         </div>
       )}
 
-      {viewingTranscript && (
+      {uiText(viewingTranscript && (
         <div className="fixed inset-0 z-[200] bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200">
           <div className="relative bg-white dark:bg-slate-950 w-full max-w-4xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-white/20 flex flex-col max-h-[90vh]">
             {/* Floating Close Button */}
             <button
               onClick={() => setViewingTranscript(null)}
               className="absolute top-4 right-4 z-10 p-3 bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 hover:bg-rose-500 hover:text-white rounded-full shadow-lg transition-all hover:scale-110 active:scale-95"
-              title="Close Transcript"
+              title={uiText("Close Transcript")}
             >
               <X size={24} />
             </button>
@@ -1775,8 +1720,8 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                   <FileText size={24} />
                 </div>
                 <div>
-                  <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Transcript Verification</h3>
-                  <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">Student: {viewingTranscript.name}</p>
+                  <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">{uiText("Transcript Verification")}</h3>
+                  <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">{uiText("Student: ")}{viewingTranscript.name}</p>
                 </div>
               </div>
             </div>
@@ -1785,15 +1730,15 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
               <div className="lg:col-span-2 space-y-6 relative">
                 {transcriptLoading ? (
                   <div className="w-full h-[420px] flex items-center justify-center">
-                    <p className="text-sm text-slate-500">Loading transcript...</p>
+                    <p className="text-sm text-slate-500">{uiText("Loading transcript...")}</p>
                   </div>
                 ) : transcriptError ? (
                   <div className="w-full h-[420px] flex items-center justify-center">
-                    <p className="text-sm text-rose-500">{transcriptError}</p>
+                    <p className="text-sm text-rose-500">{uiError(transcriptError)}</p>
                   </div>
                 ) : transcriptUrl ? (
                   <div className="w-full h-[720px] bg-slate-50 dark:bg-slate-900 rounded-3xl border-4 border-slate-200 dark:border-slate-800 overflow-hidden">
-                    <iframe title={`transcript-${viewingTranscript?.id}`} src={transcriptUrl} className="w-full h-full" />
+                    <iframe title={uiText("transcript-{{value0}}", { value0: viewingTranscript?.id })} src={transcriptUrl} className="w-full h-full" />
                   </div>
                 ) : (
                   // Fallback mock viewer when no transcript available
@@ -1801,36 +1746,36 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                     <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none"></div>
                     <div className="text-center p-12">
                       <FileText size={64} className="mx-auto text-slate-300 dark:text-slate-700 mb-4 group-hover:scale-110 transition-transform" />
-                      <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Mock Transcript Viewer</p>
-                      <p className="text-[10px] text-slate-500 mt-2">Document ID: {viewingTranscript.id}_TRANSCRIPT_2025.pdf</p>
+                      <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">{uiText("Mock Transcript Viewer")}</p>
+                      <p className="text-[10px] text-slate-500 mt-2">{uiText("Document ID: ")}{uiText(viewingTranscript.id)}{uiText("_TRANSCRIPT_2025.pdf")}</p>
                     </div>
                     <div className="absolute inset-4 border-2 border-slate-200 dark:border-slate-800 rounded-2xl flex flex-col p-8 bg-white dark:bg-slate-950/50 backdrop-blur-sm shadow-inner">
                       <div className="flex justify-between mb-8 border-b-2 border-slate-100 dark:border-slate-800 pb-4">
-                        <div className="font-black text-xs">OFFICIAL ACADEMIC RECORD</div>
-                        <div className="font-bold text-[10px] text-slate-400">PAGE 1 OF 1</div>
+                        <div className="font-black text-xs">{uiText("OFFICIAL ACADEMIC RECORD")}</div>
+                        <div className="font-bold text-[10px] text-slate-400">{uiText("PAGE 1 OF 1")}</div>
                       </div>
                       <div className="space-y-4 flex-1">
                         <div className="grid grid-cols-2 gap-4">
                           {transcriptHistory[selectedAcademicYear as keyof typeof transcriptHistory][selectedSemester as keyof (typeof transcriptHistory)[keyof typeof transcriptHistory]].map((item, i) => (
                             <div key={i} className="flex justify-between items-center p-2 bg-slate-50 dark:bg-slate-900 rounded-lg">
-                              <span className="text-[10px] font-bold text-slate-600 uppercase">{item.s}</span>
-                              <span className="text-xs font-black text-blue-600">{item.g}</span>
+                              <span className="text-[10px] font-bold text-slate-600 uppercase">{uiText(item.s)}</span>
+                              <span className="text-xs font-black text-blue-600">{uiText(item.g)}</span>
                             </div>
                           ))}
                         </div>
                         <div className="mt-8 p-4 bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/30 rounded-xl">
-                          <p className="text-[10px] font-bold text-emerald-800 dark:text-emerald-400 uppercase mb-1">Cumulative GPA</p>
-                          <p className="text-2xl font-black text-emerald-600">3.85 / 4.00</p>
+                          <p className="text-[10px] font-bold text-emerald-800 dark:text-emerald-400 uppercase mb-1">{uiText("Cumulative GPA")}</p>
+                          <p className="text-2xl font-black text-emerald-600">{uiText("3.85 / 4.00")}</p>
                         </div>
                       </div>
                       <div className="mt-8 flex justify-between items-end">
                         <div className="space-y-1">
                           <div className="w-24 h-0.5 bg-slate-300"></div>
-                          <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Principal's Signature</p>
+                          <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">{uiText("Principal's Signature")}</p>
                         </div>
                         <div className="text-right">
-                          <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Verified Academic History</p>
-                          <p className="text-[10px] font-black text-slate-700 dark:text-slate-300">ZIQUALA ABO SCHOOL</p>
+                          <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">{uiText("Verified Academic History")}</p>
+                          <p className="text-[10px] font-black text-slate-700 dark:text-slate-300">{uiText("ZIQUALA ABO SCHOOL")}</p>
                         </div>
                       </div>
                     </div>
@@ -1840,7 +1785,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
 
               <div className="space-y-6">
                 <div className="bg-slate-50 dark:bg-slate-900/50 p-6 rounded-3xl border border-slate-100 dark:border-slate-800 space-y-4">
-                  <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">Verification Checklist</h4>
+                  <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">{uiText("Verification Checklist")}</h4>
                   <div className="space-y-3">
                     {[
                       'Document Authenticity Check',
@@ -1852,17 +1797,15 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                         <div className="w-5 h-5 bg-emerald-500 text-white rounded-full flex items-center justify-center">
                           <Check size={12} />
                         </div>
-                        <span className="text-xs font-bold text-slate-600 dark:text-slate-300">{check}</span>
+                        <span className="text-xs font-bold text-slate-600 dark:text-slate-300">{uiText(check)}</span>
                       </div>
                     ))}
                   </div>
                 </div>
 
                 <div className="p-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-3xl">
-                  <p className="text-xs font-bold text-blue-900 dark:text-blue-100 mb-2">Academic Counselor Note:</p>
-                  <p className="text-[11px] text-blue-700 dark:text-blue-300 leading-relaxed italic">
-                    "Student shows exceptional performance in STEM subjects. Recommended for Advanced Track in Grade {viewingTranscript.lastGrade}."
-                  </p>
+                  <p className="text-xs font-bold text-blue-900 dark:text-blue-100 mb-2">{uiText("Academic Counselor Note:")}</p>
+                  <p className="text-[11px] text-blue-700 dark:text-blue-300 leading-relaxed italic">{uiText("\"Student shows exceptional performance in STEM subjects. Recommended for Advanced Track in Grade ")}{uiText(viewingTranscript.lastGrade)}{uiText(".\"")}</p>
                 </div>
 
                 <div className="pt-4 space-y-3">
@@ -1870,31 +1813,25 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                     onClick={() => { handlePass(viewingTranscript.id); setViewingTranscript(null); }}
                     className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-2xl font-black text-sm shadow-xl shadow-emerald-100 dark:shadow-none transition-all flex items-center justify-center gap-2"
                   >
-                    <CheckCircle size={18} />
-                    Pass — Accept
-                  </button>
+                    <CheckCircle size={18} />{uiText("Pass — Accept")}</button>
 
                   <button
                     onClick={() => { handlePassAfterExam(viewingTranscript.id); setViewingTranscript(null); }}
                     className="w-full bg-amber-500 hover:bg-amber-600 text-white py-4 rounded-2xl font-black text-sm shadow-xl shadow-amber-100 dark:shadow-none transition-all flex items-center justify-center gap-2"
                   >
-                    <Clock size={18} />
-                    Pass After Exam
-                  </button>
+                    <Clock size={18} />{uiText("Pass After Exam")}</button>
 
                   <button
                     onClick={() => { handleDecline(viewingTranscript.id); setViewingTranscript(null); }}
                     className="w-full bg-white dark:bg-slate-900 border-2 border-rose-100 dark:border-rose-900/30 text-rose-600 py-4 rounded-2xl font-black text-sm hover:bg-rose-50 transition-all flex items-center justify-center gap-2"
                   >
-                    <X size={18} />
-                    Decline
-                  </button>
+                    <X size={18} />{uiText("Decline")}</button>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      )}
+      ))}
       {/* Generated Credentials Modal (Payment Approved) */}
       {credentialsModal && (
         <>
@@ -1918,25 +1855,23 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
           {/* Printable A4 sheet */}
           <div id="credential-print-sheet" className="hidden print:block fixed inset-0 z-[9999] bg-white text-slate-900">
             <div className="max-w-[180mm] mx-auto pt-[8mm]">
-              <h1 className="text-lg font-bold tracking-tight border-b-2 border-slate-800 pb-2 mb-6">
-                Login Credentials
-              </h1>
+              <h1 className="text-lg font-bold tracking-tight border-b-2 border-slate-800 pb-2 mb-6">{uiText("Login Credentials")}</h1>
               <div className="grid grid-cols-2 gap-x-10 gap-y-5 text-sm">
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">STUDENT ID</p>
-                  <p className="text-base font-mono font-bold">{credentialsModal.studentDigitalId}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">{uiText("STUDENT ID")}</p>
+                  <p className="text-base font-mono font-bold">{uiText(credentialsModal.studentDigitalId)}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">STUDENT PASSWORD</p>
-                  <p className="text-base font-mono font-bold">{credentialsModal.studentPin}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">{uiText("STUDENT PASSWORD")}</p>
+                  <p className="text-base font-mono font-bold">{uiText(credentialsModal.studentPin)}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">PARENT ID</p>
-                  <p className="text-base font-mono font-bold">{credentialsModal.parentDigitalId}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">{uiText("PARENT ID")}</p>
+                  <p className="text-base font-mono font-bold">{uiText(credentialsModal.parentDigitalId)}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">PARENT PASSWORD</p>
-                  <p className="text-base font-mono font-bold">{credentialsModal.parentPin}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">{uiText("PARENT PASSWORD")}</p>
+                  <p className="text-base font-mono font-bold">{uiText(credentialsModal.parentPin)}</p>
                 </div>
               </div>
             </div>
@@ -1946,40 +1881,38 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
           <div className="credential-modal-screen fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4 sm:p-6 overflow-y-auto print:hidden animate-in fade-in duration-200">
             <div className="bg-slate-900 rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-slate-800 text-white my-auto max-h-[92vh] flex flex-col">
               <h2 className="text-xl font-bold text-emerald-400 mb-4 shrink-0 flex items-center gap-2">
-                <Check size={24} className="text-emerald-400" />
-                Payment Approved
-              </h2>
+                <Check size={24} className="text-emerald-400" />{uiText("Payment Approved")}</h2>
 
               <div className="space-y-4 mb-4 bg-slate-950/60 p-4 rounded-xl border border-slate-800/80 overflow-y-auto flex-1 max-h-[55vh] scrollbar-thin">
                 {/* STUDENT ID */}
                 <div>
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">STUDENT ID</p>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">{uiText("STUDENT ID")}</p>
                   <div className="flex items-center gap-2">
                     <code className="text-xs sm:text-sm font-mono font-bold text-white flex-1 bg-slate-900 px-3 py-2 rounded-lg border border-slate-800 break-all">
-                      {credentialsModal.studentDigitalId}
+                      {uiText(credentialsModal.studentDigitalId)}
                     </code>
                     <button
                       type="button"
                       onClick={() => copyText(credentialsModal.studentDigitalId, 'Student ID')}
                       className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs sm:text-sm font-semibold transition-colors shrink-0"
                     >
-                      {copiedLabel === 'Student ID' ? 'Copied!' : 'Copy'}
+                      {uiText(copiedLabel === 'Student ID' ? 'Copied!' : 'Copy')}
                     </button>
                   </div>
                 </div>
 
                 {/* STUDENT PASSWORD */}
                 <div>
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">STUDENT PASSWORD</p>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">{uiText("STUDENT PASSWORD")}</p>
                   <div className="flex items-center gap-2">
                     <code className="text-xs sm:text-sm font-mono font-bold text-white flex-1 bg-slate-900 px-3 py-2 rounded-lg border border-slate-800 break-all">
-                      {showPassword ? credentialsModal.studentPin : '••••••••'}
+                      {uiText(showPassword ? credentialsModal.studentPin : '••••••••')}
                     </code>
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors shrink-0"
-                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      aria-label={uiText(showPassword ? 'Hide password' : 'Show password')}
                     >
                       {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
@@ -1988,41 +1921,41 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                       onClick={() => copyText(credentialsModal.studentPin, 'Student Password')}
                       className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs sm:text-sm font-semibold transition-colors shrink-0"
                     >
-                      {copiedLabel === 'Student Password' ? 'Copied!' : 'Copy'}
+                      {uiText(copiedLabel === 'Student Password' ? 'Copied!' : 'Copy')}
                     </button>
                   </div>
                 </div>
 
                 {/* PARENT ID */}
                 <div>
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">PARENT ID</p>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">{uiText("PARENT ID")}</p>
                   <div className="flex items-center gap-2">
                     <code className="text-xs sm:text-sm font-mono font-bold text-white flex-1 bg-slate-900 px-3 py-2 rounded-lg border border-slate-800 break-all">
-                      {credentialsModal.parentDigitalId}
+                      {uiText(credentialsModal.parentDigitalId)}
                     </code>
                     <button
                       type="button"
                       onClick={() => copyText(credentialsModal.parentDigitalId, 'Parent ID')}
                       className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs sm:text-sm font-semibold transition-colors shrink-0"
                     >
-                      {copiedLabel === 'Parent ID' ? 'Copied!' : 'Copy'}
+                      {uiText(copiedLabel === 'Parent ID' ? 'Copied!' : 'Copy')}
                     </button>
                   </div>
                 </div>
 
                 {/* PARENT PASSWORD */}
                 <div>
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">PARENT PASSWORD</p>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">{uiText("PARENT PASSWORD")}</p>
                   <div className="flex items-center gap-2">
                     <code className="text-xs sm:text-sm font-mono font-bold text-white flex-1 bg-slate-900 px-3 py-2 rounded-lg border border-slate-800 break-all">
-                      {showPassword ? credentialsModal.parentPin : '••••••••'}
+                      {uiText(showPassword ? credentialsModal.parentPin : '••••••••')}
                     </code>
                     <button
                       type="button"
                       onClick={() => copyText(credentialsModal.parentPin, 'Parent Password')}
                       className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs sm:text-sm font-semibold transition-colors shrink-0"
                     >
-                      {copiedLabel === 'Parent Password' ? 'Copied!' : 'Copy'}
+                      {uiText(copiedLabel === 'Parent Password' ? 'Copied!' : 'Copy')}
                     </button>
                   </div>
                 </div>
@@ -2040,7 +1973,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                   }}
                   className="w-full px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl font-semibold transition-all text-xs sm:text-sm"
                 >
-                  {copiedLabel === 'All credentials' ? '✓ Copied all credentials!' : 'Copy all credentials'}
+                  {uiText(copiedLabel === 'All credentials' ? '✓ Copied all credentials!' : 'Copy all credentials')}
                 </button>
                 <button
                   type="button"
@@ -2049,9 +1982,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                     setTimeout(() => window.print(), 150);
                   }}
                   className="w-full px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-semibold transition-all text-xs sm:text-sm shadow-lg shadow-blue-600/30 active:scale-[0.99]"
-                >
-                  Print credentials (A4)
-                </button>
+                >{uiText("Print credentials (A4)")}</button>
                 <button
                   type="button"
                   onClick={() => {
@@ -2059,9 +1990,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                     setShowPassword(false);
                   }}
                   className="w-full px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-semibold transition-all text-xs sm:text-sm"
-                >
-                  Close
-                </button>
+                >{uiText("Close")}</button>
               </div>
             </div>
           </div>
@@ -2072,54 +2001,43 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
       {showApprovalModal && appForApproval && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 sm:p-6 overflow-y-auto">
           <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-slate-100 dark:border-slate-800 animate-in zoom-in-95 duration-200 my-auto max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-4">
-              Approve Payment & Generate Credentials
-            </h2>
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-4">{uiText("Approve Payment & Generate Credentials")}</h2>
 
             <div className="space-y-4 mb-6">
               <div>
-                <p className="text-sm font-semibold text-slate-600 dark:text-slate-400 mb-2">
-                  Student: <span className="font-bold text-slate-900 dark:text-white">{appForApproval.name}</span>
+                <p className="text-sm font-semibold text-slate-600 dark:text-slate-400 mb-2">{uiText("Student: ")}<span className="font-bold text-slate-900 dark:text-white">{appForApproval.name}</span>
                 </p>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">
-                  Parent ID (optional)
-                </label>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">{uiText("Parent ID (optional)")}</label>
                 <input
                   type="text"
                   value={approvalForm.parentDigitalId}
                   onChange={(e) =>
                     setApprovalForm({ ...approvalForm, parentDigitalId: e.target.value.trim() })
                   }
-                  placeholder="Enter existing Parent ID if available"
+                  placeholder={uiText("Enter existing Parent ID if available")}
                   className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none"
                 />
-                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                  If the student has a sibling already registered, enter the parent's existing digital ID here so the student links to the same account instead of creating a new one.
-                </p>
+                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{uiText("If the student has a sibling already registered, enter the parent's existing digital ID here so the student links to the same account instead of creating a new one.")}</p>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">
-                  Payment Reference (optional)
-                </label>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">{uiText("Payment Reference (optional)")}</label>
                 <input
                   type="text"
                   value={approvalForm.reference}
                   onChange={(e) =>
                     setApprovalForm({ ...approvalForm, reference: e.target.value })
                   }
-                  placeholder="e.g., Receipt #12345"
+                  placeholder={uiText("e.g., Receipt #12345")}
                   className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none"
                 />
               </div>
 
               <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/40 rounded-xl p-3.5">
-                <p className="text-xs text-blue-700 dark:text-blue-300 font-medium">
-                  ✓ This will generate Student ID, Password, Parent ID, and Password
-                </p>
+                <p className="text-xs text-blue-700 dark:text-blue-300 font-medium">{uiText("✓ This will generate Student ID, Password, Parent ID, and Password")}</p>
               </div>
             </div>
 
@@ -2131,9 +2049,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                   setAppForApproval(null);
                 }}
                 className="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-bold text-xs uppercase tracking-wider transition-all"
-              >
-                Cancel
-              </button>
+              >{uiText("Cancel")}</button>
               <button
                 type="button"
                 onClick={handleConfirmApproval}
@@ -2142,14 +2058,10 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
               >
                 {approving ? (
                   <>
-                    <Clock size={16} className="animate-spin" />
-                    Processing...
-                  </>
+                    <Clock size={16} className="animate-spin" />{uiText("Processing...")}</>
                 ) : (
                   <>
-                    <Check size={16} />
-                    Approve Payment
-                  </>
+                    <Check size={16} />{uiText("Approve Payment")}</>
                 )}
               </button>
             </div>
@@ -2158,17 +2070,15 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
       )}
 
       {/* Grade Assignment Modal */}
-      {showGradeModal && selectedAppForGrade && (
+      {uiText(showGradeModal && selectedAppForGrade && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-900/60 backdrop-blur-sm">
           <div className="bg-white dark:bg-slate-900 rounded-3xl sm:rounded-[2.5rem] w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden shadow-2xl border border-slate-100 dark:border-slate-800 animate-in zoom-in-95 duration-200">
             <div className="p-5 sm:p-8 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50 shrink-0">
-              <h3 className="text-lg sm:text-xl font-black text-slate-800 dark:text-white tracking-tight">Assign Grade</h3>
-              <p className="text-[11px] sm:text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">
-                Select the grade in which this student will be enrolled.
-              </p>
+              <h3 className="text-lg sm:text-xl font-black text-slate-800 dark:text-white tracking-tight">{uiText("Assign Grade")}</h3>
+              <p className="text-[11px] sm:text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">{uiText("Select the grade in which this student will be enrolled.")}</p>
             </div>
             <div className="p-4 sm:p-8 overflow-y-auto flex-1 space-y-4">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Grade</label>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">{uiText("Grade")}</label>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-3">
                 {gradeOptions.map((grade) => (
                   <button
@@ -2180,7 +2090,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                       : 'border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:border-blue-300'
                       }`}
                   >
-                    {grade.startsWith('KG') ? grade : `Grade ${grade}`}
+                    {uiText(grade.startsWith('KG') ? grade : `Grade ${grade}`)}
                   </button>
                 ))}
               </div>
@@ -2193,20 +2103,16 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                   setSelectedGrade(null);
                 }}
                 className="px-4 sm:px-6 py-2.5 sm:py-3 text-xs font-black uppercase tracking-widest text-slate-500 hover:text-slate-700 transition-colors"
-              >
-                Cancel
-              </button>
+              >{uiText("Cancel")}</button>
               <button
                 onClick={handleConfirmGradeAssignment}
                 disabled={!selectedGrade}
                 className="bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white px-5 sm:px-8 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 shadow-xl shadow-blue-500/20 active:scale-95 transition-all"
-              >
-                Continue Enrollment
-              </button>
+              >{uiText("Continue Enrollment")}</button>
             </div>
           </div>
         </div>
-      )}
+      ))}
 
     </div>
   );

@@ -1,3 +1,4 @@
+import { uiError, uiText } from "../localization";
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { formatEthiopianLabel } from '../utils/ethiopianCalendar';
@@ -69,7 +70,7 @@ export const TeacherStudentGrades = () => {
       setData(response);
     } catch (err: any) {
       console.error('Failed to fetch student grades:', err);
-      setError(err.response?.data?.error?.message || 'Failed to load student grades');
+      setError(uiError(err.response?.data?.error?.message || 'Failed to load student grades'));
     } finally {
       setLoading(false);
     }
@@ -90,11 +91,9 @@ export const TeacherStudentGrades = () => {
           onClick={() => navigate(-1)}
           className="flex items-center gap-2 mb-6 text-blue-600 hover:text-blue-700 font-medium"
         >
-          <ArrowLeft className="w-5 h-5" />
-          Back
-        </button>
+          <ArrowLeft className="w-5 h-5" />{uiText("Back")}</button>
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
-          {error || 'Student not found'}
+          {uiText(error || 'Student not found')}
         </div>
       </div>
     );
@@ -106,9 +105,7 @@ export const TeacherStudentGrades = () => {
         onClick={() => navigate(-1)}
         className="flex items-center gap-2 mb-6 text-blue-600 hover:text-blue-700 font-medium"
       >
-        <ArrowLeft className="w-5 h-5" />
-        Back to Students
-      </button>
+        <ArrowLeft className="w-5 h-5" />{uiText("Back to Students")}</button>
 
       {/* Student Header */}
       <div className="bg-white rounded-lg shadow p-6 mb-6">
@@ -116,17 +113,17 @@ export const TeacherStudentGrades = () => {
           <div>
             <h1 className="text-2xl font-bold text-gray-900">{data.student.name}</h1>
             <p className="text-gray-600 mt-1">
-              {data.student.digitalId} • {data.student.grade} • {data.student.status}
+              {uiText(data.student.digitalId)}{uiText(" • ")}{uiText(data.student.grade)}{uiText(" • ")}{uiText(data.student.status)}
             </p>
             <p className="text-sm text-gray-500 mt-1">{data.student.email}</p>
           </div>
           <div className="text-right">
-            <div className="text-3xl font-bold text-blue-600">{data.summary.overallAverage.toFixed(1)}%</div>
-            <p className="text-sm text-gray-600">Overall Average</p>
+            <div className="text-3xl font-bold text-blue-600">{uiText(data.summary.overallAverage.toFixed(1))}{uiText("%")}</div>
+            <p className="text-sm text-gray-600">{uiText("Overall Average")}</p>
             <span className={`inline-block mt-2 px-3 py-1 rounded-full text-xs font-bold ${
               data.summary.gradeStatus === 'Passing' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
             }`}>
-              {data.summary.gradeStatus}
+              {uiText(data.summary.gradeStatus)}
             </span>
           </div>
         </div>
@@ -141,7 +138,7 @@ export const TeacherStudentGrades = () => {
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-900">{data.summary.totalCourses}</p>
-              <p className="text-sm text-gray-600">Total Courses</p>
+              <p className="text-sm text-gray-600">{uiText("Total Courses")}</p>
             </div>
           </div>
         </div>
@@ -152,7 +149,7 @@ export const TeacherStudentGrades = () => {
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-900">{data.summary.totalGrades}</p>
-              <p className="text-sm text-gray-600">Total Grades</p>
+              <p className="text-sm text-gray-600">{uiText("Total Grades")}</p>
             </div>
           </div>
         </div>
@@ -162,8 +159,8 @@ export const TeacherStudentGrades = () => {
               <TrendingUp className="w-5 h-5 text-purple-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">{data.summary.myCoursesAverage.toFixed(1)}%</p>
-              <p className="text-sm text-gray-600">My Courses Avg</p>
+              <p className="text-2xl font-bold text-gray-900">{uiText(data.summary.myCoursesAverage.toFixed(1))}{uiText("%")}</p>
+              <p className="text-sm text-gray-600">{uiText("My Courses Avg")}</p>
             </div>
           </div>
         </div>
@@ -174,7 +171,7 @@ export const TeacherStudentGrades = () => {
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-900">{data.summary.myCoursesCount}</p>
-              <p className="text-sm text-gray-600">My Courses</p>
+              <p className="text-sm text-gray-600">{uiText("My Courses")}</p>
             </div>
           </div>
         </div>
@@ -183,19 +180,19 @@ export const TeacherStudentGrades = () => {
       {/* My Courses */}
       {data.myCourses.length > 0 && (
         <div className="mb-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">My Courses</h2>
+          <h2 className="text-xl font-bold text-gray-900 mb-4">{uiText("My Courses")}</h2>
           <div className="space-y-4">
             {data.myCourses.map((course) => (
               <div key={course.courseId} className="bg-white rounded-lg shadow overflow-hidden">
                 <div className="bg-blue-50 px-6 py-4 border-b">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="font-bold text-gray-900">{course.courseName}</h3>
-                      <p className="text-sm text-gray-600">{course.courseCode} • {course.teacherName}</p>
+                      <h3 className="font-bold text-gray-900">{uiText(course.courseName)}</h3>
+                      <p className="text-sm text-gray-600">{uiText(course.courseCode)}{uiText(" • ")}{uiText(course.teacherName)}</p>
                     </div>
                     <div className="text-right">
-                      <div className="text-2xl font-bold text-blue-600">{course.average.toFixed(1)}%</div>
-                      <p className="text-sm text-gray-600">{course.gradeCount} grades</p>
+                      <div className="text-2xl font-bold text-blue-600">{uiText(course.average.toFixed(1))}{uiText("%")}</div>
+                      <p className="text-sm text-gray-600">{course.gradeCount}{uiText(" grades")}</p>
                     </div>
                   </div>
                 </div>
@@ -203,11 +200,11 @@ export const TeacherStudentGrades = () => {
                   <table className="w-full">
                     <thead className="border-b">
                       <tr>
-                        <th className="text-left py-2 text-xs font-medium text-gray-500 uppercase">Type</th>
-                        <th className="text-left py-2 text-xs font-medium text-gray-500 uppercase">Score</th>
-                        <th className="text-left py-2 text-xs font-medium text-gray-500 uppercase">Percentage</th>
-                        <th className="text-left py-2 text-xs font-medium text-gray-500 uppercase">Weight</th>
-                        <th className="text-left py-2 text-xs font-medium text-gray-500 uppercase">Date</th>
+                        <th className="text-left py-2 text-xs font-medium text-gray-500 uppercase">{uiText("Type")}</th>
+                        <th className="text-left py-2 text-xs font-medium text-gray-500 uppercase">{uiText("Score")}</th>
+                        <th className="text-left py-2 text-xs font-medium text-gray-500 uppercase">{uiText("Percentage")}</th>
+                        <th className="text-left py-2 text-xs font-medium text-gray-500 uppercase">{uiText("Weight")}</th>
+                        <th className="text-left py-2 text-xs font-medium text-gray-500 uppercase">{uiText("Date")}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y">
@@ -215,10 +212,10 @@ export const TeacherStudentGrades = () => {
                         <tr key={grade.id}>
                           <td className="py-3">
                             <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded text-xs font-medium">
-                              {grade.type}
+                              {uiText(grade.type)}
                             </span>
                           </td>
-                          <td className="py-3 text-sm text-gray-900">{grade.score}/{grade.total}</td>
+                          <td className="py-3 text-sm text-gray-900">{grade.score}{uiText("/")}{grade.total}</td>
                           <td className="py-3">
                             <span className={`font-bold ${
                               grade.percentage >= 80 ? 'text-green-600' :
@@ -226,12 +223,11 @@ export const TeacherStudentGrades = () => {
                               grade.percentage >= 40 ? 'text-yellow-600' :
                               'text-red-600'
                             }`}>
-                              {grade.percentage.toFixed(1)}%
-                            </span>
+                              {uiText(grade.percentage.toFixed(1))}{uiText("%")}</span>
                           </td>
-                          <td className="py-3 text-sm text-gray-600">{grade.weight}%</td>
+                          <td className="py-3 text-sm text-gray-600">{uiText(grade.weight)}{uiText("%")}</td>
                           <td className="py-3 text-sm text-gray-600">
-                            {formatEthiopianLabel(grade.createdAt)}
+                            {uiText(formatEthiopianLabel(grade.createdAt))}
                           </td>
                         </tr>
                       ))}
@@ -247,19 +243,19 @@ export const TeacherStudentGrades = () => {
       {/* Other Courses */}
       {data.otherCourses.length > 0 && (
         <div>
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Other Courses</h2>
+          <h2 className="text-xl font-bold text-gray-900 mb-4">{uiText("Other Courses")}</h2>
           <div className="space-y-4">
             {data.otherCourses.map((course) => (
               <div key={course.courseId} className="bg-white rounded-lg shadow overflow-hidden">
                 <div className="bg-gray-50 px-6 py-4 border-b">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="font-bold text-gray-900">{course.courseName}</h3>
-                      <p className="text-sm text-gray-600">{course.courseCode} • {course.teacherName}</p>
+                      <h3 className="font-bold text-gray-900">{uiText(course.courseName)}</h3>
+                      <p className="text-sm text-gray-600">{uiText(course.courseCode)}{uiText(" • ")}{uiText(course.teacherName)}</p>
                     </div>
                     <div className="text-right">
-                      <div className="text-2xl font-bold text-gray-600">{course.average.toFixed(1)}%</div>
-                      <p className="text-sm text-gray-600">{course.gradeCount} grades</p>
+                      <div className="text-2xl font-bold text-gray-600">{uiText(course.average.toFixed(1))}{uiText("%")}</div>
+                      <p className="text-sm text-gray-600">{course.gradeCount}{uiText(" grades")}</p>
                     </div>
                   </div>
                 </div>
@@ -267,11 +263,11 @@ export const TeacherStudentGrades = () => {
                   <table className="w-full">
                     <thead className="border-b">
                       <tr>
-                        <th className="text-left py-2 text-xs font-medium text-gray-500 uppercase">Type</th>
-                        <th className="text-left py-2 text-xs font-medium text-gray-500 uppercase">Score</th>
-                        <th className="text-left py-2 text-xs font-medium text-gray-500 uppercase">Percentage</th>
-                        <th className="text-left py-2 text-xs font-medium text-gray-500 uppercase">Weight</th>
-                        <th className="text-left py-2 text-xs font-medium text-gray-500 uppercase">Date</th>
+                        <th className="text-left py-2 text-xs font-medium text-gray-500 uppercase">{uiText("Type")}</th>
+                        <th className="text-left py-2 text-xs font-medium text-gray-500 uppercase">{uiText("Score")}</th>
+                        <th className="text-left py-2 text-xs font-medium text-gray-500 uppercase">{uiText("Percentage")}</th>
+                        <th className="text-left py-2 text-xs font-medium text-gray-500 uppercase">{uiText("Weight")}</th>
+                        <th className="text-left py-2 text-xs font-medium text-gray-500 uppercase">{uiText("Date")}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y">
@@ -279,10 +275,10 @@ export const TeacherStudentGrades = () => {
                         <tr key={grade.id}>
                           <td className="py-3">
                             <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs font-medium">
-                              {grade.type}
+                              {uiText(grade.type)}
                             </span>
                           </td>
-                          <td className="py-3 text-sm text-gray-900">{grade.score}/{grade.total}</td>
+                          <td className="py-3 text-sm text-gray-900">{grade.score}{uiText("/")}{grade.total}</td>
                           <td className="py-3">
                             <span className={`font-bold ${
                               grade.percentage >= 80 ? 'text-green-600' :
@@ -290,12 +286,11 @@ export const TeacherStudentGrades = () => {
                               grade.percentage >= 40 ? 'text-yellow-600' :
                               'text-red-600'
                             }`}>
-                              {grade.percentage.toFixed(1)}%
-                            </span>
+                              {uiText(grade.percentage.toFixed(1))}{uiText("%")}</span>
                           </td>
-                          <td className="py-3 text-sm text-gray-600">{grade.weight}%</td>
+                          <td className="py-3 text-sm text-gray-600">{uiText(grade.weight)}{uiText("%")}</td>
                           <td className="py-3 text-sm text-gray-600">
-                            {formatEthiopianLabel(grade.createdAt)}
+                            {uiText(formatEthiopianLabel(grade.createdAt))}
                           </td>
                         </tr>
                       ))}
@@ -311,7 +306,7 @@ export const TeacherStudentGrades = () => {
       {data.myCourses.length === 0 && data.otherCourses.length === 0 && (
         <div className="text-center py-12 bg-white rounded-lg shadow">
           <Award className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-600">No grades found for this student.</p>
+          <p className="text-gray-600">{uiText("No grades found for this student.")}</p>
         </div>
       )}
     </div>

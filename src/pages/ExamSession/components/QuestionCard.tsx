@@ -1,3 +1,4 @@
+import { uiText } from "../../../localization";
 import React from 'react';
 
 interface Option {
@@ -40,18 +41,15 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
           {questionNumber}
         </span>
         <div className="flex-1">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">
-            Question {questionNumber} of {totalQuestions}
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{uiText("Question ")}{questionNumber}{uiText(" of ")}{totalQuestions}
           </p>
           <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100 leading-relaxed">
-            {question.text}
+            {uiText(question.text)}
           </h3>
         </div>
-        {selectedOptionId && (
-          <span className="flex-shrink-0 inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-wider">
-            ✓ Answered
-          </span>
-        )}
+        {uiText(selectedOptionId && (
+          <span className="flex-shrink-0 inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-wider">{uiText("✓ Answered")}</span>
+        ))}
       </div>
 
       {/* Options */}
@@ -75,7 +73,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
                   ? 'bg-blue-500 text-white'
                   : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/30 group-hover:text-blue-600'
               }`}>
-                {label}
+                {uiText(label)}
               </span>
 
               {/* Radio indicator */}
@@ -93,7 +91,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
                   ? 'text-blue-900 dark:text-blue-100 font-medium'
                   : 'text-slate-700 dark:text-slate-300'
               }`}>
-                {option.text}
+                {uiText(option.text)}
               </span>
             </button>
           );

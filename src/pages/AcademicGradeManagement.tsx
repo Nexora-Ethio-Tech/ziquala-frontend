@@ -1,3 +1,4 @@
+import { uiText } from "../localization";
 import { useMemo, useState } from 'react';
 import { Award, CheckCircle2, GraduationCap, Save, Search, SlidersHorizontal, Users } from 'lucide-react';
 
@@ -88,27 +89,27 @@ export const AcademicGradeManagement = () => {
         <div className="absolute -right-20 -top-20 h-72 w-72 rounded-full border-[52px] border-white/5" />
         <div className="relative flex flex-col justify-between gap-7 lg:flex-row lg:items-end">
           <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.24em]"><GraduationCap size={14} /> Academic authority</div>
-            <h1 className="mt-5 text-3xl font-black tracking-tight md:text-5xl">Grade & Point Editing</h1>
-            <p className="mt-4 max-w-2xl leading-7 text-blue-50/80">The Academic Manager can correct subject grades and participation points, then save an updated academic record. This demo is ready to connect to an audited backend workflow later.</p>
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.24em]"><GraduationCap size={14} />{uiText(" Academic authority")}</div>
+            <h1 className="mt-5 text-3xl font-black tracking-tight md:text-5xl">{uiText("Grade & Point Editing")}</h1>
+            <p className="mt-4 max-w-2xl leading-7 text-blue-50/80">{uiText("The Academic Manager can correct subject grades and participation points, then save an updated academic record. This demo is ready to connect to an audited backend workflow later.")}</p>
           </div>
-          <button onClick={save} className="inline-flex items-center justify-center gap-2 rounded-xl bg-amber-400 px-6 py-3 font-black text-slate-950 shadow-lg"><Save size={18} /> Save all changes</button>
+          <button onClick={save} className="inline-flex items-center justify-center gap-2 rounded-xl bg-amber-400 px-6 py-3 font-black text-slate-950 shadow-lg"><Save size={18} />{uiText(" Save all changes")}</button>
         </div>
       </section>
 
-      {saved && <div className="flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm font-bold text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/20 dark:text-emerald-300"><CheckCircle2 size={18} /> Demo grade changes saved in this browser.</div>}
+      {saved && <div className="flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm font-bold text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/20 dark:text-emerald-300"><CheckCircle2 size={18} />{uiText(" Demo grade changes saved in this browser.")}</div>}
 
       <section className="grid gap-4 sm:grid-cols-3">
-        <div className="rounded-3xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900"><div className="flex items-center justify-between text-slate-500"><p className="text-xs font-black uppercase tracking-wider">Visible students</p><Users size={19} /></div><p className="mt-4 text-3xl font-black">{filtered.length}</p></div>
-        <div className="rounded-3xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900"><div className="flex items-center justify-between text-slate-500"><p className="text-xs font-black uppercase tracking-wider">Class average</p><SlidersHorizontal size={19} /></div><p className="mt-4 text-3xl font-black">{classAverage.toFixed(1)}%</p></div>
-        <div className="rounded-3xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900"><div className="flex items-center justify-between text-slate-500"><p className="text-xs font-black uppercase tracking-wider">Highest average</p><Award size={19} /></div><p className="mt-4 text-3xl font-black">{topAverage.toFixed(1)}%</p></div>
+        <div className="rounded-3xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900"><div className="flex items-center justify-between text-slate-500"><p className="text-xs font-black uppercase tracking-wider">{uiText("Visible students")}</p><Users size={19} /></div><p className="mt-4 text-3xl font-black">{filtered.length}</p></div>
+        <div className="rounded-3xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900"><div className="flex items-center justify-between text-slate-500"><p className="text-xs font-black uppercase tracking-wider">{uiText("Class average")}</p><SlidersHorizontal size={19} /></div><p className="mt-4 text-3xl font-black">{uiText(classAverage.toFixed(1))}{uiText("%")}</p></div>
+        <div className="rounded-3xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900"><div className="flex items-center justify-between text-slate-500"><p className="text-xs font-black uppercase tracking-wider">{uiText("Highest average")}</p><Award size={19} /></div><p className="mt-4 text-3xl font-black">{uiText(topAverage.toFixed(1))}{uiText("%")}</p></div>
       </section>
 
       <section className="rounded-3xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
         <div className="grid gap-3 md:grid-cols-[1fr_220px_220px]">
-          <div className="relative"><Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search student name or ID…" className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-3 text-sm outline-none focus:border-blue-600 dark:border-slate-700 dark:bg-slate-950" /></div>
-          <select value={grade} onChange={(event) => { setGrade(event.target.value); setSection('All Sections'); }} className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold dark:border-slate-700 dark:bg-slate-950"><option>All Grades</option>{grades.map((item) => <option key={item}>{item}</option>)}</select>
-          <select value={section} onChange={(event) => setSection(event.target.value)} className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold dark:border-slate-700 dark:bg-slate-950"><option>All Sections</option>{sections.map((item) => <option key={item}>{item}</option>)}</select>
+          <div className="relative"><Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={uiText("Search student name or ID…")} className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-3 text-sm outline-none focus:border-blue-600 dark:border-slate-700 dark:bg-slate-950" /></div>
+          <select value={grade} onChange={(event) => { setGrade(event.target.value); setSection('All Sections'); }} className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold dark:border-slate-700 dark:bg-slate-950"><option value="All Grades">{uiText("All Grades")}</option>{grades.map((item) => <option key={item} value={item}>{uiText(item)}</option>)}</select>
+          <select value={section} onChange={(event) => setSection(event.target.value)} className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold dark:border-slate-700 dark:bg-slate-950"><option value="All Sections">{uiText("All Sections")}</option>{sections.map((item) => <option key={item} value={item}>{uiText(item)}</option>)}</select>
         </div>
       </section>
 
@@ -117,19 +118,19 @@ export const AcademicGradeManagement = () => {
           <table className="w-full min-w-[1150px]">
             <thead className="border-b border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-950/50">
               <tr>
-                <th className="px-5 py-4 text-left text-[10px] font-black uppercase tracking-wider text-slate-500">Student</th>
-                {academicFields.map((field) => <th key={field.key} className="px-3 py-4 text-center text-[10px] font-black uppercase tracking-wider text-slate-500">{field.label}<span className="block font-semibold normal-case">out of 100</span></th>)}
-                <th className="px-3 py-4 text-center text-[10px] font-black uppercase tracking-wider text-slate-500">Participation<span className="block font-semibold normal-case">out of 20</span></th>
-                <th className="px-5 py-4 text-center text-[10px] font-black uppercase tracking-wider text-slate-500">Average</th>
+                <th className="px-5 py-4 text-left text-[10px] font-black uppercase tracking-wider text-slate-500">{uiText("Student")}</th>
+                {academicFields.map((field) => <th key={field.key} className="px-3 py-4 text-center text-[10px] font-black uppercase tracking-wider text-slate-500">{uiText(field.label)}<span className="block font-semibold normal-case">{uiText("out of 100")}</span></th>)}
+                <th className="px-3 py-4 text-center text-[10px] font-black uppercase tracking-wider text-slate-500">{uiText("Participation")}<span className="block font-semibold normal-case">{uiText("out of 20")}</span></th>
+                <th className="px-5 py-4 text-center text-[10px] font-black uppercase tracking-wider text-slate-500">{uiText("Average")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {filtered.map((student) => (
                 <tr key={student.id} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/30">
-                  <td className="px-5 py-4"><p className="font-black text-slate-900 dark:text-white">{student.name}</p><p className="mt-1 text-xs font-bold text-slate-500">{student.studentId} · {student.grade} {student.section}</p></td>
-                  {academicFields.map((field) => <td key={field.key} className="px-3 py-4"><input type="number" min={0} max={100} value={student[field.key]} onChange={(event) => updateScore(student.id, field.key, event.target.value, 100)} aria-label={`${student.name} ${field.label}`} className="mx-auto block w-20 rounded-xl border border-slate-200 bg-slate-50 px-2 py-2 text-center font-black outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10 dark:border-slate-700 dark:bg-slate-950" /></td>)}
-                  <td className="px-3 py-4"><input type="number" min={0} max={20} value={student.participationPoints} onChange={(event) => updateScore(student.id, 'participationPoints', event.target.value, 20)} aria-label={`${student.name} participation points`} className="mx-auto block w-20 rounded-xl border border-amber-200 bg-amber-50 px-2 py-2 text-center font-black text-amber-900 outline-none focus:border-amber-600 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-300" /></td>
-                  <td className="px-5 py-4 text-center"><span className={`inline-flex rounded-full px-3 py-1.5 text-sm font-black ${average(student) >= 85 ? 'bg-emerald-100 text-emerald-800' : average(student) >= 70 ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800'}`}>{average(student).toFixed(1)}%</span></td>
+                  <td className="px-5 py-4"><p className="font-black text-slate-900 dark:text-white">{student.name}</p><p className="mt-1 text-xs font-bold text-slate-500">{uiText(student.studentId)}{uiText(" · ")}{uiText(student.grade)} {uiText(student.section)}</p></td>
+                  {academicFields.map((field) => <td key={field.key} className="px-3 py-4"><input type="number" min={0} max={100} value={student[field.key]} onChange={(event) => updateScore(student.id, field.key, event.target.value, 100)} aria-label={uiText("{{value0}} {{value1}}", { value0: student.name, value1: field.label })} className="mx-auto block w-20 rounded-xl border border-slate-200 bg-slate-50 px-2 py-2 text-center font-black outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10 dark:border-slate-700 dark:bg-slate-950" /></td>)}
+                  <td className="px-3 py-4"><input type="number" min={0} max={20} value={student.participationPoints} onChange={(event) => updateScore(student.id, 'participationPoints', event.target.value, 20)} aria-label={uiText("{{value0}} participation points", { value0: student.name })} className="mx-auto block w-20 rounded-xl border border-amber-200 bg-amber-50 px-2 py-2 text-center font-black text-amber-900 outline-none focus:border-amber-600 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-300" /></td>
+                  <td className="px-5 py-4 text-center"><span className={`inline-flex rounded-full px-3 py-1.5 text-sm font-black ${average(student) >= 85 ? 'bg-emerald-100 text-emerald-800' : average(student) >= 70 ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800'}`}>{uiText(average(student).toFixed(1))}{uiText("%")}</span></td>
                 </tr>
               ))}
             </tbody>
@@ -137,7 +138,7 @@ export const AcademicGradeManagement = () => {
         </div>
       </section>
 
-      <p className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm leading-6 text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-200">When the backend is implemented, every change should record the old value, new value, reason, Academic Manager identity, and timestamp. The current version demonstrates editing and local persistence only.</p>
+      <p className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm leading-6 text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-200">{uiText("When the backend is implemented, every change should record the old value, new value, reason, Academic Manager identity, and timestamp. The current version demonstrates editing and local persistence only.")}</p>
     </div>
   );
 };

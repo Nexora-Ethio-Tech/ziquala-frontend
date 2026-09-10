@@ -18,10 +18,12 @@ const resources = {
 };
 
 const savedLanguage = localStorage.getItem('ziquala_language') || localStorage.getItem('ziquala_lang') || 'en';
-const activeLang = savedLanguage === 'or' ? 'om' : savedLanguage;
+const requestedLang = savedLanguage.toLowerCase().split('-')[0];
+const activeLang = requestedLang === 'am' ? 'am' : ['om', 'or'].includes(requestedLang) ? 'om' : 'en';
 
 const updateDomLanguage = (lng: string) => {
   const currentLang = lng === 'or' ? 'om' : lng;
+  document.title = resources[currentLang as keyof typeof resources]?.translation.common.schoolName || resources.en.translation.common.schoolName;
   document.documentElement.setAttribute('lang', currentLang);
   document.documentElement.setAttribute('data-lang', currentLang);
   if (typeof document !== 'undefined' && document.body) {
@@ -44,6 +46,8 @@ i18n
 
 i18n.on('languageChanged', (lng) => {
   updateDomLanguage(lng);
+  localStorage.setItem('ziquala_language', lng);
+  localStorage.setItem('ziquala_lang', lng === 'om' ? 'or' : lng);
 });
 
 export default i18n;

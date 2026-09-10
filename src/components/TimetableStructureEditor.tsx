@@ -1,3 +1,4 @@
+import { uiText } from "../localization";
 import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect } from 'react';
 import { createBranchClass } from '../services/schoolAdminService';
@@ -324,7 +325,7 @@ export const TimetableStructureEditor: React.FC<Props> = ({ classes, teachers, i
   };
 
   const removeGrade = (gradeKey: string) => {
-    const shouldRemove = window.confirm('Delete this grade and all its courses/sections?');
+    const shouldRemove = window.confirm(uiText("Delete this grade and all its courses/sections?"));
     if (!shouldRemove) return;
 
     setGradeMap(prev => {
@@ -389,7 +390,7 @@ export const TimetableStructureEditor: React.FC<Props> = ({ classes, teachers, i
         for (const courseId of Object.keys(courseMap)) {
           const teacherId = courseMap[courseId] || '';
           if (!teacherId) {
-            alert(`Please assign a teacher for ${g.displayName || gradeKey} / ${sectionName} before saving.`);
+            alert(uiText("Please assign a teacher for {{value0}} / {{value1}} before saving.", { value0: g.displayName || gradeKey, value1: sectionName }));
             return;
           }
           const course = (g.courses || []).find((c: any) => c.id === courseId);
@@ -406,7 +407,7 @@ export const TimetableStructureEditor: React.FC<Props> = ({ classes, teachers, i
     }
 
     if (rows.length === 0) {
-      alert('No timetable structure rows were generated. Please add a course, select at least one section, and assign a teacher before saving.');
+      alert(uiText("No timetable structure rows were generated. Please add a course, select at least one section, and assign a teacher before saving."));
       return;
     }
 
@@ -415,7 +416,7 @@ export const TimetableStructureEditor: React.FC<Props> = ({ classes, teachers, i
       await onSave(rows);
     } catch (err) {
       console.error('Failed to save structure rows:', err);
-      alert('Failed to save timetable structure.');
+      alert(uiText("Failed to save timetable structure."));
     } finally {
       setSaving(false);
     }
@@ -437,7 +438,7 @@ export const TimetableStructureEditor: React.FC<Props> = ({ classes, teachers, i
           >
             <option value="">{t("schedule.selectGrade", "Select Grade")}</option>
             {['KG 1', 'KG 2', 'KG 3', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'].map(g => (
-              <option key={g} value={g.startsWith('KG') ? g : `Grade ${g}`}>{g.startsWith('KG') ? g : `Grade ${g}`}</option>
+              <option key={g} value={g.startsWith('KG') ? g : `Grade ${g}`}>{uiText(g.startsWith('KG') ? g : `Grade ${g}`)}</option>
             ))}
           </select>
           <button onClick={() => addGrade(newGradeInput)} className="px-3 py-1.5 bg-indigo-600 text-white rounded-md text-sm font-bold">{t("schedule.addGrade", "Add Grade")}</button>
@@ -462,48 +463,48 @@ export const TimetableStructureEditor: React.FC<Props> = ({ classes, teachers, i
                   }}
                   className="font-bold text-lg w-full px-2 py-1 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900"
                 />
-                <p className="text-xs text-slate-500">Sections: {g.sections.map(s=>s.name).join(', ') || 'none'}</p>
+                <p className="text-xs text-slate-500">{uiText("Sections: ")}{uiText(g.sections.map(s=>s.name).join(', ') || 'none')}</p>
               </div>
               <div className="flex items-center gap-2">
-                <button onClick={() => addSection(gradeKey)} className="px-3 py-1 bg-slate-700 text-white rounded-md text-sm">Add Section</button>
-                <button onClick={() => addCourse(gradeKey)} className="px-3 py-1 bg-green-600 text-white rounded-md text-sm">Add Course</button>
-                <button onClick={() => toggleGradeCollapsed(gradeKey)} className="px-3 py-1 border rounded-md text-sm">{g.collapsed ? 'Expand' : 'Collapse'}</button>
-                <button onClick={() => removeGrade(gradeKey)} className="px-3 py-1 bg-red-500 text-white rounded-md text-sm">Delete</button>
+                <button onClick={() => addSection(gradeKey)} className="px-3 py-1 bg-slate-700 text-white rounded-md text-sm">{uiText("Add Section")}</button>
+                <button onClick={() => addCourse(gradeKey)} className="px-3 py-1 bg-green-600 text-white rounded-md text-sm">{uiText("Add Course")}</button>
+                <button onClick={() => toggleGradeCollapsed(gradeKey)} className="px-3 py-1 border rounded-md text-sm">{uiText(g.collapsed ? 'Expand' : 'Collapse')}</button>
+                <button onClick={() => removeGrade(gradeKey)} className="px-3 py-1 bg-red-500 text-white rounded-md text-sm">{uiText("Delete")}</button>
               </div>
             </div>
 
             {!g.collapsed && (
               <div className="space-y-3">
               {g.courses.length === 0 && (
-                <div className="text-sm text-slate-500">No courses yet for this grade.</div>
+                <div className="text-sm text-slate-500">{uiText("No courses yet for this grade.")}</div>
               )}
 
               <div className="space-y-2">
                 {g.courses.map((course: any) => (
                     <div key={course.id} className="p-3 bg-slate-50 dark:bg-slate-900 rounded-lg border flex items-center gap-3">
                       <div className="flex-1">
-                      <label className="text-xs font-black">Course Name</label>
+                      <label className="text-xs font-black">{uiText("Course Name")}</label>
                       <input value={course.name} onChange={(e) => updateCourse(gradeKey, course.id, { name: e.target.value })} className="w-full px-3 py-2 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm outline-none" />
-                      <div className="text-xs text-slate-400 mt-1">Debug: assigned = {String(Object.keys(g.assignments || {}).some(sec => g.assignments?.[sec]?.[course.id] !== undefined))}</div>
+                      <div className="text-xs text-slate-400 mt-1">{uiText("Debug: assigned = ")}{uiText(String(Object.keys(g.assignments || {}).some(sec => g.assignments?.[sec]?.[course.id] !== undefined)))}</div>
                     </div>
                     <div className="w-40">
-                      <label className="text-xs font-black">Sessions / Week</label>
+                      <label className="text-xs font-black">{uiText("Sessions / Week")}</label>
                       <input type="number" min={1} max={10} value={course.sessionsPerWeek} onChange={(e) => updateCourse(gradeKey, course.id, { sessionsPerWeek: Number(e.target.value) })} className="w-full px-3 py-2 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm outline-none" />
                     </div>
                     <div>
-                      <button onClick={() => removeCourse(gradeKey, course.id)} className="px-3 py-1 bg-red-500 text-white rounded-md text-sm">Delete</button>
+                      <button onClick={() => removeCourse(gradeKey, course.id)} className="px-3 py-1 bg-red-500 text-white rounded-md text-sm">{uiText("Delete")}</button>
                     </div>
                   </div>
                 ))}
               </div>
 
               <div className="mt-4">
-                <label className="text-xs font-black">Section Assignments</label>
+                <label className="text-xs font-black">{uiText("Section Assignments")}</label>
                 <div className="space-y-3 mt-2">
                   {(g.sections && g.sections.length>0) ? g.sections.map((s:any) => (
                     <div key={s.name} className="p-3 bg-white dark:bg-slate-800 rounded-md border">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="text-sm font-bold whitespace-nowrap">Section</span>
+                        <span className="text-sm font-bold whitespace-nowrap">{uiText("Section")}</span>
                         <input
                           type="number"
                           min="1"
@@ -514,9 +515,7 @@ export const TimetableStructureEditor: React.FC<Props> = ({ classes, teachers, i
                         <button
                           onClick={() => removeSection(gradeKey, s.name)}
                           className="px-3 py-1 bg-red-500 text-white rounded-md text-sm"
-                        >
-                          Delete
-                        </button>
+                        >{uiText("Delete")}</button>
                       </div>
                       <div className="flex flex-wrap gap-3">
                         {g.courses.map((course:any) => {
@@ -527,7 +526,7 @@ export const TimetableStructureEditor: React.FC<Props> = ({ classes, teachers, i
                                 className={`w-full inline-flex items-center gap-3 px-3 py-2 rounded-md border ${assigned ? 'bg-green-600 text-white border-green-600' : 'bg-slate-50 border-slate-200 dark:bg-slate-900 dark:border-slate-700'} text-left`}
                                 onClick={() => toggleCourseForSection(gradeKey, s.name, course.id)}
                                 aria-pressed={assigned}
-                                aria-label={`${assigned ? 'Disable' : 'Enable'} ${course.name || 'course'} for section ${s.name}`}
+                                aria-label={uiText("{{value0}} {{value1}} for section {{value2}}", { value0: uiText(assigned ? 'Disable' : 'Enable'), value1: course.name || uiText('course'), value2: s.name })}
                               >
                                 {assigned ? (
                                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-white">
@@ -539,35 +538,33 @@ export const TimetableStructureEditor: React.FC<Props> = ({ classes, teachers, i
                                     <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" fill="transparent" />
                                   </svg>
                                 )}
-                                <span className="flex-1 text-sm">{course.name || 'Untitled Course'}</span>
+                                <span className="flex-1 text-sm">{uiText(course.name || 'Untitled Course')}</span>
                               </button>
                               {assigned && (
                                 <div className="mt-2 space-y-2">
                                   <div className="flex items-center justify-between gap-2 text-[11px] font-bold uppercase tracking-wide text-slate-500">
-                                    <span>Assigned Teacher</span>
-                                    {g.assignments?.[s.name]?.[course.id] && (
+                                    <span>{uiText("Assigned Teacher")}</span>
+                                    {uiText(g.assignments?.[s.name]?.[course.id] && (
                                       <button
                                         type="button"
                                         onClick={() => assignTeacherForSectionCourse(gradeKey, s.name, course.id, '')}
                                         className="text-rose-500 hover:text-rose-600"
-                                      >
-                                        Clear
-                                      </button>
-                                    )}
+                                      >{uiText("Clear")}</button>
+                                    ))}
                                   </div>
                                   <div className="rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-3">
                                     {g.assignments?.[s.name]?.[course.id] ? (
                                         <div className="flex items-center justify-between gap-3 text-sm text-slate-900 dark:text-slate-100">
-                                        <span>{teachers.find(t => t.id === g.assignments?.[s.name]?.[course.id])?.name || 'Unknown teacher'}</span>
-                                        <span className="text-xs text-slate-400">Assigned</span>
+                                        <span>{uiText(teachers.find(t => t.id === g.assignments?.[s.name]?.[course.id])?.name || 'Unknown teacher')}</span>
+                                        <span className="text-xs text-slate-400">{uiText("Assigned")}</span>
                                       </div>
                                     ) : (
-                                      <div className="text-sm text-slate-500">No teacher assigned yet.</div>
+                                      <div className="text-sm text-slate-500">{uiText("No teacher assigned yet.")}</div>
                                     )}
                                   </div>
 
                                   <div className="space-y-1">
-                                    <label className="text-[11px] font-black uppercase tracking-wide text-slate-500">Search teacher</label>
+                                    <label className="text-[11px] font-black uppercase tracking-wide text-slate-500">{uiText("Search teacher")}</label>
                                     <input
                                       value={teacherSearch[getTeacherSearchKey(gradeKey, s.name, course.id)] ?? ''}
                                       onFocus={() => {
@@ -582,7 +579,7 @@ export const TimetableStructureEditor: React.FC<Props> = ({ classes, teachers, i
                                         }
                                       }}
                                       onChange={(e) => setTeacherSearch(prev => ({ ...prev, [getTeacherSearchKey(gradeKey, s.name, course.id)]: e.target.value }))}
-                                      placeholder="Type teacher name..."
+                                      placeholder={uiText("Type teacher name...")}
                                       className="w-full px-3 py-2 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-sm outline-none"
                                     />
 
@@ -605,7 +602,7 @@ export const TimetableStructureEditor: React.FC<Props> = ({ classes, teachers, i
                                               </button>
                                             ))}
                                             {filteredTeachers.length === 0 && (
-                                              <div className="px-3 py-2 text-sm text-slate-500">No teachers found.</div>
+                                              <div className="px-3 py-2 text-sm text-slate-500">{uiText("No teachers found.")}</div>
                                             )}
                                           </div>
                                         )
@@ -619,7 +616,7 @@ export const TimetableStructureEditor: React.FC<Props> = ({ classes, teachers, i
                         })}
                       </div>
                     </div>
-                  )) : <div className="text-sm text-slate-500">No sections available for this grade</div>}
+                  )) : <div className="text-sm text-slate-500">{uiText("No sections available for this grade")}</div>}
                 </div>
               </div>
             </div>
@@ -629,7 +626,7 @@ export const TimetableStructureEditor: React.FC<Props> = ({ classes, teachers, i
       </div>
 
       <div className="flex justify-end">
-        <button onClick={handleSave} disabled={saving} className="px-5 py-3 bg-indigo-600 text-white rounded-2xl">{saving ? 'Saving...' : 'Save Structure'}</button>
+        <button onClick={handleSave} disabled={saving} className="px-5 py-3 bg-indigo-600 text-white rounded-2xl">{uiText(saving ? 'Saving...' : 'Save Structure')}</button>
       </div>
     </div>
   );
