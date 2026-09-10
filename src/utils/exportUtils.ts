@@ -29,7 +29,11 @@ export const exportToCSV = (data: any[], filename: string) => {
   document.body.removeChild(link);
 };
 
-type ExcelSheet = { name: string; rows: Record<string, any>[] };
+export type ExcelSheet = {
+  name: string;
+  rows?: Record<string, any>[];
+  matrix?: any[][];
+};
 
 const textEncoder = new TextEncoder();
 
@@ -93,43 +97,51 @@ const calculateColumnWidth = (value: any) => {
   return Math.min(Math.max(text.length + 4, 12), 40);
 };
 
-const buildWorksheetXml = (rows: Record<string, any>[]) => {
-  const dataRows = rows.length > 0 ? rows : [{}];
-  const headerSet = new Set<string>();
-  dataRows.forEach((row) => {
-    Object.keys(row).forEach((key) => headerSet.add(key));
-  });
-  const headers = Array.from(headerSet);
+const buildWorksheetXml = (sheet: ExcelSheet) => {
+  let matrix: any[][] = [];
 
-  const columnWidths = headers.map((header, index) => {
-    const maxLength = Math.max(
-      header.length,
-      ...dataRows.map((row) => calculateColumnWidth(row[header]))
-    );
-    return Math.min(Math.max(maxLength, 12), 40);
-  });
+  if (sheet.matrix && sheet.matrix.length > 0) {
+    matrix = sheet.matrix;
+  } else if (sheet.rows && sheet.rows.length > 0) {
+    const dataRows = sheet.rows;
+    const headerSet = new Set<string>();
+    dataRows.forEach((row) => {
+      Object.keys(row).forEach((key) => headerSet.add(key));
+    });
+    const headers = Array.from(headerSet);
+    matrix.push(headers.map(h => uiText(h)));
+    dataRows.forEach(row => {
+      matrix.push(headers.map(h => row[h] ?? ''));
+    });
+  } else {
+    matrix = [['No Data']];
+  }
+
+  const maxCols = Math.max(...matrix.map(row => row.length), 1);
+  const columnWidths: number[] = [];
+
+  for (let c = 0; c < maxCols; c++) {
+    let maxLen = 12;
+    for (let r = 0; r < matrix.length; r++) {
+      const val = matrix[r][c];
+      if (val != null) {
+        const strLen = String(val).length + 4;
+        if (strLen > maxLen) maxLen = strLen;
+      }
+    }
+    columnWidths.push(Math.min(maxLen, 40));
+  }
 
   const colXml = columnWidths
     .map((width, index) => `<col min="${index + 1}" max="${index + 1}" width="${width}" customWidth="1"/>`)
     .join('');
 
-  const xmlRows = [];
-  if (headers.length > 0) {
-    xmlRows.push(
-      `<row r="1">${headers.map((header, index) => toCellXml(`${columnName(index)}1`, uiText(header))).join('')}</row>`
-    );
-
-    dataRows.forEach((row, rowIndex) => {
-      const excelRow = rowIndex + 2;
-      xmlRows.push(
-        `<row r="${excelRow}">${headers
-          .map((header, columnIndex) => toCellXml(`${columnName(columnIndex)}${excelRow}`, row[header]))
-          .join('')}</row>`
-      );
-    });
-  } else {
-    xmlRows.push('<row r="1"/>');
-  }
+  const xmlRows: string[] = [];
+  matrix.forEach((row, rowIndex) => {
+    const excelRow = rowIndex + 1;
+    const cellsXml = row.map((val, colIndex) => toCellXml(`${columnName(colIndex)}${excelRow}`, val)).join('');
+    xmlRows.push(`<row r="${excelRow}">${cellsXml}</row>`);
+  });
 
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
@@ -298,7 +310,7 @@ export const exportToExcel = (sheets: ExcelSheet[], filename: string) => {
     { name: 'xl/styles.xml', content: textEncoder.encode(stylesXml) },
     ...sheets.map((sheet, index) => ({
       name: `xl/worksheets/sheet${index + 1}.xml`,
-      content: textEncoder.encode(buildWorksheetXml(sheet.rows))
+      content: textEncoder.encode(buildWorksheetXml(sheet))
     }))
   ];
 

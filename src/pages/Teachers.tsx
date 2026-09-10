@@ -2000,23 +2000,43 @@ export const Teachers = () => {
                     const teacherName = selectedAnnualPlan.teacher_name || selectedAnnualPlan.teacherName || 'Assigned Teacher';
                     const subject = selectedAnnualPlan.subject || '—';
                     const grade = selectedAnnualPlan.grade || '—';
+                    const academicYear = selectedAnnualPlan.academic_year || '2018 E.C.';
+                    const periodsWeek = selectedAnnualPlan.periods_week || selectedAnnualPlan.periodsPerWeek || 4;
+                    const workingDays = selectedAnnualPlan.working_days_year || 180;
+                    const periodsYear = selectedAnnualPlan.periods_year || 160;
+                    const durationPeriod = selectedAnnualPlan.duration_period || '45 minutes';
+
                     const items = Array.isArray(selectedAnnualPlan.items) ? selectedAnnualPlan.items : [];
-                    const rows = items.length > 0 ? items.map((item: any, idx: number) => ({
-                      'Week #': idx + 1,
-                      'Teacher': teacherName,
-                      'Subject': subject,
-                      'Grade': grade,
-                      'Academic Year': selectedAnnualPlan.academic_year || '2018 E.C.',
-                      'Month': item.month || '—',
-                      'Chapter / Unit': item.unit || item.chapter_unit || '—',
-                      'Main Topic': item.topic || item.topic_title || '—',
-                      'Sub Topic': item.subTopic || '—',
-                      'Periods': item.periods || '—',
-                      'Teaching Method': item.method || item.teaching_method || '—',
-                      'Teaching Aids': item.aids || item.teaching_aids || '—',
-                      'Assessment / Remark': item.assessment || item.remark || '—'
-                    })) : [{ 'Teacher': teacherName, 'Subject': subject, 'Grade': grade, 'Status': selectedAnnualPlan.status || 'Pending' }];
-                    exportToExcel([{ name: 'Annual Lesson Plan', rows }], `Annual_Plan_${teacherName.replace(/\s+/g, '_')}_${grade.replace(/\s+/g, '_')}`);
+
+                    const matrix: any[][] = [
+                      ['ZIQUALA ABO 1ST PRIMARY SCHOOL ANNUAL LESSON PLAN FORM'],
+                      [`Teacher Name: ${teacherName}`, `Subject: ${subject}`, `Grade: ${grade}`, `Academic Year: ${academicYear}`],
+                      [`Periods / Week: ${periodsWeek}`, `Working Days / Year: ${workingDays}`, `Periods / Year: ${periodsYear}`, `Duration / Period: ${durationPeriod}`],
+                      [],
+                      ['MONTH', 'WEEK', '# PERIODS', 'UNIT', 'MAIN CONTENT', 'SUB CONTENT', 'COMPETENCE', 'METHOD', 'AID', 'EVALUATION', 'REMARK']
+                    ];
+
+                    if (items.length > 0) {
+                      items.forEach((item: any, idx: number) => {
+                        matrix.push([
+                          item.month || '—',
+                          item.week || `Week ${(idx % 4) + 1}`,
+                          item.periods || item.periods_week || '—',
+                          item.unit || item.chapter_unit || '—',
+                          item.topic || item.topic_title || item.mainContent || '—',
+                          item.subTopic || item.subContent || '—',
+                          item.competence || '—',
+                          item.method || item.teaching_method || '—',
+                          item.aids || item.teaching_aids || '—',
+                          item.evaluation || '—',
+                          item.assessment || item.remark || '—'
+                        ]);
+                      });
+                    } else {
+                      matrix.push(['—', '—', '—', '—', '—', '—', '—', '—', '—', '—', '—']);
+                    }
+
+                    exportToExcel([{ name: 'Annual Lesson Plan', matrix }], `Annual_Plan_${teacherName.replace(/\s+/g, '_')}_${grade.replace(/\s+/g, '_')}`);
                   }}
                   className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 shadow-md"
                 >
@@ -2168,8 +2188,8 @@ export const Teachers = () => {
                     const gradeSection = selectedWeeklyPlan.grade_section || selectedWeeklyPlan.gradeSection || selectedWeeklyPlan.grade || '—';
                     const chapterUnit = selectedWeeklyPlan.chapter_unit || selectedWeeklyPlan.chapterUnit || selectedWeeklyPlan.chapter || selectedWeeklyPlan.unit || '—';
                     const topicTitle = selectedWeeklyPlan.topic_title || selectedWeeklyPlan.topicTitle || selectedWeeklyPlan.topic || '—';
-                    const dateFrom = selectedWeeklyPlan.date_from || selectedWeeklyPlan.date || '—';
-                    const dateTo = selectedWeeklyPlan.date_to || selectedWeeklyPlan.date || '—';
+                    const dateFrom = selectedWeeklyPlan.date_from || selectedWeeklyPlan.date ? (selectedWeeklyPlan.date_from || new Date(selectedWeeklyPlan.date).toLocaleDateString()) : '—';
+                    const dateTo = selectedWeeklyPlan.date_to || selectedWeeklyPlan.date ? (selectedWeeklyPlan.date_to || new Date(selectedWeeklyPlan.date).toLocaleDateString()) : '—';
                     const periodsWeek = selectedWeeklyPlan.periods_per_week || selectedWeeklyPlan.periodsPerWeek || selectedWeeklyPlan.periods_week || '—';
                     const status = selectedWeeklyPlan.status || 'Pending';
 
@@ -2190,32 +2210,31 @@ export const Teachers = () => {
                           evaluationRemark: selectedWeeklyPlan.remark || '—'
                         }));
 
-                    const rows = dailyList.map((act: any) => ({
-                      'Day (ቀን)': act.day || '—',
-                      'Teacher Name': teacherName,
-                      'Subject / Lesson Type': subject,
-                      'Grade & Section': gradeSection,
-                      'Chapter / Unit': chapterUnit,
-                      'Topic / Title': topicTitle,
-                      'Date From': dateFrom,
-                      'Date To': dateTo,
-                      'Periods / Week': periodsWeek,
-                      'Status': status,
-                      'Content (ይዘት)': act.content || '—',
-                      'Competence (ብቃት)': act.competence || '—',
-                      'Time (ጊዜ)': act.timeDuration || '45 mins',
-                      '1. Intro (መግቢያ)': act.teacherIntro || '—',
-                      '2. Presentation (አቀራረብ)': act.teacherPresentation || '—',
-                      '3. Summary (ማጠቃለያ)': act.teacherSummary || '—',
-                      '4. Assessment (ምዘና)': act.teacherAssessment || '—',
-                      'Student Activity (የተማሪው)': act.studentActivity || '—',
-                      'Teaching Method (ማስተማሪያ ዘዴ)': act.teachingMethod || '—',
-                      'Teaching Aid (መርጃ መሣሪያ)': act.teachingAid || '—',
-                      'Evaluation Remark (ምዘና)': act.evaluationRemark || '—'
-                    }));
+                    const matrix: any[][] = [
+                      ['ZIQUALA ABO 1ST PRIMARY SCHOOL WEEKLY LESSON PLAN FORM'],
+                      [`Teacher Name: ${teacherName}`, `Subject / Lesson Type: ${subject}`, `Grade & Section: ${gradeSection}`, `Status: ${status}`],
+                      [`Chapter / Unit: ${chapterUnit}`, `Topic / Title: ${topicTitle}`, `Date Range: ${dateFrom} to ${dateTo}`, `Periods / Week: ${periodsWeek}`],
+                      [],
+                      ['Day (ቀን)', 'Content & Outcome (ይዘት እና ብቃት)', 'Time (ጊዜ)', 'Teacher Activity (የመምህሩ ተግባር)', 'Student Activity (የተማሪው)', 'Method (ማስተማሪያ ዘዴ)', 'Aid (መርጃ መሣሪያ)', 'Remark (ምዘና)']
+                    ];
+
+                    dailyList.forEach((act: any) => {
+                      const teacherActivityStr = `1. Intro: ${act.teacherIntro || act.intro || '—'}\n2. Presentation: ${act.teacherPresentation || act.presentation || '—'}\n3. Summary: ${act.teacherSummary || act.summary || '—'}\n4. Assessment: ${act.teacherAssessment || act.evaluation || '—'}`;
+                      const contentCompetenceStr = `Content: ${act.content || '—'}\nOutcome: ${act.competence || '—'}`;
+                      matrix.push([
+                        act.day || '—',
+                        contentCompetenceStr,
+                        act.timeDuration || '45 mins',
+                        teacherActivityStr,
+                        act.studentActivity || '—',
+                        act.teachingMethod || '—',
+                        act.teachingAid || '—',
+                        act.evaluationRemark || '—'
+                      ]);
+                    });
 
                     exportToExcel(
-                      [{ name: 'Weekly Lesson Plan', rows }],
+                      [{ name: 'Weekly Lesson Plan', matrix }],
                       `Weekly_Plan_${teacherName.replace(/\s+/g, '_')}_${gradeSection.replace(/\s+/g, '_')}`
                     );
                   }}
