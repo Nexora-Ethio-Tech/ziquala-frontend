@@ -1,25 +1,15 @@
 import { uiText } from "../localization";
 import { useTranslation } from 'react-i18next';
-import { Users, GraduationCap, Clock, ChevronRight, BarChart3, Lock, CheckCircle2, Unlock, BookOpen } from 'lucide-react';
+import { GraduationCap, ChevronRight, CheckCircle2, BookOpen } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getVPDashboard, getStaffAbsentCount } from '../services/vicePrincipalService';
-const StatCard = ({ icon: Icon, label, value, color }: any) => (
-  <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-6 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800/80 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-    <div className="flex items-center justify-between mb-4">
-      <div className={`${color} p-3 rounded-2xl text-white`}><Icon size={20} /></div>
-    </div>
-    <h3 className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-widest">{uiText(label)}</h3>
-    <p className="text-3xl font-black text-slate-800 dark:text-slate-100 mt-1">{uiText(value)}</p>
-  </div>
-);
+import { getVPDashboard } from '../services/vicePrincipalService';
 
 export const VicePrincipalDashboard = () => {
   const { t } = useTranslation();
   const { user } = useUser();
   const [dashboard, setDashboard] = useState<any>(null);
-  const [staffAbsentCount, setStaffAbsentCount] = useState<number | null>(null);
 
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({ show: false, message: '', type: 'success' });
@@ -32,12 +22,8 @@ export const VicePrincipalDashboard = () => {
   const fetchDashboard = async () => {
     setLoading(true);
     try {
-      const [dashboardData, absentData] = await Promise.all([
-        getVPDashboard(),
-        getStaffAbsentCount(),
-      ]);
+      const dashboardData = await getVPDashboard();
       setDashboard(dashboardData);
-      setStaffAbsentCount(absentData.absentCount);
     } catch (err: any) {
       console.error('VP Dashboard error:', err);
       showToast(uiText("Failed to load vice principal dashboard data."), 'error');
@@ -71,65 +57,12 @@ export const VicePrincipalDashboard = () => {
             {t("vp.academicOversight", { name: user?.name?.split(" ")[0] || "", defaultValue: `Academic Oversight, VP ${user?.name?.split(" ")[0] || ""}` })}
           </h1>
           <p className="text-slate-400 text-sm mt-3 max-w-2xl font-medium leading-relaxed">
-            {t("vp.portalDesc", "Monitor branch attendance counts and absence escalations with verified data from the database.")}
+            {t("vp.portalDesc", "Manage grade processing, student transcripts, and communication logs.")}
           </p>
         </div>
       </section>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        <Link to="/vp-attendance" className="block">
-          <StatCard
-            icon={Users}
-            label={t("vp.pendingAbsences", "Pending Absences")}
-            value={staffAbsentCount != null ? staffAbsentCount : dashboard?.pendingAbsencesCount ?? '-'}
-            color="bg-rose-600 shadow-lg shadow-rose-600/10"
-          />
-        </Link>
-        <Link to="/vp-attendance" className="block">
-          <StatCard
-            icon={Clock}
-            label={t("vp.todayAttendance", "Today's Attendance")}
-            value={dashboard?.todayAttendanceRate != null ? `${dashboard.todayAttendanceRate.toFixed(1)}%` : '-'}
-            color="bg-emerald-600 shadow-lg shadow-emerald-600/10"
-          />
-        </Link>
-      </div>
-
-      <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-3xl border border-slate-100 dark:border-slate-800/80 shadow-sm p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="font-bold text-slate-800 dark:text-white text-lg">{t("vp.staffAbsenceSummary", "Staff Absence Summary")}</h3>
-            <p className="text-xs text-slate-500 mt-1">
-              {uiText(staffAbsentCount != null
-                ? t("vp.staffAbsentCount", { count: staffAbsentCount, defaultValue: `${staffAbsentCount} staff member(s) have not checked in today` })
-                : t("vp.calculatingAbsent", "Calculating absent staff..."))}
-            </p>
-          </div>
-          <Link
-            to="/vp-attendance"
-            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-sm font-bold transition-all"
-          >
-            {t("vp.viewDetails", "View Details")}
-          </Link>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <Link
-          to="/vp-attendance"
-          className="bg-gradient-to-br from-emerald-500 to-teal-600 text-white rounded-3xl p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group shadow-md shadow-emerald-500/10"
-        >
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-white/20 rounded-2xl">
-              <BarChart3 size={24} />
-            </div>
-            <ChevronRight className="group-hover:translate-x-1.5 transition-transform" size={20} />
-          </div>
-          <h3 className="font-bold text-lg mb-1">{t("vp.attendanceOversight", "Attendance Oversight")}</h3>
-          <p className="text-emerald-50/90 text-sm font-medium">{t("vp.attendanceOversightDesc", "Audit daily student presence matrices")}</p>
-        </Link>
-
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-3 lg:grid-cols-3">
         <Link
           to="/vp-grade-management"
           className="bg-gradient-to-br from-blue-500 to-cyan-600 text-white rounded-3xl p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group shadow-md shadow-blue-500/10"

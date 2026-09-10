@@ -104,7 +104,6 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
           { icon: Users, label: t('nav.students', 'Students'), path: '/students' },
           { icon: UserSquare2, label: t('nav.staffManagement', 'Staff Management'), path: '/staff' },
           { icon: UserCheck, label: t('nav.supervise', 'Supervise'), path: '/teachers' },
-          { icon: CalendarCheck, label: t('nav.attendance', 'Attendance'), path: '/attendance' },
           { icon: Package, label: t('nav.inventory', 'Inventory'), path: '/inventory' },
           { icon: LibraryBig, label: uiText('eLearning'), path: '/elearning-library' },
           { icon: Settings, label: t('nav.settings', 'Settings'), path: '/settings' },
@@ -123,7 +122,6 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
       case 'vice-principal':
         return [
           { icon: LayoutDashboard, label: t('nav.dashboard', 'Dashboard'), path: dashboardRoutes['vice-principal'] },
-          { icon: CalendarCheck, label: t('nav.attendanceOversight', 'Attendance Oversight'), path: '/vp-attendance' },
           { icon: ClipboardList, label: t('nav.gradeManagement', 'Grade Management'), path: '/vp-grade-management' },
           { icon: FileText, label: t('nav.transcripts', 'Transcripts'), path: '/vp-transcripts' },
           { icon: BookOpen, label: t('nav.communicationBook', 'Communication Book'), path: '/vp-communication' },
