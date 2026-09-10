@@ -1,3 +1,4 @@
+import { uiText, uiError } from "../localization";
 import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useCallback } from 'react';
 import { useUser } from '../context/UserContext';
@@ -214,7 +215,9 @@ export const GradeEntry = () => {
     if (invalidEntries.length > 0) {
       setShowValidationErrors(true);
       const firstErr = invalidEntries[0];
-      setSaveError(`Cannot save: ${firstErr.studentName}'s ${firstErr.methodLabel} score (${firstErr.score}) exceeds the maximum ${firstErr.maxWeight}.`);
+      setSaveError(uiText("Cannot save: {{student}}'s {{method}} score ({{score}}) exceeds the maximum {{maximum}}.", {
+        student: firstErr.studentName, method: uiText(firstErr.methodLabel), score: firstErr.score, maximum: firstErr.maxWeight,
+      }));
       return false;
     }
     setShowValidationErrors(false);
@@ -251,7 +254,7 @@ export const GradeEntry = () => {
       if (showConfirmation) showSuccess('Draft grades saved successfully.');
       return true;
     } catch (err: any) {
-      setSaveError(err?.response?.data?.error?.message || err?.response?.data?.message || 'Failed to save grades. Please try again.');
+      setSaveError(uiError(err?.response?.data?.error?.message || err?.response?.data?.message || 'Failed to save grades. Please try again.'));
       return false;
     } finally {
       setSaving(false);
@@ -288,7 +291,9 @@ export const GradeEntry = () => {
       setShowValidationErrors(true);
       const firstErr = invalidEntries[0];
       setSaveError(
-        `Cannot submit: ${firstErr.studentName}'s ${firstErr.methodLabel} score (${firstErr.score}) exceeds the maximum ${firstErr.maxWeight}.`
+        uiText("Cannot submit: {{student}}'s {{method}} score ({{score}}) exceeds the maximum {{maximum}}.", {
+          student: firstErr.studentName, method: uiText(firstErr.methodLabel), score: firstErr.score, maximum: firstErr.maxWeight,
+        })
       );
       return;
     }
@@ -350,9 +355,7 @@ export const GradeEntry = () => {
               onClick={() => navigate(-1)}
               className="text-blue-600 hover:underline flex items-center gap-1 text-xs font-bold uppercase tracking-widest"
             >
-              <ArrowLeft size={14} />
-              Back
-            </button>
+              <ArrowLeft size={14} />{uiText(" Back ")}</button>
             <h2 className="text-2xl font-bold text-slate-800 dark:text-white">{t('gradeEntry.gradeEntry', 'Grade Entry')}</h2>
           </div>
         </div>
@@ -365,7 +368,7 @@ export const GradeEntry = () => {
         {classError && (
           <div className="flex gap-3 items-center p-4 bg-rose-50 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/30 rounded-2xl text-rose-600 text-sm font-medium">
             <AlertCircle size={18} />
-            {classError}
+            {uiError(classError)}
           </div>
         )}
 
@@ -384,11 +387,11 @@ export const GradeEntry = () => {
                     <Users size={24} />
                   </div>
                 </div>
-                <h3 className="text-lg font-bold text-slate-800 dark:text-white">{cls.name}{cls.section ? ` — ${cls.section}` : ''}</h3>
-                <p className="text-sm text-slate-500 mb-6">{cls.enrolledStudents ?? '—'} Students Enrolled</p>
+                <h3 className="text-lg font-bold text-slate-800 dark:text-white">{cls.name}{(cls.section ? uiText(" — {{value0}}", {value0: cls.section}) : uiText(''))}</h3>
+                <p className="text-sm text-slate-500 mb-6">{uiText(cls.enrolledStudents ?? '—')}{uiText(" Students Enrolled")}</p>
 
                 <div className="space-y-2">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase">Subject</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Subject")}</p>
                   {(cls as any).course_id ? (
                     <button
                       onClick={() => handleSelectClass(cls, (cls as any).course_id, cls.subject)}
@@ -398,7 +401,7 @@ export const GradeEntry = () => {
                       <ChevronRight size={16} />
                     </button>
                   ) : (
-                    <p className="text-xs text-slate-400 italic">No subject assigned</p>
+                    <p className="text-xs text-slate-400 italic">{uiText("No subject assigned")}</p>
                   )}
                 </div>
               </div>
@@ -420,17 +423,15 @@ export const GradeEntry = () => {
           onClick={() => { setSelectedClass(null); setSelectedCourseId(null); setSelectedSubject(null); }}
           className="flex items-center gap-1 text-blue-600 hover:underline text-xs font-bold uppercase tracking-widest w-fit"
         >
-          <ArrowLeft size={14} />
-          Back to Class Selection
-        </button>
+          <ArrowLeft size={14} />{uiText(" Back to Class Selection ")}</button>
       </div>
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-3">
-            <h2 className="text-2xl font-bold text-slate-800 dark:text-white">{selectedClass.name}{selectedClass.section ? ` — ${selectedClass.section}` : ''}</h2>
+            <h2 className="text-2xl font-bold text-slate-800 dark:text-white">{selectedClass.name}{(selectedClass.section ? uiText(" — {{value0}}", {value0: selectedClass.section}) : uiText(''))}</h2>
             <span className="px-3 py-1 bg-blue-100 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300 rounded-full text-xs font-bold uppercase">
-              {selectedSubject}
+              {uiText(selectedSubject)}
             </span>
           </div>
           <div className="flex flex-wrap gap-3 mt-3">
@@ -438,11 +439,11 @@ export const GradeEntry = () => {
               value={selectedYear}
               onChange={(e) => setSelectedYear(e.target.value)}
               className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm font-bold"
-              aria-label="Academic Year"
+              aria-label={uiText("Academic Year")}
             >
               {getAvailableGregorianYears().map((year) => (
                 <option key={year} value={year}>
-                  {gregorianToECYear(year)} E.C. ({year})
+                  {gregorianToECYear(year)}{uiText(" E.C. (")}{uiText(year)})
                 </option>
               ))}
             </select>
@@ -450,21 +451,18 @@ export const GradeEntry = () => {
               value={selectedSemester}
               onChange={(e) => setSelectedSemester(e.target.value as 'First Semester' | 'Second Semester')}
               className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm font-bold"
-              aria-label="Semester"
+              aria-label={uiText("Semester")}
             >
-              <option>First Semester</option>
-              <option>Second Semester</option>
+              <option value="First Semester">{uiText("First Semester")}</option>
+              <option value="Second Semester">{uiText("Second Semester")}</option>
             </select>
             {periodBlocked && (
               <div className="flex items-center gap-2 px-4 py-2 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl text-amber-700 dark:text-amber-400 text-xs font-semibold">
-                <AlertCircle size={14} />
-                This academic period is not yet active — grade entry is disabled.
-              </div>
+                <AlertCircle size={14} />{uiText(" This academic period is not yet active — grade entry is disabled. ")}</div>
             )}
           </div>
           {gradingMethods.length > 0 && (
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-              Assessment methods: {gradingMethods.map(m => `${m.label} (${m.maxWeight})`).join(' → ')}
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{uiText(" Assessment methods: ")}{gradingMethods.map(m => `${m.label} (${m.maxWeight})`).join(' → ')}
             </p>
           )}
         </div>
@@ -477,7 +475,7 @@ export const GradeEntry = () => {
               className="px-6 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-60 text-slate-800 dark:text-white rounded-xl flex items-center gap-2 font-bold transition-all"
             >
               {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
-              <span>{saving ? 'Saving…' : 'Save Grades'}</span>
+              <span>{(saving ? uiText('Saving…') : uiText('Save Grades'))}</span>
             </button>
             <button
               onClick={handleOpenSubmitModal}
@@ -485,7 +483,7 @@ export const GradeEntry = () => {
               className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white rounded-xl flex items-center gap-2 font-bold shadow-lg shadow-blue-200 dark:shadow-none transition-all"
             >
               {submittingGrades ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle size={18} />}
-              <span>{submittingGrades ? 'Submitting…' : 'Submit Grades'}</span>
+              <span>{(submittingGrades ? uiText('Submitting…') : uiText('Submit Grades'))}</span>
             </button>
           </div>
         )}
@@ -495,8 +493,8 @@ export const GradeEntry = () => {
         <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/30 p-4 rounded-xl flex items-center gap-3 text-emerald-800 dark:text-emerald-300">
           <Lock size={20} className="text-emerald-600 flex-shrink-0" />
           <div>
-            <p className="font-bold text-sm">All Grades Submitted &amp; Locked</p>
-            <p className="text-xs opacity-80">All grades for this course have been officially submitted to the administration. They are now locked and cannot be edited anymore.</p>
+            <p className="font-bold text-sm">{uiText("All Grades Submitted & Locked")}</p>
+            <p className="text-xs opacity-80">{uiText("All grades for this course have been officially submitted to the administration. They are now locked and cannot be edited anymore.")}</p>
           </div>
         </div>
       )}
@@ -505,8 +503,8 @@ export const GradeEntry = () => {
         <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/30 p-4 rounded-xl flex items-center gap-3 text-amber-800 dark:text-amber-300">
           <Lock size={20} className="text-amber-600 flex-shrink-0" />
           <div>
-            <p className="font-bold text-sm">Grade Insertion is Currently Locked</p>
-            <p className="text-xs opacity-80">The administration has closed the window for grade entry. You can view scores but cannot modify them.</p>
+            <p className="font-bold text-sm">{uiText("Grade Insertion is Currently Locked")}</p>
+            <p className="text-xs opacity-80">{uiText("The administration has closed the window for grade entry. You can view scores but cannot modify them.")}</p>
           </div>
         </div>
       )}
@@ -515,8 +513,8 @@ export const GradeEntry = () => {
         <div className="bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/30 p-4 rounded-xl flex items-center gap-3 text-rose-800 dark:text-rose-300">
           <Lock size={20} className="text-rose-600 flex-shrink-0" />
           <div>
-            <p className="font-bold text-sm">Grade Submission Window is Closed</p>
-            <p className="text-xs opacity-80">The Vice Principal has temporarily closed grade entry and submission.</p>
+            <p className="font-bold text-sm">{uiText("Grade Submission Window is Closed")}</p>
+            <p className="text-xs opacity-80">{uiText("The Vice Principal has temporarily closed grade entry and submission.")}</p>
           </div>
         </div>
       )}
@@ -524,7 +522,7 @@ export const GradeEntry = () => {
       {successMessage && (
         <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/30 text-emerald-700 dark:text-emerald-300 px-6 py-4 rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4">
           <div className="bg-emerald-500 text-white p-1 rounded-full"><Save size={14} /></div>
-          <span className="font-bold text-sm">{successMessage}</span>
+          <span className="font-bold text-sm">{uiText(successMessage)}</span>
         </div>
       )}
 
@@ -533,7 +531,7 @@ export const GradeEntry = () => {
       {saveError && (
         <div className="flex gap-3 items-center p-4 bg-rose-50 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/30 rounded-xl text-rose-600 text-sm font-medium">
           <AlertCircle size={18} className="flex-shrink-0" />
-          {saveError}
+          {uiError(saveError)}
         </div>
       )}
 
@@ -547,23 +545,21 @@ export const GradeEntry = () => {
             <table className="w-full text-left" style={{ minWidth: `${300 + gradingMethods.length * 140}px` }}>
               <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-800">
                 <tr>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Student Name</th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Digital ID</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{uiText("Student Name")}</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{uiText("Digital ID")}</th>
                   {gradingMethods.map((method) => (
                     <th key={method.id} className="px-4 py-4 text-center w-32">
-                      <p className="text-xs font-bold text-slate-600 dark:text-slate-300">{method.label}</p>
+                      <p className="text-xs font-bold text-slate-600 dark:text-slate-300">{uiText(method.label)}</p>
                       <p className="text-[10px] font-black text-blue-500 mt-0.5">/{method.maxWeight}</p>
                     </th>
                   ))}
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right w-28">Total</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right w-28">{uiText("Total")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {students.length === 0 ? (
                   <tr>
-                    <td colSpan={gradingMethods.length + 3} className="px-6 py-12 text-center text-slate-400 text-sm">
-                      No students enrolled in this class.
-                    </td>
+                    <td colSpan={gradingMethods.length + 3} className="px-6 py-12 text-center text-slate-400 text-sm">{uiText(" No students enrolled in this class. ")}</td>
                   </tr>
                 ) : (
                   students.map((student) => {
@@ -571,7 +567,7 @@ export const GradeEntry = () => {
                     return (
                       <tr key={student.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
                         <td className="px-6 py-4">
-                          <p className="text-sm font-bold text-slate-800 dark:text-white">{(student.firstName || student.lastName) ? `${student.firstName || ''} ${student.lastName || ''}`.trim() : ((student as any).name || 'Student')}</p>
+                          <p className="text-sm font-bold text-slate-800 dark:text-white">{((student.firstName || student.lastName) ? `${student.firstName || ''} ${student.lastName || ''}`.trim() : ((student as any).name || 'Student'))}</p>
                         </td>
                         <td className="px-6 py-4">
                           <p className="text-xs font-mono text-slate-500">{student.digitalId || (student as any).digital_id || '—'}</p>
@@ -590,7 +586,7 @@ export const GradeEntry = () => {
                                 type="number"
                                 min={0}
                                 max={method.maxWeight}
-                                placeholder="0"
+                                placeholder={uiText("0")}
                                 value={scores[student.id]?.[method.id] ?? ''}
                                 onChange={(e) => handleScoreChange(student.id, method.id, e.target.value)}
                                 className={`w-full text-center p-2 rounded-lg text-sm outline-none transition-all font-bold ${
@@ -602,14 +598,11 @@ export const GradeEntry = () => {
                                 }`}
                               />
                               {showValidationErrors && isExceeded && (
-                                <span className="block text-[10px] font-black text-rose-600 dark:text-rose-400 text-center mt-1 uppercase tracking-tight">
-                                  Exceeds {method.maxWeight}!
+                                <span className="block text-[10px] font-black text-rose-600 dark:text-rose-400 text-center mt-1 uppercase tracking-tight">{uiText(" Exceeds ")}{method.maxWeight}!
                                 </span>
                               )}
                               {showValidationErrors && isNegative && (
-                                <span className="block text-[10px] font-black text-rose-600 dark:text-rose-400 text-center mt-1 uppercase tracking-tight">
-                                  Negative!
-                                </span>
+                                <span className="block text-[10px] font-black text-rose-600 dark:text-rose-400 text-center mt-1 uppercase tracking-tight">{uiText(" Negative! ")}</span>
                               )}
                             </td>
                           );
@@ -640,11 +633,9 @@ export const GradeEntry = () => {
           <div className="w-full max-w-2xl overflow-hidden rounded-3xl bg-white dark:bg-slate-900 shadow-2xl border border-slate-200 dark:border-slate-800">
             <div className="flex items-start justify-between gap-4 border-b border-slate-100 dark:border-slate-800 p-6">
               <div>
-                <h3 id="submit-assessments-title" className="text-xl font-black text-slate-900 dark:text-white">
-                  Choose Assessments to Submit
-                </h3>
+                <h3 id="submit-assessments-title" className="text-xl font-black text-slate-900 dark:text-white">{uiText(" Choose Assessments to Submit ")}</h3>
                 <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                  {selectedSubject} &bull; {gregorianToECYear(selectedYear)} E.C. &bull; {selectedSemester}
+                  {uiText(selectedSubject)}{uiText(" &bull; ")}{gregorianToECYear(selectedYear)}{uiText(" E.C. &bull; ")}{uiText(selectedSemester)}
                 </p>
               </div>
               <button
@@ -652,7 +643,7 @@ export const GradeEntry = () => {
                 onClick={() => setShowSubmitModal(false)}
                 disabled={submittingGrades}
                 className="rounded-xl p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-white disabled:opacity-50"
-                aria-label="Close submission dialog"
+                aria-label={uiText("Close submission dialog")}
               >
                 <X size={20} />
               </button>
@@ -683,7 +674,7 @@ export const GradeEntry = () => {
                     />
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center justify-between gap-2">
-                        <p className="font-bold text-slate-800 dark:text-white">{method.label}</p>
+                        <p className="font-bold text-slate-800 dark:text-white">{uiText(method.label)}</p>
                         <span className="text-xs font-black text-blue-600 dark:text-blue-400">/{method.maxWeight}</span>
                       </div>
                       <p className={`mt-1 text-xs font-semibold ${
@@ -695,11 +686,7 @@ export const GradeEntry = () => {
                               ? 'text-amber-600 dark:text-amber-400'
                               : 'text-slate-500 dark:text-slate-400'
                       }`}>
-                        {isLocked
-                          ? 'Already submitted and locked'
-                          : scoreCount === 0
-                            ? 'No scores entered — unavailable'
-                            : `${scoreCount}/${students.length} students scored`}
+                        {(isLocked ? uiText('Already submitted and locked') : (scoreCount === 0 ? uiText('No scores entered — unavailable') : uiText("{{value0}}/{{value1}} students scored", {value0: scoreCount, value1: students.length})))}
                       </p>
                     </div>
                   </label>
@@ -707,18 +694,14 @@ export const GradeEntry = () => {
               })}
 
               {!gradingMethods.some((method) => !lockedMethods.has(method.id) && getAssessmentScoreCount(method.id) > 0) && (
-                <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-700 dark:border-amber-800 dark:bg-amber-950/20 dark:text-amber-400">
-                  There are no assessments available to submit. Enter and save at least one score first.
-                </div>
+                <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-700 dark:border-amber-800 dark:bg-amber-950/20 dark:text-amber-400">{uiText(" There are no assessments available to submit. Enter and save at least one score first. ")}</div>
               )}
             </div>
 
             <div className="border-t border-slate-100 bg-slate-50/70 p-6 dark:border-slate-800 dark:bg-slate-950/30">
               <div className="mb-5 flex gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-300">
                 <Lock size={18} className="mt-0.5 shrink-0" />
-                <p className="text-xs font-semibold leading-relaxed">
-                  Only the selected assessments will be submitted and locked. All other assessments will remain editable drafts.
-                </p>
+                <p className="text-xs font-semibold leading-relaxed">{uiText(" Only the selected assessments will be submitted and locked. All other assessments will remain editable drafts. ")}</p>
               </div>
               <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
                 <button
@@ -726,9 +709,7 @@ export const GradeEntry = () => {
                   onClick={() => setShowSubmitModal(false)}
                   disabled={submittingGrades}
                   className="rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 disabled:opacity-50"
-                >
-                  Cancel
-                </button>
+                >{uiText(" Cancel ")}</button>
                 <button
                   type="button"
                   onClick={() => void handleSubmitGrades()}
@@ -736,9 +717,7 @@ export const GradeEntry = () => {
                   className="flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-blue-500/20 hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {submittingGrades ? <Loader2 size={17} className="animate-spin" /> : <CheckCircle size={17} />}
-                  {submittingGrades
-                    ? 'Submitting…'
-                    : `Submit ${selectedSubmissionMethods.size || ''} Assessment${selectedSubmissionMethods.size === 1 ? '' : 's'}`}
+                  {(submittingGrades ? uiText('Submitting…') : uiText("Submit {{value0}} Assessment{{value1}}", {value0: selectedSubmissionMethods.size || '', value1: selectedSubmissionMethods.size === 1 ? '' : 's'}))}
                 </button>
               </div>
             </div>

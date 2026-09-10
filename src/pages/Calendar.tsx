@@ -1,3 +1,4 @@
+import { uiError, uiText } from "../localization";
 import { useState, useEffect, useCallback } from 'react';
 import { EthiopianDatePicker } from '../components/EthiopianDatePicker';
 import { ChevronLeft, ChevronRight, Plus, Tag, Trash2, Edit, X, Calendar as CalendarIcon } from 'lucide-react';
@@ -206,12 +207,12 @@ export const Calendar = ({ compact = false }: { compact?: boolean }) => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this event?')) return;
+    if (!confirm(uiText("Delete this event?"))) return;
     try {
       await dashboardService.deleteEvent(role!, id);
       fetchEvents();
     } catch {
-      alert('Failed to delete event.');
+      alert(uiText("Failed to delete event."));
     }
   };
 
@@ -220,17 +221,15 @@ export const Calendar = ({ compact = false }: { compact?: boolean }) => {
       {/* Header */}
       <div className={`flex flex-col md:flex-row md:items-center justify-between ${compact ? 'gap-2' : 'gap-4'}`}>
         <div>
-          <h2 className={`${compact ? 'text-lg' : 'text-2xl'} font-bold text-slate-800 dark:text-slate-100`}>Academic Calendar</h2>
-          {!compact && <p className="text-slate-500 dark:text-slate-400 text-sm">Ethiopian calendar — all school events and holidays.</p>}
+          <h2 className={`${compact ? 'text-lg' : 'text-2xl'} font-bold text-slate-800 dark:text-slate-100`}>{uiText("Academic Calendar")}</h2>
+          {!compact && <p className="text-slate-500 dark:text-slate-400 text-sm">{uiText("Ethiopian calendar — all school events and holidays.")}</p>}
         </div>
         {canManage && (
           <button
             onClick={openCreate}
             className={`bg-blue-600 hover:bg-blue-700 text-white ${compact ? 'px-3 py-1.5 rounded-lg text-xs' : 'px-4 py-2 rounded-xl text-sm'} flex items-center gap-2 transition-colors font-bold shadow-lg shadow-blue-200 dark:shadow-none`}
           >
-            <Plus size={16} />
-            Add Event
-          </button>
+            <Plus size={16} />{uiText("Add Event")}</button>
         )}
       </div>
 
@@ -243,7 +242,7 @@ export const Calendar = ({ compact = false }: { compact?: boolean }) => {
               <div className="flex items-center gap-3">
                 <button
                   type="button"
-                  title="Previous month"
+                  title={uiText("Previous month")}
                   onClick={prevMonth}
                   className={`hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors ${compact ? 'p-1.5' : 'p-2'}`}
                 >
@@ -251,13 +250,12 @@ export const Calendar = ({ compact = false }: { compact?: boolean }) => {
                 </button>
                 <div>
                   <h3 className={`font-bold text-slate-800 dark:text-slate-100 ${compact ? 'text-sm' : 'text-lg'}`}>
-                    {ETH_MONTHS[ecMonth - 1]} {ecYear} E.C.
-                  </h3>
-                  {!compact && <p className="text-xs text-slate-400">Ethiopian Calendar</p>}
+                    {uiText(ETH_MONTHS[ecMonth - 1])} {ecYear}{uiText(" E.C.")}</h3>
+                  {!compact && <p className="text-xs text-slate-400">{uiText("Ethiopian Calendar")}</p>}
                 </div>
                 <button
                   type="button"
-                  title="Next month"
+                  title={uiText("Next month")}
                   onClick={nextMonth}
                   className={`hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors ${compact ? 'p-1.5' : 'p-2'}`}
                 >
@@ -267,15 +265,13 @@ export const Calendar = ({ compact = false }: { compact?: boolean }) => {
               <button
                 onClick={goToday}
                 className="text-xs font-bold px-3 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/30 dark:hover:bg-blue-900/40 text-blue-600 transition-colors"
-              >
-                Today
-              </button>
+              >{uiText("Today")}</button>
             </div>
 
             {/* Day headers */}
             <div className="grid grid-cols-7 border-b border-slate-100 dark:border-slate-800">
               {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => (
-                <div key={d} className={`text-center font-bold text-slate-400 uppercase tracking-wider ${compact ? 'py-1.5 text-[10px]' : 'py-3 text-xs'}`}>{d}</div>
+                <div key={d} className={`text-center font-bold text-slate-400 uppercase tracking-wider ${compact ? 'py-1.5 text-[10px]' : 'py-3 text-xs'}`}>{uiText(d)}</div>
               ))}
             </div>
 
@@ -315,7 +311,7 @@ export const Calendar = ({ compact = false }: { compact?: boolean }) => {
                       {dayEvents.slice(0, compact ? 1 : 2).map(ev => (
                         <div
                           key={ev.id}
-                          title={ev.title}
+                          title={uiText(ev.title)}
                           className={`rounded font-bold truncate cursor-pointer ${compact ? 'px-1 py-0.2 text-[8px]' : 'px-1.5 py-0.5 text-[10px]'} ${EVENT_COLORS[ev.type] ?? EVENT_COLORS.Event}`}
                           onClick={(e) => {
                             if (canManage) {
@@ -324,11 +320,11 @@ export const Calendar = ({ compact = false }: { compact?: boolean }) => {
                             }
                           }}
                         >
-                          {ev.title}
+                          {uiText(ev.title)}
                         </div>
                       ))}
                       {dayEvents.length > (compact ? 1 : 2) && (
-                        <p className={`text-slate-400 font-bold px-1 ${compact ? 'text-[7px]' : 'text-[10px]'}`}>+{dayEvents.length - (compact ? 1 : 2)}</p>
+                        <p className={`text-slate-400 font-bold px-1 ${compact ? 'text-[7px]' : 'text-[10px]'}`}>{uiText("+")}{dayEvents.length - (compact ? 1 : 2)}</p>
                       )}
                     </div>
                   </div>
@@ -338,9 +334,7 @@ export const Calendar = ({ compact = false }: { compact?: boolean }) => {
 
             {loadingEvents && (
               <div className="p-4 text-center text-sm text-slate-400">
-                <div className="inline-block w-4 h-4 border-2 border-blue-600/30 border-t-blue-600 rounded-full animate-spin mr-2" />
-                Loading events…
-              </div>
+                <div className="inline-block w-4 h-4 border-2 border-blue-600/30 border-t-blue-600 rounded-full animate-spin mr-2" />{uiText("Loading events…")}</div>
             )}
           </div>
         </div>
@@ -351,10 +345,9 @@ export const Calendar = ({ compact = false }: { compact?: boolean }) => {
           <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
             <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wider mb-4 flex items-center gap-2">
               <CalendarIcon size={14} className="text-blue-500" />
-              {ETH_MONTHS[ecMonth - 1]} Events
-            </h3>
+              {uiText(ETH_MONTHS[ecMonth - 1])}{uiText(" Events")}</h3>
             {monthEvents.length === 0 ? (
-              <p className="text-xs text-slate-400 italic">No events scheduled this month.</p>
+              <p className="text-xs text-slate-400 italic">{uiText("No events scheduled this month.")}</p>
             ) : (
               <div className="space-y-3">
                 {monthEvents.map(ev => {
@@ -367,39 +360,39 @@ export const Calendar = ({ compact = false }: { compact?: boolean }) => {
                         {ethEnd ? (
                           ethStart.month === ethEnd.month ? (
                             <>
-                              <p className="text-sm font-black text-blue-600 dark:text-blue-400">{ethStart.day}-{ethEnd.day}</p>
-                              <p className="text-[9px] font-bold text-slate-400 uppercase">{ETH_MONTHS[ethStart.month - 1]?.slice(0, 3)}</p>
+                              <p className="text-sm font-black text-blue-600 dark:text-blue-400">{ethStart.day}{uiText("-")}{ethEnd.day}</p>
+                              <p className="text-[9px] font-bold text-slate-400 uppercase">{uiText(ETH_MONTHS[ethStart.month - 1]?.slice(0, 3))}</p>
                             </>
                           ) : (
                             <>
-                              <p className="text-[10px] font-black text-blue-600 dark:text-blue-400 leading-tight">{ETH_MONTHS[ethStart.month - 1]?.slice(0, 3)} {ethStart.day}</p>
-                              <p className="text-[8px] text-slate-400 font-bold uppercase my-0.5">to</p>
-                              <p className="text-[10px] font-black text-blue-600 dark:text-blue-400 leading-tight">{ETH_MONTHS[ethEnd.month - 1]?.slice(0, 3)} {ethEnd.day}</p>
+                              <p className="text-[10px] font-black text-blue-600 dark:text-blue-400 leading-tight">{uiText(ETH_MONTHS[ethStart.month - 1]?.slice(0, 3))} {ethStart.day}</p>
+                              <p className="text-[8px] text-slate-400 font-bold uppercase my-0.5">{uiText("to")}</p>
+                              <p className="text-[10px] font-black text-blue-600 dark:text-blue-400 leading-tight">{uiText(ETH_MONTHS[ethEnd.month - 1]?.slice(0, 3))} {ethEnd.day}</p>
                             </>
                           )
                         ) : (
                           <>
                             <p className="text-base font-black text-blue-600 dark:text-blue-400">{ethStart.day}</p>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase">{ETH_MONTHS[ethStart.month - 1]?.slice(0, 3)}</p>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase">{uiText(ETH_MONTHS[ethStart.month - 1]?.slice(0, 3))}</p>
                           </>
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-slate-800 dark:text-slate-200 truncate">{ev.title}</p>
+                        <p className="text-sm font-bold text-slate-800 dark:text-slate-200 truncate">{uiText(ev.title)}</p>
                         <div className="flex items-center gap-1 mt-0.5">
                           <Tag size={10} className="text-slate-400 flex-shrink-0" />
-                          <span className="text-[10px] text-slate-500">{ev.type}</span>
+                          <span className="text-[10px] text-slate-500">{uiText(ev.type)}</span>
                         </div>
-                        {ev.description && (
-                          <p className="text-[10px] text-slate-400 mt-1 line-clamp-2">{ev.description}</p>
-                        )}
+                        {uiText(ev.description && (
+                          <p className="text-[10px] text-slate-400 mt-1 line-clamp-2">{uiText(ev.description)}</p>
+                        ))}
                       </div>
                       {canManage && (
                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                           <button
                             type="button"
-                            title="Edit event"
-                            aria-label="Edit event"
+                            title={uiText("Edit event")}
+                            aria-label={uiText("Edit event")}
                             onClick={() => openEdit(ev)}
                             className="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded transition-colors"
                           >
@@ -407,8 +400,8 @@ export const Calendar = ({ compact = false }: { compact?: boolean }) => {
                           </button>
                           <button
                             type="button"
-                            title="Delete event"
-                            aria-label="Delete event"
+                            title={uiText("Delete event")}
+                            aria-label={uiText("Delete event")}
                             onClick={() => handleDelete(ev.id)}
                             className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded transition-colors"
                           >
@@ -431,12 +424,12 @@ export const Calendar = ({ compact = false }: { compact?: boolean }) => {
           <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-800 w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden">
             <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center shrink-0 bg-slate-50/50 dark:bg-slate-800/50">
               <h3 className="font-bold text-slate-800 dark:text-slate-100">
-                {editingEvent ? 'Edit Event' : 'Add New Event'}
+                {uiText(editingEvent ? 'Edit Event' : 'Add New Event')}
               </h3>
               <button
                 type="button"
-                title="Close modal"
-                aria-label="Close modal"
+                title={uiText("Close modal")}
+                aria-label={uiText("Close modal")}
                 onClick={() => setShowModal(false)}
                 className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               >
@@ -444,57 +437,57 @@ export const Calendar = ({ compact = false }: { compact?: boolean }) => {
               </button>
             </div>
             <div className="p-5 space-y-4 flex-1 overflow-y-auto">
-              {formError && (
-                <div className="bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-800 rounded-xl p-3 text-xs text-rose-700 dark:text-rose-300">{formError}</div>
-              )}
+              {uiText(formError && (
+                <div className="bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-800 rounded-xl p-3 text-xs text-rose-700 dark:text-rose-300">{uiError(formError)}</div>
+              ))}
               <div>
-                <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Title *</label>
+                <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1.5 uppercase tracking-wider">{uiText("Title *")}</label>
                 <input
                   type="text"
                   value={form.title}
                   onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
                   className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-shadow"
-                  placeholder="Event title"
+                  placeholder={uiText("Event title")}
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Start Date (Ethiopian Calendar) *</label>
+                <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1.5 uppercase tracking-wider">{uiText("Start Date (Ethiopian Calendar) *")}</label>
                 <EthiopianDatePicker
                   value={form.date}
                   onChange={val => setForm(f => ({ ...f, date: val }))}
-                  placeholder="YYYY-MM-DD"
+                  placeholder={uiText("YYYY-MM-DD")}
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1.5 uppercase tracking-wider">End Date (Ethiopian Calendar - Optional)</label>
+                <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1.5 uppercase tracking-wider">{uiText("End Date (Ethiopian Calendar - Optional)")}</label>
                 <EthiopianDatePicker
                   value={form.endDate}
                   onChange={val => setForm(f => ({ ...f, endDate: val }))}
-                  placeholder="YYYY-MM-DD"
+                  placeholder={uiText("YYYY-MM-DD")}
                 />
               </div>
               <div>
-                <label htmlFor="event-type-select" className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Type</label>
+                <label htmlFor="event-type-select" className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1.5 uppercase tracking-wider">{uiText("Type")}</label>
                 <select
                   id="event-type-select"
-                  title="Event type"
+                  title={uiText("Event type")}
                   value={form.type}
                   onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
                   className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
                 >
                   {Object.keys(EVENT_COLORS).map(t => (
-                    <option key={t} value={t}>{t}</option>
+                    <option key={t} value={t}>{uiText(t)}</option>
                   ))}
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Description</label>
+                <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1.5 uppercase tracking-wider">{uiText("Description")}</label>
                 <textarea
                   rows={3}
                   value={form.description}
                   onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
                   className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none transition-shadow"
-                  placeholder="Optional description"
+                  placeholder={uiText("Optional description")}
                 />
               </div>
             </div>
@@ -502,16 +495,14 @@ export const Calendar = ({ compact = false }: { compact?: boolean }) => {
               <button
                 onClick={() => setShowModal(false)}
                 className="px-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
-              >
-                Cancel
-              </button>
+              >{uiText("Cancel")}</button>
               <button
                 onClick={handleSave}
                 disabled={saving}
                 className="px-5 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-sm font-bold rounded-xl transition-colors flex items-center gap-2"
               >
                 {saving && <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-                {editingEvent ? 'Save Changes' : 'Create Event'}
+                {uiText(editingEvent ? 'Save Changes' : 'Create Event')}
               </button>
             </div>
           </div>
@@ -523,12 +514,10 @@ export const Calendar = ({ compact = false }: { compact?: boolean }) => {
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-800 w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/50 shrink-0">
-              <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm">
-                Events for {ETH_MONTHS[ecMonth - 1]} {selectedDayNumber}, {ecYear} E.C.
-              </h3>
+              <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm">{uiText("Events for ")}{uiText(ETH_MONTHS[ecMonth - 1])} {selectedDayNumber}{uiText(", ")}{ecYear}{uiText(" E.C.")}</h3>
               <button
                 type="button"
-                title="Close day events modal"
+                title={uiText("Close day events modal")}
                 onClick={() => {
                   setSelectedDayEvents(null);
                   setSelectedDayNumber(null);
@@ -543,13 +532,13 @@ export const Calendar = ({ compact = false }: { compact?: boolean }) => {
                 <div key={ev.id} className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 space-y-2 relative group">
                   <div className="flex items-center justify-between">
                     <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${EVENT_COLORS[ev.type] ?? EVENT_COLORS.Event}`}>
-                      {ev.type}
+                      {uiText(ev.type)}
                     </span>
                     {canManage && (
                       <div className="flex gap-2">
                         <button
                           type="button"
-                          title="Edit event"
+                          title={uiText("Edit event")}
                           onClick={() => {
                             setSelectedDayEvents(null);
                             setSelectedDayNumber(null);
@@ -561,7 +550,7 @@ export const Calendar = ({ compact = false }: { compact?: boolean }) => {
                         </button>
                         <button
                           type="button"
-                          title="Delete event"
+                          title={uiText("Delete event")}
                           onClick={() => {
                             setSelectedDayEvents(null);
                             setSelectedDayNumber(null);
@@ -574,10 +563,10 @@ export const Calendar = ({ compact = false }: { compact?: boolean }) => {
                       </div>
                     )}
                   </div>
-                  <h4 className="font-bold text-slate-800 dark:text-slate-200 text-base">{ev.title}</h4>
-                  {ev.description && (
-                    <p className="text-sm text-slate-600 dark:text-slate-400 whitespace-pre-wrap">{ev.description}</p>
-                  )}
+                  <h4 className="font-bold text-slate-800 dark:text-slate-200 text-base">{uiText(ev.title)}</h4>
+                  {uiText(ev.description && (
+                    <p className="text-sm text-slate-600 dark:text-slate-400 whitespace-pre-wrap">{uiText(ev.description)}</p>
+                  ))}
                 </div>
               ))}
             </div>

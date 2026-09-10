@@ -1,3 +1,4 @@
+import { uiText } from "../localization";
 import React from 'react';
 
 export interface StudentProfileInfo {
@@ -69,7 +70,7 @@ export const TranscriptTemplate = ({ studentData }: TranscriptTemplateProps) => 
   const year2Class = studentData.year2Class || 'Grade 8';
 
   // Ensure subjects are sorted ALPHABETICALLY
-  const sortedSubjects = [...(studentData.subjects || [])].sort((a, b) => 
+  const sortedSubjects = [...(studentData.subjects || [])].sort((a, b) =>
     (a.name || '').localeCompare(b.name || '')
   );
 
@@ -85,12 +86,10 @@ export const TranscriptTemplate = ({ studentData }: TranscriptTemplateProps) => 
 
   return (
     <div className="transcript-page w-full max-w-[210mm] mx-auto p-6 bg-white text-black font-serif shadow-2xl print:shadow-none print:p-0 print:m-0 print:w-full">
-      
+
       {/* Title Header Banner */}
       <div className="text-center mb-6">
-        <h1 className="text-lg sm:text-xl font-black tracking-tight uppercase text-black font-serif border-b-2 border-black inline-block pb-1">
-          ZIQUALA ABO MONASTERY PRIMARY SCHOOL STUDENT TRANSCRIPT SHEET
-        </h1>
+        <h1 className="text-lg sm:text-xl font-black tracking-tight uppercase text-black font-serif border-b-2 border-black inline-block pb-1">{uiText("ZIQUALA ABO MONASTERY PRIMARY SCHOOL STUDENT TRANSCRIPT SHEET")}</h1>
       </div>
 
       {/* Student Registration Demographic Info Box */}
@@ -98,21 +97,21 @@ export const TranscriptTemplate = ({ studentData }: TranscriptTemplateProps) => 
         {/* Row 1: Full Name, Sex, Age */}
         <div className="grid grid-cols-12 gap-2 items-baseline">
           <div className="col-span-6 flex items-baseline">
-            <span className="whitespace-nowrap">Full Name:-</span>
+            <span className="whitespace-nowrap">{uiText("Full Name:-")}</span>
             <span className="flex-1 border-b border-black ml-1.5 px-2 font-mono font-normal min-h-[18px]">
-              {fullName || '__________________________'}
+              {uiText(fullName || '__________________________')}
             </span>
           </div>
           <div className="col-span-3 flex items-baseline">
-            <span className="whitespace-nowrap">Sex:-</span>
+            <span className="whitespace-nowrap">{uiText("Sex:-")}</span>
             <span className="flex-1 border-b border-black ml-1.5 text-center font-mono font-normal min-h-[18px]">
-              {sex || '_____'}
+              {uiText(sex || '_____')}
             </span>
           </div>
           <div className="col-span-3 flex items-baseline">
-            <span className="whitespace-nowrap">Age:-</span>
+            <span className="whitespace-nowrap">{uiText("Age:-")}</span>
             <span className="flex-1 border-b border-black ml-1.5 text-center font-mono font-normal min-h-[18px]">
-              {age || '_____'}
+              {uiText(age || '_____')}
             </span>
           </div>
         </div>
@@ -120,27 +119,27 @@ export const TranscriptTemplate = ({ studentData }: TranscriptTemplateProps) => 
         {/* Row 2: Birth date, Birth place, Region, Town */}
         <div className="grid grid-cols-12 gap-2 items-baseline">
           <div className="col-span-4 flex items-baseline">
-            <span className="whitespace-nowrap">Birth date:-</span>
+            <span className="whitespace-nowrap">{uiText("Birth date:-")}</span>
             <span className="flex-1 border-b border-black ml-1.5 px-1 font-mono font-normal min-h-[18px]">
-              {birthDate || '___________'}
+              {uiText(birthDate || '___________')}
             </span>
           </div>
           <div className="col-span-3 flex items-baseline">
-            <span className="whitespace-nowrap">Birth place:-</span>
+            <span className="whitespace-nowrap">{uiText("Birth place:-")}</span>
             <span className="flex-1 border-b border-black ml-1.5 px-1 font-mono font-normal min-h-[18px]">
-              {birthPlace || '_______'}
+              {uiText(birthPlace || '_______')}
             </span>
           </div>
           <div className="col-span-3 flex items-baseline">
-            <span className="whitespace-nowrap">Region:-</span>
+            <span className="whitespace-nowrap">{uiText("Region:-")}</span>
             <span className="flex-1 border-b border-black ml-1.5 px-1 font-mono font-normal min-h-[18px]">
-              {region || '_______'}
+              {uiText(region || '_______')}
             </span>
           </div>
           <div className="col-span-2 flex items-baseline">
-            <span className="whitespace-nowrap">Town:-</span>
+            <span className="whitespace-nowrap">{uiText("Town:-")}</span>
             <span className="flex-1 border-b border-black ml-1.5 px-1 font-mono font-normal min-h-[18px]">
-              {town || '_______'}
+              {uiText(town || '_______')}
             </span>
           </div>
         </div>
@@ -148,21 +147,21 @@ export const TranscriptTemplate = ({ studentData }: TranscriptTemplateProps) => 
         {/* Row 3: House No., Tel.No., Po.Box */}
         <div className="grid grid-cols-12 gap-2 items-baseline">
           <div className="col-span-4 flex items-baseline">
-            <span className="whitespace-nowrap">House No.:-</span>
+            <span className="whitespace-nowrap">{uiText("House No.:-")}</span>
             <span className="flex-1 border-b border-black ml-1.5 px-1 font-mono font-normal min-h-[18px]">
-              {houseNo || '___________'}
+              {uiText(houseNo || '___________')}
             </span>
           </div>
           <div className="col-span-5 flex items-baseline">
-            <span className="whitespace-nowrap">Tel.No.:-</span>
+            <span className="whitespace-nowrap">{uiText("Tel.No.:-")}</span>
             <span className="flex-1 border-b border-black ml-1.5 px-1 font-mono font-normal min-h-[18px]">
-              {telNo || '___________________'}
+              {uiText(telNo || '___________________')}
             </span>
           </div>
           <div className="col-span-3 flex items-baseline">
-            <span className="whitespace-nowrap">Po.Box:-</span>
+            <span className="whitespace-nowrap">{uiText("Po.Box:-")}</span>
             <span className="flex-1 border-b border-black ml-1.5 px-1 font-mono font-normal min-h-[18px]">
-              {poBox || '_____________'}
+              {uiText(poBox || '_____________')}
             </span>
           </div>
         </div>
@@ -174,33 +173,25 @@ export const TranscriptTemplate = ({ studentData }: TranscriptTemplateProps) => 
           <thead>
             {/* Header Row 1: Subject | Year ____ Class ____ | Year ____ Class ____ */}
             <tr className="bg-gray-200 border-b border-black font-bold text-center">
-              <th rowSpan={3} className="p-2 border-r border-black w-44 text-left font-black align-middle">
-                Subject
+              <th rowSpan={3} className="p-2 border-r border-black w-44 text-left font-black align-middle">{uiText("Subject")}</th>
+              <th colSpan={3} className="p-2 border-r border-black font-black">{uiText("Year ")}<span className="underline px-2">{uiText(year1Label)}</span>{uiText(" Class ")}<span className="underline px-2">{uiText(year1Class)}</span>
               </th>
-              <th colSpan={3} className="p-2 border-r border-black font-black">
-                Year <span className="underline px-2">{year1Label}</span> Class <span className="underline px-2">{year1Class}</span>
-              </th>
-              <th colSpan={3} className="p-2 font-black">
-                Year <span className="underline px-2">{year2Label}</span> Class <span className="underline px-2">{year2Class}</span>
+              <th colSpan={3} className="p-2 font-black">{uiText("Year ")}<span className="underline px-2">{uiText(year2Label)}</span>{uiText(" Class ")}<span className="underline px-2">{uiText(year2Class)}</span>
               </th>
             </tr>
             {/* Header Row 2: Semister | Semister */}
             <tr className="bg-gray-200 border-b border-black font-bold text-center">
-              <th colSpan={3} className="p-1 border-r border-black font-black">
-                Semister
-              </th>
-              <th colSpan={3} className="p-1 font-black">
-                Semister
-              </th>
+              <th colSpan={3} className="p-1 border-r border-black font-black">{uiText("Semister")}</th>
+              <th colSpan={3} className="p-1 font-black">{uiText("Semister")}</th>
             </tr>
             {/* Header Row 3: I | II | Averege | I | II | Averege */}
             <tr className="bg-gray-200 border-b border-black font-bold text-center text-[11px]">
-              <th className="p-1 border-r border-black w-16">I</th>
-              <th className="p-1 border-r border-black w-16">II</th>
-              <th className="p-1 border-r border-black w-20">Averege</th>
-              <th className="p-1 border-r border-black w-16">I</th>
-              <th className="p-1 border-r border-black w-16">II</th>
-              <th className="p-1 w-20">Averege</th>
+              <th className="p-1 border-r border-black w-16">{uiText("I")}</th>
+              <th className="p-1 border-r border-black w-16">{uiText("II")}</th>
+              <th className="p-1 border-r border-black w-20">{uiText("Averege")}</th>
+              <th className="p-1 border-r border-black w-16">{uiText("I")}</th>
+              <th className="p-1 border-r border-black w-16">{uiText("II")}</th>
+              <th className="p-1 w-20">{uiText("Averege")}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-black text-center font-mono">
@@ -218,28 +209,26 @@ export const TranscriptTemplate = ({ studentData }: TranscriptTemplateProps) => 
                   <td className="p-2 border-r border-black text-left font-serif font-bold text-gray-900">
                     {sub.name}
                   </td>
-                  <td className="p-2 border-r border-black">{sem1_y1 || ''}</td>
-                  <td className="p-2 border-r border-black">{sem2_y1 || ''}</td>
-                  <td className="p-2 border-r border-black font-bold">{avg_y1 || ''}</td>
-                  <td className="p-2 border-r border-black">{sem1_y2 || ''}</td>
-                  <td className="p-2 border-r border-black">{sem2_y2 || ''}</td>
-                  <td className="p-2 font-bold">{avg_y2 || ''}</td>
+                  <td className="p-2 border-r border-black">{uiText(sem1_y1 || '')}</td>
+                  <td className="p-2 border-r border-black">{uiText(sem2_y1 || '')}</td>
+                  <td className="p-2 border-r border-black font-bold">{uiText(avg_y1 || '')}</td>
+                  <td className="p-2 border-r border-black">{uiText(sem1_y2 || '')}</td>
+                  <td className="p-2 border-r border-black">{uiText(sem2_y2 || '')}</td>
+                  <td className="p-2 font-bold">{uiText(avg_y2 || '')}</td>
                 </tr>
               );
             })}
 
             {/* Overall Average Summary Row */}
             <tr className="bg-gray-100 font-bold border-t-2 border-black">
-              <td className="p-2 border-r border-black text-left font-serif">
-                OVERALL AVERAGE
-              </td>
-              <td colSpan={2} className="p-2 border-r border-black text-right text-[10px] font-serif uppercase">Average:</td>
+              <td className="p-2 border-r border-black text-left font-serif">{uiText("OVERALL AVERAGE")}</td>
+              <td colSpan={2} className="p-2 border-r border-black text-right text-[10px] font-serif uppercase">{uiText("Average:")}</td>
               <td className="p-2 border-r border-black font-extrabold text-blue-900">
-                {studentData.year1OverallAverage ?? studentData.average ?? ''}
+                {uiText(studentData.year1OverallAverage ?? studentData.average ?? '')}
               </td>
-              <td colSpan={2} className="p-2 border-r border-black text-right text-[10px] font-serif uppercase">Average:</td>
+              <td colSpan={2} className="p-2 border-r border-black text-right text-[10px] font-serif uppercase">{uiText("Average:")}</td>
               <td className="p-2 font-extrabold text-blue-900">
-                {studentData.year2OverallAverage ?? ''}
+                {uiText(studentData.year2OverallAverage ?? '')}
               </td>
             </tr>
           </tbody>
@@ -249,14 +238,14 @@ export const TranscriptTemplate = ({ studentData }: TranscriptTemplateProps) => 
       {/* Official Signatures Footer */}
       <div className="grid grid-cols-2 gap-8 mt-10 pt-4 text-xs font-serif font-bold text-black">
         <div className="text-center space-y-6">
-          <p className="uppercase">Record Officer / Registrar Signature</p>
+          <p className="uppercase">{uiText("Record Officer / Registrar Signature")}</p>
           <div className="border-b border-black w-4/5 mx-auto"></div>
-          <p className="text-[10px] font-normal italic">Date: ________________________</p>
+          <p className="text-[10px] font-normal italic">{uiText("Date: ________________________")}</p>
         </div>
         <div className="text-center space-y-6">
-          <p className="uppercase">Director / Vice Principal Signature & Stamp</p>
+          <p className="uppercase">{uiText("Director / Vice Principal Signature & Stamp")}</p>
           <div className="border-b border-black w-4/5 mx-auto"></div>
-          <p className="text-[10px] font-normal italic">Date: ________________________</p>
+          <p className="text-[10px] font-normal italic">{uiText("Date: ________________________")}</p>
         </div>
       </div>
 

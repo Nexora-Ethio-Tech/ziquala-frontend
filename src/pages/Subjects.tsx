@@ -1,3 +1,4 @@
+import { uiError, uiText } from "../localization";
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { BookOpen, Plus, Edit2, Trash2, X } from 'lucide-react';
@@ -30,7 +31,7 @@ const Subjects: React.FC = () => {
       const data = await subjectService.getAllSubjects();
       setSubjects(data);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to fetch subjects');
+      setError(uiError(err.response?.data?.message || 'Failed to fetch subjects'));
     } finally {
       setLoading(false);
     }
@@ -44,7 +45,7 @@ const Subjects: React.FC = () => {
       setFormData({ name: '', code: '', description: '', gradeLevel: '' });
       fetchSubjects();
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to create subject');
+      alert(uiError(err.response?.data?.message || 'Failed to create subject'));
     }
   };
 
@@ -63,7 +64,7 @@ const Subjects: React.FC = () => {
       setSelectedSubject(null);
       fetchSubjects();
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to update subject');
+      alert(uiError(err.response?.data?.message || 'Failed to update subject'));
     }
   };
 
@@ -75,7 +76,7 @@ const Subjects: React.FC = () => {
       setSelectedSubject(null);
       fetchSubjects();
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to delete subject');
+      alert(uiError(err.response?.data?.message || 'Failed to delete subject'));
     }
   };
 
@@ -119,11 +120,11 @@ const Subjects: React.FC = () => {
         </button>
       </div>
 
-      {error && (
+      {uiText(error && (
         <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-          {error}
+          {uiError(error)}
         </div>
-      )}
+      ))}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {subjects.map((subject) => (
@@ -135,7 +136,7 @@ const Subjects: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-900">{subject.name}</h3>
-                  <p className="text-sm text-gray-500">{subject.code}</p>
+                  <p className="text-sm text-gray-500">{uiText(subject.code)}</p>
                 </div>
               </div>
               <div className="flex gap-2">
@@ -155,12 +156,12 @@ const Subjects: React.FC = () => {
             </div>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Grade Level:</span>
-                <span className="font-medium text-gray-900">{subject.gradeLevel}</span>
+                <span className="text-gray-600">{uiText("Grade Level:")}</span>
+                <span className="font-medium text-gray-900">{uiText(subject.gradeLevel)}</span>
               </div>
-              {subject.description && (
-                <p className="text-sm text-gray-600 mt-2">{subject.description}</p>
-              )}
+              {uiText(subject.description && (
+                <p className="text-sm text-gray-600 mt-2">{uiText(subject.description)}</p>
+              ))}
             </div>
           </div>
         ))}
@@ -169,7 +170,7 @@ const Subjects: React.FC = () => {
       {subjects.length === 0 && !loading && (
         <div className="text-center py-12">
           <BookOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-600">No subjects found. Create your first subject.</p>
+          <p className="text-gray-600">{uiText("No subjects found. Create your first subject.")}</p>
         </div>
       )}
 
@@ -178,16 +179,14 @@ const Subjects: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">Add New Subject</h2>
+              <h2 className="text-xl font-bold">{uiText("Add New Subject")}</h2>
               <button onClick={() => setShowCreateModal(false)}>
                 <X className="w-5 h-5" />
               </button>
             </div>
             <form onSubmit={handleCreate} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Subject Name *
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{uiText("Subject Name *")}</label>
                 <input
                   type="text"
                   required
@@ -197,9 +196,7 @@ const Subjects: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Subject Code *
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{uiText("Subject Code *")}</label>
                 <input
                   type="text"
                   required
@@ -209,22 +206,18 @@ const Subjects: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Grade Level *
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{uiText("Grade Level *")}</label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g., Grade 9, Grade 10"
+                  placeholder={uiText("e.g., Grade 9, Grade 10")}
                   value={formData.gradeLevel}
                   onChange={(e) => setFormData({ ...formData, gradeLevel: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{uiText("Description")}</label>
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -237,15 +230,11 @@ const Subjects: React.FC = () => {
                   type="button"
                   onClick={() => setShowCreateModal(false)}
                   className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
+                >{uiText("Cancel")}</button>
                 <button
                   type="submit"
                   className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                >
-                  Create Subject
-                </button>
+                >{uiText("Create Subject")}</button>
               </div>
             </form>
           </div>
@@ -257,16 +246,14 @@ const Subjects: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">Edit Subject</h2>
+              <h2 className="text-xl font-bold">{uiText("Edit Subject")}</h2>
               <button onClick={() => setShowEditModal(false)}>
                 <X className="w-5 h-5" />
               </button>
             </div>
             <form onSubmit={handleEdit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Subject Name *
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{uiText("Subject Name *")}</label>
                 <input
                   type="text"
                   required
@@ -276,9 +263,7 @@ const Subjects: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Subject Code *
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{uiText("Subject Code *")}</label>
                 <input
                   type="text"
                   required
@@ -288,9 +273,7 @@ const Subjects: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Grade Level *
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{uiText("Grade Level *")}</label>
                 <input
                   type="text"
                   required
@@ -300,9 +283,7 @@ const Subjects: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{uiText("Description")}</label>
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -315,15 +296,11 @@ const Subjects: React.FC = () => {
                   type="button"
                   onClick={() => setShowEditModal(false)}
                   className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
+                >{uiText("Cancel")}</button>
                 <button
                   type="submit"
                   className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                >
-                  Update Subject
-                </button>
+                >{uiText("Update Subject")}</button>
               </div>
             </form>
           </div>
@@ -334,23 +311,17 @@ const Subjects: React.FC = () => {
       {showDeleteModal && selectedSubject && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">Delete Subject</h2>
-            <p className="text-gray-600 mb-6">
-              Are you sure you want to delete <strong>{selectedSubject.name}</strong>? This action cannot be undone.
-            </p>
+            <h2 className="text-xl font-bold mb-4">{uiText("Delete Subject")}</h2>
+            <p className="text-gray-600 mb-6">{uiText("Are you sure you want to delete ")}<strong>{selectedSubject.name}</strong>{uiText("? This action cannot be undone.")}</p>
             <div className="flex gap-3">
               <button
                 onClick={() => setShowDeleteModal(false)}
                 className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-              >
-                Cancel
-              </button>
+              >{uiText("Cancel")}</button>
               <button
                 onClick={handleDelete}
                 className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-              >
-                Delete
-              </button>
+              >{uiText("Delete")}</button>
             </div>
           </div>
         </div>

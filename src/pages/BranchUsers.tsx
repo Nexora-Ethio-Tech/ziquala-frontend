@@ -1,3 +1,4 @@
+import { uiError, uiText } from "../localization";
 import { Users, Search, Filter, Loader2, AlertCircle, ArrowLeft } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -34,7 +35,7 @@ export const BranchUsers = () => {
       setUsers(response.data || []);
     } catch (err: any) {
       console.error('❌ Error fetching branch users:', err);
-      setError(err.response?.data?.error?.message || 'Failed to load users');
+      setError(uiError(err.response?.data?.error?.message || 'Failed to load users'));
     } finally {
       setLoading(false);
     }
@@ -44,8 +45,8 @@ export const BranchUsers = () => {
     return (
       <div className="p-8 text-center text-rose-500">
         <AlertCircle className="mx-auto mb-4" size={48} />
-        <h2 className="text-2xl font-bold">Access Denied</h2>
-        <p>Only School Admin can view branch users.</p>
+        <h2 className="text-2xl font-bold">{uiText("Access Denied")}</h2>
+        <p>{uiText("Only School Admin can view branch users.")}</p>
       </div>
     );
   }
@@ -56,14 +57,12 @@ export const BranchUsers = () => {
         onClick={() => navigate(-1)}
         className="flex items-center gap-1 text-blue-600 hover:underline text-xs font-bold uppercase tracking-widest"
       >
-        <ArrowLeft size={14} />
-        Back
-      </button>
+        <ArrowLeft size={14} />{uiText("Back")}</button>
 
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Branch Users</h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">View all users in your branch</p>
+          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{uiText("Branch Users")}</h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">{uiText("View all users in your branch")}</p>
         </div>
 
         <div className="flex items-center gap-3">
@@ -72,12 +71,12 @@ export const BranchUsers = () => {
             onChange={(e) => setRoleFilter(e.target.value)}
             className="px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
           >
-            <option value="">All Roles</option>
-            <option value="teacher">Teacher</option>
-            <option value="student">Student</option>
-            <option value="parent">Parent</option>
-            <option value="librarian">Librarian</option>
-            <option value="storekeeper">Storekeeper</option>
+            <option value="">{uiText("All Roles")}</option>
+            <option value="teacher">{uiText("Teacher")}</option>
+            <option value="student">{uiText("Student")}</option>
+            <option value="parent">{uiText("Parent")}</option>
+            <option value="librarian">{uiText("Librarian")}</option>
+            <option value="storekeeper">{uiText("Storekeeper")}</option>
           </select>
 
           <select
@@ -85,10 +84,10 @@ export const BranchUsers = () => {
             onChange={(e) => setStatusFilter(e.target.value)}
             className="px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
           >
-            <option value="">All Status</option>
-            <option value="Pending">Pending</option>
-            <option value="Approved">Approved</option>
-            <option value="Revoked">Revoked</option>
+            <option value="">{uiText("All Status")}</option>
+            <option value="Pending">{uiText("Pending")}</option>
+            <option value="Approved">{uiText("Approved")}</option>
+            <option value="Revoked">{uiText("Revoked")}</option>
           </select>
         </div>
       </div>
@@ -99,12 +98,12 @@ export const BranchUsers = () => {
         </div>
       )}
 
-      {error && (
+      {uiText(error && (
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 flex items-center gap-3">
           <AlertCircle className="text-red-600" size={20} />
-          <p className="text-red-800 dark:text-red-200 text-sm">{error}</p>
+          <p className="text-red-800 dark:text-red-200 text-sm">{uiError(error)}</p>
         </div>
-      )}
+      ))}
 
       {!loading && !error && (
         <div className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-xl shadow-slate-200/40 dark:shadow-none border border-slate-100 dark:border-slate-800 overflow-hidden">
@@ -112,19 +111,17 @@ export const BranchUsers = () => {
             <table className="w-full text-left min-w-[800px]">
               <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
                 <tr>
-                  <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">User</th>
-                  <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Digital ID</th>
-                  <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Role</th>
-                  <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
-                  <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Grade</th>
+                  <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">{uiText("User")}</th>
+                  <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">{uiText("Digital ID")}</th>
+                  <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">{uiText("Role")}</th>
+                  <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">{uiText("Status")}</th>
+                  <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">{uiText("Grade")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
                 {users.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center text-slate-500">
-                      No users found
-                    </td>
+                    <td colSpan={5} className="px-6 py-12 text-center text-slate-500">{uiText("No users found")}</td>
                   </tr>
                 ) : (
                   users.map((user) => (
@@ -137,17 +134,16 @@ export const BranchUsers = () => {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs text-slate-600 dark:text-slate-400 font-mono">{user.digitalId || user.digital_id}</span>
-                          {(user.zkDeviceId || user.zk_device_id) && (
-                            <span className="px-1.5 py-0.5 bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 rounded text-[10px] font-bold tracking-wider">
-                              ZK: {user.zkDeviceId || user.zk_device_id}
+                          <span className="text-xs text-slate-600 dark:text-slate-400 font-mono">{uiText(user.digitalId || user.digital_id)}</span>
+                          {uiText((user.zkDeviceId || user.zk_device_id) && (
+                            <span className="px-1.5 py-0.5 bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 rounded text-[10px] font-bold tracking-wider">{uiText("ZK: ")}{uiText(user.zkDeviceId || user.zk_device_id)}
                             </span>
-                          )}
+                          ))}
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         <span className="px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-full text-[10px] font-black uppercase tracking-wider">
-                          {user.role}
+                          {uiText(user.role)}
                         </span>
                       </td>
                       <td className="px-6 py-4">
@@ -156,11 +152,11 @@ export const BranchUsers = () => {
                           user.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' :
                           'bg-red-100 text-red-700'
                         }`}>
-                          {user.status}
+                          {uiText(user.status)}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">
-                        {user.grade || '-'}
+                        {uiText(user.grade || '-')}
                       </td>
                     </tr>
                   ))

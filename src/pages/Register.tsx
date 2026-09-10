@@ -1,3 +1,4 @@
+import { uiText } from "../localization";
 
 import { Link } from 'react-router-dom';
 import { BookOpen, ChevronLeft } from 'lucide-react';
@@ -19,17 +20,15 @@ export const Register = () => {
             to="/login"
             className="flex items-center gap-2 text-slate-500 hover:text-school-primary font-bold transition-colors group"
           >
-            <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
-            Back to Login
-          </Link>
+            <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" />{uiText("Back to Login")}</Link>
 
           <div className="flex items-center gap-4">
             <div className="grid h-14 w-14 place-items-center rounded-2xl bg-school-primary text-white shadow-lg shadow-school-primary/20">
               <BookOpen size={25} aria-hidden="true" />
             </div>
             <div>
-              <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">Admission Portal</h1>
-              <p className="text-sm text-slate-500">{displaySchoolName}</p>
+              <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">{uiText("Admission Portal")}</h1>
+              <p className="text-sm text-slate-500">{uiText(displaySchoolName)}</p>
             </div>
           </div>
         </div>
@@ -45,24 +44,16 @@ export const Register = () => {
                   </svg>
                 </div>
                 <div className="space-y-2">
-                  <h2 className="text-2xl font-black text-slate-900 dark:text-white">Online Registration Closed</h2>
-                  <p className="text-slate-500 dark:text-slate-400 max-w-md mx-auto text-sm leading-relaxed">
-                    Online applications are currently closed. Please contact the school administration or check back later for registration updates.
-                  </p>
+                  <h2 className="text-2xl font-black text-slate-900 dark:text-white">{uiText("Online Registration Closed")}</h2>
+                  <p className="text-slate-500 dark:text-slate-400 max-w-md mx-auto text-sm leading-relaxed">{uiText("Online applications are currently closed. Please contact the school administration or check back later for registration updates.")}</p>
                 </div>
               </div>
             ) : (
               <>
                 <div className="mb-8 text-center">
-                  <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
-                    Ziquala Abo Kindergarten and Primary School
-                  </h2>
-                  <p className="text-sm sm:text-base font-semibold text-school-primary mt-1">
-                    New student registration
-                  </p>
-                  <p className="text-slate-500 dark:text-slate-400 mt-3 max-w-xl mx-auto text-sm leading-relaxed">
-                    Please provide your details to apply for admission. Our AI system will review your application immediately.
-                  </p>
+                  <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">{uiText("Ziquala Abo Kindergarten and Primary School")}</h2>
+                  <p className="text-sm sm:text-base font-semibold text-school-primary mt-1">{uiText("New student registration")}</p>
+                  <p className="text-slate-500 dark:text-slate-400 mt-3 max-w-xl mx-auto text-sm leading-relaxed">{uiText("Please provide your details to apply for admission. Our AI system will review your application immediately.")}</p>
                 </div>
                 <StudentRegistration isAdminView={false} />
               </>
@@ -70,11 +61,8 @@ export const Register = () => {
           </div>
         </div>
 
-        <p className="text-center text-slate-500 font-medium text-sm">
-          Already part of our community?{' '}
-          <Link to="/login" className="text-school-primary font-bold hover:underline">
-            Sign in here
-          </Link>
+        <p className="text-center text-slate-500 font-medium text-sm">{uiText("Already part of our community?")}{uiText(" ")}
+          <Link to="/login" className="text-school-primary font-bold hover:underline">{uiText("Sign in here")}</Link>
         </p>
       </div>
     </div>

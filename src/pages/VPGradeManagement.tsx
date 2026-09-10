@@ -1,3 +1,4 @@
+import { uiError, uiText, localeTag } from "../localization";
 import { useState, useEffect, useCallback } from 'react';
 import {
   ChevronDown,
@@ -147,8 +148,8 @@ export const VPGradeManagement = () => {
       );
     } catch (err: any) {
       const message = err.response?.data?.message || 'Failed to fetch grades and sections';
-      setError(message);
-      showToast(message, 'error');
+      setError(uiText(message));
+      showToast(uiText(message), 'error');
     } finally {
       setLoading(false);
     }
@@ -161,7 +162,7 @@ export const VPGradeManagement = () => {
       setSubmissions(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error('Failed to fetch grade submissions:', err);
-      showToast('Failed to fetch teacher grade submissions', 'error');
+      showToast(uiText("Failed to fetch teacher grade submissions"), 'error');
     } finally {
       setLoadingSubmissions(false);
     }
@@ -196,12 +197,12 @@ export const VPGradeManagement = () => {
 
   const handleUnlockSubmission = async (submission: VPGradeSubmission) => {
     if (!canUnlockSubmission(submission)) {
-      showToast(`Unlock denied: only submissions from the active semester and within ${unlockWindowDays} days can be unlocked.`, 'error');
+      showToast(uiText("Unlock denied: only submissions from the active semester and within {{value0}} days can be unlocked.", { value0: unlockWindowDays }), 'error');
       return;
     }
 
     const confirmed = window.confirm(
-      `Are you sure you want to unlock "${submission.course_name}" (${submission.submission_type}) for ${submission.teacher_name}?\n\nThis grants the teacher permission to correct and resubmit this assessment.`
+      uiText("Are you sure you want to unlock \"{{value0}}\" ({{value1}}) for {{value2}}?\n\nThis grants the teacher permission to correct and resubmit this assessment.", { value0: submission.course_name, value1: submission.submission_type, value2: submission.teacher_name })
     );
     if (!confirmed) return;
 
@@ -213,14 +214,14 @@ export const VPGradeManagement = () => {
         academicYear: submission.academic_year,
         semester: Number(submission.semester),
       });
-      showToast(response.message || 'Submission unlocked successfully', 'success');
+      showToast(uiText(response.message || 'Submission unlocked successfully'), 'success');
       await fetchGradeSubmissions(submission.academic_year, Number(submission.semester));
       if (selectedGradeGroup && selectedSection) {
         await handleSectionSelect(selectedGradeGroup, selectedSection, selectedYear, selectedSemester);
       }
     } catch (err: any) {
       const message = err.response?.data?.message || err.message || 'Failed to unlock grade submission';
-      showToast(message, 'error');
+      showToast(uiText(message), 'error');
     } finally {
       setUnlockingSubmissionId(null);
     }
@@ -254,12 +255,12 @@ export const VPGradeManagement = () => {
       // Check if data was fetched from a different semester
       if (gradesData.queriedSemester !== gradesData.availableDataSemester && gradesData.availableDataSemester) {
         const semesterName = gradesData.availableDataSemester === 1 ? 'First Semester' : 'Second Semester';
-        showToast(`Note: Showing grades from ${semesterName} (no data for ${semToUse})`, 'success');
+        showToast(uiText("Note: Showing grades from {{value0}} (no data for {{value1}})", { value0: semesterName, value1: semToUse }), 'success');
       }
     } catch (err: any) {
       const message = err.response?.data?.message || 'Failed to fetch section data';
       console.error(`[VPGradeManagement] Error fetching section data:`, err);
-      showToast(message, 'error');
+      showToast(uiText(message), 'error');
     } finally {
       setLoadingSectionData(false);
     }
@@ -326,7 +327,7 @@ export const VPGradeManagement = () => {
     document.body.removeChild(element);
     URL.revokeObjectURL(url);
 
-    showToast('Grades exported to Excel', 'success');
+    showToast(uiText("Grades exported to Excel"), 'success');
   };
 
   // Reload section grades whenever the year or semester filter changes
@@ -360,10 +361,10 @@ export const VPGradeManagement = () => {
       });
 
       setStudentGrades(updatedGrades);
-      showToast('Results generated successfully', 'success');
+      showToast(uiText("Results generated successfully"), 'success');
     } catch (err: any) {
       const message = err.response?.data?.message || 'Failed to generate results';
-      showToast(message, 'error');
+      showToast(uiText(message), 'error');
     } finally {
       setGeneratingResults(false);
     }
@@ -376,10 +377,10 @@ export const VPGradeManagement = () => {
       setUpdatingSubmissionWindow(true);
       await vicePrincipalService.setGradeSubmissionOpen(nextValue);
       setGradeSubmissionOpen(nextValue);
-      showToast(`Grade submission is now ${nextValue ? 'open' : 'closed'}.`, 'success');
+      showToast(uiText("Grade submission is now {{value0}}.", { value0: uiText(nextValue ? 'open' : 'closed') }), 'success');
     } catch (err: any) {
       const message = err.response?.data?.message || 'Failed to update grade submission status';
-      showToast(message, 'error');
+      showToast(uiText(message), 'error');
     } finally {
       setUpdatingSubmissionWindow(false);
     }
@@ -473,14 +474,8 @@ export const VPGradeManagement = () => {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <div>
             <h2 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
-              <Unlock className="text-indigo-600" size={20} />
-              Teacher Grade Submissions &amp; Unlock Permissions
-            </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-              Filter submissions to detect who has and has not submitted grades.
-              <span className="font-semibold text-amber-600 dark:text-amber-400 ml-1">
-                (Unlock Rule: Active Semester Only &amp; ≤ {unlockWindowDays} Days From Submission)
-              </span>
+              <Unlock className="text-indigo-600" size={20} />{uiText("Teacher Grade Submissions & Unlock Permissions")}</h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{uiText("Filter submissions to detect who has and has not submitted grades.")}<span className="font-semibold text-amber-600 dark:text-amber-400 ml-1">{uiText("(Unlock Rule: Active Semester Only & ≤ ")}{unlockWindowDays}{uiText(" Days From Submission)")}</span>
             </p>
           </div>
           <button
@@ -489,9 +484,7 @@ export const VPGradeManagement = () => {
             disabled={loadingSubmissions}
             className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold transition-all disabled:opacity-60"
           >
-            <RefreshCw size={14} className={loadingSubmissions ? 'animate-spin' : ''} />
-            Refresh
-          </button>
+            <RefreshCw size={14} className={loadingSubmissions ? 'animate-spin' : ''} />{uiText("Refresh")}</button>
         </div>
 
         <div className="flex flex-col xl:flex-row gap-3 mb-4">
@@ -499,7 +492,7 @@ export const VPGradeManagement = () => {
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
-              placeholder="Search by teacher, course, assessment, grade or section..."
+              placeholder={uiText("Search by teacher, course, assessment, grade or section...")}
               value={submissionSearch}
               onChange={(event) => setSubmissionSearch(event.target.value)}
               className="w-full pl-9 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
@@ -514,10 +507,10 @@ export const VPGradeManagement = () => {
                 setSubmissionSectionFilter('all');
               }}
               className="w-full pl-9 pr-8 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-indigo-500 appearance-none cursor-pointer"
-              aria-label="Filter submissions by grade level"
+              aria-label={uiText("Filter submissions by grade level")}
             >
-              <option value="all">All Grade Levels</option>
-              {submissionGradeOptions.map((grade) => <option key={grade} value={grade}>{grade}</option>)}
+              <option value="all">{uiText("All Grade Levels")}</option>
+              {submissionGradeOptions.map((grade) => <option key={grade} value={grade}>{uiText(grade)}</option>)}
             </select>
             <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
           </div>
@@ -527,10 +520,10 @@ export const VPGradeManagement = () => {
               value={submissionSectionFilter}
               onChange={(event) => setSubmissionSectionFilter(event.target.value)}
               className="w-full pl-9 pr-8 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-indigo-500 appearance-none cursor-pointer"
-              aria-label="Filter submissions by section"
+              aria-label={uiText("Filter submissions by section")}
             >
-              <option value="all">All Sections</option>
-              {submissionSectionOptions.map((section) => <option key={section} value={section}>{section}</option>)}
+              <option value="all">{uiText("All Sections")}</option>
+              {submissionSectionOptions.map((section) => <option key={section} value={section}>{uiText(section)}</option>)}
             </select>
             <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
           </div>
@@ -551,7 +544,7 @@ export const VPGradeManagement = () => {
                   : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
                   }`}
               >
-                {filter.label}{filter.key !== 'all' ? ` (${filter.count})` : ''}
+                {uiText(filter.label)}{uiText(filter.key !== 'all' ? ` (${filter.count})` : '')}
               </button>
             ))}
           </div>
@@ -559,16 +552,16 @@ export const VPGradeManagement = () => {
 
         <div className="flex flex-wrap gap-2 mb-4">
           <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-full text-[11px] font-bold text-slate-600 dark:text-slate-300">
-            <span className="w-2 h-2 rounded-full bg-slate-400" /> Total Assessments: {submissionsInSelectedClassFilters.length}
+            <span className="w-2 h-2 rounded-full bg-slate-400" />{uiText(" Total Assessments: ")}{submissionsInSelectedClassFilters.length}
           </span>
           <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 dark:bg-emerald-900/20 rounded-full text-[11px] font-bold text-emerald-700 dark:text-emerald-400">
-            <Lock size={11} /> Submitted &amp; Locked: {submittedCount}
+            <Lock size={11} />{uiText(" Submitted & Locked: ")}{submittedCount}
           </span>
           <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 dark:bg-amber-900/20 rounded-full text-[11px] font-bold text-amber-700 dark:text-amber-400">
-            <Clock3 size={11} /> Not Submitted / Pending: {notSubmittedCount}
+            <Clock3 size={11} />{uiText(" Not Submitted / Pending: ")}{notSubmittedCount}
           </span>
           <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-50 dark:bg-indigo-900/20 rounded-full text-[11px] font-bold text-indigo-700 dark:text-indigo-400">
-            <Unlock size={11} /> Unlocked (Editable): {unlockedCount}
+            <Unlock size={11} />{uiText(" Unlocked (Editable): ")}{unlockedCount}
           </span>
         </div>
 
@@ -580,12 +573,12 @@ export const VPGradeManagement = () => {
           <div className="text-center py-16 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
             <Lock className="mx-auto text-slate-400 mb-3" size={32} />
             <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
-              {submissions.length === 0 ? 'No Grade Submissions Found' : 'No results match your selected filters'}
+              {uiText(submissions.length === 0 ? 'No Grade Submissions Found' : 'No results match your selected filters')}
             </p>
             <p className="text-xs text-slate-400 mt-1">
-              {submissions.length === 0
+              {uiText(submissions.length === 0
                 ? 'Submission records will appear here when courses and assessments are available.'
-                : 'Try a different grade, section, status, or search term.'}
+                : 'Try a different grade, section, status, or search term.')}
             </p>
           </div>
         ) : (
@@ -593,14 +586,14 @@ export const VPGradeManagement = () => {
             <table className="w-full min-w-[1180px]">
               <thead>
                 <tr className="border-b border-slate-200 dark:border-slate-800 text-left text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                  <th className="py-3 px-4">Course &amp; Code</th>
-                  <th className="py-3 px-4">Grade &amp; Section</th>
-                  <th className="py-3 px-4">Teacher Name</th>
-                  <th className="py-3 px-4">Assessment Type</th>
-                  <th className="py-3 px-4">Academic Period</th>
-                  <th className="py-3 px-4">Submitted At</th>
-                  <th className="py-3 px-4">Status</th>
-                  <th className="py-3 px-4 text-right">VP Permission Action</th>
+                  <th className="py-3 px-4">{uiText("Course & Code")}</th>
+                  <th className="py-3 px-4">{uiText("Grade & Section")}</th>
+                  <th className="py-3 px-4">{uiText("Teacher Name")}</th>
+                  <th className="py-3 px-4">{uiText("Assessment Type")}</th>
+                  <th className="py-3 px-4">{uiText("Academic Period")}</th>
+                  <th className="py-3 px-4">{uiText("Submitted At")}</th>
+                  <th className="py-3 px-4">{uiText("Status")}</th>
+                  <th className="py-3 px-4 text-right">{uiText("VP Permission Action")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -614,41 +607,41 @@ export const VPGradeManagement = () => {
                   return (
                     <tr key={submission.id} className={notSubmitted ? 'bg-amber-50/30 dark:bg-amber-900/10' : 'hover:bg-slate-50/60 dark:hover:bg-slate-800/40'}>
                       <td className="py-4 px-4">
-                        <p className="font-bold text-sm text-slate-800 dark:text-white">{submission.course_name}</p>
-                        <p className="text-xs text-slate-400">{submission.course_code}</p>
+                        <p className="font-bold text-sm text-slate-800 dark:text-white">{uiText(submission.course_name)}</p>
+                        <p className="text-xs text-slate-400">{uiText(submission.course_code)}</p>
                       </td>
                       <td className="py-4 px-4">
                         <div className="flex items-center gap-1.5 flex-wrap">
-                          {gradeLabel && <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded font-bold text-xs">{gradeLabel}</span>}
-                          {submission.section_name && <span className="px-2 py-0.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded font-bold text-xs">{submission.section_name}</span>}
-                          {!gradeLabel && !submission.section_name && <span className="text-xs text-slate-400 italic">General</span>}
+                          {uiText(gradeLabel && <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded font-bold text-xs">{uiText(gradeLabel)}</span>)}
+                          {uiText(submission.section_name && <span className="px-2 py-0.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded font-bold text-xs">{uiText(submission.section_name)}</span>)}
+                          {!gradeLabel && !submission.section_name && <span className="text-xs text-slate-400 italic">{uiText("General")}</span>}
                         </div>
                       </td>
                       <td className="py-4 px-4">
                         <div className="flex items-center gap-2">
                           <div className="w-7 h-7 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-xs font-black">
-                            {(submission.teacher_name || '?').charAt(0).toUpperCase()}
+                            {uiText((submission.teacher_name || '?').charAt(0).toUpperCase())}
                           </div>
-                          <span className="font-semibold text-sm text-slate-700 dark:text-slate-300">{submission.teacher_name || 'Unknown Teacher'}</span>
+                          <span className="font-semibold text-sm text-slate-700 dark:text-slate-300">{uiText(submission.teacher_name || 'Unknown Teacher')}</span>
                         </div>
                       </td>
-                      <td className="py-4 px-4"><span className="px-2.5 py-1 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-lg text-xs font-bold uppercase tracking-wider">{submission.submission_type}</span></td>
-                      <td className="py-4 px-4 text-xs font-medium text-slate-600 dark:text-slate-400">{gregorianToECYear(submission.academic_year)} E.C. &bull; Semester {submission.semester}</td>
+                      <td className="py-4 px-4"><span className="px-2.5 py-1 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-lg text-xs font-bold uppercase tracking-wider">{uiText(submission.submission_type)}</span></td>
+                      <td className="py-4 px-4 text-xs font-medium text-slate-600 dark:text-slate-400">{gregorianToECYear(submission.academic_year)}{uiText(" E.C. &bull; Semester ")}{submission.semester}</td>
                       <td className="py-4 px-4 text-xs text-slate-500">
-                        {submission.submitted_at ? new Date(submission.submitted_at).toLocaleString() : <span className="text-amber-600 dark:text-amber-400 italic font-semibold">Not yet submitted</span>}
+                        {uiText(submission.submitted_at ? new Date(submission.submitted_at).toLocaleString(localeTag()) : <span className="text-amber-600 dark:text-amber-400 italic font-semibold">{uiText("Not yet submitted")}</span>)}
                       </td>
                       <td className="py-4 px-4">
                         {notSubmitted ? (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-full text-xs font-extrabold border border-amber-200 dark:border-amber-800"><Clock3 size={12} /> Not Submitted</span>
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-full text-xs font-extrabold border border-amber-200 dark:border-amber-800"><Clock3 size={12} />{uiText(" Not Submitted")}</span>
                         ) : submission.is_locked ? (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 rounded-full text-xs font-extrabold border border-rose-200 dark:border-rose-800"><Lock size={12} /> Submitted &amp; Locked</span>
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 rounded-full text-xs font-extrabold border border-rose-200 dark:border-rose-800"><Lock size={12} />{uiText(" Submitted & Locked")}</span>
                         ) : (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full text-xs font-extrabold border border-emerald-200 dark:border-emerald-800"><Unlock size={12} /> Unlocked (Editable)</span>
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full text-xs font-extrabold border border-emerald-200 dark:border-emerald-800"><Unlock size={12} />{uiText(" Unlocked (Editable)")}</span>
                         )}
                       </td>
                       <td className="py-4 px-4 text-right">
                         {notSubmitted ? (
-                          <span className="text-xs text-amber-600 dark:text-amber-400 font-bold inline-flex items-center gap-1"><Clock3 size={13} /> Pending Submission</span>
+                          <span className="text-xs text-amber-600 dark:text-amber-400 font-bold inline-flex items-center gap-1"><Clock3 size={13} />{uiText(" Pending Submission")}</span>
                         ) : canUnlock ? (
                           <button
                             type="button"
@@ -656,14 +649,14 @@ export const VPGradeManagement = () => {
                             disabled={unlockingSubmissionId === submission.id}
                             className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95 disabled:opacity-50"
                           >
-                            <Unlock size={14} /> {unlockingSubmissionId === submission.id ? 'Unlocking...' : 'Unlock & Grant Edit'}
+                            <Unlock size={14} /> {uiText(unlockingSubmissionId === submission.id ? 'Unlocking...' : 'Unlock & Grant Edit')}
                           </button>
                         ) : submission.is_locked ? (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-3 py-1.5 rounded-xl border border-amber-200 dark:border-amber-800" title={`Cannot unlock: past semester or older than ${unlockWindowDays} days.`}>
-                            <Clock3 size={13} /> {samePeriod ? `${unlockWindowDays}-Day Expired` : 'Past Semester'}
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-3 py-1.5 rounded-xl border border-amber-200 dark:border-amber-800" title={uiText("Cannot unlock: past semester or older than {{value0}} days.", { value0: unlockWindowDays })}>
+                            <Clock3 size={13} /> {uiText(samePeriod ? `${unlockWindowDays}-Day Expired` : 'Past Semester')}
                           </span>
                         ) : (
-                          <span className="text-xs text-emerald-600 dark:text-emerald-400 font-bold">Teacher Can Edit</span>
+                          <span className="text-xs text-emerald-600 dark:text-emerald-400 font-bold">{uiText("Teacher Can Edit")}</span>
                         )}
                       </td>
                     </tr>
@@ -673,14 +666,10 @@ export const VPGradeManagement = () => {
             </table>
 
             <div className="sticky left-0 flex flex-col gap-3 border-t border-slate-200 bg-slate-50/70 px-4 py-3 dark:border-slate-800 dark:bg-slate-800/30 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                Showing {submissionFirstRow + 1}&ndash;{Math.min(submissionFirstRow + submissionMaxRows, visibleSubmissions.length)} of {visibleSubmissions.length} matching submissions
-              </p>
+              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">{uiText("Showing ")}{submissionFirstRow + 1}{uiText("&ndash;")}{Math.min(submissionFirstRow + submissionMaxRows, visibleSubmissions.length)}{uiText(" of ")}{visibleSubmissions.length}{uiText(" matching submissions")}</p>
 
               <div className="flex flex-wrap items-center gap-3">
-                <label htmlFor="submission-max-rows" className="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-300">
-                  Max rows
-                  <input
+                <label htmlFor="submission-max-rows" className="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-300">{uiText("Max rows")}<input
                     id="submission-max-rows"
                     type="number"
                     min={1}
@@ -691,7 +680,7 @@ export const VPGradeManagement = () => {
                       setSubmissionMaxRows(Number.isFinite(nextValue) ? Math.min(100, Math.max(1, Math.trunc(nextValue))) : 10);
                     }}
                     className="w-20 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-center text-xs font-black text-slate-700 outline-none transition-all focus:ring-2 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-                    aria-label="Maximum submission rows per page"
+                    aria-label={uiText("Maximum submission rows per page")}
                   />
                 </label>
 
@@ -701,21 +690,18 @@ export const VPGradeManagement = () => {
                     onClick={() => setSubmissionPage(Math.max(1, activeSubmissionPage - 1))}
                     disabled={activeSubmissionPage === 1}
                     className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-40 dark:text-slate-300 dark:hover:bg-slate-700"
-                    aria-label="Previous submissions page"
+                    aria-label={uiText("Previous submissions page")}
                   >
-                    <ChevronLeft size={14} /> Previous
-                  </button>
-                  <span className="min-w-20 px-2 text-center text-xs font-black text-slate-700 dark:text-slate-200">
-                    Page {activeSubmissionPage} of {submissionTotalPages}
+                    <ChevronLeft size={14} />{uiText(" Previous")}</button>
+                  <span className="min-w-20 px-2 text-center text-xs font-black text-slate-700 dark:text-slate-200">{uiText("Page ")}{activeSubmissionPage}{uiText(" of ")}{submissionTotalPages}
                   </span>
                   <button
                     type="button"
                     onClick={() => setSubmissionPage(Math.min(submissionTotalPages, activeSubmissionPage + 1))}
                     disabled={activeSubmissionPage === submissionTotalPages}
                     className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-40 dark:text-slate-300 dark:hover:bg-slate-700"
-                    aria-label="Next submissions page"
-                  >
-                    Next <ChevronRight size={14} />
+                    aria-label={uiText("Next submissions page")}
+                  >{uiText("Next ")}<ChevronRight size={14} />
                   </button>
                 </div>
               </div>
@@ -730,7 +716,7 @@ export const VPGradeManagement = () => {
     return (
       <div className="flex flex-col items-center justify-center h-96">
         <div className="w-12 h-12 border-4 border-indigo-600/30 border-t-indigo-600 rounded-full animate-spin mb-4" />
-        <p className="text-slate-500 dark:text-slate-400 animate-pulse font-medium">Loading grade management...</p>
+        <p className="text-slate-500 dark:text-slate-400 animate-pulse font-medium">{uiText("Loading grade management...")}</p>
       </div>
     );
   }
@@ -742,11 +728,9 @@ export const VPGradeManagement = () => {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(99,102,241,0.2),_transparent_50%)]" />
         <div className="absolute top-0 right-0 w-80 h-80 bg-white/5 rounded-full blur-3xl transform translate-x-20 -translate-y-20"></div>
         <div className="relative z-10">
-          <p className="text-xs font-black uppercase tracking-[0.25em] text-indigo-400 mb-2">Grade Management</p>
-          <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-2">Student Grade Processing</h1>
-          <p className="text-slate-400 text-sm max-w-2xl font-medium leading-relaxed">
-            View student grades by class section, submit grades, and generate comprehensive result reports with totals, averages, and rankings.
-          </p>
+          <p className="text-xs font-black uppercase tracking-[0.25em] text-indigo-400 mb-2">{uiText("Grade Management")}</p>
+          <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-2">{uiText("Student Grade Processing")}</h1>
+          <p className="text-slate-400 text-sm max-w-2xl font-medium leading-relaxed">{uiText("View student grades by class section, submit grades, and generate comprehensive result reports with totals, averages, and rankings.")}</p>
         </div>
       </section>
 
@@ -754,7 +738,7 @@ export const VPGradeManagement = () => {
         type="button"
         onClick={() => void handleSubmissionWindowToggle()}
         disabled={updatingSubmissionWindow}
-        title={gradeSubmissionOpen ? 'Click to close grade submission' : 'Click to open grade submission'}
+        title={uiText(gradeSubmissionOpen ? 'Click to close grade submission' : 'Click to open grade submission')}
         className={`w-full p-4 rounded-2xl border-2 transition-all flex items-center justify-between text-left select-none hover:opacity-90 active:scale-[0.99] disabled:cursor-wait disabled:opacity-60 ${gradeSubmissionOpen
           ? 'border-emerald-200 bg-emerald-50 dark:bg-emerald-900/10'
           : 'border-rose-200 bg-rose-50 dark:bg-rose-900/10'
@@ -765,13 +749,12 @@ export const VPGradeManagement = () => {
             <Power size={18} />
           </span>
           <span>
-            <span className={`block text-sm font-black uppercase tracking-tight ${gradeSubmissionOpen ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`}>
-              Grade Submission Window: {gradeSubmissionOpen ? 'OPEN' : 'CLOSED'}
+            <span className={`block text-sm font-black uppercase tracking-tight ${gradeSubmissionOpen ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`}>{uiText("Grade Submission Window: ")}{uiText(gradeSubmissionOpen ? 'OPEN' : 'CLOSED')}
             </span>
             <span className={`block text-[10px] font-medium ${gradeSubmissionOpen ? 'text-emerald-600 dark:text-emerald-500' : 'text-rose-600 dark:text-rose-500'}`}>
-              {gradeSubmissionOpen
+              {uiText(gradeSubmissionOpen
                 ? 'Teachers can currently enter and submit grades for their assigned courses.'
-                : 'System-wide grade submission is closed. Teachers cannot submit new grades.'}
+                : 'System-wide grade submission is closed. Teachers cannot submit new grades.')}
             </span>
           </span>
         </span>
@@ -789,9 +772,7 @@ export const VPGradeManagement = () => {
             : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
             }`}
         >
-          <BarChart3 size={16} />
-          1. Section Grade Processing &amp; Completion Filter
-        </button>
+          <BarChart3 size={16} />{uiText("1. Section Grade Processing & Completion Filter")}</button>
         <button
           type="button"
           onClick={() => setActiveTab('submissions-review')}
@@ -800,11 +781,8 @@ export const VPGradeManagement = () => {
             : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
             }`}
         >
-          <Unlock size={16} />
-          2. Teacher Submissions &amp; Re-submission Filter
-          <span className="ml-1 px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 text-[10px] rounded-full font-black">
-            {submissions.length} Total
-          </span>
+          <Unlock size={16} />{uiText("2. Teacher Submissions & Re-submission Filter")}<span className="ml-1 px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 text-[10px] rounded-full font-black">
+            {submissions.length}{uiText(" Total")}</span>
         </button>
       </div>
 
@@ -816,9 +794,7 @@ export const VPGradeManagement = () => {
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2rem] p-6 shadow-sm">
         <div className="flex flex-col sm:flex-row gap-6 items-end">
           <div className="flex-1">
-            <label htmlFor="vp-academic-year" className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">
-              Academic Year
-            </label>
+            <label htmlFor="vp-academic-year" className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">{uiText("Academic Year")}</label>
             <div className="relative">
               <select
                 id="vp-academic-year"
@@ -830,8 +806,7 @@ export const VPGradeManagement = () => {
                   const ecYear = gregorianToECYear(year);
                   return (
                     <option key={year} value={year}>
-                      {ecYear} E.C. ({year})
-                    </option>
+                      {ecYear}{uiText(" E.C. (")}{uiText(year)}{uiText(")")}</option>
                   );
                 })}
               </select>
@@ -839,9 +814,7 @@ export const VPGradeManagement = () => {
             </div>
           </div>
           <div className="flex-1">
-            <label htmlFor="vp-semester" className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">
-              Semester
-            </label>
+            <label htmlFor="vp-semester" className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">{uiText("Semester")}</label>
             <div className="relative">
               <select
                 id="vp-semester"
@@ -849,17 +822,17 @@ export const VPGradeManagement = () => {
                 onChange={(e) => setSelectedSemester(e.target.value)}
                 className="w-full appearance-none px-5 py-3 bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-800 dark:text-white outline-none focus:border-indigo-500 transition-all cursor-pointer pr-10"
               >
-                <option>First Semester</option>
-                <option>Second Semester</option>
+                <option value="First Semester">{uiText("First Semester")}</option>
+                <option value="Second Semester">{uiText("Second Semester")}</option>
               </select>
               <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
             </div>
           </div>
           <div className="flex-1 flex items-end">
             <div className="px-5 py-3 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-2xl text-sm">
-              <span className="text-xs font-black text-indigo-500 uppercase tracking-widest">Viewing</span>
+              <span className="text-xs font-black text-indigo-500 uppercase tracking-widest">{uiText("Viewing")}</span>
               <p className="font-bold text-indigo-700 dark:text-indigo-300 mt-0.5">
-                {gregorianToECYear(selectedYear)} E.C. &bull; {selectedSemester}
+                {gregorianToECYear(selectedYear)}{uiText(" E.C. &bull; ")}{uiText(selectedSemester)}
               </p>
             </div>
           </div>
@@ -867,20 +840,18 @@ export const VPGradeManagement = () => {
       </div>
 
       {/* Error Display */}
-      {error && (
+      {uiText(error && (
         <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/40 rounded-2xl p-4 text-red-700 dark:text-red-400">
-          {error}
+          {uiError(error)}
         </div>
-      )}
+      ))}
 
       {/* Grade and Section Selection */}
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Grade Dropdown */}
           <div>
-            <label htmlFor="vp-grade" className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">
-              Grade
-            </label>
+            <label htmlFor="vp-grade" className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">{uiText("Grade")}</label>
             <div className="relative">
               <select
                 id="vp-grade"
@@ -899,12 +870,12 @@ export const VPGradeManagement = () => {
                   }
                 }}
                 className="w-full appearance-none px-5 py-3 bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-800 dark:text-white outline-none focus:border-indigo-500 transition-all cursor-pointer pr-10"
-                title="Select a grade"
+                title={uiText("Select a grade")}
               >
-                <option value="">Select Grade</option>
+                <option value="">{uiText("Select Grade")}</option>
                 {grades.map((grade) => (
                   <option key={grade.id} value={grade.grade_name ?? grade.name}>
-                    {grade.grade_name ?? grade.name}
+                    {uiText(grade.grade_name ?? grade.name)}
                   </option>
                 ))}
               </select>
@@ -914,9 +885,7 @@ export const VPGradeManagement = () => {
 
           {/* Section Dropdown */}
           <div>
-            <label htmlFor="vp-section" className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">
-              Section
-            </label>
+            <label htmlFor="vp-section" className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">{uiText("Section")}</label>
             <div className="relative">
               <select
                 id="vp-section"
@@ -937,15 +906,14 @@ export const VPGradeManagement = () => {
                 }}
                 disabled={!selectedGradeGroup}
                 className="w-full appearance-none px-5 py-3 bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-800 dark:text-white outline-none focus:border-indigo-500 transition-all cursor-pointer pr-10 disabled:opacity-50 disabled:cursor-not-allowed"
-                title="Select a section (choose a grade first)"
+                title={uiText("Select a section (choose a grade first)")}
               >
                 <option value="">
-                  {selectedGradeGroup ? 'Select Section' : 'Choose Grade First'}
+                  {uiText(selectedGradeGroup ? 'Select Section' : 'Choose Grade First')}
                 </option>
                 {selectedGradeGroup?.sections.map((section) => (
                   <option key={section.id} value={section.id}>
-                    {section.section_name} ({section.student_count}/{section.capacity})
-                  </option>
+                    {uiText(section.section_name)}{uiText(" (")}{section.student_count}{uiText("/")}{section.capacity}{uiText(")")}</option>
                 ))}
               </select>
               <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
@@ -964,7 +932,7 @@ export const VPGradeManagement = () => {
                 <div className="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
                   <Users className="text-blue-600 dark:text-blue-400" size={18} />
                 </div>
-                <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold">Total Students</p>
+                <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold">{uiText("Total Students")}</p>
               </div>
               <p className="text-2xl font-bold text-slate-800 dark:text-white">{students.length}</p>
             </div>
@@ -974,7 +942,7 @@ export const VPGradeManagement = () => {
                 <div className="p-2 bg-emerald-50 dark:bg-emerald-900/30 rounded-lg">
                   <BookOpen className="text-emerald-600 dark:text-emerald-400" size={18} />
                 </div>
-                <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold">Total Courses</p>
+                <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold">{uiText("Total Courses")}</p>
               </div>
               <p className="text-2xl font-bold text-slate-800 dark:text-white">{courses.length}</p>
             </div>
@@ -984,7 +952,7 @@ export const VPGradeManagement = () => {
                 <div className="p-2 bg-purple-50 dark:bg-purple-900/30 rounded-lg">
                   <BarChart3 className="text-purple-600 dark:text-purple-400" size={18} />
                 </div>
-                <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold">Grades Submitted</p>
+                <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold">{uiText("Grades Submitted")}</p>
               </div>
               <p className="text-2xl font-bold text-slate-800 dark:text-white">
                 {studentGrades.filter(sg => Object.keys(sg.grades).length > 0).length}
@@ -996,8 +964,8 @@ export const VPGradeManagement = () => {
           <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl border border-slate-100 dark:border-slate-800 p-6 space-y-4">
             <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
               <div>
-                <h3 className="font-bold text-slate-800 dark:text-white">Grade Actions &amp; Completion Filter</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Filter students by grade completion or calculate section results</p>
+                <h3 className="font-bold text-slate-800 dark:text-white">{uiText("Grade Actions & Completion Filter")}</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{uiText("Filter students by grade completion or calculate section results")}</p>
               </div>
               <div className="flex flex-wrap items-center gap-3">
                 <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl">
@@ -1015,7 +983,7 @@ export const VPGradeManagement = () => {
                         : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
                         }`}
                     >
-                      {filter.label}
+                      {uiText(filter.label)}
                     </button>
                   ))}
                 </div>
@@ -1024,16 +992,14 @@ export const VPGradeManagement = () => {
                   disabled={generatingResults || students.length === 0}
                   className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-400 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-indigo-600/10"
                 >
-                  {generatingResults ? 'Generating...' : 'Generate Results'}
+                  {uiText(generatingResults ? 'Generating...' : 'Generate Results')}
                 </button>
                 <button
                   onClick={exportToExcel}
                   disabled={studentGrades.length === 0}
                   className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-400 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-2 shadow-lg shadow-emerald-600/10"
                 >
-                  <Download size={14} />
-                  Export Excel
-                </button>
+                  <Download size={14} />{uiText("Export Excel")}</button>
               </div>
             </div>
           </div>
@@ -1043,7 +1009,7 @@ export const VPGradeManagement = () => {
             <div className="flex items-center justify-center h-64">
               <div className="text-center">
                 <div className="w-12 h-12 border-4 border-indigo-600/30 border-t-indigo-600 rounded-full animate-spin mx-auto mb-3" />
-                <p className="text-slate-500 dark:text-slate-400">Loading grades...</p>
+                <p className="text-slate-500 dark:text-slate-400">{uiText("Loading grades...")}</p>
               </div>
             </div>
           ) : (
@@ -1051,20 +1017,20 @@ export const VPGradeManagement = () => {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-slate-100 dark:border-slate-700">
-                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 dark:text-slate-300 uppercase">Student Name</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 dark:text-slate-300 uppercase">{uiText("Student Name")}</th>
                     {courses.map((course) => (
                       <th key={course.id} className="px-4 py-4 text-center text-xs font-bold text-slate-600 dark:text-slate-300 uppercase whitespace-nowrap">
                         <div>{course.name}</div>
-                        {course.teacher_name && (
+                        {uiText(course.teacher_name && (
                           <div className="text-[10px] font-medium text-slate-500 dark:text-slate-400 mt-1">
-                            {course.teacher_name}
+                            {uiText(course.teacher_name)}
                           </div>
-                        )}
+                        ))}
                       </th>
                     ))}
-                    <th className="px-4 py-4 text-center text-xs font-bold text-slate-600 dark:text-slate-300 uppercase">Total</th>
-                    <th className="px-4 py-4 text-center text-xs font-bold text-slate-600 dark:text-slate-300 uppercase">Average</th>
-                    <th className="px-4 py-4 text-center text-xs font-bold text-slate-600 dark:text-slate-300 uppercase">Rank</th>
+                    <th className="px-4 py-4 text-center text-xs font-bold text-slate-600 dark:text-slate-300 uppercase">{uiText("Total")}</th>
+                    <th className="px-4 py-4 text-center text-xs font-bold text-slate-600 dark:text-slate-300 uppercase">{uiText("Average")}</th>
+                    <th className="px-4 py-4 text-center text-xs font-bold text-slate-600 dark:text-slate-300 uppercase">{uiText("Rank")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
@@ -1078,22 +1044,22 @@ export const VPGradeManagement = () => {
                           {student.grades[course.id] ? (
                             <div className="flex items-center justify-center gap-1">
                               <span className="font-semibold text-slate-800 dark:text-white">
-                                {student.grades[course.id].score}
+                                {uiText(student.grades[course.id].score)}
                               </span>
-                              {student.grades[course.id].score && (
+                              {uiText(student.grades[course.id].score && (
                                 <CheckCircle2 className="text-emerald-500" size={14} />
-                              )}
+                              ))}
                             </div>
                           ) : (
-                            <span className="text-slate-400 dark:text-slate-500 text-sm">-</span>
+                            <span className="text-slate-400 dark:text-slate-500 text-sm">{uiText("-")}</span>
                           )}
                         </td>
                       ))}
                       <td className="px-4 py-4 text-center font-semibold text-slate-800 dark:text-white">
-                        {student.total ? student.total.toFixed(2) : '-'}
+                        {uiText(student.total ? student.total.toFixed(2) : '-')}
                       </td>
                       <td className="px-4 py-4 text-center font-semibold text-slate-800 dark:text-white">
-                        {student.average ? `${student.average.toFixed(2)}%` : '-'}
+                        {uiText(student.average ? `${student.average.toFixed(2)}%` : '-')}
                       </td>
                       <td className="px-4 py-4 text-center">
                         {student.rank ? (
@@ -1101,7 +1067,7 @@ export const VPGradeManagement = () => {
                             {student.rank}
                           </span>
                         ) : (
-                          <span className="text-slate-400 dark:text-slate-500 text-sm">-</span>
+                          <span className="text-slate-400 dark:text-slate-500 text-sm">{uiText("-")}</span>
                         )}
                       </td>
                     </tr>
@@ -1111,7 +1077,7 @@ export const VPGradeManagement = () => {
 
               {studentGrades.length === 0 && (
                 <div className="p-8 text-center">
-                  <p className="text-slate-500 dark:text-slate-400">No grades found for this section</p>
+                  <p className="text-slate-500 dark:text-slate-400">{uiText("No grades found for this section")}</p>
                 </div>
               )}
             </div>
@@ -1129,7 +1095,7 @@ export const VPGradeManagement = () => {
             : 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900/40 text-red-800 dark:text-red-300'
             }`}>
             <CheckCircle2 className="text-emerald-500" size={20} />
-            <p className="text-sm font-semibold">{toast.message}</p>
+            <p className="text-sm font-semibold">{uiText(toast.message)}</p>
           </div>
         </div>
       )}

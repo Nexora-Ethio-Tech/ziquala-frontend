@@ -1,3 +1,4 @@
+import { uiText } from "../localization";
 import { useState, useEffect, useRef } from 'react';
 import { MessageSquare, X, Send, MinusCircle, Maximize2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
@@ -87,14 +88,14 @@ export const Chatbot = () => {
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!message.trim() || isLoading) return;
-    
+
     const userMessage = { role: "user", content: message };
     setMessages(prev => [...prev, userMessage]);
-    setMessage('');
+    setMessage(uiText(""));
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/guest/chat`, { 
+      const response = await fetch(`${API_BASE_URL}/guest/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -107,7 +108,7 @@ export const Chatbot = () => {
       }
 
       const data = await response.json();
-      
+
       // Safety check in case of error payload returning cleanly but missing "content"
       if (data.error) {
         throw new Error(data.error);
@@ -129,9 +130,7 @@ export const Chatbot = () => {
         className="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-2xl transition-all hover:scale-110 z-50 flex items-center gap-2 group"
       >
         <MessageSquare size={24} />
-        <span className="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-500 font-bold text-sm whitespace-nowrap">
-          Ask Assistant
-        </span>
+        <span className="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-500 font-bold text-sm whitespace-nowrap">{uiText("Ask Assistant")}</span>
       </button>
     );
   }
@@ -149,10 +148,10 @@ export const Chatbot = () => {
               <MessageSquare size={20} />
             </div>
             <div>
-              <p className="font-bold text-sm">Ziquala Abo School Assistant</p>
+              <p className="font-bold text-sm">{uiText("Ziquala Abo School Assistant")}</p>
               <div className="flex items-center gap-1">
                 <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
-                <p className="text-[10px] text-blue-100">Semantic Search Active</p>
+                <p className="text-[10px] text-blue-100">{uiText("Semantic Search Active")}</p>
               </div>
             </div>
           </div>
@@ -162,9 +161,9 @@ export const Chatbot = () => {
               data-drag-handle="true"
               onPointerDown={handlePointerDown}
               className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
-              aria-label="Drag chatbot"
+              aria-label={uiText("Drag chatbot")}
             >
-              <span className="text-xs font-bold">⋮⋮</span>
+              <span className="text-xs font-bold">{uiText("⋮⋮")}</span>
             </button>
             <button onClick={() => setIsMinimized(!isMinimized)} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors">
               {isMinimized ? <Maximize2 size={16} /> : <MinusCircle size={16} />}
@@ -186,7 +185,7 @@ export const Chatbot = () => {
                     : 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-tl-none border border-slate-100 dark:border-slate-700'
                     }`}>
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                      {m.content}
+                      {m.role === 'user' ? m.content : uiText(m.content)}
                     </ReactMarkdown>
                   </div>
                 </div>
@@ -212,7 +211,7 @@ export const Chatbot = () => {
               <div className="flex gap-2">
                 <input
                   type="text"
-                  placeholder="Type your question..."
+                  placeholder={uiText("Type your question...")}
                   className="flex-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 dark:text-white"
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}

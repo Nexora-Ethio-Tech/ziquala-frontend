@@ -1,3 +1,4 @@
+import { uiError, uiText } from "../localization";
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import {
@@ -71,7 +72,7 @@ export const StudentRecordPage = () => {
     if (!file || !replacingDocId) return;
 
     if (file.size > 2 * 1024 * 1024) {
-      alert('File size must be less than 2MB');
+      alert(uiText("File size must be less than 2MB"));
       return;
     }
 
@@ -83,7 +84,7 @@ export const StudentRecordPage = () => {
       await api.post(`/school-admin/applications/${replacingDocId}/transcript/replace`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-      alert('Transcript uploaded successfully');
+      alert(uiText("Transcript uploaded successfully"));
 
       // Refresh admission record and automatically preview
       if (studentId) {
@@ -97,7 +98,7 @@ export const StudentRecordPage = () => {
         });
       }
     } catch (err: any) {
-      alert(err.response?.data?.message || err.message || 'Failed to replace transcript');
+      alert(uiError(err.response?.data?.message || err.message || 'Failed to replace transcript'));
     } finally {
       setUploading(false);
       setReplacingDocId(null);
@@ -117,9 +118,9 @@ export const StudentRecordPage = () => {
       } catch (err: any) {
         if (!cancelled) {
           setError(
-            err.response?.data?.message ||
+            uiError(err.response?.data?.message ||
               err.message ||
-              'Failed to load student admission record'
+              'Failed to load student admission record')
           );
         }
       } finally {
@@ -199,17 +200,11 @@ export const StudentRecordPage = () => {
         onClick={() => navigate(returnTo)}
         className="flex items-center gap-1 text-blue-600 hover:underline text-xs font-bold uppercase tracking-widest"
       >
-        <ArrowLeft size={14} />
-        Back
-      </button>
+        <ArrowLeft size={14} />{uiText("Back")}</button>
 
       <div>
-        <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-          Student Admission Record
-        </h1>
-        <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">
-          Complete admission details filled during student registration
-        </p>
+        <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{uiText("Student Admission Record")}</h1>
+        <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">{uiText("Complete admission details filled during student registration")}</p>
       </div>
 
       {loading ? (
@@ -218,7 +213,7 @@ export const StudentRecordPage = () => {
         </div>
       ) : error ? (
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6">
-          <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
+          <p className="text-sm text-red-800 dark:text-red-200">{uiError(error)}</p>
         </div>
       ) : (
         <div className="space-y-6">
@@ -230,31 +225,31 @@ export const StudentRecordPage = () => {
                   <User size={24} />
                 </div>
                 <div>
-                  <h2 className="text-xl font-black text-slate-900 dark:text-white">{studentName}</h2>
-                  <p className="text-xs text-slate-400">Digital ID: <span className="font-mono font-bold text-slate-700 dark:text-slate-300">{displayValue(student?.digital_id || app?.digital_id)}</span></p>
+                  <h2 className="text-xl font-black text-slate-900 dark:text-white">{uiText(studentName)}</h2>
+                  <p className="text-xs text-slate-400">{uiText("Digital ID: ")}<span className="font-mono font-bold text-slate-700 dark:text-slate-300">{uiText(displayValue(student?.digital_id || app?.digital_id))}</span></p>
                 </div>
               </div>
               <span className="px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/50 w-fit">
-                {enrollmentStatus}
+                {uiText(enrollmentStatus)}
               </span>
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-xs">
               <div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase">Assigned Grade</p>
-                <p className="font-bold dark:text-slate-200">{displayValue(student?.grade || app?.grade_applying)}</p>
+                <p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Assigned Grade")}</p>
+                <p className="font-bold dark:text-slate-200">{uiText(displayValue(student?.grade || app?.grade_applying))}</p>
               </div>
               <div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase">Assigned Section</p>
+                <p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Assigned Section")}</p>
                 <p className="font-bold dark:text-slate-200">
-                  {student?.section_label
+                  {uiText(student?.section_label
                     ? `${student.section_name || ''} — Section ${student.section_label}`.trim()
-                    : displayValue(student?.section_name)}
+                    : displayValue(student?.section_name))}
                 </p>
               </div>
               <div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase">Enrolled Date</p>
-                <p className="font-bold dark:text-slate-200">{formatDate(student?.enrolled_at)}</p>
+                <p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Enrolled Date")}</p>
+                <p className="font-bold dark:text-slate-200">{uiText(formatDate(student?.enrolled_at))}</p>
               </div>
             </div>
           </div>
@@ -267,55 +262,48 @@ export const StudentRecordPage = () => {
                   <GraduationCap size={20} />
                 </div>
                 <div>
-                  <h2 className="text-lg font-black text-slate-900 dark:text-white">
-                    Student Personal & Admission Details
-                  </h2>
-                  <p className="text-xs text-slate-500">
-                    Data submitted during application for admission
-                  </p>
+                  <h2 className="text-lg font-black text-slate-900 dark:text-white">{uiText("Student Personal & Admission Details")}</h2>
+                  <p className="text-xs text-slate-500">{uiText("Data submitted during application for admission")}</p>
                 </div>
               </div>
-              <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 w-fit">
-                Status: {applicationStatusLabel}
+              <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 w-fit">{uiText("Status: ")}{uiText(applicationStatusLabel)}
               </span>
             </div>
 
             {/* 1. Student Personal Information */}
             <div>
               <h3 className="text-xs font-black uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
-                <User size={14} className="text-indigo-500" />
-                Personal Information
-              </h3>
+                <User size={14} className="text-indigo-500" />{uiText("Personal Information")}</h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs bg-slate-50 dark:bg-slate-800/40 p-4 rounded-xl">
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase">Full Name</p>
-                  <p className="font-bold dark:text-slate-200">{displayValue(app?.name || student?.name)}</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Full Name")}</p>
+                  <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.name || student?.name))}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase">Date of Birth</p>
-                  <p className="font-bold dark:text-slate-200">{formatDate(app?.dob)}</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Date of Birth")}</p>
+                  <p className="font-bold dark:text-slate-200">{uiText(formatDate(app?.dob))}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase">Gender</p>
-                  <p className="font-bold dark:text-slate-200">{displayValue(app?.gender)}</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Gender")}</p>
+                  <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.gender))}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase">Digital ID</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Digital ID")}</p>
                   <p className="font-bold dark:text-slate-200 font-mono">
-                    {displayValue(student?.digital_id || app?.digital_id)}
+                    {uiText(displayValue(student?.digital_id || app?.digital_id))}
                   </p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase">Place of Birth</p>
-                  <p className="font-bold dark:text-slate-200">{displayValue(app?.place_of_birth)}</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Place of Birth")}</p>
+                  <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.place_of_birth))}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase">Religion</p>
-                  <p className="font-bold dark:text-slate-200">{displayValue(app?.religion)}</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Religion")}</p>
+                  <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.religion))}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase">Date Registered</p>
-                  <p className="font-bold dark:text-slate-200">{formatDate(app?.date_registered || app?.created_at)}</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Date Registered")}</p>
+                  <p className="font-bold dark:text-slate-200">{uiText(formatDate(app?.date_registered || app?.created_at))}</p>
                 </div>
               </div>
             </div>
@@ -323,27 +311,25 @@ export const StudentRecordPage = () => {
             {/* 2. Family & Parent Information */}
             <div>
               <h3 className="text-xs font-black uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
-                <Users size={14} className="text-blue-500" />
-                Parents & Family Background
-              </h3>
+                <Users size={14} className="text-blue-500" />{uiText("Parents & Family Background")}</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                 {/* Father Info */}
                 <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl space-y-2 border border-slate-100 dark:border-slate-800">
-                  <p className="text-[11px] font-black text-slate-700 dark:text-slate-300 uppercase">Father's Information</p>
+                  <p className="text-[11px] font-black text-slate-700 dark:text-slate-300 uppercase">{uiText("Father's Information")}</p>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase">Full Name</p>
-                      <p className="font-bold dark:text-slate-200">{displayValue(app?.father_name || app?.parent_name)}</p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Full Name")}</p>
+                      <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.father_name || app?.parent_name))}</p>
                     </div>
                     <div>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase">Occupation</p>
-                      <p className="font-bold dark:text-slate-200">{displayValue(app?.father_occupation)}</p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Occupation")}</p>
+                      <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.father_occupation))}</p>
                     </div>
                     <div className="col-span-2">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase">Phone Number</p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Phone Number")}</p>
                       <p className="font-bold dark:text-slate-200 flex items-center gap-1">
                         <PhoneCall size={12} className="text-slate-400" />
-                        {displayValue(app?.father_phone || app?.parent_phone)}
+                        {uiText(displayValue(app?.father_phone || app?.parent_phone))}
                       </p>
                     </div>
                   </div>
@@ -351,21 +337,21 @@ export const StudentRecordPage = () => {
 
                 {/* Mother Info */}
                 <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl space-y-2 border border-slate-100 dark:border-slate-800">
-                  <p className="text-[11px] font-black text-slate-700 dark:text-slate-300 uppercase">Mother's Information</p>
+                  <p className="text-[11px] font-black text-slate-700 dark:text-slate-300 uppercase">{uiText("Mother's Information")}</p>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase">Full Name</p>
-                      <p className="font-bold dark:text-slate-200">{displayValue(app?.mother_name)}</p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Full Name")}</p>
+                      <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.mother_name))}</p>
                     </div>
                     <div>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase">Occupation</p>
-                      <p className="font-bold dark:text-slate-200">{displayValue(app?.mother_occupation)}</p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Occupation")}</p>
+                      <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.mother_occupation))}</p>
                     </div>
                     <div className="col-span-2">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase">Phone Number</p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Phone Number")}</p>
                       <p className="font-bold dark:text-slate-200 flex items-center gap-1">
                         <PhoneCall size={12} className="text-slate-400" />
-                        {displayValue(app?.mother_phone)}
+                        {uiText(displayValue(app?.mother_phone))}
                       </p>
                     </div>
                   </div>
@@ -376,21 +362,19 @@ export const StudentRecordPage = () => {
             {/* 3. Address & Residence Details */}
             <div>
               <h3 className="text-xs font-black uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
-                <MapPin size={14} className="text-rose-500" />
-                Address & Location Information
-              </h3>
+                <MapPin size={14} className="text-rose-500" />{uiText("Address & Location Information")}</h3>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-xs bg-slate-50 dark:bg-slate-800/40 p-4 rounded-xl">
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase">Full Address</p>
-                  <p className="font-bold dark:text-slate-200">{displayValue(app?.address)}</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Full Address")}</p>
+                  <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.address))}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase">Kebele</p>
-                  <p className="font-bold dark:text-slate-200">{displayValue(app?.kebele)}</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Kebele")}</p>
+                  <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.kebele))}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase">Applicant Phone</p>
-                  <p className="font-bold dark:text-slate-200">{displayValue(app?.applicant_phone || app?.phone)}</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Applicant Phone")}</p>
+                  <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.applicant_phone || app?.phone))}</p>
                 </div>
               </div>
             </div>
@@ -398,107 +382,102 @@ export const StudentRecordPage = () => {
             {/* 4. Academic Background */}
             <div>
               <h3 className="text-xs font-black uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
-                <Building size={14} className="text-amber-500" />
-                Academic History
-              </h3>
+                <Building size={14} className="text-amber-500" />{uiText("Academic History")}</h3>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-xs bg-slate-50 dark:bg-slate-800/40 p-4 rounded-xl">
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase">Grade Applying For</p>
-                  <p className="font-bold dark:text-slate-200">{displayValue(app?.grade_applying || app?.grade)}</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Grade Applying For")}</p>
+                  <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.grade_applying || app?.grade))}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase">Last Grade Completed</p>
-                  <p className="font-bold dark:text-slate-200">{displayValue(app?.last_grade_completed || app?.grade)}</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Last Grade Completed")}</p>
+                  <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.last_grade_completed || app?.grade))}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase">Previous School</p>
-                  <p className="font-bold dark:text-slate-200">{displayValue(app?.previous_school)}</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Previous School")}</p>
+                  <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.previous_school))}</p>
                 </div>
               </div>
             </div>
 
             {/* 5. Medical Information */}
-            {(app?.blood_group || app?.allergies || app?.chronic_conditions || app?.medications) && (
+            {uiText((app?.blood_group || app?.allergies || app?.chronic_conditions || app?.medications) && (
               <div>
                 <h3 className="text-xs font-black uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
-                  <HeartPulse size={14} className="text-rose-500" />
-                  Medical & Health Records
-                </h3>
+                  <HeartPulse size={14} className="text-rose-500" />{uiText("Medical & Health Records")}</h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs bg-rose-50/50 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/30 p-4 rounded-xl">
                   <div>
-                    <span className="text-[10px] font-bold text-rose-500 uppercase">Blood Group</span>
-                    <p className="font-bold dark:text-slate-200">{displayValue(app?.blood_group)}</p>
+                    <span className="text-[10px] font-bold text-rose-500 uppercase">{uiText("Blood Group")}</span>
+                    <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.blood_group))}</p>
                   </div>
                   <div>
-                    <span className="text-[10px] font-bold text-rose-500 uppercase">Allergies</span>
-                    <p className="font-bold dark:text-slate-200">{displayValue(app?.allergies)}</p>
+                    <span className="text-[10px] font-bold text-rose-500 uppercase">{uiText("Allergies")}</span>
+                    <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.allergies))}</p>
                   </div>
                   <div>
-                    <span className="text-[10px] font-bold text-rose-500 uppercase">Chronic Conditions</span>
-                    <p className="font-bold dark:text-slate-200">{displayValue(app?.chronic_conditions)}</p>
+                    <span className="text-[10px] font-bold text-rose-500 uppercase">{uiText("Chronic Conditions")}</span>
+                    <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.chronic_conditions))}</p>
                   </div>
                   <div>
-                    <span className="text-[10px] font-bold text-rose-500 uppercase">Current Medications</span>
-                    <p className="font-bold dark:text-slate-200">{displayValue(app?.medications)}</p>
+                    <span className="text-[10px] font-bold text-rose-500 uppercase">{uiText("Current Medications")}</span>
+                    <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.medications))}</p>
                   </div>
                 </div>
               </div>
-            )}
+            ))}
 
             {/* 6. Exam Info if present */}
-            {(app?.exam_date || app?.exam_location) && (
+            {uiText((app?.exam_date || app?.exam_location) && (
               <div className="p-4 bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-800/30 rounded-xl">
                 <p className="text-[10px] font-black text-amber-600 uppercase tracking-widest mb-2 flex items-center gap-2">
-                  <Clock size={12} /> Placement Exam Information
-                </p>
+                  <Clock size={12} />{uiText(" Placement Exam Information")}</p>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
                   <div>
-                    <span className="text-[10px] text-amber-500 font-bold uppercase">Date</span>
-                    <p className="font-bold text-amber-800 dark:text-amber-200">{formatDate(app?.exam_date)}</p>
+                    <span className="text-[10px] text-amber-500 font-bold uppercase">{uiText("Date")}</span>
+                    <p className="font-bold text-amber-800 dark:text-amber-200">{uiText(formatDate(app?.exam_date))}</p>
                   </div>
                   <div>
-                    <span className="text-[10px] text-amber-500 font-bold uppercase">Time</span>
-                    <p className="font-bold text-amber-800 dark:text-amber-200">{displayValue(app?.exam_time)}</p>
+                    <span className="text-[10px] text-amber-500 font-bold uppercase">{uiText("Time")}</span>
+                    <p className="font-bold text-amber-800 dark:text-amber-200">{uiText(displayValue(app?.exam_time))}</p>
                   </div>
                   <div>
-                    <span className="text-[10px] text-amber-500 font-bold uppercase">Location</span>
-                    <p className="font-bold text-amber-800 dark:text-amber-200">{displayValue(app?.exam_location)}</p>
+                    <span className="text-[10px] text-amber-500 font-bold uppercase">{uiText("Location")}</span>
+                    <p className="font-bold text-amber-800 dark:text-amber-200">{uiText(displayValue(app?.exam_location))}</p>
                   </div>
                   <div>
-                    <span className="text-[10px] text-amber-500 font-bold uppercase">Subjects</span>
-                    <p className="font-bold text-amber-800 dark:text-amber-200">{displayValue(app?.exam_subjects)}</p>
+                    <span className="text-[10px] text-amber-500 font-bold uppercase">{uiText("Subjects")}</span>
+                    <p className="font-bold text-amber-800 dark:text-amber-200">{uiText(displayValue(app?.exam_subjects))}</p>
                   </div>
-                  {app?.exam_notes && (
+                  {uiText(app?.exam_notes && (
                     <div className="md:col-span-4">
-                      <span className="text-[10px] text-amber-500 font-bold uppercase">Notes</span>
-                      <p className="font-bold text-amber-800 dark:text-amber-200">{app.exam_notes}</p>
+                      <span className="text-[10px] text-amber-500 font-bold uppercase">{uiText("Notes")}</span>
+                      <p className="font-bold text-amber-800 dark:text-amber-200">{uiText(app.exam_notes)}</p>
                     </div>
-                  )}
+                  ))}
                 </div>
               </div>
-            )}
+            ))}
 
             {/* 7. Finance & Registration completion if present */}
-            {(app?.finance_status || app?.registration_completed_at) && (
+            {uiText((app?.finance_status || app?.registration_completed_at) && (
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs pt-4 border-t border-slate-100 dark:border-slate-800">
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase">Finance Status</p>
-                  <p className="font-bold dark:text-slate-200">{displayValue(app?.finance_status)}</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Finance Status")}</p>
+                  <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.finance_status))}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase">Payment Amount</p>
-                  <p className="font-bold dark:text-slate-200">{displayValue(app?.payment_amount)}</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Payment Amount")}</p>
+                  <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.payment_amount))}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase">Payment Reference</p>
-                  <p className="font-bold dark:text-slate-200">{displayValue(app?.payment_reference)}</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Payment Reference")}</p>
+                  <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.payment_reference))}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase">Registration Completed</p>
-                  <p className="font-bold dark:text-slate-200">{formatDate(app?.registration_completed_at)}</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Registration Completed")}</p>
+                  <p className="font-bold dark:text-slate-200">{uiText(formatDate(app?.registration_completed_at))}</p>
                 </div>
               </div>
-            )}
+            ))}
           </div>
 
           {/* 8. Documents & Transcripts */}
@@ -507,13 +486,11 @@ export const StudentRecordPage = () => {
               <div className="p-2 bg-purple-100 text-purple-600 rounded-lg">
                 <FileText size={20} />
               </div>
-              <h2 className="text-lg font-black text-slate-900 dark:text-white">
-                Submitted Documents & Transcripts
-              </h2>
+              <h2 className="text-lg font-black text-slate-900 dark:text-white">{uiText("Submitted Documents & Transcripts")}</h2>
             </div>
 
             {(!record?.documents || record.documents.length === 0) ? (
-              <p className="text-sm text-slate-500">No documents were submitted with this application.</p>
+              <p className="text-sm text-slate-500">{uiText("No documents were submitted with this application.")}</p>
             ) : (
               <div className="space-y-3">
                 {record.documents.map((doc) => {
@@ -535,13 +512,11 @@ export const StudentRecordPage = () => {
                           <FileText size={16} className="text-purple-500" />
                           {doc.file_name}
                         </p>
-                        <p className="text-xs text-slate-500 mt-1">
-                          Academic Transcript Document
-                        </p>
+                        <p className="text-xs text-slate-500 mt-1">{uiText("Academic Transcript Document")}</p>
                       </div>
 
                       <div className="flex items-center gap-2">
-                        {targetAppId && (
+                        {uiText(targetAppId && (
                           <>
                             <button
                               type="button"
@@ -550,8 +525,7 @@ export const StudentRecordPage = () => {
                               }
                               className="px-4 py-2 text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 rounded-lg text-xs font-bold flex items-center gap-2 transition-colors cursor-pointer"
                             >
-                              <FileText size={14} /> View
-                            </button>
+                              <FileText size={14} />{uiText(" View")}</button>
                             <a
                               href={`/api/school-admin/applications/${targetAppId}/transcript`}
                               target="_blank"
@@ -572,12 +546,11 @@ export const StudentRecordPage = () => {
                                     URL.revokeObjectURL(url);
                                   })
                                   .catch((err) => {
-                                    alert(err.response?.data?.message || 'No transcript file available to download yet.');
+                                    alert(uiError(err.response?.data?.message || 'No transcript file available to download yet.'));
                                   });
                               }}
                             >
-                              <Download size={14} /> Download
-                            </a>
+                              <Download size={14} />{uiText(" Download")}</a>
                             {isSchoolAdmin && (
                               <button
                                 type="button"
@@ -587,17 +560,15 @@ export const StudentRecordPage = () => {
                               >
                                 {uploading && replacingDocId === targetAppId ? (
                                   <>
-                                    <Loader2 className="animate-spin" size={14} /> Uploading...
-                                  </>
+                                    <Loader2 className="animate-spin" size={14} />{uiText(" Uploading...")}</>
                                 ) : (
                                   <>
-                                    <Upload size={14} /> Re-upload
-                                  </>
+                                    <Upload size={14} />{uiText(" Re-upload")}</>
                                 )}
                               </button>
                             )}
                           </>
-                        )}
+                        ))}
                       </div>
                     </div>
                   );
@@ -615,26 +586,24 @@ export const StudentRecordPage = () => {
             <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
               <h3 className="font-bold text-slate-800 dark:text-slate-100 truncate pr-4 text-sm flex items-center gap-2">
                 <FileText size={16} className="text-blue-500" />
-                {viewingDoc.fileName}
+                {uiText(viewingDoc.fileName)}
               </h3>
               <div className="flex items-center gap-2">
-                {docUrl && (
+                {uiText(docUrl && (
                   <a
                     href={docUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/40 hover:bg-blue-100 rounded-lg transition-colors"
                   >
-                    <ExternalLink size={14} />
-                    Open in New Tab / Print
-                  </a>
-                )}
+                    <ExternalLink size={14} />{uiText("Open in New Tab / Print")}</a>
+                ))}
                 <button
                   type="button"
                   onClick={() => setViewingDoc(null)}
                   className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg cursor-pointer"
-                  title="Close document viewer"
-                  aria-label="Close document viewer"
+                  title={uiText("Close document viewer")}
+                  aria-label={uiText("Close document viewer")}
                 >
                   <X size={20} />
                 </button>
@@ -644,14 +613,14 @@ export const StudentRecordPage = () => {
               {docLoading ? (
                 <div className="flex flex-col items-center justify-center gap-2">
                   <Loader2 className="animate-spin text-blue-600" size={32} />
-                  <span className="text-xs font-bold text-slate-400">Loading Document...</span>
+                  <span className="text-xs font-bold text-slate-400">{uiText("Loading Document...")}</span>
                 </div>
               ) : docError ? (
                 <div className="text-center p-6 bg-white dark:bg-slate-900 rounded-2xl border border-rose-200 dark:border-rose-900/50 shadow-sm max-w-md">
-                  <p className="text-sm font-bold text-rose-500 mb-2">{docError}</p>
+                  <p className="text-sm font-bold text-rose-500 mb-2">{uiError(docError)}</p>
                   {isSchoolAdmin && (
                     <>
-                      <p className="text-xs text-slate-400 mb-4">Click below to upload a transcript document for this student record.</p>
+                      <p className="text-xs text-slate-400 mb-4">{uiText("Click below to upload a transcript document for this student record.")}</p>
                       <button
                         type="button"
                         disabled={uploading}
@@ -661,17 +630,16 @@ export const StudentRecordPage = () => {
                         }}
                         className="px-4 py-2.5 bg-blue-600 text-white hover:bg-blue-700 rounded-xl text-xs font-bold inline-flex items-center gap-2 shadow-md transition-all cursor-pointer"
                       >
-                        <Upload size={14} /> Upload Transcript Document Now
-                      </button>
+                        <Upload size={14} />{uiText(" Upload Transcript Document Now")}</button>
                     </>
                   )}
                 </div>
               ) : docUrl ? (
                 docType?.startsWith('image/') || viewingDoc.fileName.match(/\.(png|jpg|jpeg|gif|webp)$/i) ? (
-                  <img src={docUrl} alt={viewingDoc.fileName} className="max-w-full max-h-full object-contain rounded-lg shadow-md" />
+                  <img src={docUrl} alt={uiText(viewingDoc.fileName)} className="max-w-full max-h-full object-contain rounded-lg shadow-md" />
                 ) : (
                   <object data={docUrl} type={docType || 'application/pdf'} className="w-full h-full rounded-lg border border-slate-200 dark:border-slate-800">
-                    <iframe title={viewingDoc.fileName} src={docUrl} className="w-full h-full rounded-lg" />
+                    <iframe title={uiText(viewingDoc.fileName)} src={docUrl} className="w-full h-full rounded-lg" />
                   </object>
                 )
               ) : null}

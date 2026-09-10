@@ -1,3 +1,4 @@
+import { uiText, uiError, localizeHtml } from "../localization";
 import { useTranslation } from 'react-i18next';
 import { Plus, UserPlus, X, Check, ArrowLeft, MoreVertical, CheckCircle, XCircle, Trash2, Printer, Eye, Edit2, Loader2, FileText, Download, Upload, Users, Calendar, Clock, BookOpen, FileCheck, AlertCircle, CheckCircle2, MessageSquare, Filter, Lock, Unlock, AlertTriangle } from 'lucide-react';
 import PhoneInput from '../components/PhoneInput';
@@ -48,11 +49,7 @@ const MultiSelectDropdown = ({
         className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-left flex justify-between items-center outline-none focus:ring-2 focus:ring-indigo-500"
       >
         <span className="text-slate-700 dark:text-slate-200 break-words">
-          {selectedValues.length === 0
-            ? placeholder
-            : shortDisplay
-              ? `${selectedValues.length} selected`
-              : `${selectedValues.join(', ')} (${selectedValues.length} selected)`}
+          {(selectedValues.length === 0 ? uiText(placeholder) : (shortDisplay ? uiText("{{value0}} selected", {value0: selectedValues.length}) : uiText("{{value0}} ({{value1}} selected)", {value0: selectedValues.join(', '), value1: selectedValues.length})))}
         </span>
         <span className="text-slate-400 font-bold ml-2">▼</span>
       </button>
@@ -74,7 +71,7 @@ const MultiSelectDropdown = ({
                     onChange={(e) => onChange(option, e.target.checked)}
                     className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 w-4 h-4"
                   />
-                  <span>{option}</span>
+                  <span>{uiText(option)}</span>
                 </label>
               );
             })}
@@ -400,7 +397,7 @@ export const Teachers = () => {
       if (selectedAnnualPlan?.id === planId) setSelectedAnnualPlan(null);
       if (selectedWeeklyPlan?.id === planId) setSelectedWeeklyPlan(null);
     } catch (err: any) {
-      alert(err?.response?.data?.message || err?.message || 'Failed to review plan');
+      alert(uiText(err?.response?.data?.message || err?.message || 'Failed to review plan'));
     } finally {
       setProcessing(false);
     }
@@ -413,7 +410,7 @@ export const Teachers = () => {
       setLeaderboardData(data);
     } catch (err: any) {
       console.error('Failed to fetch leaderboard:', err);
-      alert(err.response?.data?.error?.message || 'Failed to load leaderboard');
+      alert(uiError(err.response?.data?.error?.message || 'Failed to load leaderboard'));
     } finally {
       setLeaderboardLoading(false);
     }
@@ -424,7 +421,7 @@ export const Teachers = () => {
       await rateTeacher(teacherId, rating);
       fetchLeaderboardData();
     } catch (err: any) {
-      alert(err.response?.data?.error?.message || 'Failed to rate teacher');
+      alert(uiError(err.response?.data?.error?.message || 'Failed to rate teacher'));
     }
   };
 
@@ -436,7 +433,7 @@ export const Teachers = () => {
       await resetLeaderboard();
       fetchLeaderboardData();
     } catch (err: any) {
-      alert(err.response?.data?.error?.message || 'Failed to reset leaderboard');
+      alert(uiError(err.response?.data?.error?.message || 'Failed to reset leaderboard'));
     }
   };
 
@@ -586,7 +583,7 @@ export const Teachers = () => {
       return teachers;
     } catch (err: any) {
       console.error('Failed to fetch teachers:', err);
-      setError(err.response?.data?.error?.message || 'Failed to load teachers');
+      setError(uiError(err.response?.data?.error?.message || 'Failed to load teachers'));
     } finally {
       setLoading(false);
     }
@@ -615,7 +612,7 @@ export const Teachers = () => {
       const errorMsg = err.response?.status === 404
         ? 'Backend route not implemented yet. Contact backend team to implement: PATCH /school-admin/users/{userId}/status'
         : err.response?.data?.error?.message || 'Action failed';
-      alert(errorMsg);
+      alert(uiError(errorMsg));
     } finally {
       setProcessing(false);
     }
@@ -640,12 +637,12 @@ export const Teachers = () => {
         name: editFormData.name,
         email: editFormData.email
       });
-      alert('Teacher details updated successfully!');
+      alert(uiText('Teacher details updated successfully!'));
       setShowEditModal(false);
       setEditingStaff(null);
       fetchTeachers();
     } catch (err: any) {
-      alert(err.response?.data?.error?.message || 'Failed to update teacher');
+      alert(uiError(err.response?.data?.error?.message || 'Failed to update teacher'));
     } finally {
       setSubmitting(false);
     }
@@ -660,10 +657,10 @@ export const Teachers = () => {
       if (newPIN) {
         setGeneratedPassword(newPIN);
       } else {
-        alert('Password reset succeeded');
+        alert(uiText('Password reset succeeded'));
       }
     } catch (err: any) {
-      alert(err.response?.data?.error?.message || 'Failed to reset password');
+      alert(uiError(err.response?.data?.error?.message || 'Failed to reset password'));
     } finally {
       setResettingPassword(false);
     }
@@ -673,7 +670,7 @@ export const Teachers = () => {
     const { user, temporaryPassword } = successModal.data;
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
-    printWindow.document.write(`
+    printWindow.document.write(localizeHtml(`
       <html>
         <head>
           <title>Staff Credentials - ${user.name}</title>
@@ -698,19 +695,19 @@ export const Teachers = () => {
           </div>
           <div class="field">
             <div class="label">Full Name</div>
-            <div class="value">${user.name}</div>
+            <div class="value" data-user-content>${user.name}</div>
           </div>
           <div class="field">
             <div class="label">Email</div>
-            <div class="value">${user.email}</div>
+            <div class="value" data-user-content>${user.email}</div>
           </div>
           <div class="field">
             <div class="label">Digital ID (Username)</div>
-            <div class="value" style="font-family: monospace; color: #2563eb;">${user.digitalId}</div>
+            <div class="value" data-user-content style="font-family: monospace; color: #2563eb;">${user.digitalId}</div>
           </div>
           <div class="pin-box">
             <div class="label">🔑 4-Digit PIN</div>
-            <div class="pin">${temporaryPassword}</div>
+            <div class="pin" data-user-content>${temporaryPassword}</div>
             <div class="warning">⚠️ Change this PIN after first login</div>
           </div>
           <div class="field">
@@ -722,7 +719,7 @@ export const Teachers = () => {
           </div>
         </body>
       </html>
-    `);
+    `));
     printWindow.document.close();
     printWindow.print();
   };
@@ -750,7 +747,7 @@ export const Teachers = () => {
     }
 
     if (!selectedFile) {
-      alert('Please upload a document. Document upload is mandatory for staff registration.');
+      alert(uiText('Please upload a document. Document upload is mandatory for staff registration.'));
       return;
     }
 
@@ -795,7 +792,7 @@ export const Teachers = () => {
       fetchTeachers();
     } catch (err: any) {
       console.error('Failed to create teacher:', err);
-      alert(err.response?.data?.error?.message || 'Failed to create teacher');
+      alert(uiError(err.response?.data?.error?.message || 'Failed to create teacher'));
     } finally {
       setCreating(false);
     }
@@ -839,16 +836,12 @@ export const Teachers = () => {
             onClick={() => navigate(-1)}
             className="inline-flex items-center gap-1.5 text-blue-600 dark:text-blue-400 hover:text-blue-700 text-xs font-bold uppercase tracking-wider transition-colors mb-2"
           >
-            <ArrowLeft size={14} />
-            Back
-          </button>
+            <ArrowLeft size={14} />{uiText(" Back ")}</button>
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-            {isSuperviseRoute ? t("teachers.supervise", "Supervise") : t("teachers.title", "Teachers")}
+            {(isSuperviseRoute ? uiText(t("teachers.supervise", "Supervise")) : uiText(t("teachers.title", "Teachers")))}
           </h1>
           <p className="text-slate-500 dark:text-slate-400 text-sm">
-            {isSuperviseRoute
-              ? t("teachers.superviseSubtitle", "Review and accept Annual and Weekly Lesson Plans submitted by teachers")
-              : t("teachers.subtitle", "Manage teaching staff and assignments")}
+            {(isSuperviseRoute ? uiText(t("teachers.superviseSubtitle", "Review and accept Annual and Weekly Lesson Plans submitted by teachers")) : uiText(t("teachers.subtitle", "Manage teaching staff and assignments")))}
           </p>
         </div>
 
@@ -857,15 +850,13 @@ export const Teachers = () => {
             onClick={() => setShowAddModal(true)}
             className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all text-sm font-bold shadow-lg shadow-blue-500/20 dark:shadow-none hover:shadow-blue-500/30 active:scale-[0.98] shrink-0"
           >
-            <UserPlus size={18} />
-            Register Teacher
-          </button>
+            <UserPlus size={18} />{uiText(" Register Teacher ")}</button>
         )}
       </div>
 
       {error && (
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4">
-          <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
+          <p className="text-sm text-red-800 dark:text-red-200">{uiError(error)}</p>
         </div>
       )}
 
@@ -881,7 +872,7 @@ export const Teachers = () => {
               }`}
             >
               <Calendar size={16} />
-              <span>Annual Plans</span>
+              <span>{uiText("Annual Plans")}</span>
               {annualPlans.filter(p => p.status === 'Pending').length > 0 && (
                 <span className="bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 text-xs px-2 py-0.5 rounded-full font-bold">
                   {annualPlans.filter(p => p.status === 'Pending').length}
@@ -898,7 +889,7 @@ export const Teachers = () => {
               }`}
             >
               <Clock size={16} />
-              <span>Weekly Plans</span>
+              <span>{uiText("Weekly Plans")}</span>
               {weeklyPlans.filter(p => p.status === 'Pending').length > 0 && (
                 <span className="bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 text-xs px-2 py-0.5 rounded-full font-bold">
                   {weeklyPlans.filter(p => p.status === 'Pending').length}
@@ -986,7 +977,7 @@ export const Teachers = () => {
                               : 'bg-rose-100 text-rose-700 border border-rose-200 hover:bg-rose-200 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-800/60'
                           }`}
                         >
-                          {teacher.status}
+                          {uiText(teacher.status)}
                         </button>
                       ) : (
                         <span
@@ -998,7 +989,7 @@ export const Teachers = () => {
                               : 'bg-rose-100 text-rose-700 border border-rose-200 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-800/60'
                           }`}
                         >
-                          {teacher.status}
+                          {uiText(teacher.status)}
                         </span>
                       )}
                     </div>
@@ -1009,8 +1000,7 @@ export const Teachers = () => {
                       <span className="text-slate-400 uppercase font-semibold">{t("teachers.colDigitalId", "Digital ID")}:</span>
                       <span className="font-mono text-slate-600 dark:text-slate-300 font-bold">{teacher.digitalId}</span>
                       {teacher.zkDeviceId && (
-                        <span className="px-1.5 py-0.5 bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 rounded text-[10px] font-bold">
-                          ZK: {teacher.zkDeviceId}
+                        <span className="px-1.5 py-0.5 bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 rounded text-[10px] font-bold">{uiText(" ZK: ")}{uiText(teacher.zkDeviceId)}
                         </span>
                       )}
                     </div>
@@ -1023,9 +1013,7 @@ export const Teachers = () => {
                           onClick={() => setConfirmAction({ show: true, action: 'approve', teacher })}
                           className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 transition-all"
                         >
-                          <CheckCircle size={14} />
-                          Approve
-                        </button>
+                          <CheckCircle size={14} />{uiText(" Approve ")}</button>
                       )}
                       <button
                         onClick={async () => {
@@ -1037,19 +1025,19 @@ export const Teachers = () => {
                         }}
                         className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all ${isTeacherPromoted(teacher) ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-indigo-600 hover:bg-indigo-700 text-white'}`}
                       >
-                        {isTeacherPromoted(teacher) ? 'Promoted' : 'Promote'}
+                        {(isTeacherPromoted(teacher) ? uiText('Promoted') : uiText('Promote'))}
                       </button>
                       <button
                         onClick={() => openEditModal(teacher)}
                         className="p-2 text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
-                        title="Edit User"
+                        title={uiText("Edit User")}
                       >
                         <Edit2 size={16} />
                       </button>
                       <button
                         onClick={() => setConfirmAction({ show: true, action: 'delete', teacher })}
                         className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors"
-                        title="Delete User"
+                        title={uiText("Delete User")}
                       >
                         <Trash2 size={16} />
                       </button>
@@ -1096,8 +1084,7 @@ export const Teachers = () => {
                           <div className="flex items-center gap-2">
                             <p className="text-sm font-mono text-slate-600 dark:text-slate-400">{teacher.digitalId}</p>
                             {teacher.zkDeviceId && (
-                              <span className="px-1.5 py-0.5 bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 rounded text-[10px] font-bold tracking-wider">
-                                ZK: {teacher.zkDeviceId}
+                              <span className="px-1.5 py-0.5 bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 rounded text-[10px] font-bold tracking-wider">{uiText(" ZK: ")}{uiText(teacher.zkDeviceId)}
                               </span>
                             )}
                           </div>
@@ -1113,7 +1100,7 @@ export const Teachers = () => {
                                   : 'bg-rose-100 text-rose-700 border border-rose-200 hover:bg-rose-200 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-800/60'
                               }`}
                             >
-                              {teacher.status}
+                              {uiText(teacher.status)}
                             </button>
                           ) : (
                             <span
@@ -1125,7 +1112,7 @@ export const Teachers = () => {
                                   : 'bg-rose-100 text-rose-700 border border-rose-200 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-800/60'
                               }`}
                             >
-                              {teacher.status}
+                              {uiText(teacher.status)}
                             </span>
                           )}
                         </td>
@@ -1137,9 +1124,7 @@ export const Teachers = () => {
                                   onClick={() => setConfirmAction({ show: true, action: 'approve', teacher })}
                                   className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 transition-all"
                                 >
-                                  <CheckCircle size={14} />
-                                  Approve
-                                </button>
+                                  <CheckCircle size={14} />{uiText(" Approve ")}</button>
                               ) : null}
                               <button
                                 onClick={async () => {
@@ -1152,19 +1137,19 @@ export const Teachers = () => {
                                 className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all ${isTeacherPromoted(teacher) ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-indigo-600 hover:bg-indigo-700 text-white'}`}
                                 title={isTeacherPromoted(teacher) ? 'Edit promotion' : 'Promote'}
                               >
-                                {isTeacherPromoted(teacher) ? 'Promoted' : 'Promote'}
+                                {(isTeacherPromoted(teacher) ? uiText('Promoted') : uiText('Promote'))}
                               </button>
                               <button
                                 onClick={() => openEditModal(teacher)}
                                 className="p-1.5 text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-950/30 rounded-lg transition-colors"
-                                title="Edit User"
+                                title={uiText("Edit User")}
                               >
                                 <Edit2 size={16} />
                               </button>
                               <button
                                 onClick={() => setConfirmAction({ show: true, action: 'delete', teacher })}
                                 className="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors"
-                                title="Delete User"
+                                title={uiText("Delete User")}
                               >
                                 <Trash2 size={16} />
                               </button>
@@ -1211,23 +1196,21 @@ export const Teachers = () => {
                 />
               </div>
               <select
-                title="Filter leaderboard by grade"
+                title={uiText("Filter leaderboard by grade")}
                 value={leaderboardGradeFilter}
                 onChange={(e) => { setLeaderboardGradeFilter(e.target.value); setLeaderboardPage(1); }}
                 className="py-2 px-3 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 transition text-slate-700 dark:text-slate-300"
               >
                 <option value="">{t("teachers.allGrades", "All Grades")}</option>
                 {allLeaderboardGrades.map(grade => (
-                  <option key={grade} value={grade}>{grade}</option>
+                  <option key={grade} value={grade}>{uiText(grade)}</option>
                 ))}
               </select>
               {(leaderboardSearch || leaderboardGradeFilter) && (
                 <button
                   onClick={() => { setLeaderboardSearch(''); setLeaderboardGradeFilter(''); setLeaderboardPage(1); }}
                   className="px-3 py-2 text-xs font-bold text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 transition"
-                >
-                  Clear
-                </button>
+                >{uiText(" Clear ")}</button>
               )}
             </div>
           </div>
@@ -1236,7 +1219,7 @@ export const Teachers = () => {
               <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
                 <tr>
                   <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("teachers.colRank", "Rank")}</th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Teacher</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{uiText("Teacher")}</th>
                   <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("teachers.colStudentVotes", "Student Votes")}</th>
                   <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("teachers.colPlanRating", "Plan Rating")}</th>
                   <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("teachers.colAdminRating", "Admin Rating")}</th>
@@ -1252,9 +1235,7 @@ export const Teachers = () => {
                 ) : currentLeaderboardData.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="px-6 py-12 text-center text-slate-500">
-                      {leaderboardSearch || leaderboardGradeFilter
-                        ? `No teachers found${leaderboardGradeFilter ? ` teaching ${leaderboardGradeFilter}` : ''}${leaderboardSearch ? ` matching "${leaderboardSearch}"` : ''}.`
-                        : t("teachers.noLeaderboardData", "No data available for the leaderboard.")}
+                      {(leaderboardSearch || leaderboardGradeFilter ? uiText("No teachers found{{value0}}{{value1}}.", {value0: leaderboardGradeFilter ? ` teaching ${leaderboardGradeFilter}` : '', value1: leaderboardSearch ? ` matching "${leaderboardSearch}"` : ''}) : uiText(t("teachers.noLeaderboardData", "No data available for the leaderboard.")))}
                     </td>
                   </tr>
                 ) : (
@@ -1272,8 +1253,8 @@ export const Teachers = () => {
                           </span>
                         </td>
                         <td className="px-6 py-4 font-bold text-slate-800 dark:text-slate-200">{row.teacher_name}</td>
-                        <td className="px-6 py-4 font-bold text-indigo-600 dark:text-indigo-400">{row.student_votes}</td>
-                        <td className="px-6 py-4 font-bold text-emerald-600 dark:text-emerald-400">{row.plan_rating_sum}</td>
+                        <td className="px-6 py-4 font-bold text-indigo-600 dark:text-indigo-400">{uiText(row.student_votes)}</td>
+                        <td className="px-6 py-4 font-bold text-emerald-600 dark:text-emerald-400">{uiText(row.plan_rating_sum)}</td>
                         <td className="px-6 py-4">
                           <div className="flex gap-1">
                             {[1, 2, 3, 4, 5].map(star => (
@@ -1305,13 +1286,13 @@ export const Teachers = () => {
                                     : 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50'
                                     }`}
                                 >
-                                  {grade}
+                                  {uiText(grade)}
                                 </button>
                               ))
                             )}
                           </div>
                         </td>
-                        <td className="px-6 py-4 font-black text-xl text-slate-800 dark:text-white">{row.total_points}</td>
+                        <td className="px-6 py-4 font-black text-xl text-slate-800 dark:text-white">{uiText(row.total_points)}</td>
                       </tr>
                     );
                   })
@@ -1328,7 +1309,7 @@ export const Teachers = () => {
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  title="Previous page"
+                  title={uiText("Previous page")}
                   onClick={() => setLeaderboardPage(p => Math.max(1, p - 1))}
                   disabled={leaderboardPage === 1}
                   className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition"
@@ -1338,7 +1319,7 @@ export const Teachers = () => {
                 <span className="text-sm font-bold text-slate-700 dark:text-slate-300">{t("teachers.pageOf", { current: leaderboardPage, total: totalLeaderboardPages, defaultValue: `Page ${leaderboardPage} of ${totalLeaderboardPages}` })}</span>
                 <button
                   type="button"
-                  title="Next page"
+                  title={uiText("Next page")}
                   onClick={() => setLeaderboardPage(p => Math.min(totalLeaderboardPages, p + 1))}
                   disabled={leaderboardPage === totalLeaderboardPages}
                   className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition"
@@ -1362,7 +1343,7 @@ export const Teachers = () => {
                 <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
-                  placeholder="Search annual plans..."
+                  placeholder={uiText("Search annual plans...")}
                   value={annualPlanSearch}
                   onChange={(e) => setAnnualPlanSearch(e.target.value)}
                   className="w-full pl-9 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-slate-800 dark:text-slate-200"
@@ -1376,9 +1357,9 @@ export const Teachers = () => {
                   onChange={(e) => setAnnualGradeFilter(e.target.value)}
                   className="w-full sm:w-auto px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-slate-800 dark:text-slate-200 cursor-pointer shadow-sm"
                 >
-                  <option value="all">All Grades</option>
+                  <option value="all">{uiText("All Grades")}</option>
                   {availableAnnualGrades.map(g => (
-                    <option key={g} value={g}>{g}</option>
+                    <option key={g} value={g}>{uiText(g)}</option>
                   ))}
                 </select>
               </div>
@@ -1421,20 +1402,16 @@ export const Teachers = () => {
           {/* Summary Chips */}
           <div className="flex flex-wrap gap-2">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-full text-[11px] font-bold text-slate-600 dark:text-slate-300">
-              <span className="w-2 h-2 rounded-full bg-slate-400" />
-              Total Annual Plans: {annualPlans.length}
+              <span className="w-2 h-2 rounded-full bg-slate-400" />{uiText(" Total Annual Plans: ")}{annualPlans.length}
             </span>
             <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 dark:bg-emerald-900/20 rounded-full text-[11px] font-bold text-emerald-700 dark:text-emerald-400">
-              <CheckCircle2 size={11} />
-              Approved: {annualPlans.filter(p => p.status === 'Approved').length}
+              <CheckCircle2 size={11} />{uiText(" Approved: ")}{annualPlans.filter(p => p.status === 'Approved').length}
             </span>
             <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 dark:bg-amber-900/20 rounded-full text-[11px] font-bold text-amber-700 dark:text-amber-400">
-              <AlertTriangle size={11} />
-              Pending: {annualPlans.filter(p => p.status === 'Not Submitted' || p.status === 'Pending').length}
+              <AlertTriangle size={11} />{uiText(" Pending: ")}{annualPlans.filter(p => p.status === 'Not Submitted' || p.status === 'Pending').length}
             </span>
             <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-50 dark:bg-rose-900/20 rounded-full text-[11px] font-bold text-rose-700 dark:text-rose-400">
-              <Unlock size={11} />
-              Revision Requested: {annualPlans.filter(p => p.status === 'Revision Required').length}
+              <Unlock size={11} />{uiText(" Revision Requested: ")}{annualPlans.filter(p => p.status === 'Revision Required').length}
             </span>
           </div>
 
@@ -1479,11 +1456,9 @@ export const Teachers = () => {
             return filteredAnnualPlans.length === 0 ? (
               <div className="bg-white dark:bg-slate-900 rounded-2xl p-12 text-center border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
                 <Calendar className="mx-auto text-slate-400" size={40} />
-                <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">No Annual Plans Found</h3>
+                <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">{uiText("No Annual Plans Found")}</h3>
                 <p className="text-sm text-slate-500 max-w-md mx-auto">
-                  {annualPlans.length === 0
-                    ? "Teachers' annual plan submissions will appear here."
-                    : 'No annual plans match your current search or filter criteria.'}
+                  {(annualPlans.length === 0 ? uiText("Teachers' annual plan submissions will appear here.") : uiText('No annual plans match your current search or filter criteria.'))}
                 </p>
               </div>
             ) : (
@@ -1492,12 +1467,12 @@ export const Teachers = () => {
                   <table className="w-full text-left text-sm">
                     <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-700 text-xs font-bold uppercase tracking-wider text-slate-500">
                       <tr>
-                        <th className="px-6 py-4">Teacher</th>
-                        <th className="px-6 py-4">Subject / Grade</th>
-                        <th className="px-6 py-4">Academic Year</th>
-                        <th className="px-6 py-4">Workload</th>
-                        <th className="px-6 py-4">Status</th>
-                        <th className="px-6 py-4 text-right">Actions</th>
+                        <th className="px-6 py-4">{uiText("Teacher")}</th>
+                        <th className="px-6 py-4">{uiText("Subject / Grade")}</th>
+                        <th className="px-6 py-4">{uiText("Academic Year")}</th>
+                        <th className="px-6 py-4">{uiText("Workload")}</th>
+                        <th className="px-6 py-4">{uiText("Status")}</th>
+                        <th className="px-6 py-4 text-right">{uiText("Actions")}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -1561,37 +1536,34 @@ export const Teachers = () => {
                               {plan.academic_year || '2018 E.C.'}
                             </td>
                             <td className="px-6 py-4 text-xs text-slate-600 dark:text-slate-400">
-                              <div><span className="font-bold text-slate-800 dark:text-slate-200">{plan.working_days_year || 180}</span> Days/Yr</div>
-                              <div><span className="font-bold text-slate-800 dark:text-slate-200">{plan.periods_year || 160}</span> Periods ({plan.periods_week || 4}/wk)</div>
+                              <div><span className="font-bold text-slate-800 dark:text-slate-200">{plan.working_days_year || 180}</span>{uiText(" Days/Yr")}</div>
+                              <div><span className="font-bold text-slate-800 dark:text-slate-200">{plan.periods_year || 160}</span>{uiText(" Periods (")}{plan.periods_week || 4}{uiText("/wk)")}</div>
                             </td>
                             <td className="px-6 py-4">
                               {isApproved ? (
                                 <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full text-xs font-extrabold border border-emerald-200 dark:border-emerald-800">
-                                  <CheckCircle2 size={12} /> Approved by {plan.reviewer_name || 'Dept Head'}
+                                  <CheckCircle2 size={12} />{uiText(" Approved by ")}{plan.reviewer_name || 'Dept Head'}
                                 </span>
                               ) : plan.status === 'Revision Required' ? (
                                 <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 rounded-full text-xs font-extrabold border border-rose-200 dark:border-rose-800">
-                                  <Unlock size={12} /> Revision Requested
-                                </span>
+                                  <Unlock size={12} />{uiText(" Revision Requested ")}</span>
                               ) : isNotSubmitted ? (
                                 <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-full text-xs font-extrabold border border-amber-200 dark:border-amber-800">
-                                  <AlertTriangle size={12} /> Not Submitted
-                                </span>
+                                  <AlertTriangle size={12} />{uiText(" Not Submitted ")}</span>
                               ) : (
                                 <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-sky-50 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400 rounded-full text-xs font-extrabold border border-sky-200 dark:border-sky-800">
-                                  <Clock size={12} /> Pending Review
-                                </span>
+                                  <Clock size={12} />{uiText(" Pending Review ")}</span>
                               )}
                             </td>
                             <td className="px-6 py-4 text-right">
                               {isNotSubmitted ? (
-                                <span className="text-xs text-amber-600 dark:text-amber-400 font-bold italic">No Plan Received</span>
+                                <span className="text-xs text-amber-600 dark:text-amber-400 font-bold italic">{uiText("No Plan Received")}</span>
                               ) : (
                                 <button
                                   type="button"
                                   onClick={() => setSelectedAnnualPlan(plan)}
                                   className="p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
-                                  title="View Details"
+                                  title={uiText("View Details")}
                                 >
                                   <Eye size={16} />
                                 </button>
@@ -1621,7 +1593,7 @@ export const Teachers = () => {
                   <Calendar size={20} />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">Ethiopian Academic Week</h3>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">{uiText("Ethiopian Academic Week")}</h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                     {formatEthWeekRangeStr(selectedWeekDate)}
                   </p>
@@ -1634,7 +1606,7 @@ export const Teachers = () => {
                   type="button"
                   onClick={() => navigateWeek('prev')}
                   className="p-2 bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl border border-slate-200 dark:border-slate-700 transition-colors"
-                  title="Previous Week"
+                  title={uiText("Previous Week")}
                 >
                   <ChevronLeft size={16} />
                 </button>
@@ -1647,14 +1619,12 @@ export const Teachers = () => {
                       ? 'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-600 border-slate-200 dark:border-slate-800 cursor-not-allowed'
                       : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100 border-indigo-200 dark:bg-indigo-900/30 dark:border-indigo-800'
                   }`}
-                >
-                  Current Week
-                </button>
+                >{uiText(" Current Week ")}</button>
                 <button
                   type="button"
                   onClick={() => navigateWeek('next')}
                   className="p-2 bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl border border-slate-200 dark:border-slate-700 transition-colors"
-                  title="Next Week"
+                  title={uiText("Next Week")}
                 >
                   <ChevronRight size={16} />
                 </button>
@@ -1669,7 +1639,7 @@ export const Teachers = () => {
                   <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
                     type="text"
-                    placeholder="Search weekly plans..."
+                    placeholder={uiText("Search weekly plans...")}
                     value={weeklyPlanSearch}
                     onChange={(e) => setWeeklyPlanSearch(e.target.value)}
                     className="w-full pl-9 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-slate-800 dark:text-slate-200"
@@ -1683,9 +1653,9 @@ export const Teachers = () => {
                     onChange={(e) => setWeeklyGradeFilter(e.target.value)}
                     className="w-full sm:w-auto px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-slate-800 dark:text-slate-200 cursor-pointer shadow-sm"
                   >
-                    <option value="all">All Grades</option>
+                    <option value="all">{uiText("All Grades")}</option>
                     {availableWeeklyGrades.map(g => (
-                      <option key={g} value={g}>{g}</option>
+                      <option key={g} value={g}>{uiText(g)}</option>
                     ))}
                   </select>
                 </div>
@@ -1728,20 +1698,16 @@ export const Teachers = () => {
             {/* Summary Chips */}
             <div className="flex flex-wrap gap-2">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-full text-[11px] font-bold text-slate-600 dark:text-slate-300">
-                <span className="w-2 h-2 rounded-full bg-slate-400" />
-                Total: {weeklyPlans.length}
+                <span className="w-2 h-2 rounded-full bg-slate-400" />{uiText(" Total: ")}{weeklyPlans.length}
               </span>
               <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 dark:bg-emerald-900/20 rounded-full text-[11px] font-bold text-emerald-700 dark:text-emerald-400">
-                <CheckCircle2 size={11} />
-                Approved: {weeklyPlans.filter(p => p.status === 'Approved').length}
+                <CheckCircle2 size={11} />{uiText(" Approved: ")}{weeklyPlans.filter(p => p.status === 'Approved').length}
               </span>
               <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 dark:bg-amber-900/20 rounded-full text-[11px] font-bold text-amber-700 dark:text-amber-400">
-                <AlertTriangle size={11} />
-                Pending / Not Submitted: {weeklyPlans.filter(p => p.status === 'Not Submitted' || p.status === 'Pending').length}
+                <AlertTriangle size={11} />{uiText(" Pending / Not Submitted: ")}{weeklyPlans.filter(p => p.status === 'Not Submitted' || p.status === 'Pending').length}
               </span>
               <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-50 dark:bg-rose-900/20 rounded-full text-[11px] font-bold text-rose-700 dark:text-rose-400">
-                <Unlock size={11} />
-                Revision Requested: {weeklyPlans.filter(p => p.status === 'Revision Required').length}
+                <Unlock size={11} />{uiText(" Revision Requested: ")}{weeklyPlans.filter(p => p.status === 'Revision Required').length}
               </span>
             </div>
 
@@ -1788,11 +1754,9 @@ export const Teachers = () => {
               return filteredWeeklyPlans.length === 0 ? (
                 <div className="bg-white dark:bg-slate-900 rounded-2xl p-12 text-center border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
                   <Clock className="mx-auto text-slate-400" size={40} />
-                  <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">No Weekly Plans Found</h3>
+                  <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">{uiText("No Weekly Plans Found")}</h3>
                   <p className="text-sm text-slate-500 max-w-md mx-auto">
-                    {weeklyPlans.length === 0
-                      ? 'Weekly lesson plans submitted by teachers will appear here.'
-                      : 'No weekly plans match your current search or filter criteria.'}
+                    {(weeklyPlans.length === 0 ? uiText('Weekly lesson plans submitted by teachers will appear here.') : uiText('No weekly plans match your current search or filter criteria.'))}
                   </p>
                 </div>
               ) : (
@@ -1801,11 +1765,11 @@ export const Teachers = () => {
                     <table className="w-full text-left text-sm">
                       <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-700 text-xs font-bold uppercase tracking-wider text-slate-500">
                         <tr>
-                          <th className="px-6 py-4">Teacher</th>
-                          <th className="px-6 py-4">Course / Topic</th>
-                          <th className="px-6 py-4">Date / Periods</th>
-                          <th className="px-6 py-4">Status</th>
-                          <th className="px-6 py-4 text-right">View</th>
+                          <th className="px-6 py-4">{uiText("Teacher")}</th>
+                          <th className="px-6 py-4">{uiText("Course / Topic")}</th>
+                          <th className="px-6 py-4">{uiText("Date / Periods")}</th>
+                          <th className="px-6 py-4">{uiText("Status")}</th>
+                          <th className="px-6 py-4 text-right">{uiText("View")}</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -1878,37 +1842,34 @@ export const Teachers = () => {
                                 ) : null}
                               </td>
                               <td className="px-6 py-4 text-xs text-slate-600 dark:text-slate-400">
-                                <div><span className="font-bold text-slate-800 dark:text-slate-200">{plan.date ? new Date(plan.date).toLocaleDateString() : 'N/A'}</span></div>
-                                <div>{plan.periods_week || plan.period_count || 1} Period(s)</div>
+                                <div><span className="font-bold text-slate-800 dark:text-slate-200">{(plan.date ? uiText(new Date(plan.date).toLocaleDateString()) : uiText('N/A'))}</span></div>
+                                <div>{plan.periods_week || plan.period_count || 1}{uiText(" Period(s)")}</div>
                               </td>
                               <td className="px-6 py-4">
                                 {isApproved ? (
                                   <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full text-xs font-extrabold border border-emerald-200 dark:border-emerald-800">
-                                    <CheckCircle2 size={12} /> Approved by {plan.reviewer_name || 'Dept Head'}
+                                    <CheckCircle2 size={12} />{uiText(" Approved by ")}{plan.reviewer_name || 'Dept Head'}
                                   </span>
                                 ) : isRevisionRequired ? (
                                   <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 rounded-full text-xs font-extrabold border border-rose-200 dark:border-rose-800">
-                                    <Unlock size={12} /> Revision Requested
-                                  </span>
+                                    <Unlock size={12} />{uiText(" Revision Requested ")}</span>
                                 ) : isNotSubmitted ? (
                                   <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-full text-xs font-extrabold border border-amber-200 dark:border-amber-800">
-                                    <AlertTriangle size={12} /> Not Submitted
-                                  </span>
+                                    <AlertTriangle size={12} />{uiText(" Not Submitted ")}</span>
                                 ) : (
                                   <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-sky-50 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400 rounded-full text-xs font-extrabold border border-sky-200 dark:border-sky-800">
-                                    <Clock size={12} /> Pending Review
-                                  </span>
+                                    <Clock size={12} />{uiText(" Pending Review ")}</span>
                                 )}
                               </td>
                               <td className="px-6 py-4 text-right">
                                 {isNotSubmitted ? (
-                                  <span className="text-xs text-amber-600 dark:text-amber-400 font-bold italic">No Plan Received</span>
+                                  <span className="text-xs text-amber-600 dark:text-amber-400 font-bold italic">{uiText("No Plan Received")}</span>
                                 ) : (
                                   <button
                                     type="button"
                                     onClick={() => setSelectedWeeklyPlan(plan)}
                                     className="p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
-                                    title="View Details"
+                                    title={uiText("View Details")}
                                   >
                                     <Eye size={16} />
                                   </button>
@@ -1934,7 +1895,7 @@ export const Teachers = () => {
             {/* Header */}
             <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-gradient-to-r from-slate-800 to-slate-900 text-white rounded-t-[2rem] print:hidden">
               <div>
-                <h3 className="font-black text-white uppercase tracking-tight text-lg">Annual Plan Review</h3>
+                <h3 className="font-black text-white uppercase tracking-tight text-lg">{uiText("Annual Plan Review")}</h3>
                 <p className="text-xs text-slate-400 mt-0.5 font-bold">
                   {selectedAnnualPlan.teacher_name || selectedAnnualPlan.teacherName || 'Assigned Teacher'} · {selectedAnnualPlan.subject || '—'} · {selectedAnnualPlan.grade || '—'}
                 </p>
@@ -1945,8 +1906,7 @@ export const Teachers = () => {
                   onClick={() => window.print()}
                   className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 shadow-md"
                 >
-                  <Printer size={14} /> Print / Save PDF
-                </button>
+                  <Printer size={14} />{uiText(" Print / Save PDF ")}</button>
                 <button
                   type="button"
                   onClick={() => setSelectedAnnualPlan(null)}
@@ -1979,7 +1939,7 @@ export const Teachers = () => {
 
               {selectedAnnualPlan.feedback && (
                 <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40 rounded-xl text-xs space-y-1">
-                  <span className="font-bold text-amber-800 dark:text-amber-300">Feedback / Remarks:</span>
+                  <span className="font-bold text-amber-800 dark:text-amber-300">{uiText("Feedback / Remarks:")}</span>
                   <p className="text-amber-900 dark:text-amber-200">{selectedAnnualPlan.feedback}</p>
                 </div>
               )}
@@ -1987,8 +1947,7 @@ export const Teachers = () => {
               {/* Yearly Matrix */}
               <div>
                 <h4 className="text-xs font-black uppercase tracking-widest text-slate-500 mb-3 flex items-center gap-2">
-                  <span>📅</span> Yearly Matrix
-                </h4>
+                  <span>📅</span>{uiText(" Yearly Matrix ")}</h4>
                 {Array.isArray(selectedAnnualPlan.items) && selectedAnnualPlan.items.length > 0 ? (
                   <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-700">
                     <table className="w-full text-left min-w-[1200px] text-xs border-collapse">
@@ -2008,7 +1967,7 @@ export const Teachers = () => {
                               {isFirst ? (
                                 <td className="px-3 py-2 font-black text-violet-700 dark:text-violet-400 whitespace-nowrap border-r border-slate-200 dark:border-slate-700 bg-violet-50 dark:bg-violet-900/10" rowSpan={monthRows}>{item.month || '—'}</td>
                               ) : null}
-                              <td className="px-3 py-2 text-center font-bold text-slate-500 border-r border-slate-100 dark:border-slate-700 whitespace-nowrap">Week {item.week || idx + 1}</td>
+                              <td className="px-3 py-2 text-center font-bold text-slate-500 border-r border-slate-100 dark:border-slate-700 whitespace-nowrap">{uiText("Week ")}{item.week || idx + 1}</td>
                               <td className="px-3 py-2 text-slate-700 dark:text-slate-300 border-r border-slate-100 dark:border-slate-700">{item.noOfPeriods || item.periods || '—'}</td>
                               <td className="px-3 py-2 text-slate-700 dark:text-slate-300 border-r border-slate-100 dark:border-slate-700">{item.unit || item.chapter || '—'}</td>
                               <td className="px-3 py-2 text-slate-700 dark:text-slate-300 border-r border-slate-100 dark:border-slate-700">{item.mainContent || item.topic || item.content || '—'}</td>
@@ -2025,9 +1984,7 @@ export const Teachers = () => {
                     </table>
                   </div>
                 ) : (
-                  <div className="p-8 text-center text-slate-400 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
-                    No plan items provided in this submission.
-                  </div>
+                  <div className="p-8 text-center text-slate-400 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">{uiText(" No plan items provided in this submission. ")}</div>
                 )}
               </div>
             </div>
@@ -2038,9 +1995,7 @@ export const Teachers = () => {
                 type="button"
                 onClick={() => setSelectedAnnualPlan(null)}
                 className="px-5 py-2.5 text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-700 rounded-xl text-xs font-bold transition-all"
-              >
-                Close
-              </button>
+              >{uiText(" Close ")}</button>
               <div className="flex gap-2">
                 <button
                   type="button"
@@ -2055,8 +2010,7 @@ export const Teachers = () => {
                   }}
                   className="px-4 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all"
                 >
-                  <X size={14} /> Request Revision
-                </button>
+                  <X size={14} />{uiText(" Request Revision ")}</button>
                 <button
                   type="button"
                   onClick={() => {
@@ -2066,8 +2020,7 @@ export const Teachers = () => {
                   }}
                   className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all"
                 >
-                  <Check size={14} /> Accept & Approve
-                </button>
+                  <Check size={14} />{uiText(" Accept & Approve ")}</button>
               </div>
             </div>
           </div>
@@ -2081,10 +2034,8 @@ export const Teachers = () => {
             {/* Header Banner */}
             <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-900 text-white rounded-t-[2rem] print:hidden">
               <div>
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400 block">Official Weekly Lesson Plan Document</span>
-                <h3 className="font-black text-white text-lg tracking-tight uppercase">
-                  Ziquala Abo 1st Primary School Weekly Lesson Plan Form
-                </h3>
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400 block">{uiText("Official Weekly Lesson Plan Document")}</span>
+                <h3 className="font-black text-white text-lg tracking-tight uppercase">{uiText(" Ziquala Abo 1st Primary School Weekly Lesson Plan Form ")}</h3>
               </div>
               <div className="flex items-center gap-2">
                 <button
@@ -2092,8 +2043,7 @@ export const Teachers = () => {
                   onClick={() => window.print()}
                   className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 shadow-md"
                 >
-                  <Printer size={14} /> Print / Save PDF
-                </button>
+                  <Printer size={14} />{uiText(" Print / Save PDF ")}</button>
                 <button
                   type="button"
                   onClick={() => setSelectedWeeklyPlan(null)}
@@ -2107,73 +2057,71 @@ export const Teachers = () => {
             <div className="p-6 space-y-6 max-h-[75vh] overflow-y-auto print:max-h-none print:overflow-visible print:p-2 text-slate-800 dark:text-slate-200">
               {/* Document Header Table Block */}
               <div className="border border-slate-300 dark:border-slate-700 rounded-2xl overflow-hidden text-xs">
-                <div className="bg-slate-100 dark:bg-slate-800 p-3 font-black text-slate-800 dark:text-white uppercase tracking-wider text-center border-b border-slate-300 dark:border-slate-700">
-                  ZIQUALA ABO 1ST PRIMARY SCHOOL WEEKLY LESSON PLAN FORM
-                </div>
+                <div className="bg-slate-100 dark:bg-slate-800 p-3 font-black text-slate-800 dark:text-white uppercase tracking-wider text-center border-b border-slate-300 dark:border-slate-700">{uiText(" ZIQUALA ABO 1ST PRIMARY SCHOOL WEEKLY LESSON PLAN FORM ")}</div>
                 <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-y divide-slate-200 dark:divide-slate-700 bg-slate-50/50 dark:bg-slate-900/50">
                   <div className="p-3">
-                    <span className="text-[9px] font-black uppercase text-slate-400 block">Teacher Name</span>
+                    <span className="text-[9px] font-black uppercase text-slate-400 block">{uiText("Teacher Name")}</span>
                     <span className="font-bold text-slate-800 dark:text-slate-100">{selectedWeeklyPlan.teacher_name || selectedWeeklyPlan.teacherName || 'Assigned Teacher'}</span>
                   </div>
                   <div className="p-3">
-                    <span className="text-[9px] font-black uppercase text-slate-400 block">Subject / Lesson Type</span>
+                    <span className="text-[9px] font-black uppercase text-slate-400 block">{uiText("Subject / Lesson Type")}</span>
                     <span className="font-bold text-blue-600 dark:text-blue-400">{selectedWeeklyPlan.subject || '—'}</span>
                   </div>
                   <div className="p-3">
-                    <span className="text-[9px] font-black uppercase text-slate-400 block">Chapter / Unit</span>
+                    <span className="text-[9px] font-black uppercase text-slate-400 block">{uiText("Chapter / Unit")}</span>
                     <span className="font-bold text-slate-800 dark:text-slate-100">{selectedWeeklyPlan.chapter_unit || selectedWeeklyPlan.chapterUnit || selectedWeeklyPlan.chapter || selectedWeeklyPlan.unit || '—'}</span>
                   </div>
                   <div className="p-3">
-                    <span className="text-[9px] font-black uppercase text-slate-400 block">Topic / Title</span>
+                    <span className="text-[9px] font-black uppercase text-slate-400 block">{uiText("Topic / Title")}</span>
                     <span className="font-bold text-slate-800 dark:text-slate-100">{selectedWeeklyPlan.topic_title || selectedWeeklyPlan.topicTitle || selectedWeeklyPlan.topic || '—'}</span>
                   </div>
                   <div className="p-3">
-                    <span className="text-[9px] font-black uppercase text-slate-400 block">Grade & Section</span>
+                    <span className="text-[9px] font-black uppercase text-slate-400 block">{uiText("Grade & Section")}</span>
                     <span className="font-bold text-slate-800 dark:text-slate-100">{selectedWeeklyPlan.grade_section || selectedWeeklyPlan.gradeSection || selectedWeeklyPlan.grade || '—'}</span>
                   </div>
                   <div className="p-3">
-                    <span className="text-[9px] font-black uppercase text-slate-400 block">Date Range</span>
+                    <span className="text-[9px] font-black uppercase text-slate-400 block">{uiText("Date Range")}</span>
                     <span className="font-bold text-slate-800 dark:text-slate-100">
-                      {selectedWeeklyPlan.date_from || selectedWeeklyPlan.date ? (selectedWeeklyPlan.date_from || new Date(selectedWeeklyPlan.date).toLocaleDateString()) : '—'} to {selectedWeeklyPlan.date_to || selectedWeeklyPlan.date ? (selectedWeeklyPlan.date_to || new Date(selectedWeeklyPlan.date).toLocaleDateString()) : '—'}
+                      {(selectedWeeklyPlan.date_from || selectedWeeklyPlan.date ? (selectedWeeklyPlan.date_from || new Date(selectedWeeklyPlan.date).toLocaleDateString()) : uiText('—'))}{uiText(" to ")}{(selectedWeeklyPlan.date_to || selectedWeeklyPlan.date ? (selectedWeeklyPlan.date_to || new Date(selectedWeeklyPlan.date).toLocaleDateString()) : uiText('—'))}
                     </span>
                   </div>
                   <div className="p-3">
-                    <span className="text-[9px] font-black uppercase text-slate-400 block">Periods / Week</span>
+                    <span className="text-[9px] font-black uppercase text-slate-400 block">{uiText("Periods / Week")}</span>
                     <span className="font-bold text-slate-800 dark:text-slate-100">{selectedWeeklyPlan.periods_per_week || selectedWeeklyPlan.periodsPerWeek || selectedWeeklyPlan.periods_week || '—'}</span>
                   </div>
                   <div className="p-3">
-                    <span className="text-[9px] font-black uppercase text-slate-400 block">Status</span>
+                    <span className="text-[9px] font-black uppercase text-slate-400 block">{uiText("Status")}</span>
                     <span className={`inline-block px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase ${
                       selectedWeeklyPlan.status === 'Approved' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
                       selectedWeeklyPlan.status === 'Revision Required' ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' :
                       'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
-                    }`}>{selectedWeeklyPlan.status}</span>
+                    }`}>{uiText(selectedWeeklyPlan.status)}</span>
                   </div>
                 </div>
               </div>
 
               {selectedWeeklyPlan.dean_feedback && (
                 <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40 rounded-xl space-y-1 text-xs">
-                  <span className="font-bold text-amber-800 dark:text-amber-300">Feedback / Remarks:</span>
+                  <span className="font-bold text-amber-800 dark:text-amber-300">{uiText("Feedback / Remarks:")}</span>
                   <p className="text-amber-900 dark:text-amber-200">{selectedWeeklyPlan.dean_feedback}</p>
                 </div>
               )}
 
               {/* 5-Day Matrix Table matching paper layout with 4 sub-rows for Teacher Activity */}
               <div className="space-y-3">
-                <h4 className="text-xs font-black uppercase tracking-widest text-slate-500 print:hidden">📅 Daily Lesson Plan Matrix Table</h4>
+                <h4 className="text-xs font-black uppercase tracking-widest text-slate-500 print:hidden">{uiText("📅 Daily Lesson Plan Matrix Table")}</h4>
                 <div className="overflow-x-auto rounded-2xl border border-slate-300 dark:border-slate-700">
                   <table className="w-full text-left min-w-[1100px] text-xs border-collapse">
                     <thead>
                       <tr className="bg-slate-800 text-white border-b border-slate-700">
-                        <th className="px-3 py-2.5 font-black uppercase w-20 border-r border-slate-700 text-center">Day (ቀን)</th>
-                        <th className="px-3 py-2.5 font-black uppercase w-56 border-r border-slate-700">Content & Outcome (ይዘት እና ብቃት)</th>
-                        <th className="px-2 py-2.5 font-black uppercase w-20 border-r border-slate-700 text-center">Time (ጊዜ)</th>
-                        <th className="px-3 py-2.5 font-black uppercase w-60 border-r border-slate-700">Teacher Activity (የመምህሩ ተግባር)</th>
-                        <th className="px-3 py-2.5 font-black uppercase border-r border-slate-700">Student Activity (የተማሪው)</th>
-                        <th className="px-3 py-2.5 font-black uppercase border-r border-slate-700">Method (ማስተማሪያ ዘዴ)</th>
-                        <th className="px-3 py-2.5 font-black uppercase border-r border-slate-700">Aid (መርጃ መሣሪያ)</th>
-                        <th className="px-3 py-2.5 font-black uppercase">Remark (ምዘና)</th>
+                        <th className="px-3 py-2.5 font-black uppercase w-20 border-r border-slate-700 text-center">{uiText("Day (ቀን)")}</th>
+                        <th className="px-3 py-2.5 font-black uppercase w-56 border-r border-slate-700">{uiText("Content & Outcome (ይዘት እና ብቃት)")}</th>
+                        <th className="px-2 py-2.5 font-black uppercase w-20 border-r border-slate-700 text-center">{uiText("Time (ጊዜ)")}</th>
+                        <th className="px-3 py-2.5 font-black uppercase w-60 border-r border-slate-700">{uiText("Teacher Activity (የመምህሩ ተግባር)")}</th>
+                        <th className="px-3 py-2.5 font-black uppercase border-r border-slate-700">{uiText("Student Activity (የተማሪው)")}</th>
+                        <th className="px-3 py-2.5 font-black uppercase border-r border-slate-700">{uiText("Method (ማስተማሪያ ዘዴ)")}</th>
+                        <th className="px-3 py-2.5 font-black uppercase border-r border-slate-700">{uiText("Aid (መርጃ መሣሪያ)")}</th>
+                        <th className="px-3 py-2.5 font-black uppercase">{uiText("Remark (ምዘና)")}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-300 dark:divide-slate-700">
@@ -2198,15 +2146,15 @@ export const Teachers = () => {
                           {/* Sub-row 1: Introduction */}
                           <tr className="bg-white dark:bg-slate-900 border-t-2 border-slate-300 dark:border-slate-700">
                             <td rowSpan={4} className="px-3 py-3 font-black text-center text-blue-800 dark:text-blue-400 border-r border-slate-300 dark:border-slate-700 align-middle bg-slate-50/80 dark:bg-slate-800/40">
-                              <span className="text-sm">{act.day}</span>
+                              <span className="text-sm">{uiText(act.day)}</span>
                             </td>
                             <td rowSpan={4} className="px-3 py-3 border-r border-slate-300 dark:border-slate-700 align-top space-y-2 max-w-[200px]">
                               <div>
-                                <span className="text-[9px] font-black uppercase text-slate-400 block border-b border-slate-200 dark:border-slate-800 pb-0.5 mb-1">Content (ይዘት)</span>
+                                <span className="text-[9px] font-black uppercase text-slate-400 block border-b border-slate-200 dark:border-slate-800 pb-0.5 mb-1">{uiText("Content (ይዘት)")}</span>
                                 <p className="font-semibold text-slate-900 dark:text-slate-100 whitespace-pre-wrap">{act.content || '—'}</p>
                               </div>
                               <div className="pt-2 border-t border-slate-200 dark:border-slate-800">
-                                <span className="text-[9px] font-black uppercase text-slate-400 block border-b border-slate-200 dark:border-slate-800 pb-0.5 mb-1">Expected Outcome / Competence (ብቃት)</span>
+                                <span className="text-[9px] font-black uppercase text-slate-400 block border-b border-slate-200 dark:border-slate-800 pb-0.5 mb-1">{uiText("Expected Outcome / Competence (ብቃት)")}</span>
                                 <p className="font-medium text-slate-600 dark:text-slate-400 whitespace-pre-wrap">{act.competence || '—'}</p>
                               </div>
                             </td>
@@ -2214,7 +2162,7 @@ export const Teachers = () => {
                               {act.timeDuration || '45 mins'}
                             </td>
                             <td className="px-3 py-2 border-r border-b border-slate-200 dark:border-slate-800 bg-blue-50/30 dark:bg-blue-950/20">
-                              <span className="text-[9px] font-black uppercase text-blue-700 dark:text-blue-400 block">1. Intro (መግቢያ)</span>
+                              <span className="text-[9px] font-black uppercase text-blue-700 dark:text-blue-400 block">{uiText("1. Intro (መግቢያ)")}</span>
                               <p className="text-slate-800 dark:text-slate-200 font-medium mt-0.5">{act.teacherIntro || '—'}</p>
                             </td>
                             <td rowSpan={4} className="px-3 py-3 border-r border-slate-300 dark:border-slate-700 align-top text-slate-800 dark:text-slate-200 whitespace-pre-wrap max-w-[160px]">
@@ -2234,7 +2182,7 @@ export const Teachers = () => {
                           {/* Sub-row 2: Lesson Presentation */}
                           <tr className="bg-white dark:bg-slate-900">
                             <td className="px-3 py-2 border-r border-b border-slate-200 dark:border-slate-800 bg-indigo-50/30 dark:bg-indigo-950/20">
-                              <span className="text-[9px] font-black uppercase text-indigo-700 dark:text-indigo-400 block">2. Presentation (አቀራረብ)</span>
+                              <span className="text-[9px] font-black uppercase text-indigo-700 dark:text-indigo-400 block">{uiText("2. Presentation (አቀራረብ)")}</span>
                               <p className="text-slate-800 dark:text-slate-200 font-medium mt-0.5">{act.teacherPresentation || '—'}</p>
                             </td>
                           </tr>
@@ -2242,7 +2190,7 @@ export const Teachers = () => {
                           {/* Sub-row 3: Summary */}
                           <tr className="bg-white dark:bg-slate-900">
                             <td className="px-3 py-2 border-r border-b border-slate-200 dark:border-slate-800 bg-violet-50/30 dark:bg-violet-950/20">
-                              <span className="text-[9px] font-black uppercase text-violet-700 dark:text-violet-400 block">3. Summary (ማጠቃለያ)</span>
+                              <span className="text-[9px] font-black uppercase text-violet-700 dark:text-violet-400 block">{uiText("3. Summary (ማጠቃለያ)")}</span>
                               <p className="text-slate-800 dark:text-slate-200 font-medium mt-0.5">{act.teacherSummary || '—'}</p>
                             </td>
                           </tr>
@@ -2250,7 +2198,7 @@ export const Teachers = () => {
                           {/* Sub-row 4: Assessment */}
                           <tr className="bg-white dark:bg-slate-900">
                             <td className="px-3 py-2 border-r border-slate-200 dark:border-slate-800 bg-amber-50/30 dark:bg-amber-950/20">
-                              <span className="text-[9px] font-black uppercase text-amber-700 dark:text-amber-400 block">4. Assessment (ምዘና)</span>
+                              <span className="text-[9px] font-black uppercase text-amber-700 dark:text-amber-400 block">{uiText("4. Assessment (ምዘና)")}</span>
                               <p className="text-slate-800 dark:text-slate-200 font-medium mt-0.5">{act.teacherAssessment || '—'}</p>
                             </td>
                           </tr>
@@ -2264,19 +2212,19 @@ export const Teachers = () => {
               {/* Signatures & Approvals Footer Block */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 dark:bg-slate-800/40 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 print:bg-white print:border-slate-400">
                 <div className="border border-dashed border-slate-300 dark:border-slate-700 p-3 rounded-xl text-center print:border-solid print:border-slate-400">
-                  <p className="text-[10px] font-black uppercase text-slate-400">Teacher Signature & Date</p>
+                  <p className="text-[10px] font-black uppercase text-slate-400">{uiText("Teacher Signature & Date")}</p>
                   <p className="font-bold text-slate-800 dark:text-white text-xs mt-2">{selectedWeeklyPlan.teacher_name || selectedWeeklyPlan.teacherName || 'Assigned Teacher'}</p>
-                  <p className="text-[10px] text-slate-400 mt-1">Date: {selectedWeeklyPlan.created_at ? new Date(selectedWeeklyPlan.created_at).toLocaleDateString() : selectedWeeklyPlan.date || '—'}</p>
+                  <p className="text-[10px] text-slate-400 mt-1">{uiText("Date: ")}{(selectedWeeklyPlan.created_at ? uiText(new Date(selectedWeeklyPlan.created_at).toLocaleDateString()) : uiText(selectedWeeklyPlan.date || '—'))}</p>
                 </div>
                 <div className="border border-dashed border-slate-300 dark:border-slate-700 p-3 rounded-xl text-center print:border-solid print:border-slate-400">
-                  <p className="text-[10px] font-black uppercase text-slate-400">Department Head Signature & Date</p>
-                  <p className="font-bold text-slate-800 dark:text-white text-xs mt-2">{selectedWeeklyPlan.status === 'Approved' ? 'Verified & Approved' : 'Pending Approval'}</p>
-                  <p className="text-[10px] text-slate-400 mt-1">Date: {selectedWeeklyPlan.updated_at ? new Date(selectedWeeklyPlan.updated_at).toLocaleDateString() : '—'}</p>
+                  <p className="text-[10px] font-black uppercase text-slate-400">{uiText("Department Head Signature & Date")}</p>
+                  <p className="font-bold text-slate-800 dark:text-white text-xs mt-2">{(selectedWeeklyPlan.status === 'Approved' ? uiText('Verified & Approved') : uiText('Pending Approval'))}</p>
+                  <p className="text-[10px] text-slate-400 mt-1">{uiText("Date: ")}{(selectedWeeklyPlan.updated_at ? uiText(new Date(selectedWeeklyPlan.updated_at).toLocaleDateString()) : uiText('—'))}</p>
                 </div>
                 <div className="border border-dashed border-slate-300 dark:border-slate-700 p-3 rounded-xl text-center print:border-solid print:border-slate-400">
-                  <p className="text-[10px] font-black uppercase text-slate-400">Principal / VP Signature & Date</p>
-                  <p className="font-bold text-slate-800 dark:text-white text-xs mt-2">{selectedWeeklyPlan.status === 'Approved' ? 'Signed for Academic Oversight' : 'Awaiting Review'}</p>
-                  <p className="text-[10px] text-slate-400 mt-1">Date: {selectedWeeklyPlan.updated_at ? new Date(selectedWeeklyPlan.updated_at).toLocaleDateString() : '—'}</p>
+                  <p className="text-[10px] font-black uppercase text-slate-400">{uiText("Principal / VP Signature & Date")}</p>
+                  <p className="font-bold text-slate-800 dark:text-white text-xs mt-2">{(selectedWeeklyPlan.status === 'Approved' ? uiText('Signed for Academic Oversight') : uiText('Awaiting Review'))}</p>
+                  <p className="text-[10px] text-slate-400 mt-1">{uiText("Date: ")}{(selectedWeeklyPlan.updated_at ? uiText(new Date(selectedWeeklyPlan.updated_at).toLocaleDateString()) : uiText('—'))}</p>
                 </div>
               </div>
             </div>
@@ -2284,24 +2232,19 @@ export const Teachers = () => {
             {/* Modal Footer */}
             <div className="p-4 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 rounded-b-[2rem] print:hidden">
               <p className="text-xs text-slate-500 italic flex items-center gap-1.5">
-                <span className="inline-block w-2 h-2 rounded-full bg-blue-400"></span>
-                Official Lesson Plan Matrix Document View
-              </p>
+                <span className="inline-block w-2 h-2 rounded-full bg-blue-400"></span>{uiText(" Official Lesson Plan Matrix Document View ")}</p>
               <div className="flex gap-2">
                 <button
                   type="button"
                   onClick={() => window.print()}
                   className="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-bold hover:bg-slate-300 transition-colors flex items-center gap-1.5"
                 >
-                  <Printer size={14} /> Print
-                </button>
+                  <Printer size={14} />{uiText(" Print ")}</button>
                 <button
                   type="button"
                   onClick={() => setSelectedWeeklyPlan(null)}
                   className="px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-800 rounded-xl text-xs font-bold transition-colors"
-                >
-                  Close
-                </button>
+                >{uiText(" Close ")}</button>
               </div>
             </div>
           </div>
@@ -2312,7 +2255,7 @@ export const Teachers = () => {
         <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-md p-6 space-y-4">
             <div className="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3">
-              <h3 className="font-bold text-slate-900 dark:text-white text-base">Request Plan Revision</h3>
+              <h3 className="font-bold text-slate-900 dark:text-white text-base">{uiText("Request Plan Revision")}</h3>
               <button
                 type="button"
                 onClick={() => setReviewModal({ show: false, planId: '', planType: 'annual', status: 'Approved', feedback: '' })}
@@ -2323,13 +2266,11 @@ export const Teachers = () => {
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                Reason for Revision / Feedback for Teacher:
-              </label>
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300">{uiText(" Reason for Revision / Feedback for Teacher: ")}</label>
               <textarea
                 value={reviewModal.feedback}
                 onChange={(e) => setReviewModal({ ...reviewModal, feedback: e.target.value })}
-                placeholder="Please state what needs to be revised or corrected in this plan..."
+                placeholder={uiText("Please state what needs to be revised or corrected in this plan...")}
                 rows={4}
                 className="w-full p-3 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-rose-500 text-slate-800 dark:text-slate-200"
               />
@@ -2340,18 +2281,14 @@ export const Teachers = () => {
                 type="button"
                 onClick={() => setReviewModal({ show: false, planId: '', planType: 'annual', status: 'Approved', feedback: '' })}
                 className="px-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl"
-              >
-                Cancel
-              </button>
+              >{uiText(" Cancel ")}</button>
               <button
                 type="button"
                 disabled={processing}
                 onClick={() => handleReviewPlanSubmit('Revision Required')}
                 className="px-4 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow-sm flex items-center gap-1"
               >
-                {processing ? <Loader2 size={14} className="animate-spin" /> : <MessageSquare size={14} />}
-                Submit Revision Request
-              </button>
+                {processing ? <Loader2 size={14} className="animate-spin" /> : <MessageSquare size={14} />}{uiText(" Submit Revision Request ")}</button>
             </div>
           </div>
         </div>
@@ -2373,14 +2310,10 @@ export const Teachers = () => {
                   <UserPlus size={20} />
                 </div>
                 <h3 className="font-bold text-slate-800 dark:text-slate-100">
-                  {formData.role === 'vice-principal'
-                    ? 'Register Vice Principal'
-                    : formData.role === 'librarian'
-                    ? 'Register Librarian'
-                    : t("teachers.registerNewTeacher", "Register New Teacher")}
+                  {(formData.role === 'vice-principal' ? uiText('Register Vice Principal') : (formData.role === 'librarian' ? uiText('Register Librarian') : uiText(t("teachers.registerNewTeacher", "Register New Teacher"))))}
                 </h3>
               </div>
-              <button type="button" title="Close register teacher dialog" onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-slate-600">
+              <button type="button" title={uiText("Close register teacher dialog")} onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-slate-600">
                 <X size={20} />
               </button>
             </div>
@@ -2390,12 +2323,12 @@ export const Teachers = () => {
                 <label className="text-xs font-bold text-slate-500 uppercase">{t("teachers.role", "Role")}</label>
                 <select
                   required
-                  title="Select staff role"
+                  title={uiText("Select staff role")}
                   value={formData.role}
                   onChange={(e) => setFormData({ ...formData, role: e.target.value as any })}
                   className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium"
                 >
-                  <option value="vice-principal">Vice Principal</option>
+                  <option value="vice-principal">{uiText("Vice Principal")}</option>
                   <option value="teacher">{t("teachers.roleTeacher", "Teacher")}</option>
                   <option value="librarian">{t("teachers.roleLibrarian", "Librarian")}</option>
                 </select>
@@ -2422,7 +2355,7 @@ export const Teachers = () => {
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="teacher@school.com"
+                  placeholder={uiText("teacher@school.com")}
                 />
               </div>
 
@@ -2454,7 +2387,7 @@ export const Teachers = () => {
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-slate-500 uppercase">{t("teachers.educationStatus", "Education Status")}</label>
                   <select
-                    title="Select education level"
+                    title={uiText("Select education level")}
                     value={formData.educationLevel}
                     onChange={(e) => setFormData({ ...formData, educationLevel: e.target.value })}
                     className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
@@ -2470,7 +2403,7 @@ export const Teachers = () => {
                   <label className="text-xs font-bold text-slate-500 uppercase">{t("teachers.specialtyCourse", "Specialty / Course")}</label>
                   <input
                     type="text"
-                    title="Specialty or course taught"
+                    title={uiText("Specialty or course taught")}
                     required
                     value={formData.specialty}
                     onChange={(e) => setFormData({ ...formData, specialty: e.target.value.replace(/[^a-zA-Z\u00C0-\u024F\s'-]/g, '') })}
@@ -2522,7 +2455,7 @@ export const Teachers = () => {
                       const file = e.target.files?.[0];
                       if (file) {
                         if (file.size > 2 * 1024 * 1024) {
-                          alert('File size exceeds the 2MB limit.');
+                          alert(uiText('File size exceeds the 2MB limit.'));
                           e.target.value = '';
                           setSelectedFile(null);
                         } else {
@@ -2560,7 +2493,7 @@ export const Teachers = () => {
                   ) : (
                     <Check size={18} />
                   )}
-                  <span>{creating ? t('teachers.creating', 'Creating...') : t('teachers.createTeacher', 'Create Teacher')}</span>
+                  <span>{(creating ? uiText(t('teachers.creating', 'Creating...')) : uiText(t('teachers.createTeacher', 'Create Teacher')))}</span>
                 </button>
               </div>
             </form>
@@ -2570,7 +2503,7 @@ export const Teachers = () => {
 
       <StaffProfileModal
         open={!!selectedStaff}
-        title="Teacher Staff Details"
+        title={uiText("Teacher Staff Details")}
         staff={selectedStaff}
         onClose={() => setSelectedStaff(null)}
         onRefresh={async () => {
@@ -2588,16 +2521,16 @@ export const Teachers = () => {
           <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden">
             <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center flex-shrink-0">
               <div>
-                <h3 className="font-bold text-slate-800 dark:text-slate-100">Promote {promotionTarget.name}</h3>
-                <p className="text-sm text-slate-500">Choose the new responsibility for this teacher</p>
+                <h3 className="font-bold text-slate-800 dark:text-slate-100">{uiText("Promote ")}{promotionTarget.name}</h3>
+                <p className="text-sm text-slate-500">{uiText("Choose the new responsibility for this teacher")}</p>
               </div>
-              <button type="button" title="Close" onClick={() => setShowPromoteModal(false)} className="text-slate-400 hover:text-slate-600">
+              <button type="button" title={uiText("Close")} onClick={() => setShowPromoteModal(false)} className="text-slate-400 hover:text-slate-600">
                 <X size={20} />
               </button>
             </div>
             <div className="p-6 space-y-4 overflow-y-auto flex-1">
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-500 uppercase">Promotion Roles</label>
+                <label className="text-xs font-bold text-slate-500 uppercase">{uiText("Promotion Roles")}</label>
                 <div className="flex flex-col gap-2 p-3 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
                   <label className="flex items-center gap-2 text-sm font-semibold text-slate-800 dark:text-slate-200 cursor-pointer">
                     <input
@@ -2612,7 +2545,7 @@ export const Teachers = () => {
                       }}
                       className="rounded border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500 w-4 h-4"
                     />
-                    <span>Home Teacher (takes attendance for assigned sections)</span>
+                    <span>{uiText("Home Teacher (takes attendance for assigned sections)")}</span>
                   </label>
                   <label className="flex items-center gap-2 text-sm font-semibold text-slate-800 dark:text-slate-200 cursor-pointer">
                     <input
@@ -2627,7 +2560,7 @@ export const Teachers = () => {
                       }}
                       className="rounded border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500 w-4 h-4"
                     />
-                    <span>Head of Department (manage subjects for selected grades)</span>
+                    <span>{uiText("Head of Department (manage subjects for selected grades)")}</span>
                   </label>
                   <label className="flex items-center gap-2 text-sm font-semibold text-slate-800 dark:text-slate-200 cursor-pointer">
                     <input
@@ -2642,21 +2575,21 @@ export const Teachers = () => {
                       }}
                       className="rounded border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500 w-4 h-4"
                     />
-                    <span>Before-school Educator (extra pay configured by super-admin)</span>
+                    <span>{uiText("Before-school Educator (extra pay configured by super-admin)")}</span>
                   </label>
                 </div>
               </div>
 
               {promotionForm.roles.includes('head-of-department') && (
                 <div className="space-y-4 p-4 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50/50 dark:bg-slate-800/30">
-                  <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200">Head of Department Settings</h4>
+                  <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200">{uiText("Head of Department Settings")}</h4>
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-slate-500 uppercase">Step 1 — Select Grades</label>
-                    <p className="text-xs text-slate-500">Choose which grades this department head will oversee.</p>
+                    <label className="text-xs font-bold text-slate-500 uppercase">{uiText("Step 1 — Select Grades")}</label>
+                    <p className="text-xs text-slate-500">{uiText("Choose which grades this department head will oversee.")}</p>
                     <MultiSelectDropdown
                       options={allGrades}
                       selectedValues={promotionForm.hodGrades}
-                      placeholder="Select Grades"
+                      placeholder={uiText("Select Grades")}
                       shortDisplay={true}
                       onChange={(g, checked) => {
                         setPromotionForm(prev => {
@@ -2669,7 +2602,7 @@ export const Teachers = () => {
                       <div className="flex flex-wrap gap-2 pt-1">
                         {promotionForm.hodGrades.map(g => (
                           <span key={g} className="px-2.5 py-1 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 text-xs font-semibold rounded-full border border-indigo-200 dark:border-indigo-700">
-                            {g}
+                            {uiText(g)}
                           </span>
                         ))}
                       </div>
@@ -2682,14 +2615,14 @@ export const Teachers = () => {
                       return /^\d+$/.test(trimmed) ? `Grade ${trimmed}` : trimmed;
                     };
                     const selectedGradeSet = new Set(promotionForm.hodGrades.map(normalizeGrade));
-                    
+
                     const matchingCourses = selectedGradeSet.size > 0
                       ? allCoursesWithGrade.filter(c => selectedGradeSet.has(normalizeGrade(c.grade_level)))
                       : allCoursesWithGrade;
 
                     const courseNamesFromCourses = Array.from(new Set(matchingCourses.map(c => c.name))).sort();
                     const courseNamesFromSubjects = Array.from(new Set(allSubjects.map((s: any) => s.name))).sort();
-                    
+
                     const combinedOptions = Array.from(new Set([
                       ...courseNamesFromCourses,
                       ...courseNamesFromSubjects
@@ -2709,17 +2642,15 @@ export const Teachers = () => {
                     return (
                       <div className="space-y-3">
                         <div className="space-y-1">
-                          <label className="text-xs font-bold text-slate-500 uppercase">Step 2 — Select Courses / Subjects</label>
-                          <p className="text-xs text-slate-500">
-                            Choose or add the subjects/courses this department head will supervise.
-                          </p>
+                          <label className="text-xs font-bold text-slate-500 uppercase">{uiText("Step 2 — Select Courses / Subjects")}</label>
+                          <p className="text-xs text-slate-500">{uiText(" Choose or add the subjects/courses this department head will supervise. ")}</p>
                         </div>
 
                         {combinedOptions.length > 0 && (
                           <MultiSelectDropdown
                             options={combinedOptions}
                             selectedValues={promotionForm.hodSubjects}
-                            placeholder="Select Courses / Subjects"
+                            placeholder={uiText("Select Courses / Subjects")}
                             shortDisplay={false}
                             onChange={(subName, checked) => {
                               setPromotionForm(prev => {
@@ -2742,7 +2673,7 @@ export const Teachers = () => {
                                 handleAddCustomSubject();
                               }
                             }}
-                            placeholder="Add custom subject/course name (e.g. Physics)"
+                            placeholder={uiText("Add custom subject/course name (e.g. Physics)")}
                             className="flex-1 px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 dark:text-slate-200"
                           />
                           <button
@@ -2750,17 +2681,16 @@ export const Teachers = () => {
                             onClick={handleAddCustomSubject}
                             className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg text-xs flex items-center gap-1 transition"
                           >
-                            <Plus size={14} /> Add
-                          </button>
+                            <Plus size={14} />{uiText(" Add ")}</button>
                         </div>
 
                         {promotionForm.hodSubjects.length > 0 && (
                           <div className="space-y-1">
-                            <span className="text-xs text-slate-400 font-medium">Assigned Subjects ({promotionForm.hodSubjects.length}):</span>
+                            <span className="text-xs text-slate-400 font-medium">{uiText("Assigned Subjects (")}{promotionForm.hodSubjects.length}):</span>
                             <div className="flex flex-wrap gap-2">
                               {promotionForm.hodSubjects.map(s => (
                                 <span key={s} className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-xs font-semibold rounded-full border border-emerald-200 dark:border-emerald-700">
-                                  {s}
+                                  {uiText(s)}
                                   <button
                                     type="button"
                                     onClick={() => {
@@ -2786,14 +2716,14 @@ export const Teachers = () => {
 
               {promotionForm.roles.includes('home-teacher') && (
                 <div className="space-y-3 p-4 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50/50 dark:bg-slate-800/30">
-                  <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200">Home Teacher Settings</h4>
-                  <p className="text-sm text-slate-600">Select grades and sections this teacher will be head of (optional, multi-select).</p>
+                  <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200">{uiText("Home Teacher Settings")}</h4>
+                  <p className="text-sm text-slate-600">{uiText("Select grades and sections this teacher will be head of (optional, multi-select).")}</p>
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-slate-500 uppercase">Grades</label>
+                    <label className="text-xs font-bold text-slate-500 uppercase">{uiText("Grades")}</label>
                     <MultiSelectDropdown
                       options={allGrades}
                       selectedValues={promotionForm.htGrades}
-                      placeholder="Select Grades"
+                      placeholder={uiText("Select Grades")}
                       shortDisplay={true}
                       onChange={(g, checked) => {
                         setPromotionForm(prev => {
@@ -2809,7 +2739,7 @@ export const Teachers = () => {
                     <div className="flex flex-wrap gap-2 pt-1">
                       {promotionForm.htGrades.map(g => (
                         <span key={g} className="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-full border border-slate-200 dark:border-slate-700">
-                          {g}
+                          {uiText(g)}
                         </span>
                       ))}
                     </div>
@@ -2817,7 +2747,7 @@ export const Teachers = () => {
 
                   {promotionForm.htGrades.map((g) => (
                     <div key={g} className="space-y-1">
-                      <div className="text-sm font-semibold text-slate-700 dark:text-slate-200">{g}</div>
+                      <div className="text-sm font-semibold text-slate-700 dark:text-slate-200">{uiText(g)}</div>
                       <div className="flex flex-wrap gap-2 pt-1">
                         {(sectionsMap[g] && sectionsMap[g].length > 0) ? (
                           sectionsMap[g].map((s) => {
@@ -2841,7 +2771,7 @@ export const Teachers = () => {
                                   }}
                                   className="rounded border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500 w-4 h-4"
                                 />
-                                <span>{s}</span>
+                                <span>{uiText(s)}</span>
                               </label>
                             );
                           })
@@ -2854,11 +2784,11 @@ export const Teachers = () => {
 
               {promotionForm.roles.includes('before-school-educator') && (
                 <div className="space-y-3 p-4 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50/50 dark:bg-slate-800/30">
-                  <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200">Before-school Educator Settings</h4>
-                  <p className="text-sm text-slate-600">Configure before-school educator assignments and extra pay.</p>
+                  <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200">{uiText("Before-school Educator Settings")}</h4>
+                  <p className="text-sm text-slate-600">{uiText("Configure before-school educator assignments and extra pay.")}</p>
 
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-500 uppercase">Days</label>
+                    <label className="text-xs font-bold text-slate-500 uppercase">{uiText("Days")}</label>
                     <div className="flex flex-wrap gap-2">
                       {['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map((d) => (
                         <label key={d} className="inline-flex items-center gap-2 px-3 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md text-sm cursor-pointer">
@@ -2875,7 +2805,7 @@ export const Teachers = () => {
                             }}
                             className="rounded border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500 w-4 h-4"
                           />
-                          <span>{d}</span>
+                          <span>{uiText(d)}</span>
                         </label>
                       ))}
                     </div>
@@ -2883,20 +2813,20 @@ export const Teachers = () => {
 
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <label className="text-xs font-bold text-slate-500 uppercase">Start Time</label>
+                      <label className="text-xs font-bold text-slate-500 uppercase">{uiText("Start Time")}</label>
                       <input
                         type="time"
-                        title="Start time for before-school session"
+                        title={uiText("Start time for before-school session")}
                         value={promotionForm.beforeSchool.startTime}
                         onChange={(e) => setPromotionForm(prev => ({ ...prev, beforeSchool: { ...prev.beforeSchool, startTime: e.target.value } }))}
                         className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md text-sm outline-none focus:ring-2 focus:ring-indigo-500"
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-xs font-bold text-slate-500 uppercase">End Time</label>
+                      <label className="text-xs font-bold text-slate-500 uppercase">{uiText("End Time")}</label>
                       <input
                         type="time"
-                        title="End time for before-school session"
+                        title={uiText("End time for before-school session")}
                         value={promotionForm.beforeSchool.endTime}
                         onChange={(e) => setPromotionForm(prev => ({ ...prev, beforeSchool: { ...prev.beforeSchool, endTime: e.target.value } }))}
                         className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md text-sm outline-none focus:ring-2 focus:ring-indigo-500"
@@ -2905,7 +2835,7 @@ export const Teachers = () => {
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-500 uppercase">Pay Rate</label>
+                    <label className="text-xs font-bold text-slate-500 uppercase">{uiText("Pay Rate")}</label>
                     <div className="flex items-center gap-3">
                       <label className="inline-flex items-center gap-2 cursor-pointer">
                         <input
@@ -2914,13 +2844,13 @@ export const Teachers = () => {
                           onChange={(e) => setPromotionForm(prev => ({ ...prev, beforeSchool: { ...prev.beforeSchool, useConfiguredRate: e.target.checked } }))}
                           className="rounded border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500 w-4 h-4"
                         />
-                        <span>Use super-admin configured rate</span>
+                        <span>{uiText("Use super-admin configured rate")}</span>
                       </label>
                     </div>
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-500 uppercase">Extra Pay Amount (optional)</label>
+                    <label className="text-xs font-bold text-slate-500 uppercase">{uiText("Extra Pay Amount (optional)")}</label>
                     <input
                       type="number"
                       min={0}
@@ -2928,7 +2858,7 @@ export const Teachers = () => {
                       onChange={(e) => setPromotionForm(prev => ({ ...prev, beforeSchool: { ...prev.beforeSchool, extraPayAmount: e.target.value } }))}
                       disabled={promotionForm.beforeSchool.useConfiguredRate}
                       className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md text-sm outline-none focus:ring-2 focus:ring-indigo-500"
-                      placeholder="Leave empty to use configured rate"
+                      placeholder={uiText("Leave empty to use configured rate")}
                     />
                   </div>
                 </div>
@@ -2940,9 +2870,7 @@ export const Teachers = () => {
                 onClick={() => setShowPromoteModal(false)}
                 className="flex-1 px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg font-bold text-sm text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800"
                 disabled={promoting}
-              >
-                Cancel
-              </button>
+              >{uiText(" Cancel ")}</button>
               {promotionTarget?.staffProfile?.promotion && (
                 <button
                   onClick={async () => {
@@ -2956,7 +2884,7 @@ export const Teachers = () => {
                         fetchTeachers();
                       } catch (err: any) {
                         console.error('Failed to remove promotion:', err);
-                        alert(err.response?.data?.error?.message || 'Failed to remove promotion');
+                        alert(uiError(err.response?.data?.error?.message || 'Failed to remove promotion'));
                       } finally {
                         setPromoting(false);
                       }
@@ -2965,7 +2893,7 @@ export const Teachers = () => {
                   className="flex-1 bg-rose-600 text-white font-bold py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-rose-700 disabled:opacity-50 text-sm"
                   disabled={promoting}
                 >
-                  {promoting ? 'Removing...' : 'Remove Promotion'}
+                  {(promoting ? uiText('Removing...') : uiText('Remove Promotion'))}
                 </button>
               )}
               <button
@@ -2998,7 +2926,7 @@ export const Teachers = () => {
                     fetchTeachers();
                   } catch (err: any) {
                     console.error('Promotion failed:', err);
-                    alert(err.response?.data?.error?.message || 'Promotion failed.');
+                    alert(uiError(err.response?.data?.error?.message || 'Promotion failed.'));
                   } finally {
                     setPromoting(false);
                   }
@@ -3006,7 +2934,7 @@ export const Teachers = () => {
                 className="flex-1 bg-indigo-600 text-white font-bold py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-indigo-700 disabled:opacity-50 text-sm"
                 disabled={promoting}
               >
-                {promoting ? 'Saving...' : promotionTarget?.staffProfile?.promotion ? 'Save Promotion' : 'Promote Teacher'}
+                {(promoting ? uiText('Saving...') : (promotionTarget?.staffProfile?.promotion ? uiText('Save Promotion') : uiText('Promote Teacher')))}
               </button>
             </div>
           </div>
@@ -3023,15 +2951,15 @@ export const Teachers = () => {
                   <Check size={24} />
                 </div>
                 <div>
-                  <h3 className="font-bold text-slate-800 dark:text-slate-100 text-lg">Teacher Created Successfully!</h3>
-                  <p className="text-sm text-slate-500">Save the credentials below</p>
+                  <h3 className="font-bold text-slate-800 dark:text-slate-100 text-lg">{uiText("Teacher Created Successfully!")}</h3>
+                  <p className="text-sm text-slate-500">{uiText("Save the credentials below")}</p>
                 </div>
               </div>
             </div>
 
             <div className="p-6 space-y-4">
               <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-slate-700">
-                <label className="text-xs font-bold text-slate-500 uppercase block mb-2">Digital ID (Username)</label>
+                <label className="text-xs font-bold text-slate-500 uppercase block mb-2">{uiText("Digital ID (Username)")}</label>
                 <div className="flex items-center justify-between gap-3">
                   <code className="text-lg font-mono font-bold text-blue-600 dark:text-blue-400">
                     {successModal.data?.user?.digitalId}
@@ -3044,16 +2972,14 @@ export const Teachers = () => {
                     }}
                     className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg text-xs font-bold hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
                   >
-                    {copied === 'digitalId' ? '✓ Copied' : 'Copy'}
+                    {(copied === 'digitalId' ? uiText('✓ Copied') : uiText('Copy'))}
                   </button>
                 </div>
               </div>
 
               <div className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-xl p-5 border-2 border-amber-300 dark:border-amber-700">
                 <label className="text-xs font-bold text-amber-700 dark:text-amber-300 uppercase block mb-3 flex items-center gap-2">
-                  <span className="text-lg">🔑</span>
-                  4-Digit PIN (Save This!)
-                </label>
+                  <span className="text-lg">🔑</span>{uiText(" 4-Digit PIN (Save This!) ")}</label>
                 <div className="flex items-center justify-between gap-3">
                   <code className="text-3xl font-mono font-black text-amber-700 dark:text-amber-300 tracking-widest">
                     {successModal.data?.temporaryPassword}
@@ -3066,18 +2992,15 @@ export const Teachers = () => {
                     }}
                     className="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-bold hover:bg-amber-700 transition-colors shadow-lg"
                   >
-                    {copied === 'password' ? '✓ Copied' : 'Copy PIN'}
+                    {(copied === 'password' ? uiText('✓ Copied') : uiText('Copy PIN'))}
                   </button>
                 </div>
-                <p className="text-xs text-amber-700 dark:text-amber-300 mt-3 font-semibold">
-                  ⚠️ This PIN won't be shown again. Teacher must save it for first login.
-                </p>
+                <p className="text-xs text-amber-700 dark:text-amber-300 mt-3 font-semibold">{uiText(" ⚠️ This PIN won't be shown again. Teacher must save it for first login. ")}</p>
               </div>
 
               <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
                 <p className="text-sm text-blue-800 dark:text-blue-200">
-                  <strong>📋 Next Steps:</strong> Approve the teacher from the actions menu to enable login.
-                </p>
+                  <strong>{uiText("📋 Next Steps:")}</strong>{uiText(" Approve the teacher from the actions menu to enable login. ")}</p>
               </div>
             </div>
 
@@ -3086,15 +3009,11 @@ export const Teachers = () => {
                 onClick={handlePrintCredentials}
                 className="flex-1 flex items-center justify-center gap-2 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-bold py-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800"
               >
-                <Printer size={18} />
-                Print
-              </button>
+                <Printer size={18} />{uiText(" Print ")}</button>
               <button
                 onClick={() => setSuccessModal({ show: false, data: null })}
                 className="flex-1 bg-slate-900 dark:bg-slate-800 text-white font-bold py-3 rounded-lg hover:bg-slate-800 dark:hover:bg-slate-700"
-              >
-                Close
-              </button>
+              >{uiText(" Close ")}</button>
             </div>
           </div>
         </div>
@@ -3105,19 +3024,15 @@ export const Teachers = () => {
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 w-full max-w-md">
             <div className="p-6 border-b border-slate-100 dark:border-slate-800">
-              <h3 className="font-bold text-slate-800 dark:text-slate-100 text-lg">
-                Confirm {confirmAction.action === 'approve' ? 'Approval' : confirmAction.action === 'revoke' ? 'Revocation' : 'Deletion'}
+              <h3 className="font-bold text-slate-800 dark:text-slate-100 text-lg">{uiText(" Confirm ")}{(confirmAction.action === 'approve' ? uiText('Approval') : (confirmAction.action === 'revoke' ? uiText('Revocation') : uiText('Deletion')))}
               </h3>
             </div>
 
             <div className="p-6">
-              <p className="text-slate-600 dark:text-slate-400">
-                Are you sure you want to {confirmAction.action} <strong>{confirmAction.teacher?.name}</strong>?
+              <p className="text-slate-600 dark:text-slate-400">{uiText(" Are you sure you want to ")}{uiText(confirmAction.action)} <strong>{confirmAction.teacher?.name}</strong>?
               </p>
               {confirmAction.action === 'delete' && (
-                <p className="text-red-600 dark:text-red-400 text-sm mt-2">
-                  ⚠️ This action cannot be undone.
-                </p>
+                <p className="text-red-600 dark:text-red-400 text-sm mt-2">{uiText(" ⚠️ This action cannot be undone. ")}</p>
               )}
             </div>
 
@@ -3126,9 +3041,7 @@ export const Teachers = () => {
                 onClick={() => setConfirmAction({ show: false, action: 'approve', teacher: null })}
                 className="flex-1 px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg font-bold text-sm hover:bg-slate-50"
                 disabled={processing}
-              >
-                Cancel
-              </button>
+              >{uiText(" Cancel ")}</button>
               <button
                 onClick={handleAction}
                 className={`flex-1 px-4 py-2 rounded-lg font-bold text-sm text-white ${confirmAction.action === 'approve' ? 'bg-green-600 hover:bg-green-700' :
@@ -3137,7 +3050,7 @@ export const Teachers = () => {
                   } disabled:opacity-50`}
                 disabled={processing}
               >
-                {processing ? 'Processing...' : confirmAction.action === 'approve' ? 'Approve' : confirmAction.action === 'revoke' ? 'Revoke' : 'Delete'}
+                {(processing ? uiText('Processing...') : (confirmAction.action === 'approve' ? uiText('Approve') : (confirmAction.action === 'revoke' ? uiText('Revoke') : uiText('Delete'))))}
               </button>
             </div>
           </div>
@@ -3151,19 +3064,19 @@ export const Teachers = () => {
             <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-blue-100 text-blue-600 rounded-lg"><Edit2 size={20} /></div>
-                <h3 className="font-bold text-slate-800 dark:text-slate-100">Edit Teacher</h3>
+                <h3 className="font-bold text-slate-800 dark:text-slate-100">{uiText("Edit Teacher")}</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setShowEditModal(false)}
                 className="text-slate-400 hover:text-slate-600"
-                title="Close edit modal"
-                aria-label="Close edit modal"
+                title={uiText("Close edit modal")}
+                aria-label={uiText("Close edit modal")}
               ><X size={20} /></button>
             </div>
             <form onSubmit={handleEdit} className="p-6 space-y-4">
               <div>
-                <label htmlFor="edit-name" className="text-xs font-bold text-slate-500 uppercase">Full Name</label>
+                <label htmlFor="edit-name" className="text-xs font-bold text-slate-500 uppercase">{uiText("Full Name")}</label>
                 <input
                   id="edit-name"
                   type="text"
@@ -3174,7 +3087,7 @@ export const Teachers = () => {
                 />
               </div>
               <div>
-                <label htmlFor="edit-email" className="text-xs font-bold text-slate-500 uppercase">Email Address</label>
+                <label htmlFor="edit-email" className="text-xs font-bold text-slate-500 uppercase">{uiText("Email Address")}</label>
                 <input
                   id="edit-email"
                   type="email"
@@ -3187,8 +3100,8 @@ export const Teachers = () => {
               <div className="flex flex-col gap-3 border-t border-b border-slate-100 dark:border-slate-800 py-4 my-2">
                 <div className="flex items-center justify-between gap-4">
                   <div>
-                    <label className="text-xs font-bold text-slate-500 uppercase">Password Reset</label>
-                    <p className="text-xs text-slate-500">Generate a new 4-digit PIN for this teacher.</p>
+                    <label className="text-xs font-bold text-slate-500 uppercase">{uiText("Password Reset")}</label>
+                    <p className="text-xs text-slate-500">{uiText("Generate a new 4-digit PIN for this teacher.")}</p>
                   </div>
                   <button
                     type="button"
@@ -3196,13 +3109,12 @@ export const Teachers = () => {
                     disabled={resettingPassword}
                     className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-xs font-bold disabled:opacity-50 whitespace-nowrap"
                   >
-                    {resettingPassword ? 'Generating...' : 'Reset Password'}
+                    {(resettingPassword ? uiText('Generating...') : uiText('Reset Password'))}
                   </button>
                 </div>
                 {generatedPassword && (
                   <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 text-center">
-                    <p className="text-xs text-amber-700 dark:text-amber-300">
-                      New password generated: <span className="font-mono text-base font-bold text-slate-900 dark:text-white ml-1">{generatedPassword}</span>
+                    <p className="text-xs text-amber-700 dark:text-amber-300">{uiText(" New password generated: ")}<span className="font-mono text-base font-bold text-slate-900 dark:text-white ml-1">{generatedPassword}</span>
                     </p>
                   </div>
                 )}
@@ -3210,14 +3122,12 @@ export const Teachers = () => {
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => setShowEditModal(false)}
                   className="flex-1 px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg font-bold text-sm text-slate-500 hover:bg-slate-50"
-                  disabled={submitting}>
-                  Cancel
-                </button>
+                  disabled={submitting}>{uiText(" Cancel ")}</button>
                 <button type="submit"
                   className="flex-1 bg-blue-600 text-white font-bold py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-blue-700 disabled:opacity-50"
                   disabled={submitting}>
                   {submitting ? <Loader2 className="animate-spin" size={18} /> : <Check size={18} />}
-                  <span>{submitting ? 'Saving...' : 'Save Changes'}</span>
+                  <span>{(submitting ? uiText('Saving...') : uiText('Save Changes'))}</span>
                 </button>
               </div>
             </form>

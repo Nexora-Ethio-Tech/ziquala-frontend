@@ -1,3 +1,5 @@
+import { uiText } from '../localization';
+import { localeTag } from "../localization";
 /**
  * Ethiopian Calendar Utilities
  *
@@ -200,10 +202,10 @@ export function ethiopianToGregorianIso(ethDateStr: string): string {
   const parts = parseEthiopianDateString(ethDateStr);
   if (!parts) return '';
   const { year, month, day } = parts;
-  
+
   const era = 1724220;
   const jdn = era + 365 * (year - 1) + Math.floor(year / 4) + 30 * (month - 1) + day;
-  
+
   const j = jdn + 32044;
   const g = Math.floor(j / 146097);
   const dg = j % 146097;
@@ -213,20 +215,20 @@ export function ethiopianToGregorianIso(ethDateStr: string): string {
   const db = dc % 1461;
   const a = Math.floor(((Math.floor(db / 365) + 1) * 3) / 4);
   const da = db - a * 365;
-  
+
   const y = g * 400 + c * 100 + b * 4 + a;
   const m = Math.floor((da * 5 + 308) / 153) - 2;
   const d = da - Math.floor(((m + 4) * 153) / 5) + 122;
-  
+
   const gregYear = y - 4800 + Math.floor((m + 2) / 12);
   const gregMonth = ((m + 2) % 12) + 1;
   const gregDay = d + 1;
-  
+
   const dateObj = new Date(gregYear, gregMonth - 1, gregDay);
   const finalYear = dateObj.getFullYear();
   const finalMonth = String(dateObj.getMonth() + 1).padStart(2, '0');
   const finalDay = String(dateObj.getDate()).padStart(2, '0');
-  
+
   return `${finalYear}-${finalMonth}-${finalDay}`;
 }
 
@@ -242,7 +244,7 @@ export function formatEthiopianLabel(dateInput: string | Date | null): string {
   if (!dateInput) return '';
   try {
     const { year, month, day } = gregorianToEthiopian(dateInput);
-    return `${day} ${ETHIOPIAN_MONTHS_LABELS[month - 1]} ${year} E.C.`;
+    return `${day} ${uiText(ETHIOPIAN_MONTHS_LABELS[month - 1])} ${year} ${uiText("E.C.")}`;
   } catch {
     return '';
   }
@@ -270,7 +272,7 @@ export function getCurrentEthiopianMonth(): string {
 
 /**
  * Format any date as Ethiopian date display string (e.g., "1 Meskerem 2018 E.C.")
- * Replaces: new Date(...).toLocaleDateString()
+ * Replaces: new Date(...).toLocaleDateString(localeTag())
  */
 export function formatEthiopianDateOnly(dateInput: string | Date | null): string {
   return formatEthiopianLabel(dateInput);

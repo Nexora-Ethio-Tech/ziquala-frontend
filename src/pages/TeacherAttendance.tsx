@@ -1,3 +1,4 @@
+import { uiText } from "../localization";
 import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Check, X, Users, ChevronRight, Save, Loader2, ArrowLeft, Calendar, Search, Clock, ShieldAlert } from 'lucide-react';
@@ -122,7 +123,7 @@ export const TeacherAttendance = () => {
         date: selectedDate,
         attendanceRecords: records
       });
-      
+
       const counts = records.reduce((acc, curr) => {
         acc[curr.status] = (acc[curr.status] || 0) + 1;
         return acc;
@@ -155,7 +156,7 @@ export const TeacherAttendance = () => {
     return (
       <div className="flex flex-col items-center justify-center h-96">
         <Loader2 className="animate-spin text-emerald-600 dark:text-emerald-400 mb-4" size={40} />
-        <p className="text-slate-500 dark:text-slate-400 animate-pulse font-medium">Loading assigned classes...</p>
+        <p className="text-slate-500 dark:text-slate-400 animate-pulse font-medium">{uiText("Loading assigned classes...")}</p>
       </div>
     );
   }
@@ -190,15 +191,15 @@ export const TeacherAttendance = () => {
                     <Users size={22} />
                   </div>
                   <div className="flex items-center gap-1 text-slate-300 dark:text-slate-700 group-hover:text-emerald-500 transition-colors">
-                    <span className="text-xs font-semibold uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity duration-300">Open</span>
+                    <span className="text-xs font-semibold uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity duration-300">{uiText("Open")}</span>
                     <ChevronRight size={20} />
                   </div>
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-slate-800 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                    {cls.name} {cls.section ? `• Section ${cls.section}` : ''}
+                    {cls.name} {(cls.section ? uiText("• Section {{value0}}", {value0: cls.section}) : uiText(''))}
                   </h3>
-                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">{cls.enrolledStudents} Enrolled Students</p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">{uiText(cls.enrolledStudents)}{uiText(" Enrolled Students")}</p>
                 </div>
               </button>
             ))}
@@ -217,23 +218,22 @@ export const TeacherAttendance = () => {
             onClick={() => { setSelectedClass(null); setStudents([]); }}
             className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 text-xs font-semibold transition-colors uppercase tracking-wider self-start"
           >
-            <ArrowLeft size={14} /> Back to Classes
-          </button>
-          
+            <ArrowLeft size={14} />{uiText(" Back to Classes ")}</button>
+
           <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 justify-between lg:justify-start">
             <h2 className="text-xl sm:text-2xl font-bold text-slate-800 dark:text-white leading-tight">
-              {selectedClass.name} {selectedClass.section ? `- Section ${selectedClass.section}` : ''}
+              {selectedClass.name} {(selectedClass.section ? uiText("- Section {{value0}}", {value0: selectedClass.section}) : uiText(''))}
             </h2>
             <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 font-medium w-full sm:w-auto">
               <Calendar size={15} className="shrink-0" />
-              <span className="whitespace-nowrap">Date:</span>
+              <span className="whitespace-nowrap">{uiText("Date:")}</span>
               <div className="w-full sm:w-48 min-w-[12rem]">
                 <EthiopianDatePicker
                   id="attendanceDate"
                   value={selectedDate}
                   onChange={handleDateChange}
-                  placeholder="YYYY-MM-DD"
-                  title="Select attendance date (Ethiopian calendar)"
+                  placeholder={uiText("YYYY-MM-DD")}
+                  title={uiText("Select attendance date (Ethiopian calendar)")}
                 />
               </div>
             </div>
@@ -246,15 +246,11 @@ export const TeacherAttendance = () => {
             <button
               onClick={() => markAllStatus('present')}
               className="px-3 py-1.5 text-xs font-bold rounded-lg text-emerald-600 dark:text-emerald-400 hover:bg-white dark:hover:bg-slate-900 transition-all"
-            >
-              All Present
-            </button>
+            >{uiText(" All Present ")}</button>
             <button
               onClick={() => markAllStatus('absent')}
               className="px-3 py-1.5 text-xs font-bold rounded-lg text-rose-600 dark:text-rose-400 hover:bg-white dark:hover:bg-slate-900 transition-all"
-            >
-              All Absent
-            </button>
+            >{uiText(" All Absent ")}</button>
           </div>
 
           <button
@@ -263,7 +259,7 @@ export const TeacherAttendance = () => {
             className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl flex items-center gap-2 font-bold shadow-lg shadow-emerald-600/10 hover:shadow-emerald-600/20 active:scale-95 transition-all disabled:opacity-50"
           >
             {submitting ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
-            <span>{submitting ? 'Submitting...' : 'Submit Attendance'}</span>
+            <span>{(submitting ? uiText('Submitting...') : uiText('Submit Attendance'))}</span>
           </button>
         </div>
       </div>
@@ -271,7 +267,7 @@ export const TeacherAttendance = () => {
       {submitted && (
         <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/50 text-emerald-700 dark:text-emerald-400 px-6 py-4 rounded-2xl flex items-center gap-3 animate-in slide-in-from-top duration-300">
           <div className="bg-emerald-500 text-white p-1 rounded-full"><Check size={16} /></div>
-          <span className="font-semibold text-sm">{submitMessage}</span>
+          <span className="font-semibold text-sm">{uiText(submitMessage)}</span>
         </div>
       )}
 
@@ -279,15 +275,15 @@ export const TeacherAttendance = () => {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-100/50 dark:border-emerald-900/30 p-4 rounded-2xl text-center">
           <div className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">{stats.present}</div>
-          <div className="text-xs font-bold text-emerald-800/60 dark:text-emerald-400/60 mt-0.5 uppercase tracking-wider">Present</div>
+          <div className="text-xs font-bold text-emerald-800/60 dark:text-emerald-400/60 mt-0.5 uppercase tracking-wider">{uiText("Present")}</div>
         </div>
         <div className="bg-rose-50/50 dark:bg-rose-950/20 border border-rose-100/50 dark:border-rose-900/30 p-4 rounded-2xl text-center">
           <div className="text-2xl font-extrabold text-rose-600 dark:text-rose-400">{stats.absent}</div>
-          <div className="text-xs font-bold text-rose-800/60 dark:text-rose-400/60 mt-0.5 uppercase tracking-wider">Absent</div>
+          <div className="text-xs font-bold text-rose-800/60 dark:text-rose-400/60 mt-0.5 uppercase tracking-wider">{uiText("Absent")}</div>
         </div>
         <div className="bg-blue-50/50 dark:bg-blue-950/20 border border-blue-100/50 dark:border-blue-900/30 p-4 rounded-2xl text-center">
           <div className="text-2xl font-extrabold text-blue-600 dark:text-blue-400">{stats.excused}</div>
-          <div className="text-xs font-bold text-blue-800/60 dark:text-blue-400/60 mt-0.5 uppercase tracking-wider">Excused</div>
+          <div className="text-xs font-bold text-blue-800/60 dark:text-blue-400/60 mt-0.5 uppercase tracking-wider">{uiText("Excused")}</div>
         </div>
       </div>
 
@@ -298,7 +294,7 @@ export const TeacherAttendance = () => {
         </span>
         <input
           type="text"
-          placeholder="Search student by name or ID..."
+          placeholder={uiText("Search student by name or ID...")}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800/80 rounded-2xl py-3 pl-12 pr-4 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
@@ -308,7 +304,7 @@ export const TeacherAttendance = () => {
       {loadingStudents ? (
         <div className="flex flex-col items-center justify-center py-16">
           <Loader2 className="animate-spin text-emerald-600 dark:text-emerald-400 mb-2" size={32} />
-          <p className="text-sm text-slate-400 dark:text-slate-500 font-medium">Fetching students list...</p>
+          <p className="text-sm text-slate-400 dark:text-slate-500 font-medium">{uiText("Fetching students list...")}</p>
         </div>
       ) : (
         <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-3xl border border-slate-100 dark:border-slate-800/80 shadow-sm overflow-hidden">
@@ -316,17 +312,15 @@ export const TeacherAttendance = () => {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50/50 dark:bg-slate-800/30 border-b border-slate-100 dark:border-slate-800">
-                  <th className="px-6 py-4 text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Student Name</th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Digital ID</th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider text-center">Attendance Status</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">{uiText("Student Name")}</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">{uiText("Digital ID")}</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider text-center">{uiText("Attendance Status")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
                 {filteredStudents.length === 0 ? (
                   <tr>
-                    <td colSpan={3} className="px-6 py-12 text-center text-slate-400 dark:text-slate-500">
-                      No matching students found.
-                    </td>
+                    <td colSpan={3} className="px-6 py-12 text-center text-slate-400 dark:text-slate-500">{uiText(" No matching students found. ")}</td>
                   </tr>
                 ) : (
                   filteredStudents.map((student) => {
@@ -352,18 +346,18 @@ export const TeacherAttendance = () => {
                               let icon = null;
 
                               if (statusOption === 'present') {
-                                themeClass = isSelected 
-                                  ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/20' 
+                                themeClass = isSelected
+                                  ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/20'
                                   : 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/20 hover:bg-emerald-100';
                                 icon = <Check size={14} />;
                               } else if (statusOption === 'absent') {
-                                themeClass = isSelected 
-                                  ? 'bg-rose-500 text-white shadow-md shadow-rose-500/20' 
+                                themeClass = isSelected
+                                  ? 'bg-rose-500 text-white shadow-md shadow-rose-500/20'
                                   : 'text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/20 hover:bg-rose-100';
                                 icon = <X size={14} />;
                               } else if (statusOption === 'excused') {
-                                themeClass = isSelected 
-                                  ? 'bg-blue-500 text-white shadow-md shadow-blue-500/20' 
+                                themeClass = isSelected
+                                  ? 'bg-blue-500 text-white shadow-md shadow-blue-500/20'
                                   : 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/20 hover:bg-blue-100';
                                 icon = <ShieldAlert size={14} />;
                               }
@@ -375,7 +369,7 @@ export const TeacherAttendance = () => {
                                   className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-extrabold uppercase transition-all duration-200 ${themeClass}`}
                                 >
                                   {icon}
-                                  <span>{statusOption}</span>
+                                  <span>{uiText(statusOption)}</span>
                                 </button>
                               );
                             })}

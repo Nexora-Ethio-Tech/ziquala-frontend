@@ -1,3 +1,4 @@
+import { uiText } from "../localization";
 
 import { Outlet, useLocation } from 'react-router-dom';
 import { Sidebar } from '../components/Sidebar';
@@ -11,9 +12,9 @@ import { useTranslation } from 'react-i18next';
 export const Layout = () => {
   const location = useLocation();
   const { role, user, schoolName } = useUser();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
-  const displaySchoolName = schoolName.english;
+  const displaySchoolName = i18n.language === 'am' ? schoolName.amharic : i18n.language === 'om' ? schoolName.oromic : schoolName.english;
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const shouldShowStars = role === 'student' || role === 'parent' || !user;
@@ -95,7 +96,7 @@ export const Layout = () => {
 
       <div className="flex-1 flex flex-col min-w-0 min-h-screen">
         <Header
-          title={getTitle(location.pathname)}
+          title={uiText(getTitle(location.pathname))}
           onMenuClick={() => setIsSidebarOpen(true)}
         />
         <main className="p-4 md:p-8 flex-1 w-full">

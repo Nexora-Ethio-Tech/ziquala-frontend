@@ -1,3 +1,4 @@
+import { uiError, uiText } from "../localization";
 import { useTranslation } from 'react-i18next';
 import { Search, Download, UserPlus, X, Edit2, Trash2, Users, ArrowLeft, CheckCircle2, XCircle, Check, Loader2, GraduationCap, FileText, RefreshCw, UserCog } from 'lucide-react';
 import { useState, useEffect } from 'react';
@@ -130,9 +131,9 @@ export const Students = () => {
     try {
       await studentService.updateStudent(studentUserId, { status: newStatus as any });
       setStudents(prev => prev.map(s => s.userId === studentUserId ? { ...s, status: newStatus } : s));
-      showToast(`Status updated to ${newStatus} successfully!`, 'success');
+      showToast(uiText("Status updated to {{value0}} successfully!", { value0: uiText(newStatus) }), 'success');
     } catch (err: any) {
-      showToast(getErrorMessage(err, 'Failed to update student status'), 'error');
+      showToast(uiText(getErrorMessage(err, 'Failed to update student status')), 'error');
     } finally {
       setActiveStatusDropdownStudentId(null);
     }
@@ -188,7 +189,7 @@ export const Students = () => {
 
     const allUnassignedSelected = unassignedFiltered.every(s => selectedStudentIds.has(s.id));
     const newSelected = new Set(selectedStudentIds);
-    
+
     if (allUnassignedSelected) {
       unassignedFiltered.forEach(s => newSelected.delete(s.id));
     } else {
@@ -199,7 +200,7 @@ export const Students = () => {
 
   const openBulkAssignModal = async () => {
     if (selectedStudentIds.size === 0) {
-      showToast('Please select at least one student', 'error');
+      showToast(uiText("Please select at least one student"), 'error');
       return;
     }
 
@@ -219,7 +220,7 @@ export const Students = () => {
       setSelectedBulkSectionIds(new Set());
     } catch (err: any) {
       console.error('Failed to fetch sections:', err);
-      showToast(getErrorMessage(err, 'Failed to fetch sections'), 'error');
+      showToast(uiText(getErrorMessage(err, 'Failed to fetch sections')), 'error');
     } finally {
       setLoadingBulkSections(false);
     }
@@ -237,34 +238,34 @@ export const Students = () => {
 
   const handleBulkAssign = async () => {
     if (selectedBulkSectionIds.size === 0 || selectedStudentIds.size === 0) {
-      showToast('Please select at least one section and one student', 'error');
+      showToast(uiText("Please select at least one section and one student"), 'error');
       return;
     }
 
     const targetGrade = bulkTargetGrade || (filterGrade ? `Grade ${filterGrade}` : '');
     const selectedStudentIdsForGrade = students
-      .filter((student) => 
-        selectedStudentIds.has(student.id) && 
+      .filter((student) =>
+        selectedStudentIds.has(student.id) &&
         getGradeNumber(student.grade) === getGradeNumber(targetGrade) &&
         !student.section
       )
       .map((student) => student.id);
 
     if (selectedStudentIdsForGrade.length === 0) {
-      showToast('No selected unassigned students match the target grade.', 'error');
+      showToast(uiText("No selected unassigned students match the target grade."), 'error');
       return;
     }
 
     const ignoredCount = selectedStudentIds.size - selectedStudentIdsForGrade.length;
     if (ignoredCount > 0) {
-      showToast(`${selectedStudentIdsForGrade.length} student(s) from ${targetGrade} will be assigned. ${ignoredCount} selected student(s) were skipped because they are in a different grade or already assigned to a section.`, 'success');
+      showToast(uiText("{{value0}} student(s) from {{value1}} will be assigned. {{value2}} selected student(s) were skipped because they are in a different grade or already assigned to a section.", { value0: selectedStudentIdsForGrade.length, value1: targetGrade, value2: ignoredCount }), 'success');
     }
 
     const selectedSections = availableSections.filter(section => selectedBulkSectionIds.has(section.id));
     const totalAvailableSlots = selectedSections.reduce((sum, section) => sum + Math.max(0, section.available_slots), 0);
 
     if (totalAvailableSlots === 0) {
-      showToast('No available slots in the selected sections', 'error');
+      showToast(uiText("No available slots in the selected sections"), 'error');
       return;
     }
 
@@ -306,7 +307,7 @@ export const Students = () => {
       const failed = combinedResults.filter(r => !r.success).length + unassignedCount;
 
       showToast(
-        `${successful} student(s) assigned successfully${failed > 0 ? `, ${failed} failed` : ''}`,
+        uiText("{{value0}} student(s) assigned successfully{{value1}}", { value0: successful, value1: failed > 0 ? `, ${failed} failed` : '' }),
         failed === 0 ? 'success' : 'error'
       );
 
@@ -315,7 +316,7 @@ export const Students = () => {
       setSelectedBulkSectionIds(new Set());
       fetchStudents();
     } catch (err: any) {
-      showToast(getErrorMessage(err, 'Failed to assign section'), 'error');
+      showToast(uiText(getErrorMessage(err, 'Failed to assign section')), 'error');
     } finally {
       setBulkAssigning(false);
     }
@@ -330,7 +331,7 @@ export const Students = () => {
 
   const handleAutoDistribute = async () => {
     if (!filterGrade) {
-      showToast('Select a grade filter first to auto-distribute unassigned students', 'error');
+      showToast(uiText("Select a grade filter first to auto-distribute unassigned students"), 'error');
       return;
     }
 
@@ -339,18 +340,18 @@ export const Students = () => {
       const result = await sectionService.autoDistributeStudents(filterGrade);
       if (result.successful === 0 && result.failed === 0) {
         showToast(
-          `No unassigned students found for Grade ${filterGrade}. Ensure students have no section and matching grade.`,
+          uiText("No unassigned students found for Grade {{value0}}. Ensure students have no section and matching grade.", { value0: filterGrade }),
           'error'
         );
       } else {
         showToast(
-          `Auto-distributed ${result.successful} student(s)${result.failed > 0 ? `, ${result.failed} failed` : ''} for Grade ${filterGrade}`,
+          uiText("Auto-distributed {{value0}} student(s){{value1}} for Grade {{value2}}", { value0: result.successful, value1: result.failed > 0 ? `, ${result.failed} failed` : '', value2: filterGrade }),
           result.failed === 0 ? 'success' : 'error'
         );
         fetchStudents();
       }
     } catch (err: any) {
-      showToast(getErrorMessage(err, 'Failed to auto-distribute students'), 'error');
+      showToast(uiText(getErrorMessage(err, 'Failed to auto-distribute students')), 'error');
     } finally {
       setAutoDistributing(false);
     }
@@ -386,7 +387,7 @@ export const Students = () => {
 
       setStudents(transformed);
     } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Failed to fetch students');
+      setError(uiError(err.response?.data?.error?.message || 'Failed to fetch students'));
     } finally {
       setLoading(false);
     }
@@ -418,12 +419,12 @@ export const Students = () => {
         grade: editFormData.grade,
         parentPhone: editFormData.parentPhone
       });
-      showToast('Student updated successfully!', 'success');
+      showToast(uiText("Student updated successfully!"), 'success');
       setShowEditModal(false);
       setSelectedStudent(null);
       fetchStudents();
     } catch (err: any) {
-      showToast(err.response?.data?.error?.message || 'Failed to update student', 'error');
+      showToast(uiText(err.response?.data?.error?.message || 'Failed to update student'), 'error');
     } finally {
       setSubmitting(false);
     }
@@ -437,12 +438,12 @@ export const Students = () => {
       const newPIN = result?.newPIN;
       if (newPIN) {
         setGeneratedPassword(newPIN);
-        showToast(`New password generated: ${newPIN}`, 'success');
+        showToast(uiText("New password generated: {{value0}}", { value0: newPIN }), 'success');
       } else {
-        showToast('Password reset succeeded', 'success');
+        showToast(uiText("Password reset succeeded"), 'success');
       }
     } catch (err: any) {
-      showToast(err.response?.data?.error?.message || 'Failed to reset password', 'error');
+      showToast(uiText(err.response?.data?.error?.message || 'Failed to reset password'), 'error');
     } finally {
       setResettingPassword(false);
     }
@@ -453,11 +454,11 @@ export const Students = () => {
     try {
       // Use userId for deletion to hit the users delete endpoint
       await studentService.deleteStudent(confirmDelete.student.userId || confirmDelete.student.id);
-      showToast('Student deleted successfully!', 'success');
+      showToast(uiText("Student deleted successfully!"), 'success');
       setConfirmDelete({ show: false, student: null });
       fetchStudents();
     } catch (err: any) {
-      showToast(err.response?.data?.error?.message || 'Failed to delete student', 'error');
+      showToast(uiText(err.response?.data?.error?.message || 'Failed to delete student'), 'error');
     }
   };
 
@@ -465,12 +466,12 @@ export const Students = () => {
     if (!selectedStudent) return;
     try {
       await assignStudentToClass(selectedStudent.userId, classId);
-      showToast('Class assigned successfully!', 'success');
+      showToast(uiText("Class assigned successfully!"), 'success');
       setShowAssignModal(false);
       setSelectedStudent(null);
       fetchStudents();
     } catch (err: any) {
-      showToast(err.response?.data?.error?.message || 'Failed to assign class', 'error');
+      showToast(uiText(err.response?.data?.error?.message || 'Failed to assign class'), 'error');
     }
   };
 
@@ -487,7 +488,7 @@ export const Students = () => {
 
   const handleExport = () => {
     if (filtered.length === 0) {
-      showToast('No students to export for the current filters', 'error');
+      showToast(uiText("No students to export for the current filters"), 'error');
       return;
     }
 
@@ -555,7 +556,7 @@ export const Students = () => {
                 type="button"
                 onClick={() => {
                   if (!registrationOpen) {
-                    showToast('Registration is currently closed', 'error');
+                    showToast(uiText("Registration is currently closed"), 'error');
                     return;
                   }
                   setActiveView('add');
@@ -591,7 +592,7 @@ export const Students = () => {
           />
         </div>
         <select
-          aria-label="Filter by grade"
+          aria-label={uiText("Filter by grade")}
           value={filterGrade}
           onChange={(e) => {
             const val = e.target.value;
@@ -602,48 +603,46 @@ export const Students = () => {
         >
           <option value="">{t("students.allGrades", "All Grades")}</option>
           {['KG 1', 'KG 2', 'KG 3', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'].map(g => (
-            <option key={g} value={String(g)}>{g.startsWith('KG') ? g : `Grade ${g}`}</option>
+            <option key={g} value={String(g)}>{uiText(g.startsWith('KG') ? g : `Grade ${g}`)}</option>
           ))}
         </select>
         <select
-          aria-label="Filter by section"
+          aria-label={uiText("Filter by section")}
           value={filterSection}
           onChange={(e) => setFilterSection(e.target.value)}
           className="w-full sm:w-auto px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">{t("students.allSections","All Sections")}</option>
           {[1, 2, 3, 4, 5, 6].map((section) => (
-            <option key={section} value={String(section)}>Section {section}</option>
+            <option key={section} value={String(section)}>{uiText("Section ")}{section}</option>
           ))}
         </select>
         <select
-          aria-label="Filter by status"
+          aria-label={uiText("Filter by status")}
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value)}
           className="w-full sm:w-auto px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">{t("students.allStatus","All Status")}</option>
-          <option value="Active">Active</option>
-          <option value="Inactive">Inactive</option>
-          <option value="Suspended">Suspended</option>
-          <option value="Graduated">Graduated</option>
+          <option value="Active">{uiText("Active")}</option>
+          <option value="Inactive">{uiText("Inactive")}</option>
+          <option value="Suspended">{uiText("Suspended")}</option>
+          <option value="Graduated">{uiText("Graduated")}</option>
         </select>
-        {isSchoolAdmin && activeView === 'students' && filterGrade && (
+        {uiText(isSchoolAdmin && activeView === 'students' && filterGrade && (
           <button
             type="button"
             onClick={handleAutoDistribute}
             disabled={autoDistributing || loading}
             className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-lg text-sm font-bold transition-colors whitespace-nowrap"
-            title={`Auto-distribute all unassigned Grade ${filterGrade} students across available sections`}
+            title={uiText("Auto-distribute all unassigned Grade {{value0}} students across available sections", { value0: filterGrade })}
           >
             {autoDistributing ? (
               <Loader2 size={16} className="animate-spin" />
             ) : (
               <RefreshCw size={16} />
-            )}
-            Auto-Distribute Unassigned
-          </button>
-        )}
+            )}{uiText("Auto-Distribute Unassigned")}</button>
+        ))}
       </div>
 
       {isSchoolAdmin && activeView === 'registration' ? (
@@ -653,7 +652,7 @@ export const Students = () => {
               <h2 className="text-lg font-black text-slate-900 dark:text-white">{t("students.pendingApplications","Pending Applications")}</h2>
               <p className="text-sm font-medium text-slate-500 mt-1">{t("students.manageAdmissions","Manage new student admission requests")}</p>
             </div>
-          
+
           </div>
           <StudentRegistration isAdminView={true} />
         </div>
@@ -666,11 +665,11 @@ export const Students = () => {
         </div>
       ) : (
         <>
-          {error && (
+          {uiText(error && (
             <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4">
-              <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
+              <p className="text-sm text-red-800 dark:text-red-200">{uiError(error)}</p>
             </div>
-          )}
+          ))}
 
           {loading ? (
             <div className="flex items-center justify-center h-64">
@@ -684,23 +683,18 @@ export const Students = () => {
                   <div className="flex items-center gap-3">
                     <Check size={20} className="text-blue-600" />
                     <span className="font-bold text-sm text-blue-700 dark:text-blue-300">
-                      {selectedStudentIds.size} student{selectedStudentIds.size !== 1 ? 's' : ''} selected
-                    </span>
+                      {selectedStudentIds.size}{uiText(" student")}{uiText(selectedStudentIds.size !== 1 ? 's' : '')}{uiText(" selected")}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <button
                       onClick={openBulkAssignModal}
                       className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-bold"
                     >
-                      <GraduationCap size={16} />
-                      Assign Section
-                    </button>
+                      <GraduationCap size={16} />{uiText("Assign Section")}</button>
                     <button
                       onClick={() => setSelectedStudentIds(new Set())}
                       className="flex-1 sm:flex-none px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-lg hover:bg-slate-300 transition-colors text-sm font-bold"
-                    >
-                      Clear
-                    </button>
+                    >{uiText("Clear")}</button>
                   </div>
                 </div>
               )}
@@ -720,8 +714,8 @@ export const Students = () => {
                           }
                           onChange={selectAllFiltered}
                           className="rounded cursor-pointer"
-                          title="Select all visible unassigned students"
-                          aria-label="Select all students"
+                          title={uiText("Select all visible unassigned students")}
+                          aria-label={uiText("Select all students")}
                         />
                       </th>
                     )}
@@ -741,9 +735,7 @@ export const Students = () => {
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {filtered.length === 0 ? (
                     <tr>
-                      <td colSpan={(isSchoolAdmin ? 1 : 0) + 5 + (canViewStudentRecord ? 1 : 0) + (isSchoolAdmin ? 1 : 0)} className="px-6 py-12 text-center text-slate-500">
-                        No students found. Add your first student!
-                      </td>
+                      <td colSpan={(isSchoolAdmin ? 1 : 0) + 5 + (canViewStudentRecord ? 1 : 0) + (isSchoolAdmin ? 1 : 0)} className="px-6 py-12 text-center text-slate-500">{uiText("No students found. Add your first student!")}</td>
                     </tr>
                   ) : (
                     filtered.map((student) => (
@@ -755,29 +747,27 @@ export const Students = () => {
                               checked={selectedStudentIds.has(student.id)}
                               onChange={() => toggleStudentSelection(student.id)}
                               className="rounded cursor-pointer"
-                              title={`Select ${student.firstName}`}
-                              aria-label={`Select ${student.firstName}`}
+                              title={uiText("Select {{value0}}", { value0: student.firstName })}
+                              aria-label={uiText("Select {{value0}}", { value0: student.firstName })}
                             />
                           </td>
                         )}
-                        <td className="px-6 py-4 text-sm font-medium text-slate-900 dark:text-slate-100">{student.firstName} {student.lastName}</td>
-                        <td className="px-6 py-4 text-sm font-mono text-slate-600 dark:text-slate-400">{student.digitalId}</td>
+                        <td className="px-6 py-4 text-sm font-medium text-slate-900 dark:text-slate-100">{uiText(student.firstName)} {uiText(student.lastName)}</td>
+                        <td className="px-6 py-4 text-sm font-mono text-slate-600 dark:text-slate-400">{uiText(student.digitalId)}</td>
                         {canViewStudentRecord && (
                           <td className="px-6 py-4">
                             <button
                               type="button"
                               onClick={() => openStudentRecord(student)}
                               className="inline-flex items-center gap-1.5 px-3 py-1.5 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg text-xs font-bold transition-colors"
-                              title="View student record"
-                              aria-label={`View record for ${student.firstName} ${student.lastName}`}
+                              title={uiText("View student record")}
+                              aria-label={uiText("View record for {{value0}} {{value1}}", { value0: student.firstName, value1: student.lastName })}
                             >
-                              <FileText size={14} />
-                              View
-                            </button>
+                              <FileText size={14} />{uiText("View")}</button>
                           </td>
                         )}
-                        <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">{formatSectionDisplay(student.section)}</td>
-                        <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">{formatGradeDisplay(student.grade)}</td>
+                        <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">{uiText(formatSectionDisplay(student.section))}</td>
+                        <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">{uiText(formatGradeDisplay(student.grade))}</td>
                         <td className="px-6 py-4">
                           <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${
                             student.status === 'Active' || student.status === 'Approved' ? 'bg-green-100 text-green-700' :
@@ -785,7 +775,7 @@ export const Students = () => {
                             student.status === 'Suspended' ? 'bg-red-100 text-red-700' :
                             'bg-blue-100 text-blue-700'
                           }`}>
-                            {student.status === 'Approved' ? 'ACTIVE' : student.status}
+                            {uiText(student.status === 'Approved' ? 'ACTIVE' : student.status)}
                           </span>
                         </td>
                         {isSchoolAdmin && (
@@ -795,8 +785,8 @@ export const Students = () => {
                                 type="button"
                                 onClick={() => { setSelectedStudent(student); setShowAssignModal(true); }}
                                 className="p-2 hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-600 rounded-lg transition-colors"
-                                title="Assign Class"
-                                aria-label="Assign class"
+                                title={uiText("Assign Class")}
+                                aria-label={uiText("Assign class")}
                               >
                                 <Users size={16} />
                               </button>
@@ -813,12 +803,12 @@ export const Students = () => {
                                     if (sections.length > 0) setSelectedSectionForStudent(sections[0].id);
                                   } catch (err) {
                                     setAvailableSectionsForSingle([]);
-                                    showToast(getErrorMessage(err, 'Failed to fetch sections'), 'error');
+                                    showToast(uiText(getErrorMessage(err, 'Failed to fetch sections')), 'error');
                                   }
                                 }}
                                 className="p-2 hover:bg-green-100 dark:hover:bg-green-900/30 text-green-600 rounded-lg transition-colors"
-                                title="Assign Section"
-                                aria-label="Assign section"
+                                title={uiText("Assign Section")}
+                                aria-label={uiText("Assign section")}
                               >
                                 <GraduationCap size={16} />
                               </button>
@@ -836,16 +826,16 @@ export const Students = () => {
                                       ? 'bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300'
                                       : 'hover:bg-purple-100 dark:hover:bg-purple-900/30 text-purple-600 dark:text-purple-400'
                                   }`}
-                                  title="Change Status"
-                                  aria-label="Change status"
+                                  title={uiText("Change Status")}
+                                  aria-label={uiText("Change status")}
                                 >
                                   <UserCog size={16} />
                                 </button>
-                                
+
                                 {activeStatusDropdownStudentId === student.id && (
                                   <>
-                                    <div 
-                                      className="fixed inset-0 z-30 bg-transparent cursor-default" 
+                                    <div
+                                      className="fixed inset-0 z-30 bg-transparent cursor-default"
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         setActiveStatusDropdownStudentId(null);
@@ -853,7 +843,7 @@ export const Students = () => {
                                     />
                                     <div className="absolute right-0 mt-2 w-48 rounded-xl bg-white dark:bg-slate-800 shadow-2xl border border-slate-200 dark:border-slate-700 z-40 py-2 animate-in fade-in slide-in-from-top-2 duration-150">
                                       <div className="px-3 py-1.5 border-b border-slate-100 dark:border-slate-700/50 mb-1">
-                                        <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Change Status</p>
+                                        <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">{uiText("Change Status")}</p>
                                       </div>
                                       {[
                                         { name: 'Active', color: 'bg-green-500', text: 'text-green-700 dark:text-green-400', bg: 'hover:bg-green-50 dark:hover:bg-green-950/20' },
@@ -887,8 +877,8 @@ export const Students = () => {
                                 type="button"
                                 onClick={() => openEditModal(student)}
                                 className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 rounded-lg transition-colors"
-                                title="Edit student"
-                                aria-label="Edit student"
+                                title={uiText("Edit student")}
+                                aria-label={uiText("Edit student")}
                               >
                                 <Edit2 size={16} />
                               </button>
@@ -896,8 +886,8 @@ export const Students = () => {
                                 type="button"
                                 onClick={() => setConfirmDelete({ show: true, student })}
                                 className="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 rounded-lg transition-colors"
-                                title="Delete student"
-                                aria-label="Delete student"
+                                title={uiText("Delete student")}
+                                aria-label={uiText("Delete student")}
                               >
                                 <Trash2 size={16} />
                               </button>
@@ -916,32 +906,32 @@ export const Students = () => {
       )}
 
       {/* Assign Section Modal (single student) */}
-      {showAssignSectionModal && selectedStudent && (
+      {uiText(showAssignSectionModal && selectedStudent && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 w-full max-w-md">
             <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-green-100 text-green-600 rounded-lg"><GraduationCap size={20} /></div>
                 <div>
-                  <h3 className="font-bold text-slate-800 dark:text-slate-100">Assign Section</h3>
-                  <p className="text-xs text-slate-500">{selectedStudent.firstName} {selectedStudent.lastName} — Grade {selectedStudent.grade}</p>
+                  <h3 className="font-bold text-slate-800 dark:text-slate-100">{uiText("Assign Section")}</h3>
+                  <p className="text-xs text-slate-500">{uiText(selectedStudent.firstName)} {uiText(selectedStudent.lastName)}{uiText(" — Grade ")}{uiText(selectedStudent.grade)}</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setShowAssignSectionModal(false)}
                 className="text-slate-400 hover:text-slate-600"
-                title="Close assign section modal"
-                aria-label="Close assign section modal"
+                title={uiText("Close assign section modal")}
+                aria-label={uiText("Close assign section modal")}
               ><X size={20} /></button>
             </div>
             <div className="p-6 space-y-4 max-h-72 overflow-y-auto">
               {availableSectionsForSingle.length === 0 ? (
-                <div className="text-center text-slate-500 py-6">No sections available for this grade.</div>
+                <div className="text-center text-slate-500 py-6">{uiText("No sections available for this grade.")}</div>
               ) : (
                 <>
                   <div>
-                    <label htmlFor="single-section" className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Select Section</label>
+                    <label htmlFor="single-section" className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">{uiText("Select Section")}</label>
                     <select
                       id="single-section"
                       value={selectedSectionForStudent}
@@ -949,7 +939,7 @@ export const Students = () => {
                       className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg font-medium focus:ring-2 focus:ring-blue-500/50 outline-none"
                     >
                       {availableSectionsForSingle.map(sec => (
-                        <option key={sec.id} value={sec.id}>{sec.name} ({sec.current_count}/{sec.capacity})</option>
+                        <option key={sec.id} value={sec.id}>{sec.name}{uiText(" (")}{sec.current_count}{uiText("/")}{sec.capacity}{uiText(")")}</option>
                       ))}
                     </select>
                   </div>
@@ -957,7 +947,7 @@ export const Students = () => {
                     <button
                       type="button"
                       onClick={async () => {
-                        if (!selectedSectionForStudent) return showToast('Please select a section', 'error');
+                        if (!selectedSectionForStudent) return showToast(uiText("Please select a section"), 'error');
                         setAssigningSection(true);
                         try {
                           const res = await sectionService.assignStudentToSection(
@@ -966,14 +956,14 @@ export const Students = () => {
                             'Manual assignment from UI'
                           );
                           if (res.success) {
-                            showToast('Student assigned to section', 'success');
+                            showToast(uiText("Student assigned to section"), 'success');
                             setShowAssignSectionModal(false);
                             fetchStudents();
                           } else {
-                            showToast(res.message || 'Assignment failed', 'error');
+                            showToast(uiText(res.message || 'Assignment failed'), 'error');
                           }
                         } catch (err: any) {
-                          showToast(getErrorMessage(err, 'Failed to assign section'), 'error');
+                          showToast(uiText(getErrorMessage(err, 'Failed to assign section')), 'error');
                         } finally {
                           setAssigningSection(false);
                         }
@@ -981,7 +971,7 @@ export const Students = () => {
                       disabled={assigningSection}
                       className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 font-bold"
                     >
-                      {assigningSection ? 'Assigning...' : 'Assign Section'}
+                      {uiText(assigningSection ? 'Assigning...' : 'Assign Section')}
                     </button>
                     <button
                       type="button"
@@ -990,14 +980,14 @@ export const Students = () => {
                         try {
                           const res = await sectionService.autoAssignStudent(selectedStudent.id);
                           if (res.success) {
-                            showToast('Student auto-assigned to ' + res.toSection, 'success');
+                            showToast(uiText('Student auto-assigned to ' + res.toSection), 'success');
                             setShowAssignSectionModal(false);
                             fetchStudents();
                           } else {
-                            showToast(res.message || 'Auto-assign failed', 'error');
+                            showToast(uiText(res.message || 'Auto-assign failed'), 'error');
                           }
                         } catch (err: any) {
-                          showToast(getErrorMessage(err, 'Auto-assign failed'), 'error');
+                          showToast(uiText(getErrorMessage(err, 'Auto-assign failed')), 'error');
                         } finally {
                           setAutoAssigning(false);
                         }
@@ -1005,7 +995,7 @@ export const Students = () => {
                       disabled={autoAssigning}
                       className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 font-bold"
                     >
-                      {autoAssigning ? 'Auto-assigning...' : 'Auto-assign'}
+                      {uiText(autoAssigning ? 'Auto-assigning...' : 'Auto-assign')}
                     </button>
                   </div>
                 </>
@@ -1013,29 +1003,29 @@ export const Students = () => {
             </div>
           </div>
         </div>
-      )}
+      ))}
 
       {/* Add Modal */}
       {/* Edit Modal */}
-      {showEditModal && selectedStudent && (
+      {uiText(showEditModal && selectedStudent && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 w-full max-w-md">
             <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-blue-100 text-blue-600 rounded-lg"><Edit2 size={20} /></div>
-                <h3 className="font-bold text-slate-800 dark:text-slate-100">Edit Student</h3>
+                <h3 className="font-bold text-slate-800 dark:text-slate-100">{uiText("Edit Student")}</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setShowEditModal(false)}
                 className="text-slate-400 hover:text-slate-600"
-                title="Close edit student modal"
-                aria-label="Close edit student modal"
+                title={uiText("Close edit student modal")}
+                aria-label={uiText("Close edit student modal")}
               ><X size={20} /></button>
             </div>
             <form onSubmit={handleEdit} className="p-6 space-y-4">
               <div>
-                <label htmlFor="edit-full-name" className="text-xs font-bold text-slate-500 uppercase">Full Name</label>
+                <label htmlFor="edit-full-name" className="text-xs font-bold text-slate-500 uppercase">{uiText("Full Name")}</label>
                 <input
                   id="edit-full-name"
                   type="text"
@@ -1047,8 +1037,8 @@ export const Students = () => {
               <div className="flex flex-col gap-3">
                 <div className="flex items-center justify-between gap-4">
                   <div>
-                    <label className="text-xs font-bold text-slate-500 uppercase">Password Reset</label>
-                    <p className="text-sm text-slate-500">Generate a new 4-digit password for this student.</p>
+                    <label className="text-xs font-bold text-slate-500 uppercase">{uiText("Password Reset")}</label>
+                    <p className="text-sm text-slate-500">{uiText("Generate a new 4-digit password for this student.")}</p>
                   </div>
                   <button
                     type="button"
@@ -1056,37 +1046,36 @@ export const Students = () => {
                     disabled={resettingPassword}
                     className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-bold disabled:opacity-50"
                   >
-                    {resettingPassword ? 'Generating...' : 'Reset Password'}
+                    {uiText(resettingPassword ? 'Generating...' : 'Reset Password')}
                   </button>
                 </div>
-                {generatedPassword && (
-                  <p className="text-sm text-slate-700 dark:text-slate-300">
-                    New password: <span className="font-mono text-base text-slate-900 dark:text-white">{generatedPassword}</span>
+                {uiText(generatedPassword && (
+                  <p className="text-sm text-slate-700 dark:text-slate-300">{uiText("New password: ")}<span className="font-mono text-base text-slate-900 dark:text-white">{uiText(generatedPassword)}</span>
                   </p>
-                )}
+                ))}
               </div>
               <div>
-                <label htmlFor="edit-grade" className="text-xs font-bold text-slate-500 uppercase">Grade</label>
+                <label htmlFor="edit-grade" className="text-xs font-bold text-slate-500 uppercase">{uiText("Grade")}</label>
                 <select
                   id="edit-grade"
                   value={editFormData.grade || ''}
                   onChange={(e) => setEditFormData({ ...editFormData, grade: e.target.value })}
                   className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="">Select Grade</option>
+                  <option value="">{uiText("Select Grade")}</option>
                   {['KG 1', 'KG 2', 'KG 3', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'].map(g => (
-                    <option key={g} value={g.startsWith('KG') ? g : `Grade ${g}`}>{g.startsWith('KG') ? g : `Grade ${g}`}</option>
+                    <option key={g} value={g.startsWith('KG') ? g : `Grade ${g}`}>{uiText(g.startsWith('KG') ? g : `Grade ${g}`)}</option>
                   ))}
                 </select>
               </div>
               <div>
-                <label htmlFor="edit-parent-phone" className="text-xs font-bold text-slate-500 uppercase">Parent Phone Number</label>
+                <label htmlFor="edit-parent-phone" className="text-xs font-bold text-slate-500 uppercase">{uiText("Parent Phone Number")}</label>
                 <div className="flex gap-2 mt-1">
-                  <div className="flex items-center px-3 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg font-bold text-slate-600 dark:text-slate-400 min-w-fit">+251</div>
+                  <div className="flex items-center px-3 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg font-bold text-slate-600 dark:text-slate-400 min-w-fit">{uiText("+251")}</div>
                   <input
                     id="edit-parent-phone"
                     type="text"
-                    placeholder="912345678"
+                    placeholder={uiText("912345678")}
                     maxLength={9}
                     value={(editFormData.parentPhone || '+251').replace('+251', '')}
                     onChange={(e) => handlePhoneInput(e.target.value)}
@@ -1097,44 +1086,42 @@ export const Students = () => {
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => setShowEditModal(false)}
                   className="flex-1 px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg font-bold text-sm text-slate-500 hover:bg-slate-50"
-                  disabled={submitting}>
-                  Cancel
-                </button>
+                  disabled={submitting}>{uiText("Cancel")}</button>
                 <button type="submit"
                   className="flex-1 bg-blue-600 text-white font-bold py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-blue-700 disabled:opacity-50"
                   disabled={submitting}>
                   {submitting ? <Loader2 className="animate-spin" size={18} /> : <Check size={18} />}
-                  <span>{submitting ? 'Saving...' : 'Save Changes'}</span>
+                  <span>{uiText(submitting ? 'Saving...' : 'Save Changes')}</span>
                 </button>
               </div>
             </form>
           </div>
         </div>
-      )}
+      ))}
 
       {/* Assign Class Modal */}
-      {showAssignModal && selectedStudent && (
+      {uiText(showAssignModal && selectedStudent && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 w-full max-w-md">
             <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-green-100 text-green-600 rounded-lg"><Users size={20} /></div>
                 <div>
-                  <h3 className="font-bold text-slate-800 dark:text-slate-100">Assign Class</h3>
-                  <p className="text-xs text-slate-500">{selectedStudent.firstName} {selectedStudent.lastName}</p>
+                  <h3 className="font-bold text-slate-800 dark:text-slate-100">{uiText("Assign Class")}</h3>
+                  <p className="text-xs text-slate-500">{uiText(selectedStudent.firstName)} {uiText(selectedStudent.lastName)}</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setShowAssignModal(false)}
                 className="text-slate-400 hover:text-slate-600"
-                title="Close assign class modal"
-                aria-label="Close assign class modal"
+                title={uiText("Close assign class modal")}
+                aria-label={uiText("Close assign class modal")}
               ><X size={20} /></button>
             </div>
             <div className="p-6 space-y-2 max-h-72 overflow-y-auto">
               {classes.length === 0 ? (
-                <p className="text-center text-slate-500 py-4">No classes available. Create classes first.</p>
+                <p className="text-center text-slate-500 py-4">{uiText("No classes available. Create classes first.")}</p>
               ) : (
                 classes.map((cls) => (
                   <button
@@ -1143,15 +1130,15 @@ export const Students = () => {
                     onClick={() => handleAssignClass(cls.id)}
                     className="w-full p-4 text-left border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-300 transition-all"
                   >
-                    <p className="font-bold text-slate-800 dark:text-white">{cls.name} — Section {getSectionNumber(cls.section)}</p>
-                    <p className="text-xs text-slate-500 mt-1">Capacity: {cls.capacity} students</p>
+                    <p className="font-bold text-slate-800 dark:text-white">{cls.name}{uiText(" — Section ")}{uiText(getSectionNumber(cls.section))}</p>
+                    <p className="text-xs text-slate-500 mt-1">{uiText("Capacity: ")}{uiText(cls.capacity)}{uiText(" students")}</p>
                   </button>
                 ))
               )}
             </div>
           </div>
         </div>
-      )}
+      ))}
 
 
       {/* Delete Confirmation Modal */}
@@ -1159,28 +1146,22 @@ export const Students = () => {
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 w-full max-w-md">
             <div className="p-6 border-b border-slate-100 dark:border-slate-800">
-              <h3 className="font-bold text-slate-800 dark:text-slate-100 text-lg">Confirm Deletion</h3>
+              <h3 className="font-bold text-slate-800 dark:text-slate-100 text-lg">{uiText("Confirm Deletion")}</h3>
             </div>
             <div className="p-6">
-              <p className="text-slate-600 dark:text-slate-400">
-                Are you sure you want to delete <strong>{confirmDelete.student?.firstName} {confirmDelete.student?.lastName}</strong>? This action cannot be undone.
-              </p>
+              <p className="text-slate-600 dark:text-slate-400">{uiText("Are you sure you want to delete ")}<strong>{uiText(confirmDelete.student?.firstName)} {uiText(confirmDelete.student?.lastName)}</strong>{uiText("? This action cannot be undone.")}</p>
             </div>
             <div className="p-6 border-t border-slate-100 dark:border-slate-800 flex gap-3">
               <button
                 type="button"
                 onClick={() => setConfirmDelete({ show: false, student: null })}
                 className="flex-1 px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg font-bold text-sm hover:bg-slate-50"
-              >
-                Cancel
-              </button>
+              >{uiText("Cancel")}</button>
               <button
                 type="button"
                 onClick={handleDelete}
                 className="flex-1 bg-red-600 text-white font-bold py-2 rounded-lg hover:bg-red-700"
-              >
-                Delete Student
-              </button>
+              >{uiText("Delete Student")}</button>
             </div>
           </div>
         </div>
@@ -1195,16 +1176,14 @@ export const Students = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-xl font-black flex items-center gap-2">
-                    <GraduationCap size={24} />
-                    Bulk Assign Section
-                  </h3>
-                  <p className="text-blue-100 text-xs font-medium mt-1">{selectedStudentIds.size} students selected</p>
+                    <GraduationCap size={24} />{uiText("Bulk Assign Section")}</h3>
+                  <p className="text-blue-100 text-xs font-medium mt-1">{selectedStudentIds.size}{uiText(" students selected")}</p>
                 </div>
                 <button
                   onClick={() => setShowBulkAssignModal(false)}
                   className="p-2 hover:bg-blue-700 rounded-lg transition-colors"
-                  title="Close"
-                  aria-label="Close modal"
+                  title={uiText("Close")}
+                  aria-label={uiText("Close modal")}
                 >
                   <X size={20} />
                 </button>
@@ -1220,9 +1199,7 @@ export const Students = () => {
               ) : (
                 <>
                   <div>
-                    <label htmlFor="bulk-grade" className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">
-                      Target Grade
-                    </label>
+                    <label htmlFor="bulk-grade" className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">{uiText("Target Grade")}</label>
                     <select
                       id="bulk-grade"
                       value={bulkTargetGrade}
@@ -1232,20 +1209,18 @@ export const Students = () => {
                       }}
                       className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg font-medium focus:ring-2 focus:ring-blue-500/50 outline-none"
                     >
-                      <option value="">-- Select grade --</option>
+                      <option value="">{uiText("-- Select grade --")}</option>
                       {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(g => (
-                        <option key={g} value={`Grade ${g}`}>Grade {g}</option>
+                        <option key={g} value={`Grade ${g}`}>{uiText("Grade ")}{g}</option>
                       ))}
                     </select>
                   </div>
 
-                  {bulkTargetGrade && (
+                  {uiText(bulkTargetGrade && (
                     <div>
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">
-                        Select Sections
-                      </label>
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">{uiText("Select Sections")}</label>
                       {availableSections.length === 0 ? (
-                        <p className="text-sm text-slate-500">No sections available for this grade.</p>
+                        <p className="text-sm text-slate-500">{uiText("No sections available for this grade.")}</p>
                       ) : (
                         <div className="grid gap-2 max-h-64 overflow-y-auto rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-3">
                           {availableSections.map((section) => {
@@ -1267,12 +1242,11 @@ export const Students = () => {
                                   <div className="flex items-center justify-between gap-3">
                                     <p className="font-semibold text-slate-800 dark:text-slate-100">{section.name}</p>
                                     <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-                                      {section.available_slots} slot{section.available_slots !== 1 ? 's' : ''}
+                                      {section.available_slots}{uiText(" slot")}{uiText(section.available_slots !== 1 ? 's' : '')}
                                     </span>
                                   </div>
                                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                                    {section.current_count}/{section.capacity} students assigned
-                                  </p>
+                                    {section.current_count}{uiText("/")}{section.capacity}{uiText(" students assigned")}</p>
                                 </div>
                               </label>
                             );
@@ -1280,12 +1254,11 @@ export const Students = () => {
                         </div>
                       )}
                     </div>
-                  )}
+                  ))}
 
                   {selectedBulkSectionIds.size > 0 && (
                     <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                      <p className="text-sm font-bold text-blue-900 dark:text-blue-100">
-                        Selected sections: {selectedBulkSectionIds.size} · Total available slots: {availableSections.filter(section => selectedBulkSectionIds.has(section.id)).reduce((sum, section) => sum + Math.max(0, section.available_slots), 0)}
+                      <p className="text-sm font-bold text-blue-900 dark:text-blue-100">{uiText("Selected sections: ")}{selectedBulkSectionIds.size}{uiText(" · Total available slots: ")}{availableSections.filter(section => selectedBulkSectionIds.has(section.id)).reduce((sum, section) => sum + Math.max(0, section.available_slots), 0)}
                       </p>
                     </div>
                   )}
@@ -1299,9 +1272,7 @@ export const Students = () => {
                 onClick={() => setShowBulkAssignModal(false)}
                 className="flex-1 px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors font-bold text-sm"
                 disabled={bulkAssigning}
-              >
-                Cancel
-              </button>
+              >{uiText("Cancel")}</button>
               <button
                 onClick={handleBulkAssign}
                 disabled={selectedBulkSectionIds.size === 0 || bulkAssigning}
@@ -1309,14 +1280,10 @@ export const Students = () => {
               >
                 {bulkAssigning ? (
                   <>
-                    <Loader2 size={16} className="animate-spin" />
-                    Assigning...
-                  </>
+                    <Loader2 size={16} className="animate-spin" />{uiText("Assigning...")}</>
                 ) : (
                   <>
-                    <Check size={16} />
-                    Assign Students
-                  </>
+                    <Check size={16} />{uiText("Assign Students")}</>
                 )}
               </button>
             </div>
@@ -1338,7 +1305,7 @@ export const Students = () => {
             }
             <p className={`text-sm font-bold ${toast.type === 'success' ? 'text-green-800 dark:text-green-200' : 'text-red-800 dark:text-red-200'
               }`}>
-              {toast.message}
+              {uiText(toast.message)}
             </p>
           </div>
         </div>

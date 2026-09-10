@@ -1,3 +1,5 @@
+import { LocalizedValidation } from './components/LocalizedValidation';
+import { uiText } from "./localization";
 import { useTranslation } from 'react-i18next';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Layout } from './layout/Layout';
@@ -63,12 +65,11 @@ const LibrarianStaff = lazy(() => import('./pages/LibrarianStaff').then((m) => (
 const StudentSchedulePage = lazy(() => import('./pages/StudentSchedule'));
 const ChatbotManagement = lazy(() => import('./pages/ChatbotManagement'));
 const ELearningLibrary = lazy(() => import('./pages/ELearningPage').then((m) => ({ default: m.ELearningPage })));
-const ELearningManagement = lazy(() => import('./pages/ELearningManagement').then((m) => ({ default: m.ELearningManagement })));
 const AcademicGradeManagement = lazy(() => import('./pages/AcademicGradeManagement').then((m) => ({ default: m.AcademicGradeManagement })));
 const StorekeeperPortal = lazy(() => import('./pages/StorekeeperPortal').then((m) => ({ default: m.StorekeeperPortal })));
 const PageLoader = () => (
   <div className="min-h-[40vh] flex items-center justify-center">
-    <div className="text-sm font-bold text-slate-500">Loading page...</div>
+    <div className="text-sm font-bold text-slate-500">{uiText("Loading page...")}</div>
   </div>
 );
 
@@ -116,6 +117,7 @@ const ProtectedRoute = ({
 };
 
 function App() {
+  useTranslation();
   const { user, role, loading } = useUser();
 
   // ─── Block ALL rendering until token verification completes ────────────────
@@ -126,7 +128,7 @@ function App() {
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
         <div className="flex flex-col items-center gap-4">
           <div className="w-10 h-10 border-4 border-blue-600/30 border-t-blue-600 rounded-full animate-spin" />
-          <p className="text-sm font-bold text-slate-500">Verifying session...</p>
+          <p className="text-sm font-bold text-slate-500">{uiText("Verifying session...")}</p>
         </div>
       </div>
     );
@@ -134,6 +136,7 @@ function App() {
 
   return (
     <BrowserRouter>
+      <LocalizedValidation />
       <ScrollToTop />
       <Suspense fallback={<PageLoader />}>
         <Routes>
@@ -411,7 +414,7 @@ function App() {
 
               <Route path="elearning-management" element={
                 <ProtectedRoute allowedRoles={['academic-manager', 'super-admin']}>
-                  <ELearningManagement />
+                  <Navigate to="/elearning-library" replace />
                 </ProtectedRoute>
               } />
 

@@ -1,3 +1,4 @@
+import { uiText, localeTag } from "../localization";
 import {
   BookOpen,
   User,
@@ -361,7 +362,7 @@ export const ParentPortal = () => {
     if (children.length <= 1) return null;
     return (
       <div className="flex flex-wrap items-center gap-3 bg-slate-900/60 p-4 rounded-2xl border border-slate-800">
-        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Select Student:</span>
+        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{uiText("Select Student:")}</span>
         {children.map((c) => (
           <button
             key={c.id}
@@ -372,7 +373,7 @@ export const ParentPortal = () => {
               : 'bg-slate-800 text-slate-300 border border-slate-700 hover:border-blue-500'
               }`}
           >
-            {c.fullName}
+            {uiText(c.fullName)}
           </button>
         ))}
       </div>
@@ -395,21 +396,16 @@ export const ParentPortal = () => {
       } bg-gradient-to-br from-[#0c1424] via-[#0f1b30] to-[#12233f] rounded-[2.5rem] p-6 text-white shadow-2xl relative overflow-hidden border border-white/10`}>
         <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#13233f] text-blue-400 border border-blue-800/50 text-[9px] font-black uppercase tracking-widest">
-              FAMILY DASHBOARD
-            </div>
-            <h2 className="text-2xl md:text-3xl font-black tracking-tight leading-none">
-              Hello, {parentName}
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#13233f] text-blue-400 border border-blue-800/50 text-[9px] font-black uppercase tracking-widest">{uiText("FAMILY DASHBOARD")}</div>
+            <h2 className="text-2xl md:text-3xl font-black tracking-tight leading-none">{uiText("Hello, ")}{uiText(parentName)}
             </h2>
-            <p className="text-xs md:text-sm max-w-lg leading-relaxed font-medium text-slate-300">
-              Central hub for tracking educational milestones and school announcements.
-            </p>
+            <p className="text-xs md:text-sm max-w-lg leading-relaxed font-medium text-slate-300">{uiText("Central hub for tracking educational milestones and school announcements.")}</p>
           </div>
 
           {/* Student Selector Pills directly on Header Banner */}
           {children.length > 0 && (
             <div className="flex flex-wrap items-center gap-2 bg-[#090f1a]/80 p-2 rounded-2xl border border-blue-900/40">
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">Select Student:</span>
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">{uiText("Select Student:")}</span>
               {children.map((c) => (
                 <button
                   key={c.id}
@@ -420,7 +416,7 @@ export const ParentPortal = () => {
                     : 'bg-[#101c33] text-slate-300 hover:bg-[#162747] border border-blue-900/30'
                     }`}
                 >
-                  {c.fullName}
+                  {uiText(c.fullName)}
                 </button>
               ))}
             </div>
@@ -438,11 +434,10 @@ export const ParentPortal = () => {
             <div className="flex items-center justify-between px-2">
               <div className="flex items-center gap-3">
                 <Award className="text-blue-400" size={20} />
-                <h3 className="text-lg font-black text-white uppercase tracking-tight">My Children</h3>
+                <h3 className="text-lg font-black text-white uppercase tracking-tight">{uiText("My Children")}</h3>
               </div>
               <span className="bg-slate-800 px-3 py-1 rounded-lg text-xs font-black text-slate-400 uppercase tracking-widest">
-                {children.length} Enrolled
-              </span>
+                {children.length}{uiText(" Enrolled")}</span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
@@ -467,13 +462,13 @@ export const ParentPortal = () => {
                             ? 'bg-blue-600 text-white'
                             : 'bg-slate-800 text-blue-400 group-hover:bg-blue-600 group-hover:text-white'
                             }`}>
-                            {child.fullName.charAt(0)}
+                            {uiText(child.fullName.charAt(0))}
                           </div>
                           <div>
-                            <h4 className="text-xl font-black text-white mb-1">{child.fullName}</h4>
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Grade {child.grade}</p>
+                            <h4 className="text-xl font-black text-white mb-1">{uiText(child.fullName)}</h4>
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{uiText("Grade ")}{uiText(child.grade)}</p>
                             {isSelected && (
-                              <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mt-1">Currently Selected</p>
+                              <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mt-1">{uiText("Currently Selected")}</p>
                             )}
                           </div>
                         </div>
@@ -484,7 +479,7 @@ export const ParentPortal = () => {
                             selectChild(child, 'grades');
                           }}
                           className="p-2.5 bg-blue-900/30 text-blue-400 rounded-xl hover:bg-blue-600 hover:text-white transition-all"
-                          title={`View ${child.fullName}'s grades`}
+                          title={uiText("View {{value0}}'s grades", { value0: child.fullName })}
                         >
                           <ChevronRight size={20} />
                         </button>
@@ -492,8 +487,8 @@ export const ParentPortal = () => {
 
                       <div className="grid grid-cols-1 gap-5">
                         <div className="p-4 bg-slate-800/60 rounded-2xl border border-slate-700/50">
-                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Performance Rank</p>
-                          <p className="text-lg font-black text-blue-400 truncate">{child.performance || 'Pending Results'}</p>
+                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{uiText("Performance Rank")}</p>
+                          <p className="text-lg font-black text-blue-400 truncate">{uiText(child.performance || 'Pending Results')}</p>
                         </div>
                       </div>
                     </div>
@@ -509,9 +504,9 @@ export const ParentPortal = () => {
               <div>
                 <div className="flex items-center gap-2">
                   <Megaphone className="text-blue-400" size={22} />
-                  <h3 className="text-2xl font-black text-white uppercase tracking-tight">Notice Board & Announcements</h3>
+                  <h3 className="text-2xl font-black text-white uppercase tracking-tight">{uiText("Notice Board & Announcements")}</h3>
                 </div>
-                <p className="text-xs text-slate-400 font-bold uppercase mt-1">Official updates from School Administration and transport team</p>
+                <p className="text-xs text-slate-400 font-bold uppercase mt-1">{uiText("Official updates from School Administration and transport team")}</p>
               </div>
 
               {/* Tab Filters */}
@@ -523,9 +518,7 @@ export const ParentPortal = () => {
                     ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
                     : 'text-slate-400 hover:text-white'
                     }`}
-                >
-                  All ({schoolAnnouncementsData.length + driverUpdates.length})
-                </button>
+                >{uiText("All (")}{schoolAnnouncementsData.length + driverUpdates.length}{uiText(")")}</button>
                 <button
                   type="button"
                   onClick={() => setNoticeFilter('school')}
@@ -533,9 +526,7 @@ export const ParentPortal = () => {
                     ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
                     : 'text-slate-400 hover:text-white'
                     }`}
-                >
-                  School Admin ({schoolAnnouncementsData.length})
-                </button>
+                >{uiText("School Admin (")}{schoolAnnouncementsData.length}{uiText(")")}</button>
                 <button
                   type="button"
                   onClick={() => setNoticeFilter('driver')}
@@ -543,9 +534,7 @@ export const ParentPortal = () => {
                     ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
                     : 'text-slate-400 hover:text-white'
                     }`}
-                >
-                  Driver Logs ({driverUpdates.length})
-                </button>
+                >{uiText("Driver Logs (")}{driverUpdates.length}{uiText(")")}</button>
               </div>
             </div>
 
@@ -560,7 +549,7 @@ export const ParentPortal = () => {
                 {noticeFilter !== 'driver' && schoolAnnouncementsData.length > 0 && (
                   <div className="space-y-4">
                     {noticeFilter === 'all' && (
-                      <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">School Board Announcements</h4>
+                      <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">{uiText("School Board Announcements")}</h4>
                     )}
                     <div className="grid grid-cols-1 gap-4">
                       {schoolAnnouncementsData.map((notice) => (
@@ -570,18 +559,14 @@ export const ParentPortal = () => {
                         >
                           <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
                             <div className="flex items-center gap-2">
-                              <span className="px-2.5 py-1 bg-blue-900/40 text-blue-400 rounded-full text-[9px] font-black uppercase tracking-wider">
-                                School Admin
-                              </span>
+                              <span className="px-2.5 py-1 bg-blue-900/40 text-blue-400 rounded-full text-[9px] font-black uppercase tracking-wider">{uiText("School Admin")}</span>
                               <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider ${notice.priority === 'High'
                                 ? 'bg-rose-900/40 text-rose-400'
                                 : 'bg-slate-800 text-slate-400'
                                 }`}>
-                                {notice.priority} Priority
-                              </span>
+                                {uiText(notice.priority)}{uiText(" Priority")}</span>
                             </div>
-                            <span className="text-xs text-slate-400 font-bold">
-                              📅 {formatEthiopianLabel(notice.timestamp)} at {new Date(notice.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            <span className="text-xs text-slate-400 font-bold">{uiText("📅 ")}{uiText(formatEthiopianLabel(notice.timestamp))}{uiText(" at ")}{uiText(new Date(notice.timestamp).toLocaleTimeString(localeTag(), { hour: '2-digit', minute: '2-digit' }))}
                             </span>
                           </div>
                           <h4 className="text-lg font-black text-white mb-2 group-hover:text-blue-400 transition-colors">
@@ -590,12 +575,12 @@ export const ParentPortal = () => {
                           <p className="text-sm text-slate-300 leading-relaxed font-medium">
                             {notice.content}
                           </p>
-                          {notice.created_by_name && (
+                          {uiText(notice.created_by_name && (
                             <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-xs font-bold text-slate-400 uppercase tracking-widest">
-                              <span>Posted by: {notice.created_by_name}</span>
-                              <span className="text-[10px] bg-blue-950/40 text-blue-400 px-2 py-0.5 rounded-md">Verified Admin</span>
+                              <span>{uiText("Posted by: ")}{uiText(notice.created_by_name)}</span>
+                              <span className="text-[10px] bg-blue-950/40 text-blue-400 px-2 py-0.5 rounded-md">{uiText("Verified Admin")}</span>
                             </div>
-                          )}
+                          ))}
                         </div>
                       ))}
                     </div>
@@ -608,8 +593,8 @@ export const ParentPortal = () => {
                   (noticeFilter === 'driver' && driverUpdates.length === 0)) && (
                     <div className="text-center py-16 bg-slate-800/20 rounded-2xl border border-dashed border-slate-800 p-8 space-y-3">
                       <Megaphone className="mx-auto text-slate-700 animate-pulse" size={36} />
-                      <p className="text-sm font-black uppercase tracking-widest text-slate-400">No active notices found</p>
-                      <p className="text-xs text-slate-500 italic">There are no updates posted at this time.</p>
+                      <p className="text-sm font-black uppercase tracking-widest text-slate-400">{uiText("No active notices found")}</p>
+                      <p className="text-xs text-slate-500 italic">{uiText("There are no updates posted at this time.")}</p>
                     </div>
                   )}
               </div>
@@ -628,39 +613,39 @@ export const ParentPortal = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                   <div>
-                    <label className="block text-xs font-black text-slate-300 uppercase tracking-widest mb-2">Academic Year</label>
+                    <label className="block text-xs font-black text-slate-300 uppercase tracking-widest mb-2">{uiText("Academic Year")}</label>
                     <select
-                      title="Academic Year"
+                      title={uiText("Academic Year")}
                       value={selectedYear}
                       onChange={(e) => { setSelectedYear(e.target.value); setSelectedCourse(null); }}
                       className="w-full px-4 py-2 bg-slate-800 border-2 border-slate-700 rounded-lg text-sm font-bold text-white outline-none"
                     >
                       {academicYears.map((year) => (
-                        <option key={year} value={year}>{gregorianToECYear(year)} E.C. ({year})</option>
+                        <option key={year} value={year}>{gregorianToECYear(year)}{uiText(" E.C. (")}{uiText(year)}{uiText(")")}</option>
                       ))}
                     </select>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-black text-slate-300 uppercase tracking-widest mb-2">Semester</label>
+                    <label className="block text-xs font-black text-slate-300 uppercase tracking-widest mb-2">{uiText("Semester")}</label>
                     <select
-                      title="Semester"
+                      title={uiText("Semester")}
                       value={selectedSemester}
                       onChange={(e) => { setSelectedSemester(e.target.value); setSelectedCourse(null); }}
                       className="w-full px-4 py-2 bg-slate-800 border-2 border-slate-700 rounded-lg text-sm font-bold text-white outline-none"
                     >
-                      <option>First Semester</option>
-                      <option>Second Semester</option>
+                      <option value="First Semester">{uiText("First Semester")}</option>
+                      <option value="Second Semester">{uiText("Second Semester")}</option>
                     </select>
                   </div>
 
                   <div className="relative">
-                    <label className="block text-xs font-black text-slate-300 uppercase tracking-widest mb-2">Course</label>
+                    <label className="block text-xs font-black text-slate-300 uppercase tracking-widest mb-2">{uiText("Course")}</label>
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                       <input
                         type="text"
-                        placeholder="Select Course"
+                        placeholder={uiText("Select Course")}
                         value={courseSearchQuery}
                         onChange={(e) => { setCourseSearchQuery(e.target.value); setDropdownOpen(true); }}
                         onFocus={() => setDropdownOpen(true)}
@@ -680,11 +665,11 @@ export const ParentPortal = () => {
                               className={`w-full text-left px-4 py-3 rounded-xl ${selectedCourse?.name === c.name ? 'bg-blue-600 text-white' : 'text-slate-200'}`}
                             >
                               <div className="text-sm font-bold">{c.name}</div>
-                              <div className="text-xs opacity-75">{c.code}</div>
+                              <div className="text-xs opacity-75">{uiText(c.code)}</div>
                             </button>
                           ))
                         ) : (
-                          <div className="text-xs text-slate-400 text-center py-4">No courses found</div>
+                          <div className="text-xs text-slate-400 text-center py-4">{uiText("No courses found")}</div>
                         )}
                       </div>
                     )}
@@ -700,30 +685,28 @@ export const ParentPortal = () => {
                       <table className="w-full border-collapse text-sm text-slate-200" style={{ minWidth: `${200 + gradingMethods.length * 140}px` }}>
                         <tbody>
                           <tr className="border-b border-slate-800">
-                            <th className="px-6 py-4 text-left font-black uppercase tracking-widest text-slate-400">Assessment Component</th>
+                            <th className="px-6 py-4 text-left font-black uppercase tracking-widest text-slate-400">{uiText("Assessment Component")}</th>
                             {gradingMethods.map((method) => (
                               <th key={method.id} className="min-w-[140px] px-6 py-4 text-left font-black uppercase tracking-widest text-slate-300">
-                                {method.label}
-                                <span className="block text-[10px] text-slate-500 font-bold mt-0.5">({method.maxWeight}%)</span>
+                                {uiText(method.label)}
+                                <span className="block text-[10px] text-slate-500 font-bold mt-0.5">{uiText("(")}{method.maxWeight}{uiText("%)")}</span>
                               </th>
                             ))}
-                            <th className="min-w-[140px] px-6 py-4 text-right font-black uppercase tracking-widest text-slate-300">
-                              Total
-                              <span className="block text-[10px] text-slate-500 font-bold mt-0.5">(100%)</span>
+                            <th className="min-w-[140px] px-6 py-4 text-right font-black uppercase tracking-widest text-slate-300">{uiText("Total")}<span className="block text-[10px] text-slate-500 font-bold mt-0.5">{uiText("(100%)")}</span>
                             </th>
                           </tr>
                           <tr>
-                            <td className="px-6 py-4 text-left font-black uppercase tracking-widest text-slate-400">Student Score</td>
+                            <td className="px-6 py-4 text-left font-black uppercase tracking-widest text-slate-400">{uiText("Student Score")}</td>
                             {gradingMethods.map((method) => {
                               const gradeVal = selectedCourse.grades?.[method.id];
                               return (
                                 <td key={method.id} className="px-6 py-4 text-left font-bold text-slate-100 text-lg">
-                                  {gradeVal !== null && gradeVal !== undefined ? Number(gradeVal).toFixed(1) : '--'}
+                                  {uiText(gradeVal !== null && gradeVal !== undefined ? Number(gradeVal).toFixed(1) : '--')}
                                 </td>
                               );
                             })}
                             <td className="px-6 py-4 text-right font-black text-emerald-400 text-xl">
-                              {selectedCourse.total !== null && selectedCourse.total !== undefined ? Number(selectedCourse.total).toFixed(1) : '--'}
+                              {uiText(selectedCourse.total !== null && selectedCourse.total !== undefined ? Number(selectedCourse.total).toFixed(1) : '--')}
                             </td>
                           </tr>
                         </tbody>
@@ -732,17 +715,17 @@ export const ParentPortal = () => {
                   ) : (
                     <>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-0 border-b border-slate-800">
-                        <div className="p-4 border-r border-slate-800"><div className="text-xs font-bold uppercase text-slate-400">TEST 1</div><div className="text-lg font-black text-slate-300 mt-1">10%</div></div>
-                        <div className="p-4 border-r border-slate-800"><div className="text-xs font-bold uppercase text-slate-400">HOME WORK AND CLASS WORK</div><div className="text-lg font-black text-slate-300 mt-1">10%</div></div>
-                        <div className="p-4 border-r border-slate-800"><div className="text-xs font-bold uppercase text-slate-400">MID EXAM</div><div className="text-lg font-black text-slate-300 mt-1">30%</div></div>
-                        <div className="p-4"><div className="text-xs font-bold uppercase text-slate-400">FINAL EXAM</div><div className="text-lg font-black text-slate-300 mt-1">50%</div></div>
+                        <div className="p-4 border-r border-slate-800"><div className="text-xs font-bold uppercase text-slate-400">{uiText("TEST 1")}</div><div className="text-lg font-black text-slate-300 mt-1">{uiText("10%")}</div></div>
+                        <div className="p-4 border-r border-slate-800"><div className="text-xs font-bold uppercase text-slate-400">{uiText("HOME WORK AND CLASS WORK")}</div><div className="text-lg font-black text-slate-300 mt-1">{uiText("10%")}</div></div>
+                        <div className="p-4 border-r border-slate-800"><div className="text-xs font-bold uppercase text-slate-400">{uiText("MID EXAM")}</div><div className="text-lg font-black text-slate-300 mt-1">{uiText("30%")}</div></div>
+                        <div className="p-4"><div className="text-xs font-bold uppercase text-slate-400">{uiText("FINAL EXAM")}</div><div className="text-lg font-black text-slate-300 mt-1">{uiText("50%")}</div></div>
                       </div>
 
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-0 border-b border-slate-800">
-                        <div className="p-4 border-r border-slate-800"><div className="text-3xl font-black text-slate-100">{selectedCourse.quiz_10 ?? '--'}</div></div>
-                        <div className="p-4 border-r border-slate-800"><div className="text-3xl font-black text-slate-100">{selectedCourse.assignment_10 ?? '--'}</div></div>
-                        <div className="p-4 border-r border-slate-800"><div className="text-3xl font-black text-slate-100">{selectedCourse.mid_30 ?? '--'}</div></div>
-                        <div className="p-4"><div className="text-3xl font-black text-slate-100">{selectedCourse.final_50 ?? '--'}</div></div>
+                        <div className="p-4 border-r border-slate-800"><div className="text-3xl font-black text-slate-100">{uiText(selectedCourse.quiz_10 ?? '--')}</div></div>
+                        <div className="p-4 border-r border-slate-800"><div className="text-3xl font-black text-slate-100">{uiText(selectedCourse.assignment_10 ?? '--')}</div></div>
+                        <div className="p-4 border-r border-slate-800"><div className="text-3xl font-black text-slate-100">{uiText(selectedCourse.mid_30 ?? '--')}</div></div>
+                        <div className="p-4"><div className="text-3xl font-black text-slate-100">{uiText(selectedCourse.final_50 ?? '--')}</div></div>
                       </div>
                     </>
                   )}
@@ -750,44 +733,44 @@ export const ParentPortal = () => {
                   <div className="bg-slate-900/50 p-6 border-t border-slate-800">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Academic Standing</p>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{uiText("Academic Standing")}</p>
                         <div className="mt-2 flex items-center gap-3">
-                          <span className="text-sm font-bold text-slate-200">Course Status:</span>
+                          <span className="text-sm font-bold text-slate-200">{uiText("Course Status:")}</span>
                           {(() => {
                             const status = getStatus(selectedCourse);
-                            if (status === 'PASSED') return <span className="px-3 py-1 bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 rounded-full text-xs font-black">PASSED</span>;
-                            if (status === 'FAILED') return <span className="px-3 py-1 bg-rose-500/10 text-rose-300 border border-rose-500/20 rounded-full text-xs font-black">FAILED</span>;
-                            return <span className="px-3 py-1 bg-amber-500/10 text-amber-300 border border-amber-500/20 rounded-full text-xs font-black">PENDING</span>;
+                            if (status === 'PASSED') return <span className="px-3 py-1 bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 rounded-full text-xs font-black">{uiText("PASSED")}</span>;
+                            if (status === 'FAILED') return <span className="px-3 py-1 bg-rose-500/10 text-rose-300 border border-rose-500/20 rounded-full text-xs font-black">{uiText("FAILED")}</span>;
+                            return <span className="px-3 py-1 bg-amber-500/10 text-amber-300 border border-amber-500/20 rounded-full text-xs font-black">{uiText("PENDING")}</span>;
                           })()}
                         </div>
                       </div>
 
                       <div className="text-right">
-                        <div className="text-3xl md:text-4xl font-black text-white">{selectedCourse.total ?? '--'}</div>
-                        <div className="text-sm text-slate-400">/ 100</div>
+                        <div className="text-3xl md:text-4xl font-black text-white">{uiText(selectedCourse.total ?? '--')}</div>
+                        <div className="text-sm text-slate-400">{uiText("/ 100")}</div>
                       </div>
                     </div>
 
                     <div className="mt-4">
-                      <div className="flex justify-between text-xs font-black uppercase text-slate-400"><span>Total Score Progress</span><span>{getSubmittedTotal(selectedCourse) !== null ? Math.round(Number(getSubmittedTotal(selectedCourse))) + '%' : 'Pending'}</span></div>
+                      <div className="flex justify-between text-xs font-black uppercase text-slate-400"><span>{uiText("Total Score Progress")}</span><span>{uiText(getSubmittedTotal(selectedCourse) !== null ? Math.round(Number(getSubmittedTotal(selectedCourse))) + '%' : 'Pending')}</span></div>
                       <div className="w-full mt-2">
                         <progress
                           className="w-full h-3 rounded-full appearance-none bg-slate-800 accent-emerald-400"
                           value={Math.round(getClampedPercentage(selectedCourse.total))}
                           max={100}
-                          title="Total score progress"
-                          aria-label="Total score progress"
+                          title={uiText("Total score progress")}
+                          aria-label={uiText("Total score progress")}
                         />
                       </div>
                     </div>
                   </div>
                 </div>
               ) : (
-                <div className="bg-slate-900 rounded-2xl p-6 text-center text-slate-400">Select Course to view grading components.</div>
+                <div className="bg-slate-900 rounded-2xl p-6 text-center text-slate-400">{uiText("Select Course to view grading components.")}</div>
               )}
             </div>
           ) : (
-            <div className="bg-slate-900 p-8 rounded-2xl text-center text-slate-400 text-sm border border-slate-800 animate-pulse">Please select a child student account to view academic courses.</div>
+            <div className="bg-slate-900 p-8 rounded-2xl text-center text-slate-400 text-sm border border-slate-800 animate-pulse">{uiText("Please select a child student account to view academic courses.")}</div>
           )}
         </div>
       )}
@@ -796,10 +779,8 @@ export const ParentPortal = () => {
       {activePortalTab === 'history' && (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div>
-            <h1 className="text-3xl font-black text-white">Academic History</h1>
-            <p className="text-slate-400 mt-2 font-medium italic">
-              Historical summary of completed courses and final results by year and semester.
-            </p>
+            <h1 className="text-3xl font-black text-white">{uiText("Academic History")}</h1>
+            <p className="text-slate-400 mt-2 font-medium italic">{uiText("Historical summary of completed courses and final results by year and semester.")}</p>
           </div>
 
           {renderChildPicker()}
@@ -811,16 +792,16 @@ export const ParentPortal = () => {
                   <GraduationCap size={28} />
                 </div>
                 <div>
-                  <h3 className="text-xl font-black text-white">Historical Records</h3>
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-0.5">Final course results archive</p>
+                  <h3 className="text-xl font-black text-white">{uiText("Historical Records")}</h3>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-0.5">{uiText("Final course results archive")}</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 <div>
-                  <label className="block text-xs font-black text-slate-300 uppercase tracking-widest mb-3">Academic Year</label>
+                  <label className="block text-xs font-black text-slate-300 uppercase tracking-widest mb-3">{uiText("Academic Year")}</label>
                   <select
-                    title="Select Academic Year"
+                    title={uiText("Select Academic Year")}
                     value={historyYear || ''}
                     onChange={(e) => {
                       setHistoryYear(e.target.value || null);
@@ -828,18 +809,17 @@ export const ParentPortal = () => {
                     }}
                     className="w-full appearance-none px-6 py-3 bg-slate-800 border-2 border-slate-700 rounded-2xl text-sm font-bold text-white outline-none focus:border-blue-500 transition-all cursor-pointer"
                   >
-                    <option value="">-- Select Year --</option>
+                    <option value="">{uiText("-- Select Year --")}</option>
                     {academicYears.map((year) => (
                       <option key={year} value={year}>
-                        {gregorianToECYear(year)} E.C. ({year})
-                      </option>
+                        {gregorianToECYear(year)}{uiText(" E.C. (")}{uiText(year)}{uiText(")")}</option>
                     ))}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-black text-slate-300 uppercase tracking-widest mb-3">Semester</label>
+                  <label className="block text-xs font-black text-slate-300 uppercase tracking-widest mb-3">{uiText("Semester")}</label>
                   <select
-                    title="Select Semester"
+                    title={uiText("Select Semester")}
                     value={historySemester || ''}
                     onChange={(e) => {
                       setHistorySemester(e.target.value || null);
@@ -848,31 +828,31 @@ export const ParentPortal = () => {
                     disabled={!historyYear}
                     className="w-full appearance-none px-6 py-3 bg-slate-800 border-2 border-slate-700 rounded-2xl text-sm font-bold text-white outline-none focus:border-blue-500 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <option value="">-- Select Semester --</option>
-                    <option>First Semester</option>
-                    <option>Second Semester</option>
+                    <option value="">{uiText("-- Select Semester --")}</option>
+                    <option value="First Semester">{uiText("First Semester")}</option>
+                    <option value="Second Semester">{uiText("Second Semester")}</option>
                   </select>
                 </div>
               </div>
 
-              {historyYear && historySemester && historyData && (
+              {uiText(historyYear && historySemester && historyData && (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                   <div className="p-5 rounded-3xl bg-slate-800/50 border border-slate-800">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Academic Year</p>
-                    <p className="text-xl font-black text-white">{historyYear}</p>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{uiText("Academic Year")}</p>
+                    <p className="text-xl font-black text-white">{uiText(historyYear)}</p>
                   </div>
                   <div className="p-5 rounded-3xl bg-slate-800/50 border border-slate-800">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Semester</p>
-                    <p className="text-xl font-black text-white">{historySemester}</p>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{uiText("Semester")}</p>
+                    <p className="text-xl font-black text-white">{uiText(historySemester)}</p>
                   </div>
                   <div className="p-5 rounded-3xl bg-slate-800/50 border border-slate-800">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Semester Average</p>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{uiText("Semester Average")}</p>
                     <p className="text-xl font-black text-white">
-                      {typeof semesterAverage === 'number' ? `${semesterAverage}%` : semesterAverage}
+                      {uiText(typeof semesterAverage === 'number' ? `${semesterAverage}%` : semesterAverage)}
                     </p>
                   </div>
                 </div>
-              )}
+              ))}
 
               {historyLoading ? (
                 <div className="flex justify-center items-center h-32">
@@ -883,22 +863,22 @@ export const ParentPortal = () => {
                   <table className="w-full text-left">
                     <thead className="bg-slate-800/50">
                       <tr>
-                        <th className="px-8 py-5 text-xs font-black text-slate-400 uppercase tracking-widest">Course</th>
-                        <th className="px-8 py-5 text-xs font-black text-slate-400 uppercase tracking-widest">Code</th>
-                        <th className="px-8 py-5 text-xs font-black text-slate-400 uppercase tracking-widest text-right">Final Score</th>
+                        <th className="px-8 py-5 text-xs font-black text-slate-400 uppercase tracking-widest">{uiText("Course")}</th>
+                        <th className="px-8 py-5 text-xs font-black text-slate-400 uppercase tracking-widest">{uiText("Code")}</th>
+                        <th className="px-8 py-5 text-xs font-black text-slate-400 uppercase tracking-widest text-right">{uiText("Final Score")}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-800">
                       {historyData.courses.map((course: any, i: number) => (
                         <tr key={i} className="hover:bg-slate-800/30 transition-colors">
                           <td className="px-8 py-5 font-bold text-white">{course.name}</td>
-                          <td className="px-8 py-5 text-slate-400 text-sm">{course.code || '—'}</td>
+                          <td className="px-8 py-5 text-slate-400 text-sm">{uiText(course.code || '—')}</td>
                           <td className="px-8 py-5 text-right">
                             <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-sm font-black ${course.score_display === 'Pending' || course.score === null
                               ? 'bg-amber-900/20 text-amber-400'
                               : 'bg-blue-900/20 text-blue-400'
                               }`}>
-                              {course.score_display || (course.score !== null ? `${course.score}%` : 'Pending')}
+                              {uiText(course.score_display || (course.score !== null ? `${course.score}%` : 'Pending'))}
                             </span>
                           </td>
                         </tr>
@@ -908,18 +888,16 @@ export const ParentPortal = () => {
                 </div>
               ) : historyYear && historySemester ? (
                 <div className="text-center py-12 text-slate-400 bg-slate-900/10 rounded-2xl border border-dashed border-slate-800">
-                  <p className="font-medium">No courses found for the selected academic year and semester.</p>
+                  <p className="font-medium">{uiText("No courses found for the selected academic year and semester.")}</p>
                 </div>
               ) : (
                 <div className="text-center py-12 text-slate-400 bg-slate-900/10 rounded-2xl border border-dashed border-slate-800">
-                  <p className="font-medium">Select an academic year and semester to view historical results.</p>
+                  <p className="font-medium">{uiText("Select an academic year and semester to view historical results.")}</p>
                 </div>
               )}
             </div>
           ) : (
-            <div className="bg-slate-900 p-8 rounded-2xl text-center text-slate-400 text-sm border border-slate-800">
-              Select a child to view academic history.
-            </div>
+            <div className="bg-slate-900 p-8 rounded-2xl text-center text-slate-400 text-sm border border-slate-800">{uiText("Select a child to view academic history.")}</div>
           )}
         </div>
       )}
@@ -928,8 +906,8 @@ export const ParentPortal = () => {
       {activePortalTab === 'teachers' && (
         <div className="space-y-8 animate-in fade-in duration-500">
           <div>
-            <h1 className="text-3xl font-black text-white">Your Child's Teachers</h1>
-            <p className="text-slate-400 mt-2 font-medium italic">Teaching staff assigned to your child's courses.</p>
+            <h1 className="text-3xl font-black text-white">{uiText("Your Child's Teachers")}</h1>
+            <p className="text-slate-400 mt-2 font-medium italic">{uiText("Teaching staff assigned to your child's courses.")}</p>
           </div>
 
           {renderChildPicker()}
@@ -944,7 +922,7 @@ export const ParentPortal = () => {
                 <div key={teacher.id} className="bg-slate-900 p-6 rounded-[2rem] border border-slate-800 shadow-sm hover:shadow-xl transition-all duration-500">
                   <div className="flex items-center gap-4 mb-6">
                     <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-lg">
-                      {teacher.name.charAt(0)}
+                      {uiText(teacher.name.charAt(0))}
                     </div>
                     <div className="flex-1">
                       <h3 className="text-lg font-black text-white mb-1">{teacher.name}</h3>
@@ -955,11 +933,11 @@ export const ParentPortal = () => {
                   <div className="space-y-4">
                     {teacher.subjects && teacher.subjects.length > 0 && (
                       <div>
-                        <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Subjects</p>
+                        <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">{uiText("Subjects")}</p>
                         <div className="flex flex-wrap gap-2">
                           {teacher.subjects.map((subject, idx) => (
                             <span key={idx} className="px-3 py-1 bg-blue-900/20 text-blue-400 rounded-full text-xs font-bold">
-                              {subject}
+                              {uiText(subject)}
                             </span>
                           ))}
                         </div>
@@ -972,8 +950,8 @@ export const ParentPortal = () => {
           ) : (
             <div className="bg-slate-900 p-12 rounded-[2rem] border border-slate-800 text-center">
               <Users className="text-slate-700 mx-auto mb-4" size={40} />
-              <p className="text-slate-400 font-bold text-lg">No teachers assigned yet.</p>
-              <p className="text-slate-500 text-sm mt-2">Teachers will appear once courses are assigned.</p>
+              <p className="text-slate-400 font-bold text-lg">{uiText("No teachers assigned yet.")}</p>
+              <p className="text-slate-500 text-sm mt-2">{uiText("Teachers will appear once courses are assigned.")}</p>
             </div>
           )}
         </div>
@@ -983,10 +961,8 @@ export const ParentPortal = () => {
       {activePortalTab === 'finance' && (
         <div className="space-y-8 animate-in fade-in duration-500">
           <div>
-            <h1 className="text-3xl font-black text-white">Fees & Financial Summary</h1>
-            <p className="text-slate-400 mt-2 font-medium italic">
-              Track fees, payments, and financial status for {selectedChild?.fullName || 'your selected child'}.
-            </p>
+            <h1 className="text-3xl font-black text-white">{uiText("Fees & Financial Summary")}</h1>
+            <p className="text-slate-400 mt-2 font-medium italic">{uiText("Track fees, payments, and financial status for ")}{uiText(selectedChild?.fullName || 'your selected child')}{uiText(".")}</p>
           </div>
 
           {renderChildPicker()}
@@ -1001,30 +977,30 @@ export const ParentPortal = () => {
                 <div key={financial.student_id} className="bg-slate-900 p-8 rounded-[2rem] border border-slate-800 shadow-lg">
                   <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6 mb-8">
                     <div>
-                      <h3 className="text-2xl font-black text-white mb-2">{financial.student_name}</h3>
-                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Student ID: {financial.student_id}</p>
+                      <h3 className="text-2xl font-black text-white mb-2">{uiText(financial.student_name)}</h3>
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{uiText("Student ID: ")}{financial.student_id}</p>
                     </div>
                     <span className="px-4 py-2 rounded-full text-xs font-black uppercase tracking-wider whitespace-nowrap bg-emerald-900/20 text-emerald-400 border border-emerald-500/20">
-                      {financial.fee_status}
+                      {uiText(financial.fee_status)}
                     </span>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                     <div className="p-6 bg-slate-800/50 rounded-2xl border border-slate-800">
-                      <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Monthly Fee</p>
-                      <p className="text-2xl font-black text-white">ETB {financial.monthly_fee}</p>
+                      <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">{uiText("Monthly Fee")}</p>
+                      <p className="text-2xl font-black text-white">{uiText("ETB ")}{financial.monthly_fee}</p>
                     </div>
                     <div className="p-6 bg-slate-800/50 rounded-2xl border border-slate-800">
-                      <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Bus Fee</p>
-                      <p className="text-2xl font-black text-white">ETB {financial.bus_fee}</p>
+                      <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">{uiText("Bus Fee")}</p>
+                      <p className="text-2xl font-black text-white">{uiText("ETB ")}{financial.bus_fee}</p>
                     </div>
                     <div className="p-6 bg-slate-800/50 rounded-2xl border border-slate-800">
-                      <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Penalty</p>
-                      <p className="text-2xl font-black text-white">ETB {financial.penalty_fee}</p>
+                      <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">{uiText("Penalty")}</p>
+                      <p className="text-2xl font-black text-white">{uiText("ETB ")}{financial.penalty_fee}</p>
                     </div>
                     <div className="p-6 bg-blue-900/10 rounded-2xl border border-blue-800">
-                      <p className="text-xs font-black text-blue-400 uppercase tracking-widest mb-2">Total Fees</p>
-                      <p className="text-2xl font-black text-blue-400">ETB {financial.total_fees}</p>
+                      <p className="text-xs font-black text-blue-400 uppercase tracking-widest mb-2">{uiText("Total Fees")}</p>
+                      <p className="text-2xl font-black text-blue-400">{uiText("ETB ")}{financial.total_fees}</p>
                     </div>
                   </div>
                 </div>
@@ -1034,7 +1010,7 @@ export const ParentPortal = () => {
             <div className="bg-slate-900 p-12 rounded-[2rem] border border-slate-800 text-center">
               <DollarSign className="text-slate-700 mx-auto mb-4" size={40} />
               <p className="text-slate-400 font-bold text-lg">
-                {selectedChild ? 'No financial data available for this child.' : 'Select a child to view financial information.'}
+                {uiText(selectedChild ? 'No financial data available for this child.' : 'Select a child to view financial information.')}
               </p>
             </div>
           )}
@@ -1045,8 +1021,8 @@ export const ParentPortal = () => {
       {activePortalTab === 'communication-book' && (
         <div className="space-y-8 animate-in fade-in duration-500">
           <div>
-            <h1 className="text-3xl font-black text-white">Weekly Communication Book</h1>
-            <p className="text-slate-400 mt-2 font-medium italic">Weekly evaluations and behavior metrics logged by your child's homeroom teacher.</p>
+            <h1 className="text-3xl font-black text-white">{uiText("Weekly Communication Book")}</h1>
+            <p className="text-slate-400 mt-2 font-medium italic">{uiText("Weekly evaluations and behavior metrics logged by your child's homeroom teacher.")}</p>
           </div>
 
           {renderChildPicker()}
@@ -1065,17 +1041,15 @@ export const ParentPortal = () => {
                         <Star size={20} />
                       </div>
                       <div>
-                        <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Evaluation Record</p>
-                        <h3 className="text-lg font-black text-white mt-0.5">
-                          Week ending: {log.week_ending_formatted || log.week_ending}
+                        <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest">{uiText("Evaluation Record")}</p>
+                        <h3 className="text-lg font-black text-white mt-0.5">{uiText("Week ending: ")}{uiText(log.week_ending_formatted || log.week_ending)}
                         </h3>
                       </div>
                     </div>
-                    {log.teacher_name && (
-                      <span className="px-4 py-2 bg-slate-800 border border-slate-700 text-slate-300 rounded-xl text-xs font-bold uppercase tracking-wider">
-                        👤 Teacher: {log.teacher_name}
+                    {uiText(log.teacher_name && (
+                      <span className="px-4 py-2 bg-slate-800 border border-slate-700 text-slate-300 rounded-xl text-xs font-bold uppercase tracking-wider">{uiText("👤 Teacher: ")}{uiText(log.teacher_name)}
                       </span>
-                    )}
+                    ))}
                   </div>
 
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -1084,33 +1058,31 @@ export const ParentPortal = () => {
                       return (
                         <div key={field.id} className="bg-slate-800/60 p-4 rounded-2xl border border-slate-700/50 text-center">
                           <div className={`w-12 h-12 rounded-xl ${getRatingColor(rating)} flex items-center justify-center text-white font-black text-xl mb-3 mx-auto`}>
-                            {rating}
+                            {uiText(rating)}
                           </div>
-                          <h4 className="font-black text-white text-xs mb-1">{field.label}</h4>
+                          <h4 className="font-black text-white text-xs mb-1">{uiText(field.label)}</h4>
                           <span className={`w-full py-1 rounded-lg text-[9px] font-black uppercase tracking-wider ${getRatingColor(rating)} text-white block`}>
-                            {ratingLabels[rating] || 'Unrated'}
+                            {uiText(ratingLabels[rating] || 'Unrated')}
                           </span>
                         </div>
                       );
                     })}
                   </div>
 
-                  {log.teacher_note && (
+                  {uiText(log.teacher_note && (
                     <div className="bg-slate-800/40 p-6 rounded-2xl border border-slate-800">
-                      <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Teacher's Observations</h4>
-                      <p className="text-slate-200 leading-relaxed italic">"{log.teacher_note}"</p>
+                      <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">{uiText("Teacher's Observations")}</h4>
+                      <p className="text-slate-200 leading-relaxed italic">{uiText("\"")}{uiText(log.teacher_note)}{uiText("\"")}</p>
                     </div>
-                  )}
+                  ))}
                 </div>
               ))}
             </div>
           ) : (
             <div className="bg-slate-900 p-12 rounded-[2rem] border border-slate-800 text-center">
               <ClipboardList className="text-slate-700 mx-auto mb-4" size={48} />
-              <p className="text-slate-400 font-bold text-lg uppercase tracking-tight">No evaluation records available</p>
-              <p className="text-slate-500 text-sm mt-2 max-w-md mx-auto">
-                No weekly evaluation logs have been posted by the homeroom teacher yet.
-              </p>
+              <p className="text-slate-400 font-bold text-lg uppercase tracking-tight">{uiText("No evaluation records available")}</p>
+              <p className="text-slate-500 text-sm mt-2 max-w-md mx-auto">{uiText("No weekly evaluation logs have been posted by the homeroom teacher yet.")}</p>
             </div>
           )}
         </div>

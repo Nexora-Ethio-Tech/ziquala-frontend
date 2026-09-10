@@ -1,3 +1,5 @@
+import { LanguageSelector } from './LanguageSelector';
+import { uiText } from "../localization";
 
 import {
   Bell, Search, User, LogOut, Moon, Sun, Menu,
@@ -28,14 +30,10 @@ export const Header = ({ title, onMenuClick }: HeaderProps) => {
   const { isExamLockedDown } = useStore();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [showCalendar, setShowCalendar] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const handleLanguageChange = (lng: string) => {
-    i18n.changeLanguage(lng);
-    localStorage.setItem('ziquala_language', lng);
-  };
 
   const handleLogout = () => {
     logout();
@@ -56,12 +54,12 @@ export const Header = ({ title, onMenuClick }: HeaderProps) => {
           <button
             onClick={onMenuClick}
             className="p-2 -ml-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg lg:hidden shrink-0"
-            aria-label="Open Menu"
+            aria-label={uiText("Open Menu")}
           >
             <Menu size={24} />
           </button>
           <h1 className="text-base sm:text-lg md:text-xl font-black text-slate-900 dark:text-white tracking-tight truncate min-w-0">
-            {title}
+            {uiText(title)}
           </h1>
           {selectedBranch && role === 'super-admin' && (
             <span className="hidden md:inline-flex shrink-0 bg-school-primary/10 text-school-primary px-3 py-1 rounded-full text-xs font-bold border border-school-primary/20 whitespace-nowrap">
@@ -84,25 +82,14 @@ export const Header = ({ title, onMenuClick }: HeaderProps) => {
           </div>
 
           {/* Language */}
-          <select
-            value={i18n.language}
-            onChange={(e) => handleLanguageChange(e.target.value)}
-            disabled={isExamLockedDown}
-            title="Change language"
-            aria-label="Select language"
-            className={cn("bg-transparent text-xs font-bold text-slate-600 dark:text-slate-300 outline-none cursor-pointer hover:text-school-primary transition-colors", isExamLockedDown && "opacity-50 cursor-not-allowed")}
-          >
-            <option value="en">EN</option>
-            <option value="am">AM</option>
-            <option value="om">OM</option>
-          </select>
+          <LanguageSelector disabled={isExamLockedDown} />
 
           {/* Theme */}
           <button
             onClick={toggleTheme}
             disabled={isExamLockedDown}
             className={cn("p-2.5 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all", isExamLockedDown && "opacity-50 cursor-not-allowed")}
-            title={theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
+            title={uiText(theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode')}
           >
             {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
           </button>
@@ -112,7 +99,7 @@ export const Header = ({ title, onMenuClick }: HeaderProps) => {
             onClick={() => setShowCalendar(true)}
             disabled={isExamLockedDown}
             className={cn("hidden sm:flex p-2.5 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all", isExamLockedDown && "opacity-50 cursor-not-allowed")}
-            title="Open Calendar"
+            title={uiText("Open Calendar")}
           >
             <CalendarIcon size={20} />
           </button>
@@ -121,7 +108,7 @@ export const Header = ({ title, onMenuClick }: HeaderProps) => {
           <button
             type="button"
             disabled={isExamLockedDown}
-            title="Notifications"
+            title={uiText("Notifications")}
             className={cn("relative hidden sm:flex p-2.5 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all", isExamLockedDown && "opacity-50 cursor-not-allowed")}
           >
             <Bell size={20} />
@@ -137,7 +124,7 @@ export const Header = ({ title, onMenuClick }: HeaderProps) => {
             >
               <div className="text-right hidden sm:block min-w-0">
                 <p className="text-xs md:text-sm font-black text-slate-900 dark:text-white leading-tight truncate max-w-[120px] md:max-w-[180px] lg:max-w-[220px]">
-                  {user?.name || t('header.guest')}
+                  {(user?.name || t('header.guest'))}
                 </p>
                 <div className="flex items-center justify-end gap-1">
                   <p className="text-[10px] md:text-xs font-bold text-school-primary uppercase tracking-widest whitespace-nowrap">
@@ -177,17 +164,13 @@ export const Header = ({ title, onMenuClick }: HeaderProps) => {
                       onClick={() => { setIsMenuOpen(false); setShowCalendar(true); }}
                       className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
                     >
-                      <CalendarIcon size={15} />
-                      Calendar
-                    </button>
+                      <CalendarIcon size={15} />{uiText("Calendar")}</button>
                     <button
                       type="button"
                       className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all relative"
                     >
                       <Bell size={15} />
-                      <span className="absolute top-1.5 left-[calc(50%-6px)] w-2 h-2 bg-school-secondary rounded-full border border-white dark:border-slate-900" />
-                      Alerts
-                    </button>
+                      <span className="absolute top-1.5 left-[calc(50%-6px)] w-2 h-2 bg-school-secondary rounded-full border border-white dark:border-slate-900" />{uiText("Alerts")}</button>
                   </div>
 
                   <div className="p-2 border-t border-slate-100 dark:border-slate-800 space-y-1">
@@ -227,7 +210,7 @@ export const Header = ({ title, onMenuClick }: HeaderProps) => {
             <button
               type="button"
               onClick={() => setShowCalendar(false)}
-              title="Close calendar"
+              title={uiText("Close calendar")}
               className="absolute top-4 right-4 z-[110] p-2 bg-white dark:bg-slate-800 text-slate-500 hover:text-rose-500 rounded-xl shadow-md transition-all hover:scale-105 active:scale-95"
             >
               <X size={20} />

@@ -1,3 +1,4 @@
+import { uiError, uiText } from "../localization";
 import { X, FileText, Download, Upload, Loader2 } from 'lucide-react';
 import { useState, useRef } from 'react';
 import api from '../services/api';
@@ -66,7 +67,7 @@ export const StaffProfileModal = ({ open, title, staff, onClose, onRefresh }: St
       window.open(url, '_blank');
       setTimeout(() => URL.revokeObjectURL(url), 60000);
     } catch (err) {
-      alert('Failed to open document');
+      alert(uiText("Failed to open document"));
     }
   };
 
@@ -86,7 +87,7 @@ export const StaffProfileModal = ({ open, title, staff, onClose, onRefresh }: St
       document.body.removeChild(a);
       setTimeout(() => URL.revokeObjectURL(url), 10000);
     } catch (err) {
-      alert('Failed to download document');
+      alert(uiText("Failed to download document"));
     }
   };
 
@@ -95,17 +96,17 @@ export const StaffProfileModal = ({ open, title, staff, onClose, onRefresh }: St
     if (!file) return;
 
     if (file.size > 2 * 1024 * 1024) {
-      alert('File size exceeds the 2MB limit.');
+      alert(uiText("File size exceeds the 2MB limit."));
       return;
     }
 
     setUploading(true);
     try {
       await replaceUserDocument(resolvedUserId, file);
-      alert('Document replaced successfully!');
+      alert(uiText("Document replaced successfully!"));
       if (onRefresh) onRefresh();
     } catch (err: any) {
-      alert(err.response?.data?.error?.message || 'Failed to replace document');
+      alert(uiError(err.response?.data?.error?.message || 'Failed to replace document'));
     } finally {
       setUploading(false);
     }
@@ -116,8 +117,8 @@ export const StaffProfileModal = ({ open, title, staff, onClose, onRefresh }: St
       <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-md rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-800 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40">
           <div>
-            <h3 className="font-black text-slate-900 dark:text-white uppercase tracking-wide text-sm">{title}</h3>
-            <p className="text-xs text-slate-500">Detailed profile information</p>
+            <h3 className="font-black text-slate-900 dark:text-white uppercase tracking-wide text-sm">{uiText(title)}</h3>
+            <p className="text-xs text-slate-500">{uiText("Detailed profile information")}</p>
           </div>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">
             <X size={20} />
@@ -127,15 +128,15 @@ export const StaffProfileModal = ({ open, title, staff, onClose, onRefresh }: St
         <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
           {detailRows.map(([label, value]) => (
             <div key={label} className="rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/30 p-4">
-              <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">{label}</div>
-              <div className="mt-1 text-sm font-semibold text-slate-800 dark:text-slate-100 break-words">{formatValue(value)}</div>
+              <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">{uiText(label)}</div>
+              <div className="mt-1 text-sm font-semibold text-slate-800 dark:text-slate-100 break-words">{uiText(formatValue(value))}</div>
             </div>
           ))}
         </div>
 
         {/* Document Section */}
         <div className="mx-6 mb-6 p-4 rounded-xl border border-dashed border-slate-200 dark:border-slate-700 bg-slate-50/40 dark:bg-slate-800/20">
-          <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">Uploaded Document</div>
+          <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">{uiText("Uploaded Document")}</div>
           {staff.document_file_name ? (
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center gap-3">
@@ -144,10 +145,10 @@ export const StaffProfileModal = ({ open, title, staff, onClose, onRefresh }: St
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-bold text-slate-800 dark:text-slate-200 truncate">
-                    {staff.document_file_name}
+                    {uiText(staff.document_file_name)}
                   </p>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
-                    {staff.document_file_size ? `${(staff.document_file_size / (1024 * 1024)).toFixed(2)} MB` : ''}
+                    {uiText(staff.document_file_size ? `${(staff.document_file_size / (1024 * 1024)).toFixed(2)} MB` : '')}
                   </p>
                 </div>
               </div>
@@ -157,15 +158,13 @@ export const StaffProfileModal = ({ open, title, staff, onClose, onRefresh }: St
                   onClick={handleView}
                   className="px-3 py-1.5 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg text-xs font-bold flex items-center gap-1.5"
                 >
-                  <FileText size={14} /> View
-                </button>
+                  <FileText size={14} />{uiText(" View")}</button>
                 <button
                   type="button"
                   onClick={handleDownload}
                   className="px-3 py-1.5 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-xs font-bold flex items-center gap-1.5"
                 >
-                  <Download size={14} /> Download
-                </button>
+                  <Download size={14} />{uiText(" Download")}</button>
                 <button
                   type="button"
                   disabled={uploading}
@@ -174,19 +173,17 @@ export const StaffProfileModal = ({ open, title, staff, onClose, onRefresh }: St
                 >
                   {uploading ? (
                     <>
-                      <Loader2 className="animate-spin" size={14} /> Re-uploading...
-                    </>
+                      <Loader2 className="animate-spin" size={14} />{uiText(" Re-uploading...")}</>
                   ) : (
                     <>
-                      <Upload size={14} /> Re-upload/Edit
-                    </>
+                      <Upload size={14} />{uiText(" Re-upload/Edit")}</>
                   )}
                 </button>
               </div>
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-4 text-center">
-              <span className="text-xs text-slate-400 italic mb-2">No document uploaded yet</span>
+              <span className="text-xs text-slate-400 italic mb-2">{uiText("No document uploaded yet")}</span>
               <button
                 type="button"
                 disabled={uploading}
@@ -195,12 +192,10 @@ export const StaffProfileModal = ({ open, title, staff, onClose, onRefresh }: St
               >
                 {uploading ? (
                   <>
-                    <Loader2 className="animate-spin" size={14} /> Uploading...
-                  </>
+                    <Loader2 className="animate-spin" size={14} />{uiText(" Uploading...")}</>
                 ) : (
                   <>
-                    <Upload size={14} /> Upload Document
-                  </>
+                    <Upload size={14} />{uiText(" Upload Document")}</>
                 )}
               </button>
             </div>

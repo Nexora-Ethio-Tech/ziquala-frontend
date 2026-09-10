@@ -1,3 +1,4 @@
+import { uiText } from "../../../localization";
 import React from 'react';
 import { CheckCircle2, Circle } from 'lucide-react';
 import { ExamTimer } from './ExamTimer';
@@ -27,12 +28,11 @@ export const ExamProgress: React.FC<ExamProgressProps> = ({
       <div className="max-w-4xl mx-auto px-4 h-14 flex items-center gap-4">
         {/* Title + version */}
         <div className="flex-1 min-w-0 flex items-center gap-3">
-          <h1 className="text-sm font-black text-slate-800 dark:text-white truncate">{title}</h1>
-          {variationCode && (
-            <span className="flex-shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-[10px] font-black uppercase tracking-wider border border-indigo-200 dark:border-indigo-800">
-              Version {variationCode}
+          <h1 className="text-sm font-black text-slate-800 dark:text-white truncate">{uiText(title)}</h1>
+          {uiText(variationCode && (
+            <span className="flex-shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-[10px] font-black uppercase tracking-wider border border-indigo-200 dark:border-indigo-800">{uiText("Version ")}{uiText(variationCode)}
             </span>
-          )}
+          ))}
         </div>
 
         {/* Progress pill */}
@@ -43,7 +43,7 @@ export const ExamProgress: React.FC<ExamProgressProps> = ({
             <Circle size={14} className="text-slate-400" />
           )}
           <span className={`text-xs font-black ${allAnswered ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-300'}`}>
-            {answeredCount}/{totalQuestions}
+            {answeredCount}{uiText("/")}{totalQuestions}
           </span>
         </div>
 

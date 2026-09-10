@@ -1,3 +1,4 @@
+import { uiError, uiText } from "../localization";
 import { useState, useEffect } from 'react';
 import { Award, Edit2, X, Plus, TrendingUp, Trash2, Users, Save, Lock, Loader2, CheckCircle2 } from 'lucide-react';
 import * as teacherService from '../services/teacherService';
@@ -54,7 +55,7 @@ export const TeacherGrades = () => {
   const [selectedGrade, setSelectedGrade] = useState<Grade | null>(null);
   const [bulkGrades, setBulkGrades] = useState<Record<string, { score: number; total: number }>>({});
   const [submittingLock, setSubmittingLock] = useState<Record<string, boolean>>({});
-  
+
   const [formData, setFormData] = useState({
     studentId: '',
     courseId: '',
@@ -100,7 +101,7 @@ export const TeacherGrades = () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const courseObj = courses.find(c => c.id === selectedCourse);
       if (!courseObj) return;
 
@@ -117,12 +118,12 @@ export const TeacherGrades = () => {
       const gradeLvl = courseObj.gradeLevel ? courseObj.gradeLevel.replace(/\D/g, '') : 'default';
       const configs = await teacherService.getGradingConfigsForGrade(gradeLvl || 'default');
       setGradingConfigs(configs || []);
-      
+
       if (configs.length > 0 && !formData.type) {
-        setFormData(prev => ({ 
-          ...prev, 
-          type: configs[0].id, 
-          weight: String(configs[0].maxWeight) 
+        setFormData(prev => ({
+          ...prev,
+          type: configs[0].id,
+          weight: String(configs[0].maxWeight)
         }));
       }
 
@@ -136,7 +137,7 @@ export const TeacherGrades = () => {
       setStudents(transformedStudents);
     } catch (err: any) {
       console.error('Failed to fetch grades:', err);
-      setError(err.response?.data?.error?.message || 'Failed to load grades');
+      setError(uiError(err.response?.data?.error?.message || 'Failed to load grades'));
       setGrades([]);
       setStudents([]);
     } finally {
@@ -157,7 +158,7 @@ export const TeacherGrades = () => {
   const handleSubmitGrade = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isComponentLocked(formData.type)) {
-      alert('This assessment type has been submitted and locked.');
+      alert(uiText("This assessment type has been submitted and locked."));
       return;
     }
     const config = gradingConfigs.find(c => c.id === formData.type);
@@ -172,13 +173,13 @@ export const TeacherGrades = () => {
       fetchGrades();
     } catch (err: any) {
       const errorMsg = err.response?.data?.error?.message || 'Failed to submit grade';
-      alert(errorMsg);
+      alert(uiError(errorMsg));
     }
   };
 
   const handleBulkSubmit = async () => {
     if (isComponentLocked(formData.type)) {
-      alert('This assessment type has been submitted and locked.');
+      alert(uiText("This assessment type has been submitted and locked."));
       return;
     }
     try {
@@ -193,7 +194,7 @@ export const TeacherGrades = () => {
         }));
 
       if (gradesArray.length === 0) {
-        alert('Please enter at least one grade');
+        alert(uiText("Please enter at least one grade"));
         return;
       }
 
@@ -213,13 +214,13 @@ export const TeacherGrades = () => {
         semester,
         grades: gradesArray,
       });
-      
+
       setShowBulkModal(false);
       setBulkGrades({});
       fetchGrades();
     } catch (err: any) {
       const errorMsg = err.response?.data?.error?.message || 'Failed to submit grades';
-      alert(errorMsg);
+      alert(uiError(errorMsg));
     }
   };
 
@@ -227,7 +228,7 @@ export const TeacherGrades = () => {
     e.preventDefault();
     if (!selectedGrade) return;
     if (isComponentLocked(formData.type)) {
-      alert('This assessment type has been submitted and locked.');
+      alert(uiText("This assessment type has been submitted and locked."));
       return;
     }
     try {
@@ -242,40 +243,40 @@ export const TeacherGrades = () => {
       fetchGrades();
     } catch (err: any) {
       const errorMsg = err.response?.data?.error?.message || 'Failed to update grade';
-      alert(errorMsg);
+      alert(uiError(errorMsg));
     }
   };
 
   const handleDeleteGrade = async (gradeId: string) => {
     const grade = grades.find(g => g.id === gradeId);
     if (grade && isComponentLocked(grade.type)) {
-      alert('This grade is submitted and locked, and cannot be deleted.');
+      alert(uiText("This grade is submitted and locked, and cannot be deleted."));
       return;
     }
-    if (!confirm('Are you sure you want to delete this grade?')) return;
+    if (!confirm(uiText("Are you sure you want to delete this grade?"))) return;
     try {
       await teacherService.deleteGrade(gradeId);
       fetchGrades();
     } catch (err: any) {
       const errorMsg = err.response?.data?.error?.message || 'Failed to delete grade';
-      alert(errorMsg);
+      alert(uiError(errorMsg));
     }
   };
 
   const handleSubmitComponentGrades = async (typeId: string) => {
     const config = gradingConfigs.find(c => c.id === typeId);
     const label = config ? config.label : typeId;
-    if (!confirm(`Are you sure you want to submit and lock all grades for "${label}"? This action cannot be undone.`)) {
+    if (!confirm(uiText("Are you sure you want to submit and lock all grades for \"{{value0}}\"? This action cannot be undone.", { value0: label }))) {
       return;
     }
 
     setSubmittingLock(prev => ({ ...prev, [typeId]: true }));
     try {
       await teacherService.submitCourseGrades(selectedCourse, typeId, { academicYear, semester });
-      alert('Grades locked and submitted successfully!');
+      alert(uiText("Grades locked and submitted successfully!"));
       fetchGrades();
     } catch (err: any) {
-      alert(err.response?.data?.error?.message || 'Failed to submit grades');
+      alert(uiError(err.response?.data?.error?.message || 'Failed to submit grades'));
     } finally {
       setSubmittingLock(prev => ({ ...prev, [typeId]: false }));
     }
@@ -323,8 +324,8 @@ export const TeacherGrades = () => {
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Grade Management</h1>
-          <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px] mt-1">Enter, review, and lock student scores</p>
+          <h1 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight">{uiText("Grade Management")}</h1>
+          <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px] mt-1">{uiText("Enter, review, and lock student scores")}</p>
         </div>
         <div className="flex gap-3">
           <button
@@ -335,9 +336,7 @@ export const TeacherGrades = () => {
             disabled={students.length === 0}
             className="flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-xl font-bold hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed text-xs uppercase tracking-widest"
           >
-            <Users className="w-4 h-4" />
-            Bulk Entry
-          </button>
+            <Users className="w-4 h-4" />{uiText("Bulk Entry")}</button>
           <button
             onClick={() => {
               resetForm();
@@ -345,21 +344,19 @@ export const TeacherGrades = () => {
             }}
             className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 text-xs uppercase tracking-widest"
           >
-            <Plus className="w-4 h-4" />
-            Add Grade
-          </button>
+            <Plus className="w-4 h-4" />{uiText("Add Grade")}</button>
         </div>
       </div>
 
-      {error && (
+      {uiText(error && (
         <div className="p-4 bg-rose-50 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/50 rounded-xl text-rose-700 dark:text-rose-400 font-medium">
-          {error}
+          {uiError(error)}
         </div>
-      )}
+      ))}
 
       {/* Select Course */}
       <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-xl p-6">
-        <label htmlFor="courseSelect" className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Select Course</label>
+        <label htmlFor="courseSelect" className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">{uiText("Select Course")}</label>
         <select
           id="courseSelect"
           value={selectedCourse}
@@ -371,7 +368,7 @@ export const TeacherGrades = () => {
         >
           {courses.map((course) => (
             <option key={course.id} value={course.id}>
-              {course.name} ({course.code}) - {course.gradeLevel}
+              {course.name}{uiText(" (")}{uiText(course.code)}{uiText(") - ")}{uiText(course.gradeLevel)}
             </option>
           ))}
         </select>
@@ -380,20 +377,19 @@ export const TeacherGrades = () => {
       {/* Grading Components & Lock Status */}
       {gradingConfigs.length > 0 && (
         <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-xl p-6">
-          <h2 className="text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-4">Assessment Components & Locking</h2>
+          <h2 className="text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-4">{uiText("Assessment Components & Locking")}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             {gradingConfigs.map((config) => {
               const locked = isComponentLocked(config.id);
               return (
                 <div key={config.id} className="flex flex-col justify-between p-4 bg-slate-50 dark:bg-slate-850 rounded-2xl border border-slate-100 dark:border-slate-800">
                   <div className="mb-3">
-                    <p className="text-sm font-black text-slate-800 dark:text-slate-200">{config.label}</p>
-                    <p className="text-xs text-slate-500">Max Weight: {config.maxWeight}%</p>
+                    <p className="text-sm font-black text-slate-800 dark:text-slate-200">{uiText(config.label)}</p>
+                    <p className="text-xs text-slate-500">{uiText("Max Weight: ")}{config.maxWeight}{uiText("%")}</p>
                   </div>
                   {locked ? (
                     <span className="w-full py-2 bg-emerald-100 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400 rounded-xl text-center text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-1.5 border border-emerald-200/50">
-                      <Lock size={12} /> Locked
-                    </span>
+                      <Lock size={12} />{uiText(" Locked")}</span>
                   ) : (
                     <button
                       type="button"
@@ -401,7 +397,7 @@ export const TeacherGrades = () => {
                       onClick={() => handleSubmitComponentGrades(config.id)}
                       className="w-full py-2 bg-blue-600 hover:bg-blue-750 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all disabled:opacity-50"
                     >
-                      {submittingLock[config.id] ? 'Submitting...' : 'Submit & Lock'}
+                      {uiText(submittingLock[config.id] ? 'Submitting...' : 'Submit & Lock')}
                     </button>
                   )}
                 </div>
@@ -417,18 +413,18 @@ export const TeacherGrades = () => {
           <table className="w-full text-left">
             <thead>
               <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
-                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Student</th>
-                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">ID</th>
+                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">{uiText("Student")}</th>
+                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">{uiText("ID")}</th>
                 {gradingConfigs.map(config => (
-                  <th key={config.id} className="px-6 py-4 text-center text-[10px] font-black uppercase tracking-widest text-slate-400">{config.label}</th>
+                  <th key={config.id} className="px-6 py-4 text-center text-[10px] font-black uppercase tracking-widest text-slate-400">{uiText(config.label)}</th>
                 ))}
-                <th className="px-6 py-4 text-center text-[10px] font-black uppercase tracking-widest text-slate-400">Weighted Avg</th>
+                <th className="px-6 py-4 text-center text-[10px] font-black uppercase tracking-widest text-slate-400">{uiText("Weighted Avg")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
               {students.length === 0 ? (
                 <tr>
-                  <td colSpan={3 + gradingConfigs.length} className="px-6 py-12 text-center text-slate-500">No students in this class.</td>
+                  <td colSpan={3 + gradingConfigs.length} className="px-6 py-12 text-center text-slate-500">{uiText("No students in this class.")}</td>
                 </tr>
               ) : (
                 students.map((student) => {
@@ -451,27 +447,27 @@ export const TeacherGrades = () => {
                         {grade ? (
                           <div className="flex items-center justify-center gap-2">
                             <span className="text-sm font-bold text-slate-800 dark:text-slate-100">
-                              {grade.score} / {grade.total}
+                              {grade.score}{uiText(" / ")}{grade.total}
                             </span>
                             {!locked ? (
                               <div className="flex gap-1 opacity-0 hover:opacity-100 group-hover:opacity-100 transition-opacity">
                                 <button
                                   onClick={() => openEditModal(grade)}
                                   className="text-slate-400 hover:text-blue-600 p-0.5"
-                                  title="Edit"
+                                  title={uiText("Edit")}
                                 >
                                   <Edit2 className="w-3.5 h-3.5" />
                                 </button>
                                 <button
                                   onClick={() => handleDeleteGrade(grade.id)}
                                   className="text-slate-400 hover:text-rose-600 p-0.5"
-                                  title="Delete"
+                                  title={uiText("Delete")}
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />
                                 </button>
                               </div>
                             ) : (
-                              <span className="text-emerald-600 text-xs font-bold" title="Locked">🔒</span>
+                              <span className="text-emerald-600 text-xs font-bold" title={uiText("Locked")}>{uiText("🔒")}</span>
                             )}
                           </div>
                         ) : (
@@ -489,18 +485,16 @@ export const TeacherGrades = () => {
                                 setShowAddModal(true);
                               }}
                               className="text-blue-600 hover:underline text-xs font-bold"
-                            >
-                              + Add
-                            </button>
+                            >{uiText("+ Add")}</button>
                           ) : (
-                            <span className="text-slate-400 text-xs">—</span>
+                            <span className="text-slate-400 text-xs">{uiText("—")}</span>
                           )
                         )}
                       </td>
                     );
                   });
 
-                  const weightedAverage = totalWeightPossible > 0 
+                  const weightedAverage = totalWeightPossible > 0
                     ? ((totalWeighted / (totalWeightPossible / 100))).toFixed(1) + '%'
                     : '—';
 
@@ -509,17 +503,17 @@ export const TeacherGrades = () => {
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center text-slate-600 dark:text-slate-350 font-bold text-sm">
-                            {student.name.split(' ').map(n => n[0]).join('')}
+                            {uiText(student.name.split(' ').map(n => n[0]).join(''))}
                           </div>
                           <span className="text-sm font-bold text-slate-800 dark:text-slate-200">{student.name}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-xs font-mono text-slate-500">{student.digitalId}</td>
+                      <td className="px-6 py-4 text-xs font-mono text-slate-500">{uiText(student.digitalId)}</td>
                       {columns}
                       <td className="px-6 py-4 text-center">
                         <div className="flex items-center justify-center gap-1.5">
                           <TrendingUp className="w-4 h-4 text-emerald-500" />
-                          <span className="text-sm font-black text-slate-800 dark:text-slate-100">{weightedAverage}</span>
+                          <span className="text-sm font-black text-slate-800 dark:text-slate-100">{uiText(weightedAverage)}</span>
                         </div>
                       </td>
                     </tr>
@@ -536,14 +530,14 @@ export const TeacherGrades = () => {
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl border border-slate-100 dark:border-slate-800 w-full max-w-md p-6 space-y-4">
             <div className="flex justify-between items-center border-b border-slate-150 dark:border-slate-800 pb-3">
-              <h2 className="text-lg font-black text-slate-950 dark:text-white uppercase tracking-tight">Enter Score</h2>
-              <button type="button" aria-label="Close" onClick={() => setShowAddModal(false)}>
+              <h2 className="text-lg font-black text-slate-950 dark:text-white uppercase tracking-tight">{uiText("Enter Score")}</h2>
+              <button type="button" aria-label={uiText("Close")} onClick={() => setShowAddModal(false)}>
                 <X className="w-5 h-5 text-slate-400" />
               </button>
             </div>
             <form onSubmit={handleSubmitGrade} className="space-y-4">
               <div>
-                <label htmlFor="modalStudent" className="text-xs font-bold text-slate-500 uppercase">Student *</label>
+                <label htmlFor="modalStudent" className="text-xs font-bold text-slate-500 uppercase">{uiText("Student *")}</label>
                 <select
                   id="modalStudent"
                   required
@@ -551,24 +545,23 @@ export const TeacherGrades = () => {
                   onChange={(e) => setFormData({ ...formData, studentId: e.target.value })}
                   className="w-full mt-1 px-4 py-2 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 rounded-lg text-sm"
                 >
-                  <option value="">Select Student</option>
+                  <option value="">{uiText("Select Student")}</option>
                   {students.map((student) => (
                     <option key={student.id} value={student.id}>
-                      {student.name} ({student.digitalId})
-                    </option>
+                      {student.name}{uiText(" (")}{uiText(student.digitalId)}{uiText(")")}</option>
                   ))}
                 </select>
               </div>
               <div>
-                <label htmlFor="modalType" className="text-xs font-bold text-slate-500 uppercase">Assessment Type *</label>
+                <label htmlFor="modalType" className="text-xs font-bold text-slate-500 uppercase">{uiText("Assessment Type *")}</label>
                 <select
                   id="modalType"
                   required
                   value={formData.type}
                   onChange={(e) => {
                     const matched = gradingConfigs.find(c => c.id === e.target.value);
-                    setFormData({ 
-                      ...formData, 
+                    setFormData({
+                      ...formData,
                       type: e.target.value,
                       weight: matched ? String(matched.maxWeight) : formData.weight
                     });
@@ -576,13 +569,13 @@ export const TeacherGrades = () => {
                   className="w-full mt-1 px-4 py-2 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 rounded-lg text-sm"
                 >
                   {gradingConfigs.map(config => (
-                    <option key={config.id} value={config.id}>{config.label} ({config.maxWeight}%)</option>
+                    <option key={config.id} value={config.id}>{uiText(config.label)}{uiText(" (")}{config.maxWeight}{uiText("%)")}</option>
                   ))}
                 </select>
               </div>
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <label htmlFor="modalScore" className="text-xs font-bold text-slate-500 uppercase">Score *</label>
+                  <label htmlFor="modalScore" className="text-xs font-bold text-slate-500 uppercase">{uiText("Score *")}</label>
                   <input
                     id="modalScore"
                     type="number"
@@ -594,7 +587,7 @@ export const TeacherGrades = () => {
                   />
                 </div>
                 <div>
-                  <label htmlFor="modalTotal" className="text-xs font-bold text-slate-500 uppercase">Out Of *</label>
+                  <label htmlFor="modalTotal" className="text-xs font-bold text-slate-500 uppercase">{uiText("Out Of *")}</label>
                   <input
                     id="modalTotal"
                     type="number"
@@ -606,7 +599,7 @@ export const TeacherGrades = () => {
                   />
                 </div>
                 <div>
-                  <label htmlFor="modalWeight" className="text-xs font-bold text-slate-500 uppercase">Weight % *</label>
+                  <label htmlFor="modalWeight" className="text-xs font-bold text-slate-500 uppercase">{uiText("Weight % *")}</label>
                   <input
                     id="modalWeight"
                     type="number"
@@ -624,15 +617,11 @@ export const TeacherGrades = () => {
                   type="button"
                   onClick={() => setShowAddModal(false)}
                   className="flex-1 px-4 py-2 border border-slate-200 rounded-lg text-slate-500 hover:bg-slate-50 text-sm font-bold"
-                >
-                  Cancel
-                </button>
+                >{uiText("Cancel")}</button>
                 <button
                   type="submit"
                   className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-bold"
-                >
-                  Save Score
-                </button>
+                >{uiText("Save Score")}</button>
               </div>
             </form>
           </div>
@@ -644,19 +633,19 @@ export const TeacherGrades = () => {
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl border border-slate-100 dark:border-slate-800 w-full max-w-md p-6 space-y-4">
             <div className="flex justify-between items-center border-b border-slate-150 dark:border-slate-800 pb-3">
-              <h2 className="text-lg font-black text-slate-950 dark:text-white uppercase tracking-tight">Edit Score</h2>
-              <button type="button" aria-label="Close edit" onClick={() => setShowEditModal(false)}>
+              <h2 className="text-lg font-black text-slate-950 dark:text-white uppercase tracking-tight">{uiText("Edit Score")}</h2>
+              <button type="button" aria-label={uiText("Close edit")} onClick={() => setShowEditModal(false)}>
                 <X className="w-5 h-5 text-slate-400" />
               </button>
             </div>
             <form onSubmit={handleUpdateGrade} className="space-y-4">
               <div className="p-3.5 bg-slate-50 dark:bg-slate-800 rounded-xl text-xs space-y-1">
-                <p className="text-slate-500 uppercase font-bold tracking-wider">Student: <span className="text-slate-900 dark:text-slate-200 font-black">{selectedGrade.student_name}</span></p>
-                <p className="text-slate-500 uppercase font-bold tracking-wider">Assessment: <span className="text-slate-900 dark:text-slate-200 font-black">{selectedGrade.type}</span></p>
+                <p className="text-slate-500 uppercase font-bold tracking-wider">{uiText("Student: ")}<span className="text-slate-900 dark:text-slate-200 font-black">{uiText(selectedGrade.student_name)}</span></p>
+                <p className="text-slate-500 uppercase font-bold tracking-wider">{uiText("Assessment: ")}<span className="text-slate-900 dark:text-slate-200 font-black">{uiText(selectedGrade.type)}</span></p>
               </div>
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <label htmlFor="editScore" className="text-xs font-bold text-slate-500 uppercase">Score *</label>
+                  <label htmlFor="editScore" className="text-xs font-bold text-slate-500 uppercase">{uiText("Score *")}</label>
                   <input
                     id="editScore"
                     type="number"
@@ -668,7 +657,7 @@ export const TeacherGrades = () => {
                   />
                 </div>
                 <div>
-                  <label htmlFor="editTotal" className="text-xs font-bold text-slate-500 uppercase">Out Of *</label>
+                  <label htmlFor="editTotal" className="text-xs font-bold text-slate-500 uppercase">{uiText("Out Of *")}</label>
                   <input
                     id="editTotal"
                     type="number"
@@ -680,7 +669,7 @@ export const TeacherGrades = () => {
                   />
                 </div>
                 <div>
-                  <label htmlFor="editWeight" className="text-xs font-bold text-slate-500 uppercase">Weight % *</label>
+                  <label htmlFor="editWeight" className="text-xs font-bold text-slate-500 uppercase">{uiText("Weight % *")}</label>
                   <input
                     id="editWeight"
                     type="number"
@@ -698,15 +687,11 @@ export const TeacherGrades = () => {
                   type="button"
                   onClick={() => setShowEditModal(false)}
                   className="flex-1 px-4 py-2 border border-slate-200 rounded-lg text-slate-500 hover:bg-slate-50 text-sm font-bold"
-                >
-                  Cancel
-                </button>
+                >{uiText("Cancel")}</button>
                 <button
                   type="submit"
                   className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-bold"
-                >
-                  Update Score
-                </button>
+                >{uiText("Update Score")}</button>
               </div>
             </form>
           </div>
@@ -719,24 +704,24 @@ export const TeacherGrades = () => {
           <div className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl border border-slate-100 dark:border-slate-800 w-full max-w-3xl p-6 flex flex-col max-h-[90vh]">
             <div className="flex justify-between items-center border-b border-slate-150 dark:border-slate-800 pb-3 mb-4">
               <div>
-                <h2 className="text-lg font-black text-slate-950 dark:text-white uppercase tracking-tight">Bulk Grade Entry</h2>
-                <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">Enter grades for the whole class roster at once</p>
+                <h2 className="text-lg font-black text-slate-950 dark:text-white uppercase tracking-tight">{uiText("Bulk Grade Entry")}</h2>
+                <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">{uiText("Enter grades for the whole class roster at once")}</p>
               </div>
-              <button type="button" aria-label="Close bulk" onClick={() => { setShowBulkModal(false); setBulkGrades({}); }}>
+              <button type="button" aria-label={uiText("Close bulk")} onClick={() => { setShowBulkModal(false); setBulkGrades({}); }}>
                 <X className="w-5 h-5 text-slate-400" />
               </button>
             </div>
 
             <div className="grid grid-cols-3 gap-4 p-4 bg-purple-50 dark:bg-purple-950/20 border border-purple-100 dark:border-purple-900/50 rounded-2xl mb-4 text-sm">
               <div>
-                <label htmlFor="bulkType" className="text-xs font-bold text-purple-750 dark:text-purple-300 uppercase">Assessment Type *</label>
+                <label htmlFor="bulkType" className="text-xs font-bold text-purple-750 dark:text-purple-300 uppercase">{uiText("Assessment Type *")}</label>
                 <select
                   id="bulkType"
                   value={formData.type}
                   onChange={(e) => {
                     const matched = gradingConfigs.find(c => c.id === e.target.value);
-                    setFormData({ 
-                      ...formData, 
+                    setFormData({
+                      ...formData,
                       type: e.target.value,
                       weight: matched ? String(matched.maxWeight) : formData.weight
                     });
@@ -744,12 +729,12 @@ export const TeacherGrades = () => {
                   className="w-full mt-1 px-4 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-850 rounded-lg text-sm"
                 >
                   {gradingConfigs.map(config => (
-                    <option key={config.id} value={config.id}>{config.label} ({config.maxWeight}%)</option>
+                    <option key={config.id} value={config.id}>{uiText(config.label)}{uiText(" (")}{config.maxWeight}{uiText("%)")}</option>
                   ))}
                 </select>
               </div>
               <div>
-                <label htmlFor="bulkTotal" className="text-xs font-bold text-purple-750 dark:text-purple-300 uppercase">Total Marks *</label>
+                <label htmlFor="bulkTotal" className="text-xs font-bold text-purple-750 dark:text-purple-300 uppercase">{uiText("Total Marks *")}</label>
                 <input
                   id="bulkTotal"
                   type="number"
@@ -760,7 +745,7 @@ export const TeacherGrades = () => {
                 />
               </div>
               <div>
-                <label htmlFor="bulkWeight" className="text-xs font-bold text-purple-750 dark:text-purple-300 uppercase">Weight % *</label>
+                <label htmlFor="bulkWeight" className="text-xs font-bold text-purple-750 dark:text-purple-300 uppercase">{uiText("Weight % *")}</label>
                 <input
                   id="bulkWeight"
                   type="number"
@@ -778,14 +763,14 @@ export const TeacherGrades = () => {
                 <div key={student.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-850 rounded-xl hover:bg-slate-100 transition-colors">
                   <div>
                     <p className="text-sm font-bold text-slate-800 dark:text-slate-200">{student.name}</p>
-                    <p className="text-xs text-slate-500 font-mono">{student.digitalId}</p>
+                    <p className="text-xs text-slate-500 font-mono">{uiText(student.digitalId)}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <input
                       type="number"
                       min="0"
                       max={formData.total}
-                      placeholder="Score"
+                      placeholder={uiText("Score")}
                       value={bulkGrades[student.id]?.score !== undefined ? bulkGrades[student.id].score : ''}
                       onChange={(e) => {
                         const val = e.target.value === '' ? undefined : Number(e.target.value);
@@ -796,7 +781,7 @@ export const TeacherGrades = () => {
                       }}
                       className="w-20 px-3 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 rounded-lg text-center font-bold text-sm"
                     />
-                    <span className="text-xs text-slate-400 font-bold">/ {formData.total}</span>
+                    <span className="text-xs text-slate-400 font-bold">{uiText("/ ")}{formData.total}</span>
                   </div>
                 </div>
               ))}
@@ -807,16 +792,12 @@ export const TeacherGrades = () => {
                 type="button"
                 onClick={() => { setShowBulkModal(false); setBulkGrades({}); }}
                 className="flex-1 px-4 py-2 border border-slate-200 rounded-lg text-slate-500 hover:bg-slate-50 text-sm font-bold"
-              >
-                Cancel
-              </button>
+              >{uiText("Cancel")}</button>
               <button
                 onClick={handleBulkSubmit}
                 className="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-750 text-white rounded-lg text-sm font-bold flex items-center justify-center gap-2 shadow-lg shadow-purple-500/20"
               >
-                <Save size={16} />
-                Save All Grades
-              </button>
+                <Save size={16} />{uiText("Save All Grades")}</button>
             </div>
           </div>
         </div>

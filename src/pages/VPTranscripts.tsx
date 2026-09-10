@@ -1,3 +1,4 @@
+import { uiError, uiText } from "../localization";
 import { useTranslation } from 'react-i18next';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AlertCircle, ChevronRight, ChevronDown, Download, FileText, Loader2, Printer, Search, Users, X } from 'lucide-react';
@@ -112,7 +113,7 @@ export const VPTranscripts = () => {
         setGradeGroups(groups || []);
       } catch (err: any) {
         console.error('Failed to load grade hierarchy:', err);
-        setError(err.response?.data?.error?.message || 'Failed to load grades and sections');
+        setError(uiError(err.response?.data?.error?.message || 'Failed to load grades and sections'));
       } finally {
         setLoadingHierarchy(false);
       }
@@ -154,7 +155,7 @@ export const VPTranscripts = () => {
         setSectionStudents(students || []);
       } catch (err: any) {
         console.error('Failed to load section students:', err);
-        setError(err.response?.data?.error?.message || 'Failed to load section students');
+        setError(uiError(err.response?.data?.error?.message || 'Failed to load section students'));
         setSectionStudents([]);
       } finally {
         setLoadingSectionStudents(false);
@@ -235,7 +236,7 @@ export const VPTranscripts = () => {
 
       const rawCourses = transcript.courses || [];
       // Sort ALPHABETICALLY
-      const sortedCourses = [...rawCourses].sort((a, b) => 
+      const sortedCourses = [...rawCourses].sort((a, b) =>
         (a.courseName || '').localeCompare(b.courseName || '')
       );
 
@@ -373,16 +374,16 @@ export const VPTranscripts = () => {
                 placeholder={t("vp.searchStudentPlaceholder", "Search student by name or ID")}
                 className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-12 text-sm font-medium outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-800"
               />
-              {searchQuery && (
+              {uiText(searchQuery && (
                 <button
                   type="button"
                   onClick={() => setSearchQuery('')}
-                  aria-label="Clear search query"
+                  aria-label={uiText("Clear search query")}
                   className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-700 dark:hover:bg-slate-700 dark:hover:text-slate-200"
                 >
                   <X size={14} />
                 </button>
-              )}
+              ))}
             </div>
 
             <button
@@ -391,7 +392,7 @@ export const VPTranscripts = () => {
               className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white transition hover:bg-blue-700 disabled:opacity-50"
             >
               {searching ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />}
-              {searching ? t('vp.searching', 'Searching...') : t('vp.search', 'Search')}
+              {uiText(searching ? t('vp.searching', 'Searching...') : t('vp.search', 'Search'))}
             </button>
 
             {searchResults.length > 0 && (
@@ -406,7 +407,7 @@ export const VPTranscripts = () => {
                     <div>
                       <p className="font-bold text-slate-800 dark:text-slate-100">{student.name}</p>
                       <p className="text-xs text-slate-500 dark:text-slate-400">
-                        {student.digitalId || student.id} · {student.grade} · {student.section}
+                        {uiText(student.digitalId || student.id)}{uiText(" · ")}{uiText(student.grade)}{uiText(" · ")}{uiText(student.section)}
                       </p>
                     </div>
                     <ChevronRight size={16} className="text-slate-400" />
@@ -449,8 +450,7 @@ export const VPTranscripts = () => {
                         const ecYear = gregorianToECYear(year);
                         return (
                           <option key={year} value={year}>
-                            {ecYear} E.C. ({year})
-                          </option>
+                            {ecYear}{uiText(" E.C. (")}{uiText(year)}{uiText(")")}</option>
                         );
                       })}
                     </select>
@@ -495,13 +495,13 @@ export const VPTranscripts = () => {
                           }
                         }
                       }}
-                      title="Select a grade level"
+                      title={uiText("Select a grade level")}
                       className="w-full appearance-none px-4 py-3 bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-800 dark:text-white outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all cursor-pointer pr-10"
                     >
                       <option value="">{t('vp.selectGrade', 'Select Grade')}</option>
                       {gradeGroups.map((group, idx) => (
                         <option key={group.grade_name || idx} value={group.grade_name}>
-                          {group.grade_name}
+                          {uiText(group.grade_name)}
                         </option>
                       ))}
                     </select>
@@ -519,20 +519,19 @@ export const VPTranscripts = () => {
                       value={selectedSection}
                       onChange={(e) => setSelectedSection(e.target.value)}
                       disabled={!selectedGrade}
-                      title="Select a section (choose a grade first)"
+                      title={uiText("Select a section (choose a grade first)")}
                       className="w-full appearance-none px-4 py-3 bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-800 dark:text-white outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all cursor-pointer pr-10 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <option value="">
-                        {selectedGrade ? t('vp.selectSection', 'Select Section') : t('vp.chooseGradeFirst', 'Choose Grade First')}
+                        {uiText(selectedGrade ? t('vp.selectSection', 'Select Section') : t('vp.chooseGradeFirst', 'Choose Grade First'))}
                       </option>
-                      {selectedGrade &&
+                      {uiText(selectedGrade &&
                         gradeGroups
                           .find((g) => g.grade_name === selectedGrade)
                           ?.sections?.map((section, idx) => (
                             <option key={section.id || idx} value={section.id}>
-                              {section.section_name} ({section.student_count}/{section.capacity})
-                            </option>
-                          ))}
+                              {uiText(section.section_name)}{uiText(" (")}{section.student_count}{uiText("/")}{section.capacity}{uiText(")")}</option>
+                          )))}
                     </select>
                     <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                   </div>
@@ -547,9 +546,9 @@ export const VPTranscripts = () => {
                 <Users size={18} className="text-emerald-600" />
                 <h2 className="text-sm font-black uppercase tracking-[0.2em] text-slate-700 dark:text-slate-200">{t("vp.students", "Students")}</h2>
               </div>
-              {selectedSection && (
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">{selectedSection}</span>
-              )}
+              {uiText(selectedSection && (
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">{uiText(selectedSection)}</span>
+              ))}
             </div>
 
             {loadingSectionStudents ? (
@@ -571,7 +570,7 @@ export const VPTranscripts = () => {
                   >
                     <div>
                       <p className="font-bold text-slate-800 dark:text-slate-100">{student.name}</p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">{student.digitalId || student.id}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">{uiText(student.digitalId || student.id)}</p>
                     </div>
                     <ChevronRight size={16} className="text-slate-400" />
                   </button>
@@ -581,14 +580,14 @@ export const VPTranscripts = () => {
           </div>
         </div>
         <div className="space-y-4">
-          {error && (
+          {uiText(error && (
             <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-medium text-rose-700 dark:border-rose-900/40 dark:bg-rose-950/20 dark:text-rose-300">
               <div className="flex items-start gap-3">
                 <AlertCircle size={18} className="mt-0.5 shrink-0" />
-                <p>{error}</p>
+                <p>{uiError(error)}</p>
               </div>
             </div>
-          )}
+          ))}
           {!templateData ? (
             <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center text-slate-500 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400">
               <FileText className="mx-auto mb-4 h-16 w-16 text-slate-400" />

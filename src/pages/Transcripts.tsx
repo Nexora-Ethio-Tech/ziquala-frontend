@@ -1,3 +1,4 @@
+import { uiText } from "../localization";
 
 import { useState } from 'react';
 import { useUser } from '../context/UserContext';
@@ -18,7 +19,7 @@ export const Transcripts = () => {
   const canManage = role === 'vice-principal' || role === 'super-admin';
 
   if (!canManage) {
-    return <div className="p-8 text-center font-bold text-rose-600">Access Denied</div>;
+    return <div className="p-8 text-center font-bold text-rose-600">{uiText("Access Denied")}</div>;
   }
 
   const filteredStudents = mockStudents.filter(s => {
@@ -60,7 +61,7 @@ export const Transcripts = () => {
 
   const exportCSV = () => {
     if (Object.keys(calculatedRanks).length === 0) {
-      alert("Please calculate grades first.");
+      alert(uiText("Please calculate grades first."));
       return;
     }
 
@@ -92,29 +93,23 @@ export const Transcripts = () => {
           onClick={() => navigate(-1)}
           className="flex items-center gap-1 text-blue-600 hover:underline text-xs font-bold uppercase tracking-widest"
         >
-          <ArrowLeft size={14} />
-          Back
-        </button>
+          <ArrowLeft size={14} />{uiText("Back")}</button>
       </div>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight uppercase">Transcript Management</h2>
-          <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Generate and manage student academic transcripts.</p>
+          <h2 className="text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight uppercase">{uiText("Transcript Management")}</h2>
+          <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">{uiText("Generate and manage student academic transcripts.")}</p>
         </div>
 
         <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-inner">
           <button
             onClick={() => setPhase('Semester 1')}
             className={`px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${phase === 'Semester 1' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'}`}
-          >
-            Semester 1
-          </button>
+          >{uiText("Semester 1")}</button>
           <button
             onClick={() => setPhase('Final')}
             className={`px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${phase === 'Final' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'}`}
-          >
-            Final Year-End
-          </button>
+          >{uiText("Final Year-End")}</button>
         </div>
       </div>
 
@@ -125,8 +120,8 @@ export const Transcripts = () => {
               <Award size={20} />
             </div>
             <div>
-              <h3 className="font-bold text-slate-800 dark:text-slate-200 text-sm">School Closing Process</h3>
-              <p className="text-[10px] text-slate-500 font-medium">Compute end-of-year statistics, averages, and generate ranks for students.</p>
+              <h3 className="font-bold text-slate-800 dark:text-slate-200 text-sm">{uiText("School Closing Process")}</h3>
+              <p className="text-[10px] text-slate-500 font-medium">{uiText("Compute end-of-year statistics, averages, and generate ranks for students.")}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -135,16 +130,12 @@ export const Transcripts = () => {
               disabled={isCalculating}
               className="flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-amber-500/20 active:scale-95 disabled:opacity-50"
             >
-              {isCalculating ? <Loader2 size={16} className="animate-spin" /> : <Calculator size={16} />}
-              Calculate Ranks
-            </button>
+              {isCalculating ? <Loader2 size={16} className="animate-spin" /> : <Calculator size={16} />}{uiText("Calculate Ranks")}</button>
             <button
               onClick={exportCSV}
               className="flex items-center gap-2 bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 text-white px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-slate-900/20 active:scale-95"
             >
-              <Download size={16} />
-              Export CSV
-            </button>
+              <Download size={16} />{uiText("Export CSV")}</button>
           </div>
         </div>
       )}
@@ -154,14 +145,14 @@ export const Transcripts = () => {
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors" size={18} />
           <input
             type="text"
-            placeholder="Search by student name or ID..."
+            placeholder={uiText("Search by student name or ID...")}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-12 pr-6 py-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-bold text-sm"
           />
         </div>
         <div className="relative group">
-          <label htmlFor="filterGrade" className="sr-only">Filter by grade</label>
+          <label htmlFor="filterGrade" className="sr-only">{uiText("Filter by grade")}</label>
           <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors" size={18} />
           <select
             id="filterGrade"
@@ -169,11 +160,11 @@ export const Transcripts = () => {
             onChange={(e) => setFilterGrade(e.target.value)}
             className="w-full pl-12 pr-10 py-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all appearance-none font-bold text-sm"
           >
-            <option value="all">All Grades</option>
-            <option value="9">Grade 9</option>
-            <option value="10">Grade 10</option>
-            <option value="11">Grade 11</option>
-            <option value="12">Grade 12</option>
+            <option value="all">{uiText("All Grades")}</option>
+            <option value="9">{uiText("Grade 9")}</option>
+            <option value="10">{uiText("Grade 10")}</option>
+            <option value="11">{uiText("Grade 11")}</option>
+            <option value="12">{uiText("Grade 12")}</option>
           </select>
         </div>
       </div>
@@ -183,11 +174,11 @@ export const Transcripts = () => {
           <table className="w-full text-left">
             <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
               <tr>
-                <th className="px-6 py-5 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Student Information</th>
-                <th className="px-6 py-5 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center">Academic Performance</th>
-                <th className="px-6 py-5 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center">Batch Rank</th>
-                <th className="px-6 py-5 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center">Verification</th>
-                <th className="px-6 py-5 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right">Actions</th>
+                <th className="px-6 py-5 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">{uiText("Student Information")}</th>
+                <th className="px-6 py-5 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center">{uiText("Academic Performance")}</th>
+                <th className="px-6 py-5 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center">{uiText("Batch Rank")}</th>
+                <th className="px-6 py-5 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center">{uiText("Verification")}</th>
+                <th className="px-6 py-5 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right">{uiText("Actions")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
@@ -196,53 +187,49 @@ export const Transcripts = () => {
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/20 text-blue-700 dark:text-blue-400 rounded-2xl flex items-center justify-center font-black text-sm shadow-inner group-hover:scale-110 group-hover:rotate-3 transition-transform">
-                        {student.name.split(' ').map(n => n[0]).join('')}
+                        {uiText(student.name.split(' ').map(n => n[0]).join(''))}
                       </div>
                       <div>
                         <p className="text-sm font-black text-slate-800 dark:text-white transition-colors group-hover:text-blue-600 dark:group-hover:text-blue-400">{student.name}</p>
-                        <p className="text-[10px] text-slate-500 dark:text-slate-500 font-bold uppercase tracking-wider mt-0.5">Grade {student.grade} • ID: {student.id}</p>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-500 font-bold uppercase tracking-wider mt-0.5">{uiText("Grade ")}{uiText(student.grade)}{uiText(" • ID: ")}{uiText(student.id)}</p>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 text-center">
                     <span className="text-sm font-black text-slate-700 dark:text-slate-200">
-                      {calculatedRanks[student.id] ? `${calculatedRanks[student.id].avg}%` : 'Pending'}
+                      {uiText(calculatedRanks[student.id] ? `${calculatedRanks[student.id].avg}%` : 'Pending')}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-center">
                     {calculatedRanks[student.id] ? (
                       <div className="flex flex-col gap-1 items-center">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 uppercase tracking-widest border border-blue-200/50 dark:border-blue-800/30">
-                          Sec Rank: #{calculatedRanks[student.id].sectionRank} / {calculatedRanks[student.id].totalInSection}
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 uppercase tracking-widest border border-blue-200/50 dark:border-blue-800/30">{uiText("Sec Rank: #")}{calculatedRanks[student.id].sectionRank}{uiText(" / ")}{calculatedRanks[student.id].totalInSection}
                         </span>
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 uppercase tracking-widest border border-amber-200/50 dark:border-amber-800/30">
-                          OVR Rank: #{calculatedRanks[student.id].overallRank} / {calculatedRanks[student.id].totalInGrade}
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 uppercase tracking-widest border border-amber-200/50 dark:border-amber-800/30">{uiText("OVR Rank: #")}{calculatedRanks[student.id].overallRank}{uiText(" / ")}{calculatedRanks[student.id].totalInGrade}
                         </span>
                       </div>
                     ) : (
-                      <span className="text-xs text-slate-400 italic">Not Computed</span>
+                      <span className="text-xs text-slate-400 italic">{uiText("Not Computed")}</span>
                     )}
                   </td>
                   <td className="px-6 py-4 text-center">
                     <span className={`px-3 py-1 ${calculatedRanks[student.id] ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border-emerald-200/50 dark:border-emerald-800/30' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 border-slate-200/50 dark:border-slate-700/50'} text-[10px] font-black uppercase rounded-lg border tracking-widest`}>
-                      {calculatedRanks[student.id] ? 'Validated' : 'Awaiting'}
+                      {uiText(calculatedRanks[student.id] ? 'Validated' : 'Awaiting')}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <button className="p-2 text-amber-500 hover:text-amber-600 bg-amber-50 dark:bg-amber-900/20 rounded-xl transition-all hover:scale-110" title="Print Certificate">
+                      <button className="p-2 text-amber-500 hover:text-amber-600 bg-amber-50 dark:bg-amber-900/20 rounded-xl transition-all hover:scale-110" title={uiText("Print Certificate")}>
                         <Award size={16} />
                       </button>
-                      <button className="p-2 text-slate-400 dark:text-slate-600 hover:text-blue-600 dark:hover:text-blue-400 bg-slate-50 dark:bg-slate-800 rounded-xl transition-all hover:scale-110" title="Print Transcript">
+                      <button className="p-2 text-slate-400 dark:text-slate-600 hover:text-blue-600 dark:hover:text-blue-400 bg-slate-50 dark:bg-slate-800 rounded-xl transition-all hover:scale-110" title={uiText("Print Transcript")}>
                         <Printer size={16} />
                       </button>
                       <button
-                        onClick={() => alert(`Generating ${phase} Transcript for ${student.name}`)}
+                        onClick={() => alert(uiText("Generating {{value0}} Transcript for {{value1}}", { value0: phase, value1: student.name }))}
                         className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all hover:bg-blue-700 shadow-lg shadow-blue-500/20 active:scale-95"
                       >
-                        <FileText size={14} />
-                        View
-                      </button>
+                        <FileText size={14} />{uiText("View")}</button>
                     </div>
                   </td>
                 </tr>

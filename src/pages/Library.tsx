@@ -1,3 +1,4 @@
+import { uiError, uiText } from "../localization";
 import { useTranslation } from 'react-i18next';
 
 import { Book, Search, Plus, CheckCircle, Clock, RefreshCw, X } from 'lucide-react';
@@ -119,14 +120,14 @@ export const Library = () => {
         setShowAddBookModal(false);
         setAddBookData({ title: '', author: '', shelf: '', quantity: 1 });
         fetchData();
-        alert('Book added successfully!');
+        alert(uiText("Book added successfully!"));
       } else {
         const data = await res.json();
-        alert(data.error || 'Failed to add book');
+        alert(uiError(data.error || 'Failed to add book'));
       }
     } catch (err) {
       console.error(err);
-      alert('Failed to add book');
+      alert(uiText("Failed to add book"));
     }
   };
 
@@ -215,7 +216,7 @@ export const Library = () => {
         fetchData();
       } else {
         const data = await res.json();
-        alert(data.error || 'Failed to return book');
+        alert(uiError(data.error || 'Failed to return book'));
       }
     } catch (err) {
       console.error(err);
@@ -239,7 +240,7 @@ export const Library = () => {
         <div className="flex gap-2">
           <button
             type="button"
-            title="Refresh library data"
+            title={uiText("Refresh library data")}
             onClick={fetchData}
             className="p-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-lg hover:bg-slate-200 transition-colors"
           >
@@ -354,14 +355,14 @@ export const Library = () => {
                       <p className="text-xs text-slate-500">{book.author}</p>
                     </td>
                     <td className="px-6 py-4">
-                      <p className="text-[10px] text-blue-500 font-bold uppercase">Rack: {book.shelf || 'Unknown'}</p>
-                      <p className="text-xs font-mono text-slate-500 mt-2">{book.book_code || ''}</p>
+                      <p className="text-[10px] text-blue-500 font-bold uppercase">{uiText("Rack: ")}{uiText(book.shelf || 'Unknown')}</p>
+                      <p className="text-xs font-mono text-slate-500 mt-2">{uiText(book.book_code || '')}</p>
                     </td>
-                    <td className="px-6 py-4 text-sm font-bold">{book.available} / {book.total}</td>
+                    <td className="px-6 py-4 text-sm font-bold">{book.available}{uiText(" / ")}{book.total}</td>
                     <td className="px-6 py-4">
                       <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${book.available > 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
                         }`}>
-                        {book.available > 0 ? t('libraryPage.available', 'Available') : t('libraryPage.outOfStock', 'Out of Stock')}
+                        {uiText(book.available > 0 ? t('libraryPage.available', 'Available') : t('libraryPage.outOfStock', 'Out of Stock'))}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
@@ -372,9 +373,7 @@ export const Library = () => {
                         }}
                         disabled={book.available <= 0}
                         className="text-blue-600 hover:text-blue-800 disabled:opacity-50 text-xs font-bold"
-                      >
-                        Issue
-                      </button>
+                      >{uiText("Issue")}</button>
                     </td>
                   </tr>
                 ))}
@@ -390,27 +389,27 @@ export const Library = () => {
                 <tr>
                   <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">{t("libraryPage.colStudentBook", "Student / Book")}</th>
                   <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">{t("libraryPage.colDates", "Dates")}</th>
-                  <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Status</th>
-                  <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase text-right">Actions</th>
+                  <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">{uiText("Status")}</th>
+                  <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase text-right">{uiText("Actions")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {loans.map((loan) => (
                   <tr key={loan.id} className={!loan.returned_at && new Date(loan.due_date) < new Date() ? 'bg-rose-50/30' : ''}>
                     <td className="px-6 py-4">
-                      <p className="text-sm font-bold dark:text-slate-100">{loan.borrower_name}</p>
-                      <p className="text-xs uppercase tracking-[0.08em] text-slate-400 dark:text-slate-500 font-bold mb-1">{loan.borrower_type === 'teacher' ? 'Teacher' : 'Student'}</p>
-                      <p className="text-sm text-slate-500 dark:text-slate-400">{loan.book_title}</p>
+                      <p className="text-sm font-bold dark:text-slate-100">{uiText(loan.borrower_name)}</p>
+                      <p className="text-xs uppercase tracking-[0.08em] text-slate-400 dark:text-slate-500 font-bold mb-1">{uiText(loan.borrower_type === 'teacher' ? 'Teacher' : 'Student')}</p>
+                      <p className="text-sm text-slate-500 dark:text-slate-400">{uiText(loan.book_title)}</p>
                     </td>
                     <td className="px-6 py-4">
-                      <p className="text-sm text-slate-500 uppercase font-bold">Due: {formatEthiopianLabel(loan.due_date)}</p>
-                      {loan.returned_at && <p className="text-sm text-emerald-600 uppercase font-bold mt-1">Returned: {formatEthiopianLabel(loan.returned_at)}</p>}
+                      <p className="text-sm text-slate-500 uppercase font-bold">{uiText("Due: ")}{uiText(formatEthiopianLabel(loan.due_date))}</p>
+                      {uiText(loan.returned_at && <p className="text-sm text-emerald-600 uppercase font-bold mt-1">{uiText("Returned: ")}{uiText(formatEthiopianLabel(loan.returned_at))}</p>)}
                     </td>
                     <td className="px-6 py-4">
                       <span className={`px-2.5 py-1.5 rounded-full text-xs font-bold uppercase ${loan.returned_at ? 'bg-emerald-100 text-emerald-700' :
                           new Date(loan.due_date) < new Date() ? 'bg-rose-100 text-rose-700' : 'bg-blue-100 text-blue-700'
                         }`}>
-                        {loan.returned_at ? t('libraryPage.returned', 'Returned') : new Date(loan.due_date) < new Date() ? t('libraryPage.overdue', 'Overdue') : t('libraryPage.borrowed', 'Borrowed')}
+                        {uiText(loan.returned_at ? t('libraryPage.returned', 'Returned') : new Date(loan.due_date) < new Date() ? t('libraryPage.overdue', 'Overdue') : t('libraryPage.borrowed', 'Borrowed'))}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
@@ -449,7 +448,7 @@ export const Library = () => {
                     onFocus={() => setShowBookDropdown(true)}
                     className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border rounded-lg text-sm"
                     placeholder={t("libraryPage.searchBookPlaceholder", "Search by Book ID, title or author...")}
-                    aria-label="Search available books"
+                    aria-label={uiText("Search available books")}
                     required
                   />
                   {showBookDropdown && (
@@ -469,29 +468,29 @@ export const Library = () => {
                         >
                           <div className="flex items-center justify-between gap-3">
                             <div>
-                              <p className="font-semibold text-slate-900 dark:text-slate-100">{book.book_code} — {book.title}</p>
+                              <p className="font-semibold text-slate-900 dark:text-slate-100">{uiText(book.book_code)}{uiText(" — ")}{book.title}</p>
                               <p className="text-xs text-slate-500 dark:text-slate-400">{book.author}</p>
                             </div>
-                            <span className="text-xs text-emerald-600">{book.available} available</span>
+                            <span className="text-xs text-emerald-600">{book.available}{uiText(" available")}</span>
                           </div>
                         </button>
                       ))}
                       {availableBooks.filter((book) =>
                         `${book.book_code} ${book.title} ${book.author}`.toLowerCase().includes(bookSearch.toLowerCase())
                       ).length === 0 && (
-                        <div className="p-4 text-sm text-slate-500 dark:text-slate-400">No available books match your search.</div>
+                        <div className="p-4 text-sm text-slate-500 dark:text-slate-400">{uiText("No available books match your search.")}</div>
                       )}
                     </div>
                   )}
                 </div>
-                <p className="text-xs text-slate-500">{t("libraryPage.selectedBookId", "Selected Book ID:")} <span className="font-mono">{issueData.book_id || t("libraryPage.none", "None")}</span></p>
+                <p className="text-xs text-slate-500">{t("libraryPage.selectedBookId", "Selected Book ID:")} <span className="font-mono">{uiText(issueData.book_id || t("libraryPage.none", "None"))}</span></p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase mb-1">{t("libraryPage.borrowerType", "Borrower Type")}</label>
                   <select
-                    title="Select borrower type (Student or Staff)"
+                    title={uiText("Select borrower type (Student or Staff)")}
                     value={issueData.borrower_type}
                     onChange={(e) => {
                       setIssueData({ ...issueData, borrower_type: e.target.value, borrower_id: '' });
@@ -517,11 +516,11 @@ export const Library = () => {
                     placeholder={t("libraryPage.borrowerIdPlaceholder", "Enter student or teacher ID")}
                     required
                   />
-                  {borrowerValidation.message && (
+                  {uiText(borrowerValidation.message && (
                     <p className={`mt-2 text-xs ${borrowerValidation.valid ? 'text-emerald-600' : 'text-rose-600'}`}>
-                      {borrowerValidation.message}
+                      {uiText(borrowerValidation.message)}
                     </p>
-                  )}
+                  ))}
                 </div>
               </div>
 
@@ -529,8 +528,8 @@ export const Library = () => {
                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1">{t("libraryPage.dueDate", "Due Date")}</label>
                 <input
                   type="date"
-                  title="Set book due date"
-                  placeholder="Select due date"
+                  title={uiText("Set book due date")}
+                  placeholder={uiText("Select due date")}
                   value={issueData.due_date}
                   onChange={(e) => setIssueData({ ...issueData, due_date: e.target.value })}
                   className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border rounded-lg text-sm"
@@ -538,11 +537,11 @@ export const Library = () => {
                 />
               </div>
 
-              {formError && (
+              {uiText(formError && (
                 <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-                  {formError}
+                  {uiError(formError)}
                 </div>
-              )}
+              ))}
 
               <div className="flex gap-2 pt-4">
                 <button
@@ -554,15 +553,11 @@ export const Library = () => {
                     setBookSearch('');
                   }}
                   className="flex-1 px-4 py-2 border rounded-lg font-bold text-slate-500 hover:bg-slate-50"
-                >
-                  Cancel
-                </button>
+                >{uiText("Cancel")}</button>
                 <button
                   type="submit"
                   className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-blue-700"
-                >
-                  Confirm Issue
-                </button>
+                >{uiText("Confirm Issue")}</button>
               </div>
             </form>
           </div>
@@ -576,7 +571,7 @@ export const Library = () => {
               <h3 className="text-xl font-bold">{t("libraryPage.addNewBook", "Add New Book")}</h3>
               <button
                 type="button"
-                title="Close add book modal"
+                title={uiText("Close add book modal")}
                 onClick={() => setShowAddBookModal(false)}
                 className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
               >
@@ -632,8 +627,8 @@ export const Library = () => {
                   <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">{t("libraryPage.numberOfCopies", "Number of Copies")}</label>
                   <input
                     type="number"
-                    title="Set the number of book copies available"
-                    placeholder="Enter number of copies"
+                    title={uiText("Set the number of book copies available")}
+                    placeholder={uiText("Enter number of copies")}
                     value={addBookData.quantity}
                     onChange={(e) => setAddBookData({ ...addBookData, quantity: Math.max(1, parseInt(e.target.value) || 1) })}
                     className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
@@ -649,15 +644,11 @@ export const Library = () => {
                   type="button"
                   onClick={() => setShowAddBookModal(false)}
                   className="flex-1 px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
-                >
-                  Cancel
-                </button>
+                >{uiText("Cancel")}</button>
                 <button
                   type="submit"
                   className="flex-1 bg-emerald-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-emerald-700"
-                >
-                  Add Book
-                </button>
+                >{uiText("Add Book")}</button>
               </div>
             </form>
           </div>

@@ -1,3 +1,4 @@
+import { uiError, uiText } from "../localization";
 
 import { BookOpen, Award, Clock, Star, Trophy, Loader2, Megaphone, Bell, User, MapPin } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -29,7 +30,7 @@ export const StudentPortal = () => {
   const fetchDashboard = async () => {
     try {
       setLoading(true);
-      setError('');
+      setError(uiText(""));
       const [data, tow] = await Promise.all([
         getStudentDashboard(),
         getTeacherOfWeek().catch(() => null),
@@ -37,7 +38,7 @@ export const StudentPortal = () => {
       setDashboard(data);
       setTeacherOfWeek(tow);
     } catch (err: any) {
-      setError(err.message);
+      setError(uiError(err.message));
     } finally {
       setLoading(false);
     }
@@ -101,18 +102,15 @@ export const StudentPortal = () => {
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
               <div className="space-y-3 max-w-lg">
                 <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-[10px] font-black uppercase tracking-[0.2em]">
-                  <Star size={12} fill="currentColor" /> Weekend Special
-                </div>
-                <h2 className="text-3xl md:text-4xl font-black tracking-tighter leading-none">Teacher of the Week</h2>
-                <p className="text-sm md:text-base font-medium opacity-80">
-                  Vote for your best teacher this week. Voting is open from Saturday through Wednesday (Ethiopian calendar week).
-                </p>
+                  <Star size={12} fill="currentColor" />{uiText(" Weekend Special")}</div>
+                <h2 className="text-3xl md:text-4xl font-black tracking-tighter leading-none">{uiText("Teacher of the Week")}</h2>
+                <p className="text-sm md:text-base font-medium opacity-80">{uiText("Vote for your best teacher this week. Voting is open from Saturday through Wednesday (Ethiopian calendar week).")}</p>
               </div>
 
               <div className="flex-1 w-full max-w-xl">
-                {voteError && (
-                  <p className="text-sm font-bold text-rose-200 mb-3">{voteError}</p>
-                )}
+                {uiText(voteError && (
+                  <p className="text-sm font-bold text-rose-200 mb-3">{uiError(voteError)}</p>
+                ))}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {teacherOfWeek!.teachers.map((teacher) => (
                     <motion.button
@@ -126,12 +124,12 @@ export const StudentPortal = () => {
                     >
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-2xl flex items-center justify-center font-black text-sm bg-white/20 flex-shrink-0">
-                          {teacher.name[0]}
+                          {uiText(teacher.name[0])}
                         </div>
                         <div className="min-w-0">
                           <p className="text-sm font-black truncate">{teacher.name}</p>
                           <p className="text-[10px] font-bold uppercase tracking-widest opacity-70 text-white truncate">
-                            {teacher.subjects[0] || teacher.department || 'Teacher'}
+                            {uiText(teacher.subjects[0] || teacher.department || 'Teacher')}
                           </p>
                         </div>
                         {voting && (
@@ -147,11 +145,11 @@ export const StudentPortal = () => {
         </div>
       )}
 
-      {error && (
+      {uiText(error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-          {error}
+          {uiError(error)}
         </div>
-      )}
+      ))}
 
       {loading ? (
         <div className="flex justify-center items-center h-64">
@@ -161,9 +159,7 @@ export const StudentPortal = () => {
         <>
           <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-3xl p-6 md:p-10 text-white shadow-xl shadow-blue-500/20 relative overflow-hidden">
             <div className="relative z-10">
-              <h2 className="text-3xl md:text-4xl font-black">
-                Welcome back, {dashboard?.student?.name || 'Student'}!
-              </h2>
+              <h2 className="text-3xl md:text-4xl font-black">{uiText("Welcome back, ")}{(dashboard?.student?.name || uiText('Student'))}{uiText("!")}</h2>
             </div>
             <div className="absolute top-0 right-0 p-12 opacity-10 rotate-12">
               <Award size={160} />
@@ -175,24 +171,24 @@ export const StudentPortal = () => {
               <div className="bg-blue-600 p-3 rounded-2xl text-white w-fit mb-4">
                 <BookOpen size={24} />
               </div>
-              <h3 className="text-slate-300 text-sm font-medium">Active Courses</h3>
+              <h3 className="text-slate-300 text-sm font-medium">{uiText("Active Courses")}</h3>
               <p className="text-3xl font-black text-white mt-2">{dashboard?.stats.totalCourses ?? 0}</p>
             </div>
             <div className="bg-slate-950/95 border border-slate-800 p-6 rounded-3xl shadow-xl shadow-slate-900/20 text-white">
               <div className="bg-emerald-500 p-3 rounded-2xl text-white w-fit mb-4">
                 <Clock size={24} />
               </div>
-              <h3 className="text-slate-300 text-sm font-medium">Attendance Rate</h3>
-              <p className="text-3xl font-black text-white mt-2">{attendanceDisplay}</p>
+              <h3 className="text-slate-300 text-sm font-medium">{uiText("Attendance Rate")}</h3>
+              <p className="text-3xl font-black text-white mt-2">{uiText(attendanceDisplay)}</p>
             </div>
             <div className="bg-slate-950/95 border border-slate-800 p-6 rounded-3xl shadow-xl shadow-slate-900/20 text-white">
               <div className="bg-blue-500 p-3 rounded-2xl text-white w-fit mb-4">
                 <Award size={24} />
               </div>
-              <h3 className="text-slate-300 text-sm font-medium">Average Grade</h3>
-              <p className="text-3xl font-black text-white mt-2">{averageGradeDisplay}</p>
+              <h3 className="text-slate-300 text-sm font-medium">{uiText("Average Grade")}</h3>
+              <p className="text-3xl font-black text-white mt-2">{uiText(averageGradeDisplay)}</p>
               {dashboard?.stats.currentSemester === 2 && (
-                <p className="text-xs text-slate-400 mt-2">First semester average</p>
+                <p className="text-xs text-slate-400 mt-2">{uiText("First semester average")}</p>
               )}
             </div>
           </div>
@@ -201,10 +197,10 @@ export const StudentPortal = () => {
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-950/95 border border-slate-800 p-6 rounded-3xl shadow-xl shadow-slate-900/20 text-white">
                 <div>
-                  <h3 className="text-lg font-bold">Announcements and Notices</h3>
-                  <p className="text-sm text-slate-300 mt-1">Latest updates from your assigned driver and the School Admin.</p>
+                  <h3 className="text-lg font-bold">{uiText("Announcements and Notices")}</h3>
+                  <p className="text-sm text-slate-300 mt-1">{uiText("Latest updates from your assigned driver and the School Admin.")}</p>
                 </div>
-                <div className="text-sm text-slate-400">{schoolAnnouncements.length + logisticsAnnouncements.length} notices</div>
+                <div className="text-sm text-slate-400">{schoolAnnouncements.length + logisticsAnnouncements.length}{uiText(" notices")}</div>
               </div>
 
               <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -215,19 +211,19 @@ export const StudentPortal = () => {
                       <div className="space-y-2">
                         <div className="flex items-center gap-2">
                           <span className="text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-full bg-slate-800/80 text-slate-200">
-                            {notice.source}
+                            {uiText(notice.source)}
                           </span>
                           <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest px-2 py-1 rounded-full bg-slate-900/80">
-                            {notice.category || 'Notice'}
+                            {uiText(notice.category || 'Notice')}
                           </span>
                         </div>
                         <h4 className="text-base font-bold text-white">{notice.title}</h4>
                       </div>
-                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{formatEthiopianLabel(notice.timestamp)}</span>
+                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{uiText(formatEthiopianLabel(notice.timestamp))}</span>
                     </div>
                     <p className="text-sm leading-relaxed text-slate-300 mb-4">{notice.content}</p>
                     {notice.source === 'Driver' && (notice as any).driverName ? (
-                      <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 border-t border-slate-800 pt-3">Driver: {(notice as any).driverName}</div>
+                      <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 border-t border-slate-800 pt-3">{uiText("Driver: ")}{uiText((notice as any).driverName)}</div>
                     ) : null}
                   </div>
                 ))}

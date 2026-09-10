@@ -1,3 +1,4 @@
+import { uiError, uiText, localeTag } from "../localization";
 import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { ChevronDown, Users, BookOpen, CheckCircle2, AlertCircle, Calendar, RefreshCw } from 'lucide-react';
@@ -84,7 +85,7 @@ export const VPCommunication = () => {
     const date = new Date(sentAtStr);
     if (isNaN(date.getTime())) return '';
     const datePart = formatEthiopianLabel(date);
-    const timePart = date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    const timePart = date.toLocaleTimeString(localeTag(), { hour: 'numeric', minute: '2-digit' });
     return `${datePart}, ${timePart}`;
   };
 
@@ -111,8 +112,8 @@ export const VPCommunication = () => {
       setGrades(formattedGrades);
     } catch (err: any) {
       const message = err.response?.data?.message || 'Failed to fetch grades and sections';
-      setError(message);
-      showToast(message, 'error');
+      setError(uiText(message));
+      showToast(uiText(message), 'error');
     } finally {
       setLoading(false);
     }
@@ -146,8 +147,8 @@ export const VPCommunication = () => {
       setSummaryData(data);
     } catch (err: any) {
       const msg = err.response?.data?.message || err.message || 'Failed to fetch communication book summary.';
-      setError(msg);
-      showToast('Error loading communication book summary.', 'error');
+      setError(uiText(msg));
+      showToast(uiText("Error loading communication book summary."), 'error');
     } finally {
       setLoadingData(false);
     }
@@ -163,7 +164,7 @@ export const VPCommunication = () => {
     return (
       <div className="flex flex-col items-center justify-center h-96">
         <div className="w-12 h-12 border-4 border-indigo-600/30 border-t-indigo-600 rounded-full animate-spin mb-4" />
-        <p className="text-slate-500 dark:text-slate-400 animate-pulse font-medium">Loading Communication Book Oversight...</p>
+        <p className="text-slate-500 dark:text-slate-400 animate-pulse font-medium">{uiText("Loading Communication Book Oversight...")}</p>
       </div>
     );
   }
@@ -205,7 +206,7 @@ export const VPCommunication = () => {
                 <option value="">{t("vp.selectGrade", "Select Grade")}</option>
                 {grades.map((grade) => (
                   <option key={grade.id} value={grade.grade_name ?? grade.name}>
-                    {grade.grade_name ?? grade.name}
+                    {uiText(grade.grade_name ?? grade.name)}
                   </option>
                 ))}
               </select>
@@ -227,11 +228,11 @@ export const VPCommunication = () => {
                 className="w-full appearance-none px-5 py-3 bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-800 dark:text-white outline-none focus:border-indigo-500 transition-all cursor-pointer pr-10 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <option value="">
-                  {selectedGrade ? t("vp.selectSection", "Select Section") : t("vp.chooseGradeFirst", "Choose Grade First")}
+                  {uiText(selectedGrade ? t("vp.selectSection", "Select Section") : t("vp.chooseGradeFirst", "Choose Grade First"))}
                 </option>
                 {selectedGradeGroup?.sections.map((section) => (
                   <option key={section.id} value={section.id}>
-                    {section.section_name}
+                    {uiText(section.section_name)}
                   </option>
                 ))}
               </select>
@@ -253,8 +254,7 @@ export const VPCommunication = () => {
               >
                 {recentWeeks.map((week) => (
                   <option key={week} value={week}>
-                    {formatEthiopianLabel(week)} ({week})
-                  </option>
+                    {uiText(formatEthiopianLabel(week))}{uiText(" (")}{uiText(week)}{uiText(")")}</option>
                 ))}
               </select>
               <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
@@ -264,12 +264,12 @@ export const VPCommunication = () => {
       </div>
 
       {/* Error State */}
-      {error && (
+      {uiText(error && (
         <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/40 rounded-2xl p-4 text-red-700 dark:text-red-400 flex items-center gap-3">
           <AlertCircle size={20} className="text-red-500" />
-          <p className="font-semibold text-sm">{error}</p>
+          <p className="font-semibold text-sm">{uiError(error)}</p>
         </div>
-      )}
+      ))}
 
       {/* Select parameters prompt */}
       {!selectedSection && (
@@ -290,7 +290,7 @@ export const VPCommunication = () => {
             {/* Homeroom Teacher */}
             <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-6 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm">
               <p className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">{t("vp.homeroomTeacher", "Homeroom Teacher")}</p>
-              <p className="text-xl font-bold text-slate-800 dark:text-white">{summaryData.homeroomTeacher || 'Not Assigned'}</p>
+              <p className="text-xl font-bold text-slate-800 dark:text-white">{uiText(summaryData.homeroomTeacher || 'Not Assigned')}</p>
             </div>
 
             {/* Total Students */}
@@ -339,7 +339,7 @@ export const VPCommunication = () => {
                     />
                   </div>
                 </div>
-                <span className="text-2xl font-black text-slate-800 dark:text-white">{completionRate}%</span>
+                <span className="text-2xl font-black text-slate-800 dark:text-white">{completionRate}{uiText("%")}</span>
               </div>
             </div>
           </div>
@@ -348,23 +348,21 @@ export const VPCommunication = () => {
           <div className="flex justify-between items-center bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl border border-slate-100 dark:border-slate-800 p-6">
             <div>
               <h3 className="font-bold text-slate-800 dark:text-white">{t("vp.completionAuditRoster", "Completion Audit Roster")}</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Verification roster of parents who received communication books for this week</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{uiText("Verification roster of parents who received communication books for this week")}</p>
             </div>
             <button
               onClick={fetchCommunicationSummary}
               disabled={loadingData}
               className="px-4 py-2 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/30 dark:hover:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 rounded-xl text-xs font-bold transition-all flex items-center gap-2"
             >
-              <RefreshCw size={14} className={loadingData ? 'animate-spin' : ''} />
-              Refresh
-            </button>
+              <RefreshCw size={14} className={loadingData ? 'animate-spin' : ''} />{uiText("Refresh")}</button>
           </div>
 
           {/* Student Roster Table */}
           {loadingData ? (
             <div className="flex flex-col items-center justify-center h-64 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-[2rem] border border-slate-100 dark:border-slate-800">
               <div className="w-8 h-8 border-4 border-indigo-600/30 border-t-indigo-600 rounded-full animate-spin mb-3" />
-              <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Retrieving student communication log statuses...</p>
+              <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">{uiText("Retrieving student communication log statuses...")}</p>
             </div>
           ) : (
             <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
@@ -387,7 +385,7 @@ export const VPCommunication = () => {
                         </td>
                         {/* Parent Name */}
                         <td className="px-8 py-4 whitespace-nowrap">
-                          <span className="text-slate-600 dark:text-slate-400 font-medium">{student.parentName}</span>
+                          <span className="text-slate-600 dark:text-slate-400 font-medium">{uiText(student.parentName)}</span>
                         </td>
                         {/* Status Badge */}
                         <td className="px-8 py-4 whitespace-nowrap text-center">
@@ -405,11 +403,11 @@ export const VPCommunication = () => {
                         </td>
                         {/* Sent Timestamp */}
                         <td className="px-8 py-4 whitespace-nowrap text-right text-slate-500 dark:text-slate-400 text-xs font-medium">
-                          {student.sent && student.sentAt ? (
+                          {uiText(student.sent && student.sentAt ? (
                             formatEthiopianTimestamp(student.sentAt)
                           ) : (
-                            <span className="text-slate-400 dark:text-slate-600">&mdash;</span>
-                          )}
+                            <span className="text-slate-400 dark:text-slate-600">{uiText("&mdash;")}</span>
+                          ))}
                         </td>
                       </tr>
                     ))}
@@ -419,7 +417,7 @@ export const VPCommunication = () => {
               {summaryData.students.length === 0 && (
                 <div className="p-12 text-center">
                   <Users className="mx-auto text-slate-400 mb-3" size={32} />
-                  <p className="text-slate-500 dark:text-slate-400 font-bold">No students found in this section.</p>
+                  <p className="text-slate-500 dark:text-slate-400 font-bold">{uiText("No students found in this section.")}</p>
                 </div>
               )}
             </div>
@@ -436,7 +434,7 @@ export const VPCommunication = () => {
               : 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900/40 text-red-800 dark:text-red-300'
           }`}>
             <CheckCircle2 className="text-emerald-500" size={20} />
-            <p className="text-sm font-semibold">{toast.message}</p>
+            <p className="text-sm font-semibold">{uiText(toast.message)}</p>
           </div>
         </div>
       )}
