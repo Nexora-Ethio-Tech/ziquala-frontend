@@ -12,20 +12,6 @@ export const getAbsenceQueue = async (status?: string) => {
   const response = await api.get(`/vice-principal/absence-queue${params}`);
   return response.data;
 };
-import api from './api';
-
-// Dashboard
-export const getVPDashboard = async () => {
-  const response = await api.get('/vice-principal/dashboard');
-  return response.data.data;
-};
-
-// Absence Queue
-export const getAbsenceQueue = async (status?: string) => {
-  const params = status ? `?status=${status}` : '';
-  const response = await api.get(`/vice-principal/absence-queue${params}`);
-  return response.data;
-};
 
 export const updateAbsenceStatus = async (id: string, status: 'pending' | 'excused' | 'notified') => {
   const response = await api.post(`/vice-principal/absence-queue/${id}`, { status });
@@ -57,9 +43,29 @@ export const reviewWeeklyPlan = async (planId: string, data: {
 };
 
 // Annual Plans
+export const getVPAnnualPlans = async (status?: string, teacherId?: string) => {
+  const params = new URLSearchParams();
+  if (status) params.append('status', status);
+  if (teacherId) params.append('teacherId', teacherId);
+  const response = await api.get(`/vice-principal/annual-plans?${params}`);
   return response.data;
 };
 
+export const getVPAnnualPlanById = async (planId: string) => {
+  const response = await api.get(`/vice-principal/annual-plans/${planId}`);
+  return response.data;
+};
+
+export const reviewVPAnnualPlan = async (planId: string, data: {
+  status: 'Approved' | 'Revision Required';
+  feedback?: string;
+  rating?: number;
+}) => {
+  const response = await api.post(`/vice-principal/annual-plans/${planId}/review`, data);
+  return response.data;
+};
+
+// Grade Locks
 export const toggleGradeLock = async (data: {
   gradeLevel: string;
   isLocked: boolean;
@@ -279,7 +285,6 @@ export const getGradeSubmissionSetting = async (): Promise<boolean> => {
   const response = await api.get('/vice-principal/grade-submission-settings');
   return response.data.data?.open ?? true;
 };
-
 
 export interface TeacherOfWeekVoteSummary {
   cycleKey: string;

@@ -10,7 +10,7 @@ import api from '../services/api';
 import classService from '../services/classService';
 import { StaffProfileModal } from '../components/StaffProfileModal';
 import subjectService, { CourseWithGrade } from '../services/subjectService';
-import { getVPTeachers, getLeaderboard, rateTeacher, resetLeaderboard, getVPAnnualPlans, reviewVPAnnualPlan, getWeeklyPlans } from '../services/vicePrincipalService';
+import { getVPTeachers, getLeaderboard, rateTeacher, resetLeaderboard, getVPAnnualPlans, reviewVPAnnualPlan, getWeeklyPlans, getVPAnnualPlanById, getVPWeeklyPlanById } from '../services/vicePrincipalService';
 import { Star, Trophy, RefreshCcw, Search, ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
 import { TeacherAttendanceModal } from '../components/TeacherAttendanceModal';
 import { formatEthiopianLabel, gregorianToEthiopian, ethiopianToGregorianIso } from '../utils/ethiopianCalendar';
@@ -108,6 +108,38 @@ export const Teachers = () => {
   const [plansLoading, setPlansLoading] = useState(false);
   const [selectedAnnualPlan, setSelectedAnnualPlan] = useState<any | null>(null);
   const [selectedWeeklyPlan, setSelectedWeeklyPlan] = useState<any | null>(null);
+  const [gradeSelectModal, setGradeSelectModal] = useState<{
+    show: boolean;
+    teacherName: string;
+    subject: string;
+    planType: 'annual' | 'weekly';
+    plans: Array<{ grade: string; submitted?: boolean; status: string; plan_id?: string }>;
+  } | null>(null);
+  const [loadingSpecificPlanId, setLoadingSpecificPlanId] = useState<string | null>(null);
+
+  const handleViewSpecificPlan = async (planId: string | undefined, planType: 'annual' | 'weekly', fallbackPlan: any) => {
+    if (!planId || planId === fallbackPlan?.id) {
+      if (planType === 'annual') setSelectedAnnualPlan(fallbackPlan);
+      else setSelectedWeeklyPlan(fallbackPlan);
+      return;
+    }
+    setLoadingSpecificPlanId(planId);
+    try {
+      if (planType === 'annual') {
+        const res = await getVPAnnualPlanById(planId);
+        setSelectedAnnualPlan(res.data || res);
+      } else {
+        const res = await getVPWeeklyPlanById(planId);
+        setSelectedWeeklyPlan(res.data || res);
+      }
+    } catch (err) {
+      console.error('Failed to load specific plan:', err);
+      if (planType === 'annual') setSelectedAnnualPlan(fallbackPlan);
+      else setSelectedWeeklyPlan(fallbackPlan);
+    } finally {
+      setLoadingSpecificPlanId(null);
+    }
+  };
 
   // Filters matching Grade Management structure
   const [selectedWeekDate, setSelectedWeekDate] = useState<Date>(new Date());
@@ -1503,16 +1535,31 @@ export const Teachers = () => {
                               {displayGrades.length > 0 ? (
                                 <div className="flex flex-col gap-1 text-xs">
                                   {displayGrades.map((g, idx) => (
-                                    <div key={idx} className="flex items-center gap-1.5 whitespace-nowrap">
-                                      <span className={g.submitted ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-slate-500 dark:text-slate-400 font-medium'}>
+                                    <button
+                                      key={idx}
+                                      type="button"
+                                      onClick={() => {
+                                        if (g.submitted && g.plan_id) {
+                                          handleViewSpecificPlan(g.plan_id, 'annual', plan);
+                                        }
+                                      }}
+                                      disabled={!g.submitted || !g.plan_id}
+                                      className={`flex items-center gap-1.5 whitespace-nowrap text-left rounded-md px-1 py-0.5 transition-all ${
+                                        g.submitted && g.plan_id
+                                          ? 'hover:bg-emerald-50 dark:hover:bg-emerald-950/40 cursor-pointer group'
+                                          : 'cursor-default'
+                                      }`}
+                                      title={g.submitted && g.plan_id ? `Click to view ${g.grade} Annual Plan` : undefined}
+                                    >
+                                      <span className={g.submitted ? 'text-emerald-600 dark:text-emerald-400 font-bold group-hover:underline' : 'text-slate-500 dark:text-slate-400 font-medium'}>
                                         {g.grade}
                                       </span>
                                       {g.submitted ? (
-                                        <CheckCircle2 size={13} className="text-emerald-500 shrink-0" />
+                                        <CheckCircle2 size={13} className="text-emerald-500 shrink-0 group-hover:scale-110 transition-transform" />
                                       ) : (
                                         <XCircle size={13} className="text-rose-400 shrink-0" />
                                       )}
-                                    </div>
+                                    </button>
                                   ))}
                                 </div>
                               ) : plan.grade ? (
@@ -1561,7 +1608,22 @@ export const Teachers = () => {
                               ) : (
                                 <button
                                   type="button"
-                                  onClick={() => setSelectedAnnualPlan(plan)}
+                                  onClick={() => {
+                                    const submittedGrades = (plan.grade_statuses || []).filter((g: any) => g.submitted && g.plan_id);
+                                    if (submittedGrades.length > 1) {
+                                      setGradeSelectModal({
+                                        show: true,
+                                        teacherName: plan.teacher_name || 'Teacher',
+                                        subject: plan.subject || 'Subject',
+                                        planType: 'annual',
+                                        plans: (plan.grade_statuses || []).filter((g: any) => g.submitted)
+                                      });
+                                    } else if (submittedGrades.length === 1) {
+                                      handleViewSpecificPlan(submittedGrades[0].plan_id, 'annual', plan);
+                                    } else {
+                                      setSelectedAnnualPlan(plan);
+                                    }
+                                  }}
                                   className="p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
                                   title={uiText("View Details")}
                                 >
@@ -1808,18 +1870,33 @@ export const Teachers = () => {
                                 {displayGrades.length > 0 ? (
                                   <div className="flex flex-col gap-1 text-xs">
                                     {displayGrades.map((g, idx) => (
-                                      <div key={idx} className="flex items-center gap-1.5 whitespace-nowrap">
-                                        <span className={g.status === 'Approved' ? 'text-emerald-600 dark:text-emerald-400 font-bold' : g.status === 'Revision Required' ? 'text-rose-600 dark:text-rose-400 font-bold' : 'text-slate-500 dark:text-slate-400 font-medium'}>
+                                      <button
+                                        key={idx}
+                                        type="button"
+                                        onClick={() => {
+                                          if (g.plan_id) {
+                                            handleViewSpecificPlan(g.plan_id, 'weekly', plan);
+                                          }
+                                        }}
+                                        disabled={!g.plan_id}
+                                        className={`flex items-center gap-1.5 whitespace-nowrap text-left rounded-md px-1 py-0.5 transition-all ${
+                                          g.plan_id
+                                            ? 'hover:bg-emerald-50 dark:hover:bg-emerald-950/40 cursor-pointer group'
+                                            : 'cursor-default'
+                                        }`}
+                                        title={g.plan_id ? `Click to view ${g.grade} Weekly Plan` : undefined}
+                                      >
+                                        <span className={g.status === 'Approved' ? 'text-emerald-600 dark:text-emerald-400 font-bold group-hover:underline' : g.status === 'Revision Required' ? 'text-rose-600 dark:text-rose-400 font-bold group-hover:underline' : 'text-slate-500 dark:text-slate-400 font-medium'}>
                                           {g.grade}
                                         </span>
                                         {g.status === 'Approved' ? (
-                                          <CheckCircle2 size={13} className="text-emerald-500 shrink-0" />
+                                          <CheckCircle2 size={13} className="text-emerald-500 shrink-0 group-hover:scale-110 transition-transform" />
                                         ) : g.status === 'Revision Required' ? (
-                                          <Unlock size={13} className="text-rose-500 shrink-0" />
+                                          <Unlock size={13} className="text-rose-500 shrink-0 group-hover:scale-110 transition-transform" />
                                         ) : (
                                           <XCircle size={13} className="text-amber-400 shrink-0" />
                                         )}
-                                      </div>
+                                      </button>
                                     ))}
                                   </div>
                                 ) : (plan.grade_section || plan.grade) ? (
@@ -1867,7 +1944,22 @@ export const Teachers = () => {
                                 ) : (
                                   <button
                                     type="button"
-                                    onClick={() => setSelectedWeeklyPlan(plan)}
+                                    onClick={() => {
+                                      const submittedGrades = (plan.grade_statuses || []).filter((g: any) => g.plan_id);
+                                      if (submittedGrades.length > 1) {
+                                        setGradeSelectModal({
+                                          show: true,
+                                          teacherName: plan.teacher_name || 'Teacher',
+                                          subject: plan.subject || plan.course_name || 'Weekly Lesson Plan',
+                                          planType: 'weekly',
+                                          plans: submittedGrades
+                                        });
+                                      } else if (submittedGrades.length === 1) {
+                                        handleViewSpecificPlan(submittedGrades[0].plan_id, 'weekly', plan);
+                                      } else {
+                                        setSelectedWeeklyPlan(plan);
+                                      }
+                                    }}
                                     className="p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
                                     title={uiText("View Details")}
                                   >
@@ -2299,6 +2391,83 @@ export const Teachers = () => {
         teacher={attendanceTeacher}
         onClose={() => setAttendanceTeacher(null)}
       />
+
+      {/* Modal to Select Specific Grade Plan */}
+      {gradeSelectModal?.show && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-800 w-full max-w-md overflow-hidden">
+            <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-900 text-white">
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-wider text-indigo-400 block">
+                  Select Grade Submission
+                </span>
+                <h3 className="font-bold text-white text-base">
+                  {gradeSelectModal.teacherName} · {gradeSelectModal.subject}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setGradeSelectModal(null)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-3">
+              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                This teacher has submitted plans for multiple grades. Select which grade plan you want to view:
+              </p>
+
+              <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                {gradeSelectModal.plans.map((g, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => {
+                      const planType = gradeSelectModal.planType;
+                      setGradeSelectModal(null);
+                      handleViewSpecificPlan(g.plan_id, planType, null);
+                    }}
+                    className="w-full flex items-center justify-between p-3.5 bg-slate-50 dark:bg-slate-800/60 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 border border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-700 rounded-xl transition-all group text-left"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 rounded-lg group-hover:scale-105 transition-transform">
+                        <FileText size={18} />
+                      </div>
+                      <div>
+                        <span className="font-bold text-slate-900 dark:text-white text-sm block">
+                          {g.grade} Plan
+                        </span>
+                        <span className={`text-[11px] font-semibold ${
+                          g.status === 'Approved' ? 'text-emerald-600 dark:text-emerald-400' :
+                          g.status === 'Revision Required' ? 'text-rose-600 dark:text-rose-400' :
+                          'text-amber-600 dark:text-amber-400'
+                        }`}>
+                          Status: {g.status || 'Submitted'}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 text-xs font-bold text-indigo-600 dark:text-indigo-400 group-hover:translate-x-1 transition-transform">
+                      View <ChevronRight size={16} />
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="p-4 bg-slate-50 dark:bg-slate-800/40 border-t border-slate-100 dark:border-slate-800 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setGradeSelectModal(null)}
+                className="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-slate-300 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Add Teacher Modal */}
       {showAddModal && (
