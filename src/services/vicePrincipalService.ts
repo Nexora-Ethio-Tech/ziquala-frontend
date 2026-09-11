@@ -28,6 +28,11 @@ export const getWeeklyPlans = async (status?: string, teacherId?: string, weekDa
   return response.data;
 };
 
+export const getVPWeeklyPlanById = async (planId: string) => {
+  const response = await api.get(`/vice-principal/weekly-plans/${planId}`);
+  return response.data;
+};
+
 export const reviewWeeklyPlan = async (planId: string, data: {
   status: 'Approved' | 'Revision Required';
   deanFeedback?: string;
@@ -46,6 +51,11 @@ export const getVPAnnualPlans = async (status?: string, teacherId?: string) => {
   return response.data;
 };
 
+export const getVPAnnualPlanById = async (planId: string) => {
+  const response = await api.get(`/vice-principal/annual-plans/${planId}`);
+  return response.data;
+};
+
 export const reviewVPAnnualPlan = async (planId: string, data: {
   status: 'Approved' | 'Revision Required';
   feedback?: string;
@@ -56,11 +66,6 @@ export const reviewVPAnnualPlan = async (planId: string, data: {
 };
 
 // Grade Locks
-export const getGradeLocks = async () => {
-  const response = await api.get('/vice-principal/grade-locks');
-  return response.data;
-};
-
 export const toggleGradeLock = async (data: {
   gradeLevel: string;
   isLocked: boolean;
@@ -280,7 +285,6 @@ export const getGradeSubmissionSetting = async (): Promise<boolean> => {
   const response = await api.get('/vice-principal/grade-submission-settings');
   return response.data.data?.open ?? true;
 };
-
 
 export interface TeacherOfWeekVoteSummary {
   cycleKey: string;

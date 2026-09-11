@@ -273,7 +273,7 @@ function App() {
               } />
 
               <Route path="vp-attendance" element={
-                <ProtectedRoute allowedRoles={['vice-principal', 'super-admin', 'academic-manager']}>
+                <ProtectedRoute allowedRoles={['super-admin']}>
                   <VPAttendanceOversight />
                 </ProtectedRoute>
               } />
@@ -339,7 +339,7 @@ function App() {
               } />
 
               <Route path="attendance" element={
-                <ProtectedRoute allowedRoles={['school-admin', 'super-admin', 'academic-manager', 'teacher', 'student', 'vice-principal']}>
+                <ProtectedRoute allowedRoles={['school-admin', 'super-admin', 'teacher', 'student']}>
                   {role === 'teacher' ? <TeacherAttendance /> :
                     role === 'student' ? <AcademicHistory /> :
                       <Attendance />}
