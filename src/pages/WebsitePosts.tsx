@@ -1,272 +1,347 @@
-import { uiText } from "../localization";
-import { useState, useRef, useEffect } from 'react';
-import { formatEthiopianLabel } from '../utils/ethiopianCalendar';
-import { Megaphone, Plus, X, Loader2 } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
-import api from '../services/api';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import type { FormEvent } from 'react';
+import { CalendarDays, Image, Loader2, Megaphone, Pencil, Plus, Shirt, Sparkles, Trash2, Users, X } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { uiText } from '../localization';
+import {
+  websiteContentService,
+  type WebsiteContentItem,
+  type WebsiteContentPayload,
+  type WebsiteContentStatus,
+  type WebsiteContentType,
+} from '../services/websiteContentService';
 
-// Updated to strictly match your new PostgreSQL schema
-interface PublicPost {
-  id: string; // uuid
-  post_text: string;
-  image_url: string;
-  media_type: 'image' | 'video';
-  created_at: string;
-}
+const contentTabs: Array<{ type: WebsiteContentType; label: string; hint: string; icon: typeof Megaphone }> = [
+  { type: 'team', label: 'School Team', hint: 'People shown under the public School navigation.', icon: Users },
+  { type: 'community', label: 'Activities & Events', hint: 'Extracurricular activities and community-facing events.', icon: CalendarDays },
+  { type: 'uniform', label: 'Uniform Stories', hint: 'Student-led explanations of uniform identity and uniqueness.', icon: Shirt },
+];
+
+const emptyPayload = (type: WebsiteContentType): WebsiteContentPayload => ({
+  content_type: type,
+  title: '',
+  subtitle: '',
+  body: '',
+  image_url: '',
+  media_url: '',
+  cta_label: '',
+  cta_url: '',
+  category: type === 'team' ? 'Office & management' : '',
+  display_order: 0,
+  status: 'draft',
+  featured: false,
+  event_date: null,
+});
+
+const normalizePayload = (payload: WebsiteContentPayload): WebsiteContentPayload => ({
+  ...payload,
+  title: payload.title.trim(),
+  subtitle: payload.subtitle.trim(),
+  body: payload.body.trim(),
+  image_url: payload.image_url.trim(),
+  media_url: payload.media_url.trim(),
+  cta_label: payload.cta_label.trim(),
+  cta_url: payload.cta_url.trim(),
+  category: payload.category.trim(),
+  display_order: Number(payload.display_order) || 0,
+  event_date: payload.event_date || null,
+});
 
 export const WebsitePosts = () => {
-  const { t } = useTranslation();
-
-  const [posts, setPosts] = useState<PublicPost[]>([]);
+  const [items, setItems] = useState<WebsiteContentItem[]>([]);
+  const [activeType, setActiveType] = useState<WebsiteContentType>('team');
+  const [draft, setDraft] = useState<WebsiteContentPayload>(() => emptyPayload('team'));
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const [showPostModal, setShowPostModal] = useState(false);
-  const [selectedType, setSelectedType] = useState<'image' | 'video'>('image');
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState('');
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const fetchPosts = async () => {
+  const activeTab = contentTabs.find((tab) => tab.type === activeType) || contentTabs[0];
+  const visibleItems = useMemo(() => items.filter((item) => item.content_type === activeType), [items, activeType]);
+
+  const loadItems = async () => {
     try {
       setIsLoading(true);
-      const response = await api.get('/super-admin/public-post');
-      setPosts(response.data.data)
-    } catch (error) {
-      console.error('Error fetching posts:', error);
+      setError('');
+      setItems(await websiteContentService.getAll());
+    } catch (loadError: any) {
+      setError(loadError?.message || 'Failed to load website content.');
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchPosts();
+    loadItems();
   }, []);
 
-  // Handle post deletion
-  const deletePublicPost = async (id: string) => {
-    if (!window.confirm(t('websitePosts.confirmDelete', 'Are you sure you want to delete this post?'))) return;
-    const deletePayload = {
-      id: id
-    };
+  const resetForm = (type = activeType) => {
+    setEditingId(null);
+    setDraft(emptyPayload(type));
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const switchType = (type: WebsiteContentType) => {
+    setActiveType(type);
+    resetForm(type);
+  };
+
+  const readSelectedImage = async () => {
+    const file = fileInputRef.current?.files?.[0];
+    if (!file) return draft.image_url;
+    return new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const editItem = (item: WebsiteContentItem) => {
+    setEditingId(item.id);
+    setActiveType(item.content_type);
+    setDraft({
+      content_type: item.content_type,
+      title: item.title,
+      subtitle: item.subtitle,
+      body: item.body,
+      image_url: item.image_url,
+      media_url: item.media_url,
+      cta_label: item.cta_label,
+      cta_url: item.cta_url,
+      category: item.category,
+      display_order: item.display_order,
+      status: item.status,
+      featured: item.featured,
+      event_date: item.event_date,
+    });
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const saveItem = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsSaving(true);
+    setError('');
+
     try {
-      const response = await api.delete(`/super-admin/public-post`, { data: deletePayload });
-      setPosts((prev) => prev.filter((post) => post.id !== id));
-    } catch (error) {
-      console.error('Error deleting post:', error);
+      const payload = normalizePayload({ ...draft, image_url: await readSelectedImage() });
+      if (!payload.title) throw new Error('Title is required.');
+
+      if (editingId) {
+        await websiteContentService.update(editingId, payload);
+      } else {
+        await websiteContentService.create(payload);
+      }
+
+      await loadItems();
+      resetForm(payload.content_type);
+    } catch (saveError: any) {
+      setError(saveError?.message || 'Failed to save website content.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const changeStatus = async (item: WebsiteContentItem, status: WebsiteContentStatus) => {
+    try {
+      setError('');
+      await websiteContentService.updateStatus(item.id, status);
+      await loadItems();
+    } catch (statusError: any) {
+      setError(statusError?.message || 'Failed to update content status.');
+    }
+  };
+
+  const removeItem = async (item: WebsiteContentItem) => {
+    if (!window.confirm(`Delete "${item.title}"?`)) return;
+    try {
+      setError('');
+      await websiteContentService.remove(item.id);
+      await loadItems();
+      if (editingId === item.id) resetForm();
+    } catch (removeError: any) {
+      setError(removeError?.message || 'Failed to delete website content.');
     }
   };
 
   return (
-    <div className="space-y-8">
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
-        <div className="p-4 md:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-purple-100 dark:bg-purple-900/30 text-purple-600 rounded-lg">
-              <Megaphone size={20} />
-            </div>
-            <div>
-              <h3 className="font-bold text-slate-800 dark:text-slate-100">{t('websitePosts.title')}</h3>
-              <p className="text-xs text-slate-500">{t('websitePosts.subtitle')}</p>
-            </div>
-          </div>
-          <button
-            onClick={() => setShowPostModal(true)}
-            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2 text-xs font-bold"
-          >
-            <Plus size={16} />
-            <span className="hidden xs:inline">{t('websitePosts.addPost')}</span>
-          </button>
+    <div className="space-y-6">
+      <div className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950 md:flex-row md:items-center md:justify-between">
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-[0.24em] text-emerald-700 dark:text-emerald-400">{uiText('Public website')}</p>
+          <h1 className="mt-2 text-2xl font-black text-slate-950 dark:text-white">{uiText('Website Content Studio')}</h1>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{uiText('Super Admin controls for school team, community activities, events, and uniform stories.')}</p>
         </div>
+        <button type="button" onClick={() => resetForm()} className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-700 px-4 py-3 text-sm font-black text-white transition hover:bg-emerald-800">
+          <Plus size={18} />{uiText('New item')}
+        </button>
+      </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-slate-100 dark:divide-slate-800">
-          {isLoading ? (
-            <div className="p-12 col-span-full flex justify-center items-center text-slate-500">
-              <Loader2 size={32} className="animate-spin text-purple-500" />
+      <div className="grid gap-3 md:grid-cols-3">
+        {contentTabs.map((tab) => (
+          <button
+            key={tab.type}
+            type="button"
+            onClick={() => switchType(tab.type)}
+            className={`rounded-2xl border p-4 text-left transition ${activeType === tab.type
+              ? 'border-emerald-700 bg-emerald-700 text-white shadow-lg shadow-emerald-700/20'
+              : 'border-slate-200 bg-white text-slate-700 hover:border-emerald-400 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200'
+            }`}
+          >
+            <tab.icon size={22} />
+            <div className="mt-4 font-black">{uiText(tab.label)}</div>
+            <p className={`mt-1 text-xs leading-5 ${activeType === tab.type ? 'text-white/75' : 'text-slate-500 dark:text-slate-400'}`}>{uiText(tab.hint)}</p>
+          </button>
+        ))}
+      </div>
+
+      {error && (
+        <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-700 dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-300">
+          {uiText(error)}
+        </div>
+      )}
+
+      <div className="grid gap-6 xl:grid-cols-[24rem_1fr]">
+        <form onSubmit={saveItem} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h2 className="font-black text-slate-900 dark:text-white">{uiText(editingId ? 'Edit content' : `Add ${activeTab.label}`)}</h2>
+              <p className="mt-1 text-xs text-slate-500">{uiText(activeTab.hint)}</p>
             </div>
-          ) : posts?.length === 0 ? (
-            <div className="p-12 col-span-full text-center text-slate-500 text-sm">
-              <Megaphone size={40} className="mx-auto text-slate-300 mb-4" />
-              {t('websitePosts.noPosts')}
+            {editingId && (
+              <button type="button" onClick={() => resetForm()} className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800" aria-label={uiText('Cancel editing')}>
+                <X size={18} />
+              </button>
+            )}
+          </div>
+
+          <div className="mt-5 space-y-4">
+            <label className="block space-y-1">
+              <span className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">{uiText(activeType === 'team' ? 'Name' : 'Title')}</span>
+              <input required value={draft.title} onChange={(event) => setDraft({ ...draft, title: event.target.value })} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500 dark:border-slate-700 dark:bg-slate-900" />
+            </label>
+
+            <label className="block space-y-1">
+              <span className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">{uiText(activeType === 'team' ? 'Role' : 'Subtitle')}</span>
+              <input value={draft.subtitle} onChange={(event) => setDraft({ ...draft, subtitle: event.target.value })} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500 dark:border-slate-700 dark:bg-slate-900" />
+            </label>
+
+            <label className="block space-y-1">
+              <span className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">{uiText('Category')}</span>
+              <input value={draft.category} placeholder={activeType === 'team' ? 'Office & management' : activeType === 'community' ? 'Sports, Club, Ceremony...' : 'Student voice'} onChange={(event) => setDraft({ ...draft, category: event.target.value })} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500 dark:border-slate-700 dark:bg-slate-900" />
+            </label>
+
+            <label className="block space-y-1">
+              <span className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">{uiText('Description')}</span>
+              <textarea rows={4} value={draft.body} onChange={(event) => setDraft({ ...draft, body: event.target.value })} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500 dark:border-slate-700 dark:bg-slate-900" />
+            </label>
+
+            <label className="block space-y-1">
+              <span className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">{uiText('Image file')}</span>
+              <input ref={fileInputRef} type="file" accept="image/*" className="w-full text-sm text-slate-500" />
+            </label>
+
+            <label className="block space-y-1">
+              <span className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">{uiText('Image URL')}</span>
+              <input value={draft.image_url} onChange={(event) => setDraft({ ...draft, image_url: event.target.value })} placeholder={uiText('Paste image URL or upload a file above')} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500 dark:border-slate-700 dark:bg-slate-900" />
+            </label>
+
+            {activeType === 'community' && (
+              <label className="block space-y-1">
+                <span className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">{uiText('Event date')}</span>
+                <input type="date" value={draft.event_date || ''} onChange={(event) => setDraft({ ...draft, event_date: event.target.value || null })} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500 dark:border-slate-700 dark:bg-slate-900" />
+              </label>
+            )}
+
+            <div className="grid grid-cols-2 gap-3">
+              <label className="block space-y-1">
+                <span className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">{uiText('Order')}</span>
+                <input type="number" value={draft.display_order} onChange={(event) => setDraft({ ...draft, display_order: Number(event.target.value) })} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500 dark:border-slate-700 dark:bg-slate-900" />
+              </label>
+              <label className="block space-y-1">
+                <span className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">{uiText('Status')}</span>
+                <select value={draft.status} onChange={(event) => setDraft({ ...draft, status: event.target.value as WebsiteContentStatus })} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500 dark:border-slate-700 dark:bg-slate-900">
+                  <option value="draft">{uiText('Draft')}</option>
+                  <option value="published">{uiText('Published')}</option>
+                  <option value="archived">{uiText('Archived')}</option>
+                </select>
+              </label>
+            </div>
+
+            <label className="flex items-center gap-3 rounded-xl border border-slate-200 px-3 py-3 text-sm font-bold dark:border-slate-800">
+              <input type="checkbox" checked={draft.featured} onChange={(event) => setDraft({ ...draft, featured: event.target.checked })} className="h-4 w-4 rounded border-slate-300 text-emerald-700 focus:ring-emerald-500" />
+              {uiText('Feature this item')}
+            </label>
+
+            <button disabled={isSaving} type="submit" className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 px-4 py-3 text-sm font-black text-white transition hover:bg-emerald-800 disabled:opacity-60">
+              {isSaving ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />}
+              {uiText(editingId ? 'Save changes' : 'Create content')}
+            </button>
+          </div>
+        </form>
+
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+          {isLoading ? (
+            <div className="flex min-h-[24rem] items-center justify-center text-slate-500">
+              <Loader2 size={32} className="animate-spin text-emerald-600" />
+            </div>
+          ) : visibleItems.length === 0 ? (
+            <div className="flex min-h-[24rem] flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 text-center dark:border-slate-800">
+              <Image size={42} className="text-slate-300" />
+              <p className="mt-4 font-black text-slate-700 dark:text-slate-200">{uiText('No content added yet')}</p>
+              <p className="mt-2 max-w-sm text-sm text-slate-500">{uiText('Create the first item here. Published items will appear on the public website.')}</p>
             </div>
           ) : (
-            posts?.map((post) => {
-              const isVideo = post.media_type === 'video';
-
-              return (
-                <div key={post.id} className="p-4 md:p-6 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors flex flex-col">
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-purple-100 text-purple-700">
-                      {uiText(isVideo ? t('websitePosts.videoType', 'Video') : t('websitePosts.imageType', 'Image'))}
-                    </span>
-                    <button
-                      onClick={() => deletePublicPost(post.id)}
-                      className="text-rose-500 hover:text-rose-600 text-xs font-bold uppercase"
-                    >
-                      {t('websitePosts.delete')}
-                    </button>
-                  </div>
-                  <div className="aspect-video bg-slate-100 dark:bg-slate-800 rounded-xl mb-4 overflow-hidden shadow-inner">
-                    {!isVideo ? (
-                      <img src={post.image_url} alt={uiText("Post media")} className="w-full h-full object-cover" />
+            <div className="grid gap-4 lg:grid-cols-2">
+              {visibleItems.map((item, index) => (
+                <motion.article
+                  key={item.id}
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.035 }}
+                  className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900"
+                >
+                  <div className="relative aspect-[16/10] bg-slate-200 dark:bg-slate-800">
+                    {item.image_url ? (
+                      <img src={item.image_url} alt={uiText(item.title)} className="h-full w-full object-cover" />
                     ) : (
-                      <iframe src={post.image_url} title={uiText("Post media content")} className="w-full h-full pointer-events-none" />
+                      <div className="grid h-full place-items-center text-slate-400"><Image size={36} /></div>
                     )}
-                  </div>
-                  <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-medium whitespace-pre-wrap">
-                    {uiText(post.post_text)}
-                  </p>
-                  <div className="mt-auto pt-4 flex justify-between items-center border-t border-slate-100 dark:border-slate-800">
-                    <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">
-                      {/* Maps to the created_at DATE column */}
-                      {uiText(formatEthiopianLabel(post.created_at || new Date().toISOString()))}
+                    <span className={`absolute left-3 top-3 rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] ${item.status === 'published' ? 'bg-emerald-600 text-white' : item.status === 'archived' ? 'bg-slate-700 text-white' : 'bg-amber-400 text-slate-950'}`}>
+                      {uiText(item.status)}
                     </span>
                   </div>
-                </div>
-              );
-            })
+                  <div className="p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-[0.18em] text-amber-700 dark:text-amber-400">{uiText(item.category || activeTab.label)}</p>
+                        <h3 className="mt-2 text-lg font-black text-slate-950 dark:text-white">{uiText(item.title)}</h3>
+                        {item.subtitle && <p className="mt-1 text-sm font-bold text-slate-500">{uiText(item.subtitle)}</p>}
+                      </div>
+                      {item.featured && <Sparkles size={18} className="shrink-0 text-amber-500" />}
+                    </div>
+                    {item.body && <p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-600 dark:text-slate-300">{uiText(item.body)}</p>}
+                    {item.event_date && <p className="mt-3 text-xs font-black uppercase tracking-[0.14em] text-emerald-700 dark:text-emerald-400">{uiText(item.event_date)}</p>}
+
+                    <div className="mt-5 flex flex-wrap gap-2">
+                      <button type="button" onClick={() => editItem(item)} className="inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-2 text-xs font-black text-slate-700 ring-1 ring-slate-200 transition hover:bg-slate-100 dark:bg-slate-950 dark:text-slate-200 dark:ring-slate-800">
+                        <Pencil size={14} />{uiText('Edit')}
+                      </button>
+                      <button type="button" onClick={() => changeStatus(item, item.status === 'published' ? 'draft' : 'published')} className="rounded-lg bg-emerald-700 px-3 py-2 text-xs font-black text-white transition hover:bg-emerald-800">
+                        {uiText(item.status === 'published' ? 'Unpublish' : 'Publish')}
+                      </button>
+                      <button type="button" onClick={() => removeItem(item)} className="ml-auto inline-flex items-center gap-1.5 rounded-lg bg-rose-50 px-3 py-2 text-xs font-black text-rose-600 transition hover:bg-rose-100 dark:bg-rose-950/30 dark:text-rose-300">
+                        <Trash2 size={14} />{uiText('Delete')}
+                      </button>
+                    </div>
+                  </div>
+                </motion.article>
+              ))}
+            </div>
           )}
         </div>
       </div>
-
-      {showPostModal && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/50 shrink-0">
-              <h3 className="font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wider text-sm">{t('websitePosts.addModalTitle')}</h3>
-              <button
-                type="button"
-                title={uiText("Close add post modal")}
-                onClick={() => !isSubmitting && setShowPostModal(false)}
-                className="text-slate-400 hover:text-slate-600 transition-colors"
-                disabled={isSubmitting}
-              >
-                <X size={20} />
-              </button>
-            </div>
-            <form
-              className="p-6 space-y-4 flex-1 overflow-y-auto"
-              onSubmit={async (e) => {
-                e.preventDefault();
-                setIsSubmitting(true);
-
-                try {
-                  const form = e.currentTarget as HTMLFormElement;
-                  const formData = new FormData(form);
-                  const type = formData.get('media_type') as 'image' | 'video';
-                  let mediaUrl = formData.get('mediaUrl') as string;
-
-                  // If image and a local file was selected, read it to a data URL
-                  if (type === 'image') {
-                    const fileInput = fileInputRef.current;
-                    const file = fileInput?.files && fileInput.files[0];
-                    if (file) {
-                      mediaUrl = await new Promise<string>((resolve, reject) => {
-                        const reader = new FileReader();
-                        reader.onload = () => resolve(String(reader.result));
-                        reader.onerror = (err) => reject(err);
-                        reader.readAsDataURL(file);
-                      });
-                    }
-                  }
-
-                  // Strictly matches database columns (excluding id and created_at which DB handles)
-                  const postPayload = {
-                    image_url: mediaUrl,
-                    post_text: formData.get('post_text') as string,
-                    media_type: type,
-                  };
-
-                  try {
-                    const response = await api.post('/super-admin/public-post', postPayload);
-                    await fetchPosts();
-                    setShowPostModal(false);
-                    if (fileInputRef.current) fileInputRef.current.value = '';
-                  }
-                  catch (err) {
-                    console.error('Failed to create public post');
-                  }
-
-                } catch (error) {
-                  console.error('Error creating post:', error);
-                } finally {
-                  setIsSubmitting(false);
-                }
-              }}
-            >
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-500 uppercase">{t('websitePosts.mediaType')}</label>
-                <select
-                  name="media_type"
-                  title={uiText("Select media type (image or video)")}
-                  required
-                  value={selectedType}
-                  onChange={(ev) => setSelectedType(ev.target.value as 'image' | 'video')}
-                  disabled={isSubmitting}
-                  className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-500 transition-all disabled:opacity-50"
-                >
-                  <option value="image">{t('websitePosts.imageType', 'Image')}</option>
-                  <option value="video">{t('websitePosts.videoType', 'Video')}</option>
-                </select>
-              </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-500 uppercase">{t('websitePosts.mediaUrl')}</label>
-                {selectedType === 'image' ? (
-                  <>
-                    <input
-                      ref={fileInputRef}
-                      name="mediaFile"
-                      accept="image/*"
-                      type="file"
-                      disabled={isSubmitting}
-                      title={uiText("Select image file to upload")}
-                      className="w-full text-sm disabled:opacity-50"
-                    />
-                    <div className="text-xs text-slate-400 mt-1">{uiText("Or paste an image URL below")}</div>
-                    <input
-                      name="mediaUrl"
-                      type="url"
-                      title={uiText("Enter media URL")}
-                      placeholder={uiText("https://example.com/image.jpg (optional)")}
-                      disabled={isSubmitting}
-                      className="w-full mt-2 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-500 transition-all disabled:opacity-50"
-                    />
-                  </>
-                ) : (
-                  <input
-                    name="mediaUrl"
-                    required
-                    type="url"
-                    title={uiText("Enter video URL")}
-                    placeholder={uiText("https://example.com/video.mp4")}
-                    disabled={isSubmitting}
-                    className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-500 transition-all disabled:opacity-50"
-                  />
-                )}
-              </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-500 uppercase">{t('websitePosts.description')}</label>
-                <textarea
-                  name="post_text"
-                  required
-                  rows={3}
-                  disabled={isSubmitting}
-                  placeholder={t('websitePosts.placeholderDesc')}
-                  className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-500 transition-all disabled:opacity-50"
-                />
-              </div>
-              <div className="pt-4">
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-purple-200 dark:shadow-none flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
-                >
-                  {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : <Megaphone size={18} />}
-                  <span>{uiText(isSubmitting ? t('websitePosts.publishing', 'Publishing...') : t('websitePosts.publish'))}</span>
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

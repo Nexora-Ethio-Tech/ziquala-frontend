@@ -29,6 +29,7 @@ import {
   PlayCircle,
   Phone,
   Send,
+  Shirt,
   Sparkles,
   Sun,
   Trees,
@@ -53,6 +54,7 @@ import {
   ziqualaIdentity,
 } from '../data/ziqualaContent';
 import { ELearningPage, FeaturedBookGallery } from './ELearningPage';
+import { websiteContentService, type WebsiteContentItem } from '../services/websiteContentService';
 import monasteryMark from '../assets/monastery/monastery-mark.webp';
 import craterCommunity from '../assets/monastery/crater-community.webp';
 import monksByLake from '../assets/monastery/monks-by-lake.webp';
@@ -71,6 +73,8 @@ import cropHarvest from '../assets/monastery/projects/crop-harvest.webp';
 import oxFarming from '../assets/monastery/projects/ox-farming.webp';
 import livestock from '../assets/monastery/projects/livestock.webp';
 import abbotHarvest from '../assets/monastery/projects/abbot-harvest.webp';
+import wofchoProject from '/home/yonas/Desktop/coding/nexora/zikuala/static files/wofcho project.jpeg';
+import oilProject from '/home/yonas/Desktop/coding/nexora/zikuala/static files/oil.jpeg';
 import cbeLogo from '../assets/cbe-logo.svg';
 
 const SectionTitle = ({ eyebrow, children, copy }: { eyebrow: string; children: ReactNode; copy?: string }) => (
@@ -388,7 +392,7 @@ const HomePage = () => {
               <span className="h-px w-9 bg-amber-700 dark:bg-amber-300" />{uiText(" Bishoftu · KG–Grade 8")}</p>
             <h1 className="mt-7 max-w-5xl font-serif text-5xl font-medium leading-[0.95] tracking-[-0.045em] sm:text-6xl md:text-8xl lg:text-[6.4rem]">{uiText("Learning with roots. ")}<span className="text-amber-700 dark:text-amber-300">{uiText("Growing with purpose.")}</span>
             </h1>
-            <p className="mt-7 max-w-2xl text-base leading-7 text-slate-700 dark:text-white/78 sm:text-lg md:leading-8">{uiText("A school where modern knowledge, Ethiopian values, and responsible citizenship shape confident learners.")}</p>
+            <p className="mt-7 max-w-2xl text-base leading-7 text-slate-800 dark:text-slate-100 sm:text-lg md:leading-8">{uiText("A school where modern knowledge, Ethiopian values, and responsible citizenship shape confident learners.")}</p>
             <div className="mt-9 flex flex-wrap gap-x-7 gap-y-4">
               <Link to="/register" className="group inline-flex items-center gap-3 bg-amber-400 px-6 py-4 text-sm font-black text-emerald-950 transition-colors hover:bg-amber-300">{uiText("Join our school")}<ArrowRight size={18} className="transition-transform group-hover:translate-x-1" /></Link>
               <Link to="/school" className="group inline-flex items-center gap-3 bg-amber-400 px-6 py-4 text-sm font-black text-emerald-950 transition-colors hover:bg-amber-300">{uiText("Discover the school ")}<ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
@@ -548,8 +552,30 @@ const staffGroups: Array<{ id: SchoolStaffGroup; label: string; shortLabel: stri
 ];
 
 const StaffGallery = () => {
-  const [activeGroup, setActiveGroup] = useState<SchoolStaffGroup>('office');
-  const visibleStaff = schoolStaff.filter((member) => member.group === activeGroup);
+  const [activeGroup, setActiveGroup] = useState<string>('office');
+  const [liveTeam, setLiveTeam] = useState<WebsiteContentItem[]>([]);
+
+  useEffect(() => {
+    let mounted = true;
+    websiteContentService.getPublic('team')
+      .then((items) => {
+        if (mounted) setLiveTeam(items);
+      })
+      .catch(() => {
+        if (mounted) setLiveTeam([]);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const liveGroups = Array.from(new Set(liveTeam.map((member) => member.category).filter(Boolean)));
+  const availableGroups = liveGroups.length > 0
+    ? liveGroups.map((group) => ({ id: group, label: group, shortLabel: group }))
+    : staffGroups;
+  const activeLiveGroup = liveGroups.includes(activeGroup) ? activeGroup : liveGroups[0];
+  const visibleLiveStaff = liveTeam.filter((member) => !activeLiveGroup || member.category === activeLiveGroup);
+  const visibleStaff = liveTeam.length > 0 ? [] : schoolStaff.filter((member) => member.group === activeGroup);
 
   return (
     <section id="school-staff" className="scroll-mt-24 overflow-hidden bg-[#ebe4d5] py-20 dark:bg-slate-950 md:py-28">
@@ -557,14 +583,14 @@ const StaffGallery = () => {
         <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
           <SectionTitle eyebrow={uiText("Our people")} copy={uiText("School management, primary teachers, and kindergarten staff are kept separate from the four-member school board.")}>{uiText("Meet the school team")}</SectionTitle>
           <div className="-mx-1 flex max-w-full gap-2 overflow-x-auto px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" role="tablist" aria-label={uiText("Staff groups")}>
-            {staffGroups.map((group) => (
+            {availableGroups.map((group) => (
               <button
                 key={group.id}
                 type="button"
                 role="tab"
-                aria-selected={activeGroup === group.id}
+                aria-selected={(liveTeam.length > 0 ? activeLiveGroup : activeGroup) === group.id}
                 onClick={() => setActiveGroup(group.id)}
-                className={`shrink-0 border px-4 py-3 text-xs font-black transition-colors sm:px-5 ${activeGroup === group.id
+                className={`shrink-0 border px-4 py-3 text-xs font-black transition-colors sm:px-5 ${(liveTeam.length > 0 ? activeLiveGroup : activeGroup) === group.id
                   ? 'border-emerald-900 bg-emerald-900 text-white dark:border-amber-400 dark:bg-amber-400 dark:text-slate-950'
                   : 'border-emerald-950/20 text-emerald-950 hover:border-emerald-800 dark:border-white/20 dark:text-white dark:hover:border-amber-300'
                   }`}
@@ -577,8 +603,38 @@ const StaffGallery = () => {
         </div>
 
         <div className="mt-4 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-7 [scrollbar-color:#a16207_transparent] sm:gap-5" role="tabpanel" aria-live="polite">
-          {visibleStaff.map((member) => (
-            <article key={`${member.group}-${member.image}`} className="w-[74vw] max-w-[17rem] shrink-0 snap-start sm:w-[17rem]">
+          {visibleLiveStaff.map((member, index) => (
+            <motion.article
+              key={member.id}
+              initial={{ opacity: 0, y: 30, scale: 0.96 }}
+              whileInView={{ opacity: 1, y: 0, scale: 1 }}
+              viewport={{ once: false, amount: 0.2 }}
+              transition={{ duration: 0.45, delay: Math.min(index * 0.04, 0.2) }}
+              className="w-[74vw] max-w-[17rem] shrink-0 snap-start sm:w-[17rem]"
+            >
+              <div className="aspect-[4/5] overflow-hidden bg-stone-300 dark:bg-slate-800">
+                {member.image_url ? (
+                  <img src={member.image_url} alt={uiText("{{value0}}, {{value1}}", { value0: member.title, value1: member.subtitle })} loading="lazy" decoding="async" className="h-full w-full object-cover object-top transition duration-500 hover:scale-[1.025]" />
+                ) : (
+                  <div className="grid h-full place-items-center bg-emerald-950 text-white"><Users size={42} /></div>
+                )}
+              </div>
+              <div className="border-t-4 border-amber-500 bg-white px-4 py-5 dark:bg-slate-900">
+                <h3 className="text-base font-black leading-6 text-emerald-950 dark:text-white">{uiText(member.title)}</h3>
+                <p className="mt-2 text-xs font-bold leading-5 text-slate-500 dark:text-slate-400">{uiText(member.subtitle || member.category)}</p>
+                {member.body && <p className="mt-3 line-clamp-3 text-xs leading-5 text-slate-500 dark:text-slate-400">{uiText(member.body)}</p>}
+              </div>
+            </motion.article>
+          ))}
+          {visibleStaff.map((member, index) => (
+            <motion.article
+              key={`${member.group}-${member.image}`}
+              initial={{ opacity: 0, y: 30, scale: 0.96 }}
+              whileInView={{ opacity: 1, y: 0, scale: 1 }}
+              viewport={{ once: false, amount: 0.2 }}
+              transition={{ duration: 0.45, delay: Math.min(index * 0.04, 0.2) }}
+              className="w-[74vw] max-w-[17rem] shrink-0 snap-start sm:w-[17rem]"
+            >
               <div className="aspect-[4/5] overflow-hidden bg-stone-300 dark:bg-slate-800">
                 <img src={member.image} alt={uiText("{{value0}}, {{value1}}", { value0: member.name, value1: uiText(member.role) })} loading="lazy" decoding="async" className="h-full w-full object-cover object-top transition duration-500 hover:scale-[1.025]" />
               </div>
@@ -586,11 +642,135 @@ const StaffGallery = () => {
                 <h3 className="text-base font-black leading-6 text-emerald-950 dark:text-white">{member.name}</h3>
                 <p className="mt-2 text-xs font-bold leading-5 text-slate-500 dark:text-slate-400">{uiText(member.role)}</p>
               </div>
-            </article>
+            </motion.article>
           ))}
           <div className="w-1 shrink-0" aria-hidden="true" />
         </div>
-        <p className="mt-2 text-xs font-bold uppercase tracking-[0.18em] text-emerald-900/55 dark:text-white/45">{uiText("Swipe or scroll to meet the full team · ")}{visibleStaff.length}{uiText(" people")}</p>
+        <p className="mt-2 text-xs font-bold uppercase tracking-[0.18em] text-emerald-900/55 dark:text-white/45">{uiText("Swipe or scroll to meet the full team · ")}{(liveTeam.length > 0 ? visibleLiveStaff : visibleStaff).length}{uiText(" people")}</p>
+      </div>
+    </section>
+  );
+};
+
+const PublicCommunityHighlights = ({ compact = false }: { compact?: boolean }) => {
+  const [items, setItems] = useState<WebsiteContentItem[]>([]);
+
+  useEffect(() => {
+    let mounted = true;
+    websiteContentService.getPublic('community')
+      .then((content) => {
+        if (mounted) setItems(content);
+      })
+      .catch(() => {
+        if (mounted) setItems([]);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const fallback = [
+    { id: 'calendar', title: 'Academic dates and upcoming events', subtitle: 'School calendar', body: 'Term dates, meetings, examinations, ceremonies, and holidays will be published here.', image_url: studentAssembly, category: 'School calendar', event_date: null },
+    { id: 'student-life', title: 'Learning, achievement, and community', subtitle: 'School updates', body: 'Verified school announcements and student-facing updates will remain separate from monastery media.', image_url: schoolBuilding, category: 'Student life', event_date: null },
+    { id: 'community', title: 'Clubs, service, and extracurricular life', subtitle: 'Activities', body: 'Published activities can show sports, clubs, service days, ceremonies, and wider community events.', image_url: studentAssembly, category: 'Activities', event_date: null },
+  ];
+  const cards = items.length > 0 ? items : fallback;
+
+  return (
+    <section id="school-community" className={`scroll-mt-24 ${compact ? '' : 'bg-white py-20 dark:bg-slate-900/50 md:py-28'}`}>
+      <div className={compact ? '' : 'mx-auto max-w-7xl px-5 lg:px-8'}>
+        {!compact && (
+          <SectionTitle eyebrow={uiText("Beyond the classroom")} copy={uiText("A public space for extracurricular activities, ceremonies, school events, clubs, student achievements, and wider community updates.")}>{uiText("Community activities and events")}</SectionTitle>
+        )}
+        <div className="grid gap-5 md:grid-cols-3">
+          {cards.slice(0, compact ? 6 : 3).map((item, index) => (
+            <motion.article
+              key={item.id}
+              initial={{ opacity: 0, y: 28 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: false, amount: 0.2 }}
+              transition={{ duration: 0.52, delay: Math.min(index * 0.08, 0.24) }}
+              className="group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition duration-500 hover:-translate-y-1 hover:shadow-xl dark:border-white/10 dark:bg-slate-900"
+            >
+              <div className="relative aspect-[16/10] overflow-hidden bg-slate-200 dark:bg-slate-800">
+                {item.image_url ? (
+                  <img src={item.image_url} alt={uiText(item.title)} className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.04]" />
+                ) : (
+                  <div className="grid h-full place-items-center bg-emerald-950 text-white"><Newspaper size={38} /></div>
+                )}
+              </div>
+              <div className="p-6">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-700 dark:text-amber-400">{uiText(item.category || item.subtitle || 'School update')}</p>
+                <h3 className="mt-3 text-2xl font-black text-emerald-950 dark:text-white">{uiText(item.title)}</h3>
+                <p className="mt-4 text-sm leading-7 text-slate-600 dark:text-slate-300">{uiText(item.body)}</p>
+                {item.event_date && <p className="mt-5 text-xs font-black uppercase tracking-[0.18em] text-emerald-700 dark:text-emerald-400">{uiText(item.event_date)}</p>}
+              </div>
+            </motion.article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+const UniformShowcase = () => {
+  const [items, setItems] = useState<WebsiteContentItem[]>([]);
+
+  useEffect(() => {
+    let mounted = true;
+    websiteContentService.getPublic('uniform')
+      .then((content) => {
+        if (mounted) setItems(content);
+      })
+      .catch(() => {
+        if (mounted) setItems([]);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const cards = items.length > 0 ? items : [
+    {
+      id: 'uniform-fallback',
+      title: 'Uniform, identity, and school pride',
+      subtitle: 'Student voice',
+      body: 'The Super Admin can publish student photos and short explanations here to show how the Ziquala uniform represents neatness, discipline, unity, and belonging.',
+      image_url: studentAssembly,
+      category: 'Uniform story',
+    },
+  ];
+
+  return (
+    <section id="school-uniform" className="scroll-mt-24 bg-[#ebe4d5] py-20 dark:bg-slate-950 md:py-28">
+      <div className="mx-auto max-w-7xl px-5 lg:px-8">
+        <SectionTitle eyebrow={uiText("Student voice")} copy={uiText("Students can explain the uniqueness of their uniform, what each part represents, and how it connects them to school identity.")}>{uiText("Uniform stories")}</SectionTitle>
+        <div className="grid gap-5 md:grid-cols-2">
+          {cards.slice(0, 4).map((item, index) => (
+            <motion.article
+              key={item.id}
+              initial={{ opacity: 0, x: index % 2 === 0 ? -36 : 36 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: false, amount: 0.2 }}
+              transition={{ duration: 0.58, ease: [0.16, 1, 0.3, 1] }}
+              className="grid overflow-hidden rounded-xl border border-black/10 bg-white dark:border-white/10 dark:bg-slate-900 sm:grid-cols-[.85fr_1fr]"
+            >
+              <div className="relative min-h-72 bg-slate-200 dark:bg-slate-800">
+                {item.image_url ? (
+                  <img src={item.image_url} alt={uiText(item.title)} className="absolute inset-0 h-full w-full object-cover" />
+                ) : (
+                  <div className="grid h-full place-items-center bg-emerald-950 text-white"><Shirt size={44} /></div>
+                )}
+              </div>
+              <div className="p-7">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-700 dark:text-amber-400">{uiText(item.category || item.subtitle || 'Uniform')}</p>
+                <h3 className="mt-4 text-3xl font-black leading-tight text-emerald-950 dark:text-white">{uiText(item.title)}</h3>
+                {item.subtitle && <p className="mt-3 text-sm font-black text-emerald-700 dark:text-emerald-300">{uiText(item.subtitle)}</p>}
+                <p className="mt-5 leading-7 text-slate-600 dark:text-slate-300">{uiText(item.body)}</p>
+              </div>
+            </motion.article>
+          ))}
+        </div>
       </div>
     </section>
   );
@@ -598,11 +778,18 @@ const StaffGallery = () => {
 
 const monasteryProjects = [
   {
-    title: 'Injera preparation',
-    product: 'Fresh, locally prepared injera',
-    copy: 'Prepared through the monastery’s working community, injera production supplies daily food and creates income that helps cover essential monastery expenses.',
-    image: injeraMaking,
-    alt: 'Injera being prepared as part of daily monastery work',
+    title: 'Oil processing project',
+    product: 'Refined oil and value-added products from Adulala city',
+    copy: 'The monastery’s oil processing project in Adulala city contributes steady income while creating dependable local value from a key agricultural product.',
+    image: oilProject,
+    alt: 'Oil processing project in Adulala city',
+  },
+  {
+    title: 'Wofcho project',
+    product: 'Community-based produce from Wenber Mariam village',
+    copy: 'Based in Wenber Mariam village, the Wofcho project supports practical production and income generation through careful local cultivation and shared stewardship.',
+    image: wofchoProject,
+    alt: 'Wofcho project in Wenber Mariam village',
   },
   {
     title: 'Sewing & textile work',
@@ -656,7 +843,7 @@ const MonasteryProjects = () => (
           <p className="text-xs font-black uppercase tracking-[0.28em] text-amber-700 dark:text-amber-400">{uiText("Sustaining the monastery")}</p>
           <div>
             <h2 className="font-serif text-4xl font-medium leading-[1.02] tracking-[-0.035em] text-emerald-950 dark:text-white sm:text-5xl md:text-6xl">{uiText("Income-generating projects.")}</h2>
-            <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-600 dark:text-slate-300">{uiText("Farming, food production, sewing, and livestock care generate the income the monastery needs for everyday expenses, community life, and long-term sustainability.")}</p>
+            <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-600 dark:text-slate-300">{uiText("Farming, food production, sewing, and livestock care generate the income the monastery needs for everyday expenses, community life, and long-term sustainability. The monastery also operates a school in Debre Zeyit city, strengthening both spiritual life and community development.")}</p>
           </div>
         </div>
       </ScrollReveal>
@@ -860,6 +1047,10 @@ const SchoolPage = () => (
 
     <StaffGallery />
 
+    <PublicCommunityHighlights />
+
+    <UniformShowcase />
+
     <FeaturedBookGallery />
 
     <section id="school-campuses" className="scroll-mt-24 bg-white py-20 dark:bg-slate-900/50 md:py-28">
@@ -1033,30 +1224,10 @@ const MonasteryPage = () => (
 );
 
 const NewsPage = () => (
-  <>
-    <section className="max-w-7xl mx-auto px-5 lg:px-8 py-20 md:py-28">
-      <SectionTitle eyebrow={uiText("News & events")} copy={uiText("A dedicated public space for school announcements, ceremonies, academic dates, community events, and verified monastery project updates.")}>{uiText("Stay connected with Ziquala Abo")}</SectionTitle>
-      <div className="grid md:grid-cols-3 gap-5">
-        {[
-          { icon: CalendarDays, label: 'School calendar', title: 'Academic dates and upcoming events', copy: 'Term dates, meetings, examinations, ceremonies, and holidays will be published here.' },
-          { icon: GraduationCap, label: 'School updates', title: 'Learning, achievement, and community', copy: 'Verified school announcements and student-facing updates will remain separate from monastery media.' },
-          { icon: Trees, label: 'Monastery projects', title: 'Heritage and community initiatives', copy: 'Approved project updates can link directly to the dedicated monastery experience.' },
-        ].map((item) => (
-          <article key={item.label} className="p-8 min-h-[330px] rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 flex flex-col">
-            <item.icon size={32} className="text-emerald-700 dark:text-emerald-400" />
-            <p className="mt-12 text-xs font-black uppercase tracking-[0.2em] text-amber-700 dark:text-amber-400">{uiText(item.label)}</p>
-            <h2 className="mt-3 text-2xl font-black">{uiText(item.title)}</h2>
-            <p className="mt-4 text-sm leading-7 text-slate-600 dark:text-slate-300">{uiText(item.copy)}</p>
-          </article>
-        ))}
-      </div>
-      <div className="mt-8 p-6 rounded-xl border border-dashed border-slate-300 dark:border-white/20 text-center">
-        <Sparkles className="mx-auto text-amber-600" />
-        <p className="mt-4 font-black">{uiText("Publishing tools will connect here later")}</p>
-        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">{uiText("The frontend is ready for the future Ziquala announcements API.")}</p>
-      </div>
-    </section>
-  </>
+  <section className="max-w-7xl mx-auto px-5 lg:px-8 py-20 md:py-28">
+    <SectionTitle eyebrow={uiText("News & events")} copy={uiText("A dedicated public space for school announcements, ceremonies, academic dates, extracurricular activities, and community events.")}>{uiText("Stay connected with Ziquala Abo")}</SectionTitle>
+    <PublicCommunityHighlights compact />
+  </section>
 );
 
 const PortalScopePage = () => (

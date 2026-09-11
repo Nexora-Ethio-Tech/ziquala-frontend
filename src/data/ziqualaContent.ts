@@ -10,7 +10,7 @@ export const ziqualaIdentity = {
   fullName: 'Zuqualla Abbo Primary School (Grade 1–8)',
   amharicName: officialSchoolStatement.am.name,
   oromoName: officialSchoolStatement.om.name,
-  location: 'Bishoftu, Kebele 03, House No. 721',
+  location: 'Bishoftu, Kebele 03',
   owner: 'Ziquala Debre Kewakibt Abune Gebre Menfes Kidus Monastery Association',
   motto: 'Modern knowledge, spiritual wisdom, and responsible citizenship.',
 } as const;
