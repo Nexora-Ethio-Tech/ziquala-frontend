@@ -59,7 +59,6 @@ interface PendingApp {
   cardAge?: string;
   kebele?: string;
   ketena?: string;
-  houseNo?: string;
   dateRegistered?: string;
   religion?: string;
 }
@@ -102,7 +101,6 @@ const mapApiApplicationToPendingApp = (app: any): PendingApp => ({
   cardAge: app.card_age || '',
   kebele: app.kebele || '',
   ketena: app.ketena || '',
-  houseNo: app.house_no || '',
   dateRegistered: app.date_registered || '',
   religion: app.religion || '',
 });
@@ -424,7 +422,6 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
       motherPhone: formData.get('motherPhone'),
       kebele: formData.get('kebele'),
       ketena: formData.get('ketena'),
-      houseNo: formData.get('houseNo'),
       dateRegistered: formData.get('dateRegistered'),
       parentName: formData.get('fatherName') || formData.get('parentName'),
       phone: formData.get('fatherPhone') || formData.get('phone'),
@@ -500,7 +497,6 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
       const motherPhone = formData.get('motherPhone') as string;
       const kebele = formData.get('kebele') as string;
       const ketena = formData.get('ketena') as string;
-      const houseNo = formData.get('houseNo') as string;
       const dateRegistered = formData.get('dateRegistered') as string;
       const parentName = fatherName || (formData.get('parentName') as string);
       const phone = fatherPhone || (formData.get('phone') as string);
@@ -530,7 +526,6 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
         motherPhone,
         kebele,
         ketena,
-        houseNo,
         dateRegistered,
         dob,
         gender,
@@ -574,7 +569,6 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
       if (placeOfBirth?.trim()) submitData.append('placeOfBirth', toTitleCase(placeOfBirth.trim()));
       if (kebele?.trim()) submitData.append('kebele', kebele.trim());
       if (ketena?.trim()) submitData.append('ketena', ketena.trim());
-      if (houseNo?.trim()) submitData.append('houseNo', houseNo.trim());
       if (dateRegistered?.trim()) submitData.append('dateRegistered', dateRegistered.trim());
       if (religion?.trim()) submitData.append('religion', toTitleCase(religion.trim()));
       submitData.append('dob', dob || '');

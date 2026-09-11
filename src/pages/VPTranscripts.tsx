@@ -52,7 +52,6 @@ type StudentTranscript = {
     birthPlace?: string;
     region?: string;
     town?: string;
-    houseNo?: string;
     phoneNo?: string;
     poBox?: string;
   };
@@ -265,7 +264,6 @@ export const VPTranscripts = () => {
           birthPlace: s.birthPlace || '',
           region: s.region || '',
           town: s.town || '',
-          houseNo: s.houseNo || '',
           telNo: s.phoneNo || '',
           poBox: s.poBox || ''
         },

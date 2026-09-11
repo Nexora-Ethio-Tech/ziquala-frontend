@@ -10,7 +10,6 @@ export interface StudentProfileInfo {
   birthPlace?: string;
   region?: string;
   town?: string;
-  houseNo?: string;
   telNo?: string;
   phoneNo?: string;
   poBox?: string;
@@ -60,7 +59,6 @@ export const TranscriptTemplate = ({ studentData }: TranscriptTemplateProps) => 
   const birthPlace = student.birthPlace || '';
   const region = student.region || '';
   const town = student.town || '';
-  const houseNo = student.houseNo || '';
   const telNo = student.telNo || student.phoneNo || '';
   const poBox = student.poBox || '';
 
@@ -144,21 +142,15 @@ export const TranscriptTemplate = ({ studentData }: TranscriptTemplateProps) => 
           </div>
         </div>
 
-        {/* Row 3: House No., Tel.No., Po.Box */}
+        {/* Row 3: Tel.No., Po.Box */}
         <div className="grid grid-cols-12 gap-2 items-baseline">
-          <div className="col-span-4 flex items-baseline">
-            <span className="whitespace-nowrap">{uiText("House No.:-")}</span>
-            <span className="flex-1 border-b border-black ml-1.5 px-1 font-mono font-normal min-h-[18px]">
-              {uiText(houseNo || '___________')}
-            </span>
-          </div>
-          <div className="col-span-5 flex items-baseline">
+          <div className="col-span-6 flex items-baseline">
             <span className="whitespace-nowrap">{uiText("Tel.No.:-")}</span>
             <span className="flex-1 border-b border-black ml-1.5 px-1 font-mono font-normal min-h-[18px]">
               {uiText(telNo || '___________________')}
             </span>
           </div>
-          <div className="col-span-3 flex items-baseline">
+          <div className="col-span-6 flex items-baseline">
             <span className="whitespace-nowrap">{uiText("Po.Box:-")}</span>
             <span className="flex-1 border-b border-black ml-1.5 px-1 font-mono font-normal min-h-[18px]">
               {uiText(poBox || '_____________')}

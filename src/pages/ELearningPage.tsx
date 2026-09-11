@@ -14,15 +14,14 @@ import {
   X,
 } from 'lucide-react';
 import {
-  ELEARNING_UPDATED_EVENT,
   eLearningGrades,
   eLearningLanguages,
   eLearningMaterialTypes,
   getGoogleDriveDownloadUrl,
-  loadELearningBooks,
   type ELearningBook,
 } from '../data/eLearningData';
 import { useUser } from '../context/UserContext';
+import { eLearningService } from '../services/eLearningService';
 
 const BookManagement = lazy(() => import('./ELearningManagement').then(module => ({ default: module.ELearningManagement })));
 
@@ -42,16 +41,10 @@ const BookCover = ({ book, compact = false }: { book: ELearningBook; compact?: b
 );
 
 export const FeaturedBookGallery = () => {
-  const [books, setBooks] = useState(loadELearningBooks);
+  const [books, setBooks] = useState<ELearningBook[]>([]);
 
   useEffect(() => {
-    const reload = () => setBooks(loadELearningBooks());
-    window.addEventListener(ELEARNING_UPDATED_EVENT, reload);
-    window.addEventListener('storage', reload);
-    return () => {
-      window.removeEventListener(ELEARNING_UPDATED_EVENT, reload);
-      window.removeEventListener('storage', reload);
-    };
+    eLearningService.getBooks().then(setBooks).catch(() => setBooks([]));
   }, []);
 
   const featured = books.filter((book) => book.status === 'published' && book.featured).slice(0, 5);
@@ -88,7 +81,8 @@ export const ELearningPage = () => {
   const { role } = useUser();
   const canManage = role === 'academic-manager' || role === 'super-admin';
   const [managing, setManaging] = useState(false);
-  const [books, setBooks] = useState(loadELearningBooks);
+  const [books, setBooks] = useState<ELearningBook[]>([]);
+  const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState('');
   const [grade, setGrade] = useState('All Grades');
   const [subject, setSubject] = useState('All Subjects');
@@ -97,19 +91,27 @@ export const ELearningPage = () => {
   const [selectedBook, setSelectedBook] = useState<ELearningBook | null>(null);
 
   useEffect(() => {
-    const reload = () => setBooks(loadELearningBooks());
-    window.addEventListener(ELEARNING_UPDATED_EVENT, reload);
-    window.addEventListener('storage', reload);
-    const bookId = new URLSearchParams(window.location.search).get('book');
-    if (bookId) {
-      const match = loadELearningBooks().find((book) => book.id === bookId && book.status === 'published');
-      if (match) setSelectedBook(match);
-    }
-    return () => {
-      window.removeEventListener(ELEARNING_UPDATED_EVENT, reload);
-      window.removeEventListener('storage', reload);
-    };
-  }, []);
+    if (managing) return;
+    let mounted = true;
+    setLoading(true);
+    eLearningService.getBooks()
+      .then((loadedBooks) => {
+        if (!mounted) return;
+        setBooks(loadedBooks);
+        const bookId = new URLSearchParams(window.location.search).get('book');
+        if (bookId) {
+          const match = loadedBooks.find((book) => book.id === bookId && book.status === 'published');
+          if (match) setSelectedBook(match);
+        }
+      })
+      .catch(() => {
+        if (mounted) setBooks([]);
+      })
+      .finally(() => {
+        if (mounted) setLoading(false);
+      });
+    return () => { mounted = false; };
+  }, [managing]);
 
   const publishedBooks = useMemo(() => books.filter((book) => {
     if (book.status !== 'published') return false;
@@ -198,7 +200,9 @@ export const ELearningPage = () => {
           <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-4 py-2 text-xs font-bold text-slate-500 dark:bg-slate-800"><Filter size={14} />{uiText(" Grade → Subject → Books")}</div>
         </div>
 
-        {filteredBooks.length > 0 ? (
+        {loading ? (
+          <div className="mt-8 rounded-3xl border border-dashed border-slate-300 px-6 py-20 text-center text-sm font-bold text-slate-500 dark:border-slate-700">{uiText("Loading books…")}</div>
+        ) : filteredBooks.length > 0 ? (
           <div className="mt-8 grid grid-cols-2 gap-x-4 gap-y-9 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {filteredBooks.map((book) => (
               <article key={book.id} className="min-w-0">
@@ -221,7 +225,7 @@ export const ELearningPage = () => {
         ) : (
           <div className="mt-8 rounded-3xl border border-dashed border-slate-300 px-6 py-20 text-center dark:border-slate-700">
             <SlidersHorizontal className="mx-auto text-slate-400" size={35} />
-            <p className="mt-4 text-lg font-black">{uiText("No books match these filters")}</p>
+            <p className="mt-4 text-lg font-black">{uiText(books.length === 0 ? "No books added yet" : "No books match these filters")}</p>
             <button onClick={clearFilters} className="mt-3 text-sm font-black text-emerald-700">{uiText("Clear filters and show all books")}</button>
           </div>
         )}

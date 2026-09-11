@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { bookText } from '../utils/localizeBook';
 import { uiError, uiText } from "../localization";
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Archive,
   BookOpen,
@@ -24,11 +24,10 @@ import {
   eLearningMaterialTypes,
   eLearningSubjects,
   extractGoogleDriveFileId,
-  loadELearningBooks,
-  saveELearningBooks,
   type ELearningBook,
   type ELearningStatus,
 } from '../data/eLearningData';
+import { eLearningService } from '../services/eLearningService';
 
 type BookForm = Omit<ELearningBook, 'id' | 'createdAt' | 'updatedAt' | 'coverClass'>;
 
@@ -57,20 +56,35 @@ const coverClasses = [
 
 export const ELearningManagement = () => {
   const { i18n } = useTranslation();
-  const [books, setBooks] = useState(loadELearningBooks);
+  const [books, setBooks] = useState<ELearningBook[]>([]);
   const [query, setQuery] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<BookForm>(emptyForm);
   const [formError, setFormError] = useState('');
   const [notice, setNotice] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
-  const persist = (next: ELearningBook[], message: string) => {
-    setBooks(next);
-    saveELearningBooks(next);
+  const showNotice = (message: string) => {
     setNotice(message);
     window.setTimeout(() => setNotice(''), 3000);
   };
+
+  const loadBooks = async () => {
+    try {
+      setLoading(true);
+      setBooks(await eLearningService.getBooks());
+    } catch {
+      setFormError('Unable to load the eLearning catalogue.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadBooks();
+  }, []);
 
   const filtered = useMemo(() => {
     const search = query.trim().toLowerCase();
@@ -92,7 +106,7 @@ export const ELearningManagement = () => {
     setShowForm(true);
   };
 
-  const submit = (event: React.FormEvent) => {
+  const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!form.title.trim() || !form.subject || !form.grade) {
       setFormError('Title, grade collection, and subject are required.');
@@ -111,36 +125,54 @@ export const ELearningManagement = () => {
       }
     }
 
-    const timestamp = new Date().toISOString();
-    if (editingId) {
-      const next = books.map((book) => book.id === editingId ? { ...book, ...form, updatedAt: timestamp } : book);
-      persist(next, 'Book details updated.');
-    } else {
-      const created: ELearningBook = {
-        ...form,
-        id: `book-${Date.now()}`,
-        coverClass: coverClasses[books.length % coverClasses.length],
-        createdAt: timestamp,
-        updatedAt: timestamp,
-      };
-      persist([created, ...books], form.status === 'published' ? 'Book published to the gallery.' : 'Book saved as a draft.');
+    setSaving(true);
+    try {
+      if (editingId) {
+        const updated = await eLearningService.updateBook(editingId, form);
+        setBooks((current) => current.map((book) => book.id === editingId ? updated : book));
+        showNotice('Book details updated.');
+      } else {
+        const created = await eLearningService.createBook({ ...form, coverClass: coverClasses[books.length % coverClasses.length] });
+        setBooks((current) => [created, ...current]);
+        showNotice(form.status === 'published' ? 'Book published to the gallery.' : 'Book saved as a draft.');
+      }
+      setShowForm(false);
+    } catch (error: any) {
+      setFormError(error.response?.data?.error?.message || error.response?.data?.error || 'Unable to save this book.');
+    } finally {
+      setSaving(false);
     }
-    setShowForm(false);
   };
 
-  const updateStatus = (book: ELearningBook, status: ELearningStatus) => {
-    const next = books.map((item) => item.id === book.id ? { ...item, status, updatedAt: new Date().toISOString() } : item);
-    persist(next, status === 'published' ? 'Book published.' : status === 'archived' ? 'Book archived.' : 'Book moved to drafts.');
+  const updateStatus = async (book: ELearningBook, status: ELearningStatus) => {
+    try {
+      const updated = await eLearningService.updateBookStatus(book.id, { status });
+      setBooks((current) => current.map((item) => item.id === book.id ? updated : item));
+      showNotice(status === 'published' ? 'Book published.' : status === 'archived' ? 'Book archived.' : 'Book moved to drafts.');
+    } catch {
+      setFormError('Unable to update publishing status.');
+    }
   };
 
-  const toggleFeatured = (book: ELearningBook) => {
-    const next = books.map((item) => item.id === book.id ? { ...item, featured: !item.featured, updatedAt: new Date().toISOString() } : item);
-    persist(next, book.featured ? 'Removed from landing-page gallery.' : 'Added to landing-page gallery.');
+  const toggleFeatured = async (book: ELearningBook) => {
+    try {
+      const updated = await eLearningService.updateBookStatus(book.id, { featured: !book.featured });
+      setBooks((current) => current.map((item) => item.id === book.id ? updated : item));
+      showNotice(book.featured ? 'Removed from landing-page gallery.' : 'Added to landing-page gallery.');
+    } catch {
+      setFormError('Unable to update landing gallery status.');
+    }
   };
 
-  const deleteBook = (book: ELearningBook) => {
-    if (!window.confirm(uiText("Remove “{{value0}}” from this demo catalogue?", { value0: bookText(book, 'title') }))) return;
-    persist(books.filter((item) => item.id !== book.id), 'Book removed from the catalogue.');
+  const deleteBook = async (book: ELearningBook) => {
+    if (!window.confirm(uiText("Remove “{{value0}}” from the catalogue?", { value0: bookText(book, 'title') }))) return;
+    try {
+      await eLearningService.deleteBook(book.id);
+      setBooks((current) => current.filter((item) => item.id !== book.id));
+      showNotice('Book removed from the catalogue.');
+    } catch {
+      setFormError('Unable to remove this book.');
+    }
   };
 
   const stats = {
@@ -172,6 +204,7 @@ export const ELearningManagement = () => {
       </section>
 
       {uiText(notice && <div className="flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm font-bold text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/20 dark:text-emerald-300"><CheckCircle2 size={18} /> {uiText(notice)}</div>)}
+      {uiText(formError && !showForm && <div className="rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm font-bold text-rose-700 dark:border-rose-900/50 dark:bg-rose-950/20 dark:text-rose-300">{uiError(formError)}</div>)}
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {statCards.map((item) => (
@@ -223,7 +256,8 @@ export const ELearningManagement = () => {
           <div className="relative w-full sm:w-80"><Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={17} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={uiText("Search books…")} className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-3 text-sm outline-none focus:border-emerald-600 dark:border-slate-700 dark:bg-slate-950" /></div>
         </div>
         <div className="divide-y divide-slate-100 dark:divide-slate-800">
-          {filtered.map((book) => (
+          {loading && <div className="p-16 text-center text-sm font-bold text-slate-500">{uiText("Loading catalogue…")}</div>}
+          {!loading && filtered.map((book) => (
             <article key={book.id} className="grid gap-4 p-5 lg:grid-cols-[1fr_auto] lg:items-center">
               <div className="flex min-w-0 gap-4">
                 <div className={`grid h-24 w-16 shrink-0 place-items-center rounded-lg bg-gradient-to-br ${book.coverClass} text-white shadow-md`}><BookOpen size={22} /></div>
@@ -235,7 +269,7 @@ export const ELearningManagement = () => {
                   </div>
                   <p className="mt-2 text-xs font-bold text-slate-500">{uiText(book.grade)}{uiText(" · ")}{uiText(book.subject)}{uiText(" · ")}{uiText(book.language)}{uiText(" · ")}{uiText(book.materialType)}</p>
                   <p className="mt-2 line-clamp-1 text-sm text-slate-500">{bookText(book, 'description')}</p>
-                  <p className={`mt-2 text-[10px] font-black uppercase ${book.driveUrl ? 'text-emerald-700' : 'text-amber-700'}`}>{uiText(book.driveUrl ? 'Drive preview connected' : 'Demo entry — Drive link pending')}</p>
+                  <p className={`mt-2 text-[10px] font-black uppercase ${book.driveUrl ? 'text-emerald-700' : 'text-amber-700'}`}>{uiText(book.driveUrl ? 'Drive preview connected' : 'Drive link pending')}</p>
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-2 lg:justify-end">
@@ -248,11 +282,9 @@ export const ELearningManagement = () => {
               </div>
             </article>
           ))}
-          {filtered.length === 0 && <div className="p-16 text-center text-sm font-bold text-slate-500">{uiText("No books match that search.")}</div>}
+          {!loading && filtered.length === 0 && <div className="p-16 text-center text-sm font-bold text-slate-500">{uiText(books.length === 0 ? "No books added yet." : "No books match that search.")}</div>}
         </div>
       </section>
-
-      <p className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm leading-6 text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-200">{uiText("Demo mode stores catalogue changes only in this browser. The future backend will preserve the same workflow while adding permanent records, permission validation, and audit history.")}</p>
 
       {showForm && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/75 p-4 backdrop-blur-sm">
@@ -264,7 +296,7 @@ export const ELearningManagement = () => {
             <form onSubmit={submit} className="space-y-6 p-6">
               {uiText(formError && <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-700">{uiError(formError)}</div>)}
               <div className="grid gap-5 md:grid-cols-2">
-                <label className="space-y-2 md:col-span-2"><span className="text-xs font-black uppercase text-slate-500">{uiText("Google Drive file link")}</span><input value={form.driveUrl} onChange={(event) => setForm({ ...form, driveUrl: event.target.value })} placeholder={uiText("https://drive.google.com/file/d/…/view")} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-emerald-600 dark:border-slate-700 dark:bg-slate-950" /><span className="block text-[11px] text-slate-400">{uiText("May remain empty for the supplied demo entries; new live books should use an approved Drive file link.")}</span></label>
+                <label className="space-y-2 md:col-span-2"><span className="text-xs font-black uppercase text-slate-500">{uiText("Google Drive file link")}</span><input value={form.driveUrl} onChange={(event) => setForm({ ...form, driveUrl: event.target.value })} placeholder={uiText("https://drive.google.com/file/d/…/view")} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-emerald-600 dark:border-slate-700 dark:bg-slate-950" /><span className="block text-[11px] text-slate-400">{uiText("Use an approved Google Drive file link when the book is ready for readers.")}</span></label>
                 <label className="space-y-2 md:col-span-2"><span className="text-xs font-black uppercase text-slate-500">{uiText("Book title *")}</span><input required value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-emerald-600 dark:border-slate-700 dark:bg-slate-950" /></label>
                 <label className="space-y-2"><span className="text-xs font-black uppercase text-slate-500">{uiText("Author / source")}</span><input value={form.author} onChange={(event) => setForm({ ...form, author: event.target.value })} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm dark:border-slate-700 dark:bg-slate-950" /></label>
                 <label className="space-y-2"><span className="text-xs font-black uppercase text-slate-500">{uiText("Grade collection *")}</span><select value={form.grade} onChange={(event) => setForm({ ...form, grade: event.target.value })} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm dark:border-slate-700 dark:bg-slate-950">{eLearningGrades.map((item) => <option key={item} value={item}>{uiText(item)}</option>)}</select></label>
@@ -279,7 +311,7 @@ export const ELearningManagement = () => {
                 <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 p-4 dark:border-slate-700"><input type="checkbox" checked={form.featured} onChange={(event) => setForm({ ...form, featured: event.target.checked })} /><span className="text-sm font-bold">{uiText("Feature on landing gallery")}</span></label>
                 <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 p-4 dark:border-slate-700"><input type="checkbox" checked={form.allowDownload} onChange={(event) => setForm({ ...form, allowDownload: event.target.checked })} /><span className="text-sm font-bold">{uiText("Allow download")}</span></label>
               </div>
-              <div className="flex justify-end gap-3 border-t border-slate-200 pt-5 dark:border-slate-800"><button type="button" onClick={() => setShowForm(false)} className="rounded-xl px-5 py-3 text-sm font-black text-slate-500">{uiText("Cancel")}</button><button type="submit" className="rounded-xl bg-emerald-800 px-6 py-3 text-sm font-black text-white">{uiText(editingId ? 'Save changes' : 'Add to catalogue')}</button></div>
+              <div className="flex justify-end gap-3 border-t border-slate-200 pt-5 dark:border-slate-800"><button type="button" onClick={() => setShowForm(false)} className="rounded-xl px-5 py-3 text-sm font-black text-slate-500">{uiText("Cancel")}</button><button type="submit" disabled={saving} className="rounded-xl bg-emerald-800 px-6 py-3 text-sm font-black text-white disabled:opacity-60">{uiText(saving ? 'Saving…' : editingId ? 'Save changes' : 'Add to catalogue')}</button></div>
             </form>
           </div>
         </div>
