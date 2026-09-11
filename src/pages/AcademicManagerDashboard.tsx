@@ -33,8 +33,6 @@ export const AcademicManagerDashboard = () => (
         <h1 className="text-3xl font-black tracking-tight md:text-5xl">{uiText("Academic Manager")}</h1>
         <p className="mt-4 max-w-2xl text-sm leading-7 text-emerald-50 md:text-base">{uiText("One academic oversight space for supervising staff, school administration, the vice principal, and student learning progress.")}</p>
         <div className="mt-7 flex flex-wrap gap-3">
-          <Link to="/analytics" className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-black text-school-primary transition hover:bg-emerald-50">{uiText("View academic analytics ")}<ArrowRight size={17} />
-          </Link>
           <Link to="/branches" className="inline-flex items-center gap-2 rounded-xl border border-white/25 bg-white/10 px-4 py-2.5 text-sm font-black text-white transition hover:bg-white/20">
             <Building2 size={17} />{uiText(" School branches")}</Link>
         </div>

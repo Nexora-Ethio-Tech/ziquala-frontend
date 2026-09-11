@@ -68,9 +68,7 @@ interface UserContextType {
   loading: boolean;
 }
 
-const mockBranches: Branch[] = [
-  { id: '1', name: 'Bishoftu Campus', location: 'Bishoftu, Kebele 03' },
-];
+
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
@@ -95,7 +93,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true); // Block rendering until verified
   const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
-  const [branches, setBranches] = useState<Branch[]>(mockBranches); // Start with mock, fetch real
+  const [branches, setBranches] = useState<Branch[]>([]); // Populated from API only
   const [gradesLocked, setGradesLocked] = useState(false);
   const [registrationOpen, setRegistrationOpen] = useState(() => {
     return localStorage.getItem('ziquala_registration_open') !== 'false';

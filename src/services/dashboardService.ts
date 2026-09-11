@@ -7,12 +7,7 @@ export const dashboardService = {
     return response.data;
   },
 
-  // Super Admin Analytics
-  getSuperAdminAnalytics: async (branchId?: string | null) => {
-    const params = branchId ? `?branchId=${encodeURIComponent(branchId)}` : '';
-    const response = await api.get(`/super-admin/analytics${params}`);
-    return response.data;
-  },
+
 
   // School Admin Dashboard
   getSchoolAdminDashboard: async () => {

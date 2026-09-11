@@ -29,7 +29,6 @@ const AcademicManagerDashboard = lazy(() => import('./pages/AcademicManagerDashb
 const Branches = lazy(() => import('./pages/Branches').then((m) => ({ default: m.Branches })));
 const StudentProfile = lazy(() => import('./pages/StudentProfile').then((m) => ({ default: m.StudentProfile })));
 const StudentRecordPage = lazy(() => import('./pages/StudentRecordPage').then((m) => ({ default: m.StudentRecordPage })));
-const Analytics = lazy(() => import('./pages/Analytics').then((m) => ({ default: m.Analytics })));
 const StudentPortal = lazy(() => import('./pages/StudentPortal').then((m) => ({ default: m.StudentPortal })));
 const StudentCourses = lazy(() => import('./pages/StudentCourses').then((m) => ({ default: m.StudentCourses })));
 const AcademicHistory = lazy(() => import('./pages/AcademicHistory').then((m) => ({ default: m.AcademicHistory })));
@@ -174,31 +173,6 @@ function App() {
               <Route path="branches" element={
                 <ProtectedRoute allowedRoles={['super-admin', 'academic-manager']}>
                   <Branches />
-                </ProtectedRoute>
-              } />
-
-              <Route path="analytics" element={
-                <ProtectedRoute allowedRoles={['super-admin', 'academic-manager']}>
-                  <Analytics />
-                </ProtectedRoute>
-              } />
-              <Route path="dashboard/school-admin" element={<ProtectedRoute allowedRoles={['school-admin']}><Dashboard /></ProtectedRoute>} />
-              <Route path="dashboard/teacher" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherPortal /></ProtectedRoute>} />
-              <Route path="dashboard/student" element={<ProtectedRoute allowedRoles={['student']}><StudentPortal /></ProtectedRoute>} />
-              <Route path="dashboard/parent" element={<ProtectedRoute allowedRoles={['parent']}><ParentPortal /></ProtectedRoute>} />
-              <Route path="dashboard/vice-principal" element={<ProtectedRoute allowedRoles={['vice-principal']}><VicePrincipalDashboard /></ProtectedRoute>} />
-              <Route path="dashboard/librarian" element={<ProtectedRoute allowedRoles={['librarian']}><Library /></ProtectedRoute>} />
-
-              {/* Role specific routes */}
-              <Route path="branches" element={
-                <ProtectedRoute allowedRoles={['super-admin', 'academic-manager']}>
-                  <Branches />
-                </ProtectedRoute>
-              } />
-
-              <Route path="analytics" element={
-                <ProtectedRoute allowedRoles={['super-admin', 'academic-manager']}>
-                  <Analytics />
                 </ProtectedRoute>
               } />
 

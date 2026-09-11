@@ -80,18 +80,41 @@ export const Branches = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Check if the file is larger than 5 MB
-    const maxSize = 5 * 1024 * 1024; // 5 MB in bytes
-    if (file.size > maxSize) {
-      alert(uiText("The image size exceeds the 5 MB limit. Please select a smaller image."));
-      e.target.value = ''; // Reset the input
+    // Reject files that are unreasonably large before even reading them
+    const maxRawSize = 10 * 1024 * 1024; // 10 MB raw
+    if (file.size > maxRawSize) {
+      alert(uiText("The image size exceeds the 10 MB limit. Please select a smaller image."));
+      e.target.value = '';
       return;
     }
 
     const reader = new FileReader();
     reader.onloadend = () => {
-      const base64String = reader.result as string;
-      setBranchForm((prev) => ({ ...prev, logoUrl: base64String }));
+      const img = new Image();
+      img.onload = () => {
+        // Resize to max 400px width/height while keeping aspect ratio
+        const MAX_SIDE = 400;
+        let w = img.width;
+        let h = img.height;
+        if (w > MAX_SIDE || h > MAX_SIDE) {
+          if (w >= h) {
+            h = Math.round((h * MAX_SIDE) / w);
+            w = MAX_SIDE;
+          } else {
+            w = Math.round((w * MAX_SIDE) / h);
+            h = MAX_SIDE;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d')!;
+        ctx.drawImage(img, 0, 0, w, h);
+        // Compress to JPEG at 75% quality → keeps payload well under 100 KB
+        const compressed = canvas.toDataURL('image/jpeg', 0.75);
+        setBranchForm((prev) => ({ ...prev, logoUrl: compressed }));
+      };
+      img.src = reader.result as string;
     };
     reader.readAsDataURL(file);
   };

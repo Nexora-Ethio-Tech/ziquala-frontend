@@ -747,9 +747,6 @@ export const Dashboard = () => {
                   <ArrowRight size={18} className="text-slate-400" />
                 </div>
               </button>
-              <Link to="/analytics" className="text-xs font-bold text-blue-600 hover:underline uppercase tracking-widest">
-                Full Report
-              </Link>
             </div>
             {watchlistExpanded && (
               <div className="space-y-4 animate-in slide-in-from-top-2 duration-300">
