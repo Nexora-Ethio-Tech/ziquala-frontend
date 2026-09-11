@@ -77,8 +77,8 @@ import cropHarvest from '../assets/monastery/projects/crop-harvest.webp';
 import oxFarming from '../assets/monastery/projects/ox-farming.webp';
 import livestock from '../assets/monastery/projects/livestock.webp';
 import abbotHarvest from '../assets/monastery/projects/abbot-harvest.webp';
-import wofchoProject from '/home/yonas/Desktop/coding/nexora/zikuala/static files/wofcho project.jpeg';
-import oilProject from '/home/yonas/Desktop/coding/nexora/zikuala/static files/oil.jpeg';
+import wofchoProject from '../assets/monastery/projects/wofcho-project.jpeg';
+import oilProject from '../assets/monastery/projects/oil-project.jpeg';
 import cbeLogo from '../assets/cbe-logo.svg';
 
 const SectionTitle = ({ eyebrow, children, copy }: { eyebrow: string; children: ReactNode; copy?: string }) => (
