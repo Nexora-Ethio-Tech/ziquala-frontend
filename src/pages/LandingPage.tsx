@@ -44,6 +44,10 @@ import {
   monasteryContact,
   monasteryDonation,
   monasteryHistory,
+  monasteryDocumentContent,
+  monasteryDevelopmentProjects,
+  schoolDocumentContent,
+  annualCelebrations,
   portalRoles,
   publicNavigation,
   schoolBoardLeaders,
@@ -1026,6 +1030,45 @@ const MonasteryContact = () => {
   );
 };
 
+const DocumentContentBand = ({ title, eyebrow, copy, dark = false }: { title: string; eyebrow: string; copy: string; dark?: boolean }) => (
+  <section className={`py-20 md:py-28 ${dark ? 'bg-emerald-950 text-white' : 'bg-[#f4f0e7] text-emerald-950 dark:bg-slate-900 dark:text-white'}`}>
+    <div className="mx-auto max-w-7xl px-5 lg:px-8">
+      <ScrollReveal effect="wipe">
+        <p className={`text-xs font-black uppercase tracking-[0.28em] ${dark ? 'text-amber-300' : 'text-emerald-700 dark:text-amber-300'}`}>{uiText(eyebrow)}</p>
+        <h2 className="mt-5 max-w-4xl font-serif text-4xl leading-tight sm:text-5xl">{uiText(title)}</h2>
+        <p className={`mt-6 max-w-4xl whitespace-pre-line text-lg leading-9 ${dark ? 'text-white/75' : 'text-slate-600 dark:text-slate-300'}`}>{uiText(copy)}</p>
+      </ScrollReveal>
+    </div>
+  </section>
+);
+
+const MonasteryDocumentSections = () => (
+  <>
+    <DocumentContentBand eyebrow="አጠቃላይ ገጽታ" title="የዝቋላ ደብረ ከዋክብት አንድነት ገዳም" copy={monasteryDocumentContent.overview} dark />
+    <DocumentContentBand eyebrow="የገዳሙ መንፈሳዊ ገጽታ" title="የትምህርት፣ የጸሎት እና የልማት ማዕከል" copy={monasteryDocumentContent.spiritualLife} />
+    <section className="bg-white py-20 dark:bg-slate-950 md:py-28">
+      <div className="mx-auto max-w-7xl px-5 lg:px-8">
+        <SectionTitle eyebrow={uiText("የገዳሙ ዋና ዋና የልማት እንቅስቃሴዎች")} copy={uiText("መንፈሳዊ አገልግሎትን ከማኅበራዊና ኢኮኖሚያዊ ልማት ጋር ማስተሳሰር።")}>{uiText("ራስን የማስቻል ሥራዎች")}</SectionTitle>
+        <div className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {monasteryDevelopmentProjects.map((project, index) => <ScrollReveal key={project.title} effect="scale" delay={index * 0.06}><article className="border border-black/10 bg-[#f4f0e7] p-7 dark:border-white/10 dark:bg-slate-900"><p className="font-mono text-xs font-black text-amber-700 dark:text-amber-300">{String(index + 1).padStart(2, '0')}</p><h3 className="mt-6 text-xl font-black text-emerald-950 dark:text-white">{uiText(project.title)}</h3><p className="mt-4 leading-7 text-slate-600 dark:text-slate-300">{uiText(project.body)}</p></article></ScrollReveal>)}
+        </div>
+      </div>
+    </section>
+    <DocumentContentBand eyebrow="ማጠቃለያ" title="የቅድስና እና የታሪክ ዓምድ" copy={monasteryDocumentContent.conclusion} dark />
+  </>
+);
+
+const SchoolDocumentSections = () => (
+  <>
+    <DocumentContentBand eyebrow="ራዕይ (Vision)" title="የትምህርት ቤታችን ራዕይ" copy={schoolDocumentContent.vision} />
+    <DocumentContentBand eyebrow="ተልዕኮ (Mission)" title="የትምህርት ቤታችን ተልዕኮ" copy={schoolDocumentContent.mission} dark />
+    <section className="bg-white py-20 dark:bg-slate-950 md:py-28"><div className="mx-auto max-w-7xl px-5 lg:px-8"><SectionTitle eyebrow={uiText("ዋና ዋና ዕሴቶች (Core Values)")} copy={uiText("መንፈሳዊ፣ ስነ-ምግባራዊ እና የትምህርት ጥራት ዕሴቶች።")}>{uiText("በእሴት የተገነባ ትውልድ")}</SectionTitle><div className="mt-10 grid gap-4 md:grid-cols-2">{schoolDocumentContent.values.map((value, index) => <ScrollReveal key={value} effect="slide" delay={index * 0.05}><div className="border-l-4 border-amber-400 bg-[#f4f0e7] p-6 text-lg leading-8 text-slate-700 dark:bg-slate-900 dark:text-slate-200">{uiText(value)}</div></ScrollReveal>)}</div></div></section>
+    <DocumentContentBand eyebrow="የክቡር አበምኔቱ መልዕክት" title="የክቡር አበምኔቱ መልዕክት" copy={schoolDocumentContent.abbotMessage} dark />
+    <DocumentContentBand eyebrow="ማህበራዊ ኃላፊነት" title="ትምህርት ለሁሉም" copy={schoolDocumentContent.socialResponsibility} />
+    <section className="bg-[#f4f0e7] py-20 dark:bg-slate-900 md:py-28"><div className="mx-auto max-w-7xl px-5 lg:px-8"><SectionTitle eyebrow={uiText("ዓመታዊ ክብረ በዓላት")} copy={uiText("በገዳሙ በታላቅ መንፈሳዊ ድምቀት የሚከበሩ ዓመታዊ በዓላት።")}>{uiText("የበዓላት ወቅቶች")}</SectionTitle><div className="mt-10 grid gap-4 md:grid-cols-3">{annualCelebrations.map((event) => <article key={event.title} className="bg-white p-7 dark:bg-slate-950"><h3 className="text-xl font-black text-emerald-950 dark:text-white">{uiText(event.title)}</h3><p className="mt-4 leading-7 text-slate-600 dark:text-slate-300">{uiText(event.body)}</p></article>)}</div></div></section>
+  </>
+);
+
 const SchoolPage = () => (
   <>
     <section className="relative flex min-h-[42rem] items-end overflow-hidden bg-emerald-950 text-white">
@@ -1042,6 +1085,8 @@ const SchoolPage = () => (
     </section>
 
     <OfficialSchoolPurpose />
+
+    <SchoolDocumentSections />
 
     <LeadershipAlbum />
 
@@ -1164,6 +1209,8 @@ const MonasteryHero = () => {
 const MonasteryPage = () => (
   <>
     <MonasteryHero />
+
+    <MonasteryDocumentSections />
 
     <section className="max-w-7xl mx-auto px-5 lg:px-8 py-20 md:py-28">
       <ScrollReveal effect="wipe">
