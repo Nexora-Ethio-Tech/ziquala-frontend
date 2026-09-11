@@ -44,7 +44,6 @@ export const Layout = () => {
       switch (path) {
         case '/': return 'Network Overview';
         case '/branches': return 'Branch Management';
-        case '/analytics': return 'Global Analytics';
         default: return 'Super Admin Console';
       }
     }

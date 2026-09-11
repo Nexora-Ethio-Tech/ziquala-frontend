@@ -1,7 +1,6 @@
 import { uiText } from "../localization";
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
-  BarChart3,
   BookOpen,
   Building2,
   Calendar,
@@ -83,7 +82,6 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
         const items: NavItem[] = [
           { icon: LayoutDashboard, label: t('nav.overview', 'Overview'), path: dashboardRoutes['super-admin'] },
           { icon: Building2, label: t('nav.branches', 'Branches'), path: '/branches' },
-          { icon: BarChart3, label: t('nav.analytics', 'Analytics'), path: '/analytics' },
         ];
         if (selectedBranchId) {
           items.push(
