@@ -1147,7 +1147,7 @@ const MonasteryHero = () => {
             <img src={monasteryMark} alt={uiText("Ziquala Abo Media mark")} className="h-20 w-20 rounded-xl bg-white/95 object-contain p-2" />
             <p className="text-xs font-black uppercase tracking-[0.28em] text-amber-300">{uiText("Monastery information")}</p>
           </div>
-          <h1 className="mt-7 text-5xl font-black leading-none tracking-[-0.045em] md:text-7xl">{uiText("Ziquala Abo Monastery")}</h1>
+          <h1 className="mt-7 max-w-5xl text-4xl font-black leading-tight tracking-[-0.045em] md:text-6xl">{uiText(ziqualaIdentity.monasteryNameEn)}</h1>
         </div>
         <div>
           <p className="text-lg leading-8 text-white/75">{uiText("A dedicated space for the monastery’s history, spiritual community, income-generating projects, and media archive—kept separate from school photography and academic content.")}</p>

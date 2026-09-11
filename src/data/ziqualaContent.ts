@@ -11,7 +11,9 @@ export const ziqualaIdentity = {
   amharicName: officialSchoolStatement.am.name,
   oromoName: officialSchoolStatement.om.name,
   location: 'Bishoftu, Kebele 03',
-  owner: 'Ziquala Debre Kewakibt Abune Gebre Menfes Kidus Monastery Association',
+  owner: 'Ziquala Debre Kewakibt Abune Gebre Menfes Kidus Unity Monastery',
+  monasteryNameAm: 'የዝቋላ ደብረ ከዋክብት አቡነ ገብረ መንፈስ ቅዱስ አንድነት ገዳም',
+  monasteryNameEn: 'Ziquala Debre Kewakibt Abune Gebre Menfes Kidus Unity Monastery',
   motto: 'Modern knowledge, spiritual wisdom, and responsible citizenship.',
 } as const;
 
