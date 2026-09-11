@@ -766,14 +766,34 @@ export const Staff = () => {
                 </div>
                 <div>
                   <h3 className="font-bold text-slate-800 dark:text-slate-100 text-lg">{uiText("User Created Successfully!")}</h3>
-                  <p className="text-sm text-slate-500">{uiText("Save the temporary password below")}</p>
+                  <p className="text-sm text-slate-500">{uiText("Save the credentials below — share them with the user")}</p>
                 </div>
               </div>
             </div>
 
             <div className="p-6 space-y-4">
+              {/* Digital ID */}
               <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-slate-700">
-                <label className="text-xs font-bold text-slate-500 uppercase block mb-2">{uiText("Temporary Password")}</label>
+                <label className="text-xs font-bold text-slate-500 uppercase block mb-2">{uiText("Digital ID")}</label>
+                <div className="flex items-center gap-2">
+                  <code className="flex-1 text-lg font-mono font-bold text-emerald-600 dark:text-emerald-400 bg-white dark:bg-slate-900 px-4 py-3 rounded-lg border border-slate-200 dark:border-slate-700">
+                    {successModal.data?.user?.digital_id || successModal.data?.user?.digitalId || uiText('N/A')}
+                  </code>
+                  <button
+                    onClick={() => {
+                      const id = successModal.data?.user?.digital_id || successModal.data?.user?.digitalId || '';
+                      navigator.clipboard.writeText(id);
+                      setToast({ show: true, message: 'Digital ID copied to clipboard!', type: 'success' });
+                      setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
+                    }}
+                    className="px-4 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-bold text-sm"
+                  >{uiText(" Copy ")}</button>
+                </div>
+              </div>
+
+              {/* Temporary PIN */}
+              <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-slate-700">
+                <label className="text-xs font-bold text-slate-500 uppercase block mb-2">{uiText("One-Time Password (4-digit PIN)")}</label>
                 <div className="flex items-center gap-2">
                   <code className="flex-1 text-lg font-mono font-bold text-blue-600 dark:text-blue-400 bg-white dark:bg-slate-900 px-4 py-3 rounded-lg border border-slate-200 dark:border-slate-700">
                     {successModal.data?.temporaryPassword || uiText('N/A')}
@@ -791,7 +811,7 @@ export const Staff = () => {
 
               <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
                 <p className="text-sm text-amber-800 dark:text-amber-200">
-                  <strong>{uiText("⚠️ Important:")}</strong>{uiText(" This password will only be shown once. Make sure to save it securely. ")}</p>
+                  <strong>{uiText("⚠️ Important:")}</strong>{uiText(" These credentials will only be shown once. Make sure to save them securely. ")}</p>
               </div>
 
               <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4">
@@ -808,6 +828,7 @@ export const Staff = () => {
           </div>
         </div>
       )}
+
 
       {/* Delete Confirmation Modal */}
       {deleteModal.show && (
