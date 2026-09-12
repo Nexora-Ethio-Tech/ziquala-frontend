@@ -181,11 +181,27 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   // ─── Fetch Real Branches ───────────────────────────────────────────────────
   useEffect(() => {
     const fetchBranches = async () => {
-      if (!user) return;
-
       try {
         const { default: api } = await import('../services/api');
         let apiBranches: Branch[] = [];
+
+        if (!user) {
+          try {
+            const res = await api.get('/guest/branches');
+            const data = res.data.data || res.data;
+            if (Array.isArray(data) && data.length > 0) {
+              apiBranches = data.map((b: any) => ({
+                id: b.id,
+                name: b.name,
+                location: b.address || b.location || 'N/A'
+              }));
+              setBranches(apiBranches);
+            }
+          } catch {
+            // Keep default branches
+          }
+          return;
+        }
 
         if (user.role === 'super-admin') {
           const res = await api.get('/super-admin/branches');

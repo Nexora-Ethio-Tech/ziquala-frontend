@@ -19,6 +19,7 @@ import api from '../services/api';
 import { API_HOST_URL } from '../config/api';
 import { EthiopianDatePicker } from './EthiopianDatePicker';
 import { ethiopianToGregorianIso, gregorianToEthiopian, formatEthiopianDateOnly } from '../utils/ethiopianCalendar';
+import { branchService } from '../services/branchService';
 import { ziqualaBranches } from '../data/ziqualaContent';
 
 type RegistrationTab = 'new' | 'existing';
@@ -278,6 +279,24 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
     setCopiedLabel(label);
     setTimeout(() => setCopiedLabel(null), 2000);
   };
+
+  // Fetch live branches from API on mount
+  useEffect(() => {
+    let isMounted = true;
+    const loadBranches = async () => {
+      try {
+        const res = await branchService.getAllBranchesGuest();
+        const list = Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []);
+        if (isMounted && list.length > 0) {
+          setBranchesList(list.map((b: any) => ({ id: b.id, name: b.name })));
+        }
+      } catch (err) {
+        console.error('Failed to load branches in registration form:', err);
+      }
+    };
+    loadBranches();
+    return () => { isMounted = false; };
+  }, []);
 
   // Sync branches from context when available
   useEffect(() => {
