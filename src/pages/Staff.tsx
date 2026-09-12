@@ -1,6 +1,6 @@
 import { uiText, uiError } from "../localization";
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Loader2, AlertCircle, UserCheck, UserPlus, ShieldAlert, Users, Building2, X, Edit2, Trash2, Check } from 'lucide-react';
+import { ArrowLeft, Loader2, AlertCircle, UserCheck, UserPlus, ShieldAlert, Users, Building2, X, Edit2, Trash2, Check, Eye, FileText, Phone, Briefcase, User } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useUser, type UserRole } from '../context/UserContext';
@@ -56,6 +56,9 @@ export const Staff = () => {
   const [resettingPassword, setResettingPassword] = useState(false);
   const [generatedPassword, setGeneratedPassword] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [viewingStaff, setViewingStaff] = useState<any | null>(null);
+  const [loadingStaffDetails, setLoadingStaffDetails] = useState(false);
 
   const staffTabs = [
     { label: 'Teachers', path: 'teachers' },
@@ -161,6 +164,9 @@ export const Staff = () => {
             zkDeviceId: u.zk_device_id || u.zkDeviceId,
             branchId,
             branchName: matched?.name || (branchId ? 'Unknown Branch' : 'All Branches'),
+            staffProfile: u.staff_profile || u.staffProfile || {},
+            documentFileName: u.document_file_name || u.documentFileName || null,
+            createdAt: u.created_at || u.createdAt
           };
         });
       setStaffList(transformed);
@@ -169,6 +175,31 @@ export const Staff = () => {
       setError(uiError(err.response?.data?.error?.message || 'Failed to load users'));
     } finally {
       setLoading(false);
+    }
+  };
+
+  const openViewModal = async (staff: any) => {
+    setViewingStaff(staff);
+    setShowViewModal(true);
+    setLoadingStaffDetails(true);
+    try {
+      const response = await userService.getUserById(staff.id);
+      const userDetail = response.data || response;
+      if (userDetail) {
+        setViewingStaff((prev: any) => ({
+          ...prev,
+          ...userDetail,
+          digitalId: userDetail.digital_id || userDetail.digitalId || prev?.digitalId,
+          staffProfile: userDetail.staff_profile || userDetail.staffProfile || prev?.staffProfile || {},
+          documentFileName: userDetail.document_file_name || userDetail.documentFileName || prev?.documentFileName,
+          branchName: userDetail.branch_name || prev?.branchName,
+          createdAt: userDetail.created_at || userDetail.createdAt || prev?.createdAt
+        }));
+      }
+    } catch (err) {
+      console.error('❌ Error fetching user details:', err);
+    } finally {
+      setLoadingStaffDetails(false);
     }
   };
 
@@ -486,6 +517,13 @@ export const Staff = () => {
                                     <UserCheck size={16} />
                                   </button>
                                 )}
+                                <button
+                                  onClick={() => openViewModal(staff)}
+                                  className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors"
+                                  title={uiText("View Registration Details")}
+                                >
+                                  <Eye size={16} />
+                                </button>
                                 <button
                                   onClick={() => openEditModal(staff)}
                                   className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
@@ -980,6 +1018,227 @@ export const Staff = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* View User Registration Details Modal */}
+      {showViewModal && viewingStaff && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-800 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            
+            {/* Header */}
+            <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center sticky top-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm z-10">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-indigo-100 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 rounded-xl">
+                  <Eye size={22} />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-slate-900 dark:text-slate-100 text-lg">
+                    {uiText("Registration Details")}
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                    {uiText("Complete information submitted during system registration")}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowViewModal(false)}
+                className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                title={uiText("Close")}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-6 space-y-6">
+              {loadingStaffDetails ? (
+                <div className="flex items-center justify-center py-12 text-slate-400 gap-2">
+                  <Loader2 className="animate-spin" size={24} />
+                  <span className="text-sm font-semibold">{uiText("Loading registration data...")}</span>
+                </div>
+              ) : (
+                <>
+                  {/* Top Banner Card */}
+                  <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-800/80 dark:to-indigo-950/40 rounded-xl border border-blue-100 dark:border-slate-700/60 flex flex-wrap items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-full bg-blue-600 text-white font-black text-lg flex items-center justify-center shadow-md">
+                        {viewingStaff.name ? viewingStaff.name.charAt(0).toUpperCase() : 'U'}
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-slate-900 dark:text-white text-base">{viewingStaff.name}</h4>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="px-2.5 py-0.5 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded-full text-xs font-bold capitalize">
+                            {uiText(viewingStaff.role)}
+                          </span>
+                          <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                            viewingStaff.status === 'Active' || viewingStaff.status === 'Approved'
+                              ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'
+                              : 'bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300'
+                          }`}>
+                            {uiText(viewingStaff.status)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">{uiText("Digital ID")}</span>
+                      <span className="text-sm font-mono font-bold text-indigo-600 dark:text-indigo-400">{viewingStaff.digitalId || 'N/A'}</span>
+                    </div>
+                  </div>
+
+                  {/* Basic Info Section */}
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                      <User size={14} className="text-blue-500" />
+                      {uiText("Account & System Information")}
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
+                      <div>
+                        <span className="text-xs text-slate-400 font-medium block">{uiText("Full Name")}</span>
+                        <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">{viewingStaff.name || 'N/A'}</span>
+                      </div>
+                      <div>
+                        <span className="text-xs text-slate-400 font-medium block">{uiText("Email Address")}</span>
+                        <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">{viewingStaff.email || 'N/A'}</span>
+                      </div>
+                      <div>
+                        <span className="text-xs text-slate-400 font-medium block">{uiText("Role")}</span>
+                        <span className="text-sm font-semibold text-slate-800 dark:text-slate-100 capitalize">{uiText(viewingStaff.role) || 'N/A'}</span>
+                      </div>
+                      <div>
+                        <span className="text-xs text-slate-400 font-medium block">{uiText("Branch / Organization")}</span>
+                        <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">{viewingStaff.branchName || 'N/A'}</span>
+                      </div>
+                      <div>
+                        <span className="text-xs text-slate-400 font-medium block">{uiText("Registration Date")}</span>
+                        <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+                          {viewingStaff.createdAt
+                            ? new Date(viewingStaff.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
+                            : viewingStaff.staffProfile?.registeredAt
+                            ? new Date(viewingStaff.staffProfile.registeredAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
+                            : 'N/A'}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-xs text-slate-400 font-medium block">{uiText("Account Status")}</span>
+                        <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">{uiText(viewingStaff.status) || 'N/A'}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Profile & Personal Details Section - hidden for Academic Manager and Storekeeper */}
+                  {!['academic-manager', 'storekeeper'].includes(viewingStaff.role) && (
+                    <>
+                      <div>
+                        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                          <Briefcase size={14} className="text-indigo-500" />
+                          {uiText("Personal & Professional Profile")}
+                        </h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
+                          <div>
+                            <span className="text-xs text-slate-400 font-medium block">{uiText("Phone Number")}</span>
+                            <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+                              {viewingStaff.staffProfile?.phoneNumber || viewingStaff.phoneNumber || 'N/A'}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-xs text-slate-400 font-medium block">{uiText("Date of Birth")}</span>
+                            <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+                              {viewingStaff.staffProfile?.dob || viewingStaff.dob || 'N/A'}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-xs text-slate-400 font-medium block">{uiText("Education Level")}</span>
+                            <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+                              {viewingStaff.staffProfile?.educationLevel || viewingStaff.educationLevel || 'N/A'}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-xs text-slate-400 font-medium block">{uiText("Specialty / Position")}</span>
+                            <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+                              {viewingStaff.staffProfile?.specialty || viewingStaff.specialty || 'N/A'}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-xs text-slate-400 font-medium block">{uiText("Previous Organization")}</span>
+                            <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+                              {viewingStaff.staffProfile?.previousSchool || viewingStaff.previousSchool || 'N/A'}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-xs text-slate-400 font-medium block">{uiText("Experience (Years)")}</span>
+                            <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+                              {viewingStaff.staffProfile?.experienceYears || viewingStaff.experienceYears || 'N/A'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Emergency Contact Section */}
+                      <div>
+                        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                          <Phone size={14} className="text-emerald-500" />
+                          {uiText("Emergency Contact")}
+                        </h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
+                          <div>
+                            <span className="text-xs text-slate-400 font-medium block">{uiText("Emergency Contact Name")}</span>
+                            <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+                              {viewingStaff.staffProfile?.emergencyContactName || viewingStaff.emergencyContactName || 'N/A'}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-xs text-slate-400 font-medium block">{uiText("Emergency Contact Phone")}</span>
+                            <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+                              {viewingStaff.staffProfile?.emergencyContactPhone || viewingStaff.emergencyContactPhone || 'N/A'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Attached Document Section */}
+                      <div>
+                        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                          <FileText size={14} className="text-amber-500" />
+                          {uiText("Attached Document")}
+                        </h4>
+                        <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 bg-amber-100 dark:bg-amber-950/50 text-amber-600 rounded-lg">
+                              <FileText size={18} />
+                            </div>
+                            <div>
+                              <span className="text-sm font-semibold text-slate-800 dark:text-slate-100 block">
+                                {viewingStaff.documentFileName || viewingStaff.document_file_name || uiText("No document uploaded")}
+                              </span>
+                              <span className="text-xs text-slate-400 font-medium">
+                                {(viewingStaff.documentFileName || viewingStaff.document_file_name)
+                                  ? uiText("Document attached during registration")
+                                  : uiText("Optional staff file was not provided")}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="p-6 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setShowViewModal(false)}
+                className="px-6 py-2.5 bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-slate-700 text-white font-bold rounded-xl text-sm transition-colors"
+              >
+                {uiText("Close")}
+              </button>
+            </div>
           </div>
         </div>
       )}
