@@ -328,9 +328,10 @@ export const Staff = () => {
     if (!editingStaff) return;
     setSubmitting(true);
     try {
+      const cleanEditName = editFormData.name.trim().split(/\s+/).filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
       await userService.updateUser(editingStaff.id, {
-        name: editFormData.name,
-        email: editFormData.email
+        name: cleanEditName,
+        email: editFormData.email.trim().toLowerCase()
       });
       if (editFormData.status !== editingStaff.status) {
         await userService.updateUserStatus(editingStaff.id, editFormData.status as any);
@@ -371,16 +372,21 @@ export const Staff = () => {
     setCreating(true);
 
     try {
+      const cleanName = createForm.name.trim().split(/\s+/).filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+      const cleanEmergencyName = createForm.emergencyContactName ? createForm.emergencyContactName.trim().split(/\s+/).filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ') : '';
+      const cleanSpecialty = createForm.specialty ? createForm.specialty.trim().split(/\s+/).filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ') : '';
+      const cleanPreviousSchool = createForm.previousSchool ? createForm.previousSchool.trim().split(/\s+/).filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ') : '';
+
       const data: any = {
-        name: createForm.name,
-        email: createForm.email,
+        name: cleanName,
+        email: createForm.email.trim().toLowerCase(),
         phoneNumber: createForm.phoneNumber,
-        emergencyContactName: createForm.emergencyContactName,
+        emergencyContactName: cleanEmergencyName,
         emergencyContactPhone: createForm.emergencyContactPhone,
         educationLevel: createForm.educationLevel,
-        specialty: createForm.specialty,
+        specialty: cleanSpecialty,
         dob: createForm.dob,
-        previousSchool: createForm.previousSchool,
+        previousSchool: cleanPreviousSchool,
         experienceYears: createForm.experienceYears,
         branchId: createForm.branchId || selectedBranchId || '',
       };
@@ -1038,6 +1044,7 @@ export const Staff = () => {
                   required
                   value={editFormData.name}
                   onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                  onBlur={(e) => setEditFormData({ ...editFormData, name: editFormData.name.trim().split(/\s+/).filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ') })}
                   className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>

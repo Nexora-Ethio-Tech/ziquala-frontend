@@ -128,9 +128,11 @@ export const LibrarianStaff = () => {
     if (!editingStaff) return;
     setSubmitting(true);
     try {
+      const cleanName = editFormData.name.trim().split(/\s+/).filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+      const cleanEmail = editFormData.email.trim().toLowerCase();
       await updateUser(editingStaff.userId, {
-        name: editFormData.name,
-        email: editFormData.email
+        name: cleanName,
+        email: cleanEmail
       });
       alert(uiText('Librarian details updated successfully!'));
       setShowEditModal(false);
@@ -257,18 +259,19 @@ export const LibrarianStaff = () => {
     setCreating(true);
 
     try {
+      const formatTC = (val: string) => val ? val.trim().split(/\s+/).filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ') : '';
       const result = await registerUser({
-        name: formData.name.trim(),
-        email: formData.email.trim(),
+        name: formatTC(formData.name),
+        email: formData.email.trim().toLowerCase(),
         role: 'librarian',
         staffProfile: {
           phoneNumber: `+251${formData.phoneNumber}`,
-          emergencyContactName: formData.emergencyContactName,
+          emergencyContactName: formatTC(formData.emergencyContactName),
           emergencyContactPhone: formData.emergencyContactPhone ? `+251${formData.emergencyContactPhone}` : '',
           educationLevel: formData.educationLevel,
-          specialty: formData.specialty,
+          specialty: formatTC(formData.specialty),
           dob: formData.dob,
-          previousSchool: formData.previousSchool,
+          previousSchool: formatTC(formData.previousSchool),
           experienceYears: formData.experienceYears,
           registeredAt: new Date().toISOString()
         }
@@ -777,7 +780,8 @@ export const LibrarianStaff = () => {
                   type="text"
                   required
                   value={editFormData.name}
-                  onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                  onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value.replace(/[^a-zA-Z\u00C0-\u024F\s'-]/g, '') })}
+                  onBlur={(e) => { const c = e.target.value.trim().split(/\s+/).filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' '); setEditFormData({ ...editFormData, name: c }); }}
                   className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>

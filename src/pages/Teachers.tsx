@@ -666,9 +666,10 @@ export const Teachers = () => {
     if (!editingStaff) return;
     setSubmitting(true);
     try {
+      const cleanEditName = editFormData.name.trim().split(/\s+/).filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
       await updateUser(editingStaff.userId, {
-        name: editFormData.name,
-        email: editFormData.email
+        name: cleanEditName,
+        email: editFormData.email.trim().toLowerCase()
       });
       alert(uiText('Teacher details updated successfully!'));
       setShowEditModal(false);
@@ -788,18 +789,23 @@ export const Teachers = () => {
 
     setCreating(true);
     try {
+      const cleanName = formData.name.trim().split(/\s+/).filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+      const cleanEmergencyName = formData.emergencyContactName.trim().split(/\s+/).filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+      const cleanSpecialty = formData.specialty.trim().split(/\s+/).filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+      const cleanPreviousSchool = formData.previousSchool.trim().split(/\s+/).filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+
       const response = await registerUser({
-        name: formData.name,
-        email: formData.email,
+        name: cleanName,
+        email: formData.email.trim().toLowerCase(),
         role: formData.role,
         staffProfile: {
           phoneNumber: `+251${formData.phoneNumber}`,
-          emergencyContactName: formData.emergencyContactName,
+          emergencyContactName: cleanEmergencyName,
           emergencyContactPhone: formData.emergencyContactPhone ? `+251${formData.emergencyContactPhone}` : undefined,
           educationLevel: formData.educationLevel,
-          specialty: formData.specialty,
+          specialty: cleanSpecialty,
           dob: formData.dob,
-          previousSchool: formData.previousSchool,
+          previousSchool: cleanPreviousSchool,
           experienceYears: formData.experienceYears,
           registeredAt: new Date().toISOString()
         }
@@ -3379,6 +3385,7 @@ export const Teachers = () => {
                   required
                   value={editFormData.name}
                   onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                  onBlur={(e) => { const c = e.target.value.trim().split(/\s+/).filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' '); setEditFormData({ ...editFormData, name: c }); }}
                   className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>

@@ -1293,6 +1293,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                         name="fatherOccupation"
                         type="text"
                         placeholder={uiText("e.g. Teacher, Merchant, Engineer")}
+                        onBlur={(e) => { e.target.value = toTitleCase(e.target.value); }}
                         className="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -1344,6 +1345,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                         name="motherOccupation"
                         type="text"
                         placeholder={uiText("e.g. Accountant, Doctor, Housewife")}
+                        onBlur={(e) => { e.target.value = toTitleCase(e.target.value); }}
                         className="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -1422,7 +1424,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">{uiText("Previous School ")}<span className="text-slate-400 text-[10px] font-medium">{uiText("(optional)")}</span></label>
-                    <input name="previousSchool" type="text" placeholder={uiText("Name of previous school")} className={`w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-sm outline-none focus:ring-2 ${validationErrors.previousSchool
+                    <input name="previousSchool" type="text" placeholder={uiText("Name of previous school")} onBlur={(e) => { e.target.value = toTitleCase(e.target.value); }} className={`w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-sm outline-none focus:ring-2 ${validationErrors.previousSchool
                       ? 'border-rose-300 focus:ring-rose-500 dark:border-rose-700'
                       : 'border-slate-200 dark:border-slate-700 focus:ring-blue-500'
                       }`} />
