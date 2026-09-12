@@ -1,6 +1,6 @@
 import { uiText, uiError } from "../localization";
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Loader2, AlertCircle, UserCheck, UserPlus, ShieldAlert, Users, Building2, X, Edit2, Trash2, Check, Eye, FileText, Phone, Briefcase, User } from 'lucide-react';
+import { ArrowLeft, Loader2, AlertCircle, UserCheck, UserPlus, ShieldAlert, Users, Building2, X, Edit2, Trash2, Check, Eye, FileText, Phone, Briefcase, User, Download, Upload } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useUser, type UserRole } from '../context/UserContext';
@@ -59,6 +59,9 @@ export const Staff = () => {
   const [showViewModal, setShowViewModal] = useState(false);
   const [viewingStaff, setViewingStaff] = useState<any | null>(null);
   const [loadingStaffDetails, setLoadingStaffDetails] = useState(false);
+  const [downloadingDoc, setDownloadingDoc] = useState(false);
+  const [uploadingDoc, setUploadingDoc] = useState(false);
+  const [viewingDoc, setViewingDoc] = useState(false);
 
   const staffTabs = [
     { label: 'Teachers', path: 'teachers' },
@@ -200,6 +203,84 @@ export const Staff = () => {
       console.error('❌ Error fetching user details:', err);
     } finally {
       setLoadingStaffDetails(false);
+    }
+  };
+
+  const handleViewDocument = async () => {
+    if (!viewingStaff?.id) return;
+    setViewingDoc(true);
+    try {
+      const res = await userService.getUserDocument(viewingStaff.id);
+      const contentType = String(res.headers?.['content-type'] || 'application/pdf');
+      const blob = new Blob([res.data], { type: contentType });
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch (err: any) {
+      console.error('❌ Failed to open document:', err);
+      alert(uiText("Failed to open document or document not found."));
+    } finally {
+      setViewingDoc(false);
+    }
+  };
+
+  const handleDownloadDocument = async () => {
+    if (!viewingStaff?.id) return;
+    setDownloadingDoc(true);
+    try {
+      const res = await userService.getUserDocument(viewingStaff.id);
+      const contentType = String(res.headers?.['content-type'] || 'application/octet-stream');
+      const blob = new Blob([res.data], { type: contentType });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = viewingStaff.documentFileName || viewingStaff.document_file_name || 'staff_document.pdf';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
+    } catch (err: any) {
+      console.error('❌ Failed to download document:', err);
+      alert(uiText("Failed to download document or no document exists."));
+    } finally {
+      setDownloadingDoc(false);
+    }
+  };
+
+  const handleDocumentFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !viewingStaff?.id) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      alert(uiText("File size exceeds the 2MB limit."));
+      e.target.value = '';
+      return;
+    }
+
+    setUploadingDoc(true);
+    try {
+      const res = await userService.replaceUserDocument(viewingStaff.id, file);
+      const newDocName = res?.data?.document_file_name || file.name;
+      setViewingStaff((prev: any) => ({
+        ...prev,
+        documentFileName: newDocName,
+        document_file_name: newDocName,
+      }));
+      setStaffList((prevList) =>
+        prevList.map((st) =>
+          st.id === viewingStaff.id
+            ? { ...st, documentFileName: newDocName, document_file_name: newDocName }
+            : st
+        )
+      );
+      setToast({ show: true, message: 'Document updated successfully!', type: 'success' });
+      setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
+    } catch (err: any) {
+      console.error('❌ Failed to replace document:', err);
+      alert(uiError(err.response?.data?.error?.message || err.response?.data?.message || 'Failed to replace document'));
+    } finally {
+      setUploadingDoc(false);
+      e.target.value = '';
     }
   };
 
@@ -1205,13 +1286,13 @@ export const Staff = () => {
                           <FileText size={14} className="text-amber-500" />
                           {uiText("Attached Document")}
                         </h4>
-                        <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="p-2 bg-amber-100 dark:bg-amber-950/50 text-amber-600 rounded-lg">
-                              <FileText size={18} />
+                        <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="p-2.5 bg-amber-100 dark:bg-amber-950/50 text-amber-600 rounded-lg shrink-0">
+                              <FileText size={20} />
                             </div>
-                            <div>
-                              <span className="text-sm font-semibold text-slate-800 dark:text-slate-100 block">
+                            <div className="min-w-0">
+                              <span className="text-sm font-semibold text-slate-800 dark:text-slate-100 block truncate max-w-xs sm:max-w-md">
                                 {viewingStaff.documentFileName || viewingStaff.document_file_name || uiText("No document uploaded")}
                               </span>
                               <span className="text-xs text-slate-400 font-medium">
@@ -1220,6 +1301,21 @@ export const Staff = () => {
                                   : uiText("Optional staff file was not provided")}
                               </span>
                             </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 shrink-0">
+                            {(viewingStaff.documentFileName || viewingStaff.document_file_name) && (
+                              <button
+                                type="button"
+                                onClick={handleViewDocument}
+                                disabled={viewingDoc}
+                                className="px-3.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:hover:bg-blue-900/50 dark:text-blue-300 border border-blue-200 dark:border-blue-800 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors shadow-sm disabled:opacity-50"
+                                title={uiText("View / Open Document")}
+                              >
+                                {viewingDoc ? <Loader2 size={16} className="animate-spin" /> : <Eye size={16} />}
+                                <span>{uiText("View")}</span>
+                              </button>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -1230,7 +1326,47 @@ export const Staff = () => {
             </div>
 
             {/* Footer */}
-            <div className="p-6 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex justify-end">
+            <div className="p-6 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                {!['academic-manager', 'storekeeper'].includes(viewingStaff.role) && (
+                  <>
+                    {(viewingStaff.documentFileName || viewingStaff.document_file_name) && (
+                      <button
+                        type="button"
+                        onClick={handleDownloadDocument}
+                        disabled={downloadingDoc}
+                        className="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-bold flex items-center gap-2 transition-colors shadow-sm disabled:opacity-50"
+                        title={uiText("Download Document")}
+                      >
+                        {downloadingDoc ? <Loader2 size={15} className="animate-spin" /> : <Download size={15} />}
+                        <span>{downloadingDoc ? uiText("Downloading...") : uiText("Download Document")}</span>
+                      </button>
+                    )}
+
+                    <label
+                      className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold flex items-center gap-2 cursor-pointer transition-colors shadow-sm"
+                      title={uiText("Reupload / Edit Document")}
+                    >
+                      {uploadingDoc ? <Loader2 size={15} className="animate-spin" /> : <Upload size={15} />}
+                      <span>
+                        {uploadingDoc
+                          ? uiText("Uploading...")
+                          : (viewingStaff.documentFileName || viewingStaff.document_file_name)
+                          ? uiText("Reupload / Edit Document")
+                          : uiText("Upload Document")}
+                      </span>
+                      <input
+                        type="file"
+                        accept=".pdf,.png,.jpg,.jpeg"
+                        onChange={handleDocumentFileChange}
+                        disabled={uploadingDoc}
+                        className="hidden"
+                      />
+                    </label>
+                  </>
+                )}
+              </div>
+
               <button
                 type="button"
                 onClick={() => setShowViewModal(false)}
