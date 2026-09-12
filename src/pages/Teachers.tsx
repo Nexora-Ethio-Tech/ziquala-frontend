@@ -1061,6 +1061,13 @@ export const Teachers = () => {
                         {(isTeacherPromoted(teacher) ? uiText('Promoted') : uiText('Promote'))}
                       </button>
                       <button
+                        onClick={() => setSelectedStaff(teacher)}
+                        className="p-2 text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                        title={uiText("View Registration Details")}
+                      >
+                        <Eye size={16} />
+                      </button>
+                      <button
                         onClick={() => openEditModal(teacher)}
                         className="p-2 text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
                         title={uiText("Edit User")}
@@ -1171,6 +1178,13 @@ export const Teachers = () => {
                                 title={isTeacherPromoted(teacher) ? 'Edit promotion' : 'Promote'}
                               >
                                 {(isTeacherPromoted(teacher) ? uiText('Promoted') : uiText('Promote'))}
+                              </button>
+                              <button
+                                onClick={() => setSelectedStaff(teacher)}
+                                className="p-1.5 text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-950/30 rounded-lg transition-colors"
+                                title={uiText("View Registration Details")}
+                              >
+                                <Eye size={16} />
                               </button>
                               <button
                                 onClick={() => openEditModal(teacher)}

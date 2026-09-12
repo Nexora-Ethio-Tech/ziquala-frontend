@@ -1,6 +1,6 @@
 import { uiText, uiError, localizeHtml } from "../localization";
 import { useTranslation } from 'react-i18next';
-import { UserPlus, X, Check, ArrowLeft, MoreVertical, CheckCircle, XCircle, Trash2, Printer, Clock, Edit2, Loader2, FileText, Download, Upload } from 'lucide-react';
+import { UserPlus, X, Check, ArrowLeft, MoreVertical, CheckCircle, XCircle, Trash2, Printer, Clock, Eye, Edit2, Loader2, FileText, Download, Upload } from 'lucide-react';
 import PhoneInput from '../components/PhoneInput';
 import { formatEthiopianLabel } from '../utils/ethiopianCalendar';
 import { EthiopianDatePicker } from '../components/EthiopianDatePicker';
@@ -435,6 +435,13 @@ export const LibrarianStaff = () => {
                                 <XCircle size={14} />{uiText(" Revoke ")}</button>
                             );
                           })()}
+                          <button
+                            onClick={() => setSelectedStaff(staff)}
+                            className="p-1.5 text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-950/30 rounded-lg transition-colors"
+                            title={uiText("View Registration Details")}
+                          >
+                            <Eye size={16} />
+                          </button>
                           <button
                             onClick={() => openEditModal(staff)}
                             className="p-1.5 text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-950/30 rounded-lg transition-colors"
