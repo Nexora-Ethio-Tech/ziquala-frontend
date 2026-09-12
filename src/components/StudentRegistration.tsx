@@ -1270,7 +1270,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                 <div className="p-4 rounded-2xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/40 space-y-4">
                   <h4 className="text-xs font-bold text-blue-700 dark:text-blue-400 uppercase tracking-wider flex items-center gap-2">
                     <User size={14} />{uiText(" Father's Details / የአባት መረጃ")}</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div className="space-y-1">
                       <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">{uiText("Father's Full Name ")}<span className="text-rose-500">{uiText("*")}</span>{uiText(" / የአባት ሙሉ ስም")}</label>
                       <input
@@ -1297,20 +1297,20 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                       />
                     </div>
 
-                    <div className="space-y-1">
+                    <div className="space-y-1 min-w-0">
                       <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">{uiText("Father's Phone / የአባት ስልክ")}</label>
-                      <div className="flex items-center gap-2">
-                        <div className="flex items-center justify-center px-3 py-2 bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl text-xs font-black text-slate-600 dark:text-slate-300 select-none whitespace-nowrap">{uiText("+251")}</div>
+                      <div className="flex items-center gap-1.5 w-full min-w-0">
+                        <div className="flex items-center justify-center px-2.5 py-2 bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl text-xs font-black text-slate-600 dark:text-slate-300 select-none shrink-0">{uiText("+251")}</div>
                         <input
                           type="tel"
                           inputMode="numeric"
                           maxLength={9}
-                          placeholder={uiText("9xxxxxxxx")}
+                          placeholder={uiText("9xxxxxxxx or 7xxxxxxxx")}
                           name="fatherPhone"
                           onChange={(e) => {
                             e.target.value = e.target.value.replace(/[^\d]/g, '').slice(0, 9);
                           }}
-                          className="flex-1 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 font-bold"
+                          className="flex-1 min-w-0 w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 font-bold"
                         />
                       </div>
                     </div>
@@ -1321,7 +1321,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                 <div className="p-4 rounded-2xl bg-purple-50/50 dark:bg-purple-950/20 border border-purple-100 dark:border-purple-900/40 space-y-4">
                   <h4 className="text-xs font-bold text-purple-700 dark:text-purple-400 uppercase tracking-wider flex items-center gap-2">
                     <User size={14} />{uiText(" Mother's Details / የእናት መረጃ")}</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div className="space-y-1">
                       <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">{uiText("Mother's Full Name ")}<span className="text-rose-500">{uiText("*")}</span>{uiText(" / የእናት ሙሉ ስም")}</label>
                       <input
@@ -1348,20 +1348,20 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                       />
                     </div>
 
-                    <div className="space-y-1">
+                    <div className="space-y-1 min-w-0">
                       <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">{uiText("Mother's Phone / የእናት ስልክ")}</label>
-                      <div className="flex items-center gap-2">
-                        <div className="flex items-center justify-center px-3 py-2 bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl text-xs font-black text-slate-600 dark:text-slate-300 select-none whitespace-nowrap">{uiText("+251")}</div>
+                      <div className="flex items-center gap-1.5 w-full min-w-0">
+                        <div className="flex items-center justify-center px-2.5 py-2 bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl text-xs font-black text-slate-600 dark:text-slate-300 select-none shrink-0">{uiText("+251")}</div>
                         <input
                           type="tel"
                           inputMode="numeric"
                           maxLength={9}
-                          placeholder={uiText("9xxxxxxxx")}
+                          placeholder={uiText("9xxxxxxxx or 7xxxxxxxx")}
                           name="motherPhone"
                           onChange={(e) => {
                             e.target.value = e.target.value.replace(/[^\d]/g, '').slice(0, 9);
                           }}
-                          className="flex-1 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 font-bold"
+                          className="flex-1 min-w-0 w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 font-bold"
                         />
                       </div>
                     </div>
