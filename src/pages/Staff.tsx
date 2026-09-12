@@ -555,7 +555,7 @@ export const Staff = () => {
                     <>
                       <option value="school-admin">{uiText("School Admin")}</option>
                       <option value="academic-manager">{uiText("Academic Manager")}</option>
-                      <option value="vice-principal">{uiText("Vice Principal")}</option>
+                      <option value="storekeeper">{uiText("Storekeeper")}</option>
                     </>
                   ) : (
                     <option value="vice-principal">{uiText("Vice Principal")}</option>
@@ -600,114 +600,116 @@ export const Staff = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <PhoneInput
-                  label={t("teachers.phoneNumber", "Phone Number")}
-                  value={createForm.phoneNumber}
-                  onChange={(val) => setCreateForm({ ...createForm, phoneNumber: val })}
-                  error={phoneError}
-                />
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-500 uppercase">{t("teachers.emergencyContactName", "Emergency Contact Name")}</label>
-                  <input
-                    type="text"
-                    value={createForm.emergencyContactName}
-                    onChange={(e) => setCreateForm({ ...createForm, emergencyContactName: e.target.value.replace(/[^\p{L}\s'-]/gu, '') })}
-                    onBlur={(e) => {
-                      const formatted = e.target.value
-                        .trim()
-                        .split(/\s+/)
-                        .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-                        .join(' ');
-                      setCreateForm({ ...createForm, emergencyContactName: formatted });
-                    }}
-                    className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder={t("teachers.emergencyContactPlaceholder", "Contact person")}
+              {!['academic-manager', 'storekeeper'].includes(createForm.role) && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <PhoneInput
+                    label={t("teachers.phoneNumber", "Phone Number")}
+                    value={createForm.phoneNumber}
+                    onChange={(val) => setCreateForm({ ...createForm, phoneNumber: val })}
+                    error={phoneError}
                   />
-                </div>
-                <PhoneInput
-                  label={t("teachers.emergencyContactPhone", "Emergency Contact Phone")}
-                  value={createForm.emergencyContactPhone}
-                  onChange={(val) => setCreateForm({ ...createForm, emergencyContactPhone: val })}
-                  error={emergencyPhoneError}
-                />
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-500 uppercase">{t("teachers.educationStatus", "Education Status")}</label>
-                  <select
-                    title={uiText("Select education level")}
-                    value={createForm.educationLevel}
-                    onChange={(e) => setCreateForm({ ...createForm, educationLevel: e.target.value })}
-                    className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">{t("teachers.selectLevel", "Select level")}</option>
-                    <option value="Diploma">{t("teachers.diploma", "Diploma")}</option>
-                    <option value="Degree">{t("teachers.degree", "Degree")}</option>
-                    <option value="Master">{t("teachers.master", "Master")}</option>
-                    <option value="PhD">{t("teachers.phd", "PhD")}</option>
-                  </select>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-500 uppercase">{t("teachers.specialtyCourse", "Specialty / Position")}</label>
-                  <input
-                    type="text"
-                    value={createForm.specialty}
-                    onChange={(e) => setCreateForm({ ...createForm, specialty: e.target.value.replace(/[^\p{L}\s'-]/gu, '') })}
-                    className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder={uiText("e.g. Administration, Management...")}
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-500 uppercase">{t("teachers.emergencyContactName", "Emergency Contact Name")}</label>
+                    <input
+                      type="text"
+                      value={createForm.emergencyContactName}
+                      onChange={(e) => setCreateForm({ ...createForm, emergencyContactName: e.target.value.replace(/[^\p{L}\s'-]/gu, '') })}
+                      onBlur={(e) => {
+                        const formatted = e.target.value
+                          .trim()
+                          .split(/\s+/)
+                          .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+                          .join(' ');
+                        setCreateForm({ ...createForm, emergencyContactName: formatted });
+                      }}
+                      className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder={t("teachers.emergencyContactPlaceholder", "Contact person")}
+                    />
+                  </div>
+                  <PhoneInput
+                    label={t("teachers.emergencyContactPhone", "Emergency Contact Phone")}
+                    value={createForm.emergencyContactPhone}
+                    onChange={(val) => setCreateForm({ ...createForm, emergencyContactPhone: val })}
+                    error={emergencyPhoneError}
                   />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-500 uppercase">{t("teachers.dob", "Date of Birth")}</label>
-                  <EthiopianDatePicker
-                    value={createForm.dob}
-                    onChange={(val) => setCreateForm({ ...createForm, dob: val })}
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-500 uppercase">{t("teachers.previousSchool", "Previous Organization")}</label>
-                  <input
-                    type="text"
-                    value={createForm.previousSchool}
-                    onChange={(e) => setCreateForm({ ...createForm, previousSchool: e.target.value })}
-                    className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder={uiText("e.g. St. Joseph School")}
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-500 uppercase">{t("teachers.experienceYears", "Experience (Years)")}</label>
-                  <input
-                    type="number"
-                    min="0"
-                    max="50"
-                    value={createForm.experienceYears}
-                    onChange={(e) => setCreateForm({ ...createForm, experienceYears: e.target.value })}
-                    className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder={uiText("e.g. 5")}
-                  />
-                </div>
-                <div className="space-y-1 sm:col-span-2">
-                  <label className="text-xs font-bold text-slate-500 uppercase">
-                    {t("teachers.staffDocument", "Staff Document (PDF or Image, max 2MB)")}
-                  </label>
-                  <input
-                    type="file"
-                    accept=".pdf,.png,.jpg,.jpeg"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        if (file.size > 2 * 1024 * 1024) {
-                          alert(uiText('File size exceeds the 2MB limit.'));
-                          e.target.value = '';
-                          setSelectedFile(null);
-                        } else {
-                          setSelectedFile(file);
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-500 uppercase">{t("teachers.educationStatus", "Education Status")}</label>
+                    <select
+                      title={uiText("Select education level")}
+                      value={createForm.educationLevel}
+                      onChange={(e) => setCreateForm({ ...createForm, educationLevel: e.target.value })}
+                      className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">{t("teachers.selectLevel", "Select level")}</option>
+                      <option value="Diploma">{t("teachers.diploma", "Diploma")}</option>
+                      <option value="Degree">{t("teachers.degree", "Degree")}</option>
+                      <option value="Master">{t("teachers.master", "Master")}</option>
+                      <option value="PhD">{t("teachers.phd", "PhD")}</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-500 uppercase">{t("teachers.specialtyCourse", "Specialty / Position")}</label>
+                    <input
+                      type="text"
+                      value={createForm.specialty}
+                      onChange={(e) => setCreateForm({ ...createForm, specialty: e.target.value.replace(/[^\p{L}\s'-]/gu, '') })}
+                      className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder={uiText("e.g. Administration, Management...")}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-500 uppercase">{t("teachers.dob", "Date of Birth")}</label>
+                    <EthiopianDatePicker
+                      value={createForm.dob}
+                      onChange={(val) => setCreateForm({ ...createForm, dob: val })}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-500 uppercase">{t("teachers.previousSchool", "Previous Organization")}</label>
+                    <input
+                      type="text"
+                      value={createForm.previousSchool}
+                      onChange={(e) => setCreateForm({ ...createForm, previousSchool: e.target.value })}
+                      className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder={uiText("e.g. St. Joseph School")}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-500 uppercase">{t("teachers.experienceYears", "Experience (Years)")}</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="50"
+                      value={createForm.experienceYears}
+                      onChange={(e) => setCreateForm({ ...createForm, experienceYears: e.target.value })}
+                      className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder={uiText("e.g. 5")}
+                    />
+                  </div>
+                  <div className="space-y-1 sm:col-span-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase">
+                      {t("teachers.staffDocument", "Staff Document (PDF or Image, max 2MB)")}
+                    </label>
+                    <input
+                      type="file"
+                      accept=".pdf,.png,.jpg,.jpeg"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          if (file.size > 2 * 1024 * 1024) {
+                            alert(uiText('File size exceeds the 2MB limit.'));
+                            e.target.value = '';
+                            setSelectedFile(null);
+                          } else {
+                            setSelectedFile(file);
+                          }
                         }
-                      }
-                    }}
-                    className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+                      }}
+                      className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
                 </div>
-              </div>
+              )}
 
               {currentUserRole === 'super-admin' && (
                 <div className="space-y-1">
