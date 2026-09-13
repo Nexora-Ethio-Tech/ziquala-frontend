@@ -59,7 +59,7 @@ const buildGradeMap = (classes: ClassRecord[], rows: StructureRow[]): Record<str
     const sectionName = parsed.section || clazz.section || 'A';
 
     if (!map[gradeKey]) {
-      map[gradeKey] = { displayName: gradeKey, sections: [], courses: [], assignments: {}, collapsed: false };
+      map[gradeKey] = { displayName: gradeKey, sections: [], courses: [], assignments: {}, collapsed: true };
     }
 
     const grade = map[gradeKey];
@@ -80,7 +80,7 @@ const buildGradeMap = (classes: ClassRecord[], rows: StructureRow[]): Record<str
 
       // (The grade and section should already exist from the loop above, but we ensure it just in case)
       if (!map[gradeKey]) {
-        map[gradeKey] = { displayName: gradeKey, sections: [], courses: [], assignments: {}, collapsed: false };
+        map[gradeKey] = { displayName: gradeKey, sections: [], courses: [], assignments: {}, collapsed: true };
       }
       const grade = map[gradeKey];
       if (!grade.sections.some(section => section.name === sectionName)) {
@@ -136,7 +136,13 @@ export const TimetableStructureEditor: React.FC<Props> = ({ classes, teachers, i
     let input = (gradeName || '').trim();
     if (!input) return;
     const key = `grade_${Date.now()}_${Math.random().toString(36).slice(2,6)}`;
-    setGradeMap(prev => ({ ...prev, [key]: { displayName: input, sections: [], courses: [] } }));
+    setGradeMap(prev => {
+      // Collapse all others, expand the new grade so user can edit it right away
+      const next: Record<string, GradeState> = {};
+      Object.keys(prev).forEach(k => { next[k] = { ...prev[k], collapsed: true }; });
+      next[key] = { displayName: input, sections: [], courses: [], assignments: {}, collapsed: false };
+      return next;
+    });
     setNewGradeInput('');
     // scroll to bottom so newly added grade is visible
     setTimeout(() => {
