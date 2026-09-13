@@ -111,14 +111,13 @@ const Exams = () => {
       if (isStudent) {
         const data = await getAvailableExams();
         setStudentExams(Array.isArray(data) ? data : []);
+      } else if (isTeacher) {
+        const teacherData = await getTeacherExams();
+        setDraftExams(Array.isArray(teacherData.draftExams) ? teacherData.draftExams : []);
+        setPublishedExams(Array.isArray(teacherData.publishedExams) ? teacherData.publishedExams : []);
       } else {
         const examsData = await getAvailableExams() as any;
         setExams(Array.isArray(examsData) ? examsData : []);
-        if (isTeacher) {
-          const teacherData = await getTeacherExams();
-          setDraftExams(Array.isArray(teacherData.draftExams) ? teacherData.draftExams : []);
-          setPublishedExams(Array.isArray(teacherData.publishedExams) ? teacherData.publishedExams : []);
-        }
       }
     } catch (error: any) {
       console.error('Failed to load exams:', error);
