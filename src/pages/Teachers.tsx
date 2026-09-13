@@ -2924,18 +2924,23 @@ export const Teachers = () => {
                       ? allCoursesWithGrade.filter(c => selectedGradeSet.has(normalizeGrade(c.grade_level)))
                       : allCoursesWithGrade;
 
-                    const courseNamesFromCourses = Array.from(new Set(matchingCourses.map(c => c.name))).sort();
-                    const courseNamesFromSubjects = Array.from(new Set(allSubjects.map((s: any) => s.name))).sort();
+                    const courseNamesFromCourses = Array.from(
+                      new Map(matchingCourses.map(c => [c.name.toLowerCase(), c.name])).values()
+                    ).sort();
 
-                    const combinedOptions = Array.from(new Set([
-                      ...courseNamesFromCourses,
-                      ...courseNamesFromSubjects
-                    ])).sort();
+                    // Only use schedule-builder courses — no merge with the subjects table
+                    const combinedOptions = courseNamesFromCourses;
 
                     const handleAddCustomSubject = () => {
                       if (!customSubjectInput.trim()) return;
-                      const newSub = customSubjectInput.trim();
+                      // Normalize to Title Case to match how courses are stored
+                      const newSub = customSubjectInput.trim().replace(/\w\S*/g, (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
                       setPromotionForm(prev => {
+                        // Case-insensitive duplicate check before adding
+                        const alreadyExists = (prev.hodSubjects || []).some(
+                          s => s.toLowerCase() === newSub.toLowerCase()
+                        );
+                        if (alreadyExists) return prev;
                         const next = new Set(prev.hodSubjects || []);
                         next.add(newSub);
                         return { ...prev, hodSubjects: Array.from(next) };
