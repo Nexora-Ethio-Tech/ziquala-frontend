@@ -181,6 +181,7 @@ export const TeacherPortal = () => {
     subject: '',
     grade: '',
     courseId: '',
+    deptHeadId: '',
     workingDaysYear: 180,
     periodsYear: 160,
     periodsWeek: 4,
@@ -759,12 +760,15 @@ export const TeacherPortal = () => {
     const selectedCourse = myCourses.find((c: any) => c.id === courseId);
     if (!selectedCourse) return [];
 
-    const subjectName = (selectedCourse.name || '').toLowerCase();
+    const rawCourseName = cleanSubjectName(selectedCourse.name || '').toLowerCase().trim();
     const courseGrade = selectedCourse.grade_level || selectedCourse.grade || '';
 
     const filtered = deptHeads.filter((hod: any) => {
       const hodSubjects = Array.isArray(hod.subjects) ? hod.subjects : [];
-      const hasSubjectMatch = hodSubjects.some((s: any) => String(s).toLowerCase() === subjectName);
+      const hasSubjectMatch = hodSubjects.some((s: any) => {
+        const sub = cleanSubjectName(String(s)).toLowerCase().trim();
+        return sub === '*' || sub === rawCourseName || rawCourseName.includes(sub) || sub.includes(rawCourseName);
+      });
       if (!hasSubjectMatch) return false;
 
       const hodGrades = Array.isArray(hod.grades) ? hod.grades : [];
@@ -776,7 +780,10 @@ export const TeacherPortal = () => {
     if (filtered.length === 0) {
       return deptHeads.filter((hod: any) => {
         const hodSubjects = Array.isArray(hod.subjects) ? hod.subjects : [];
-        return hodSubjects.some((s: any) => String(s).toLowerCase() === subjectName);
+        return hodSubjects.some((s: any) => {
+          const sub = cleanSubjectName(String(s)).toLowerCase().trim();
+          return sub === '*' || sub === rawCourseName || rawCourseName.includes(sub) || sub.includes(rawCourseName);
+        });
       });
     }
 
@@ -1278,7 +1285,17 @@ export const TeacherPortal = () => {
                         <div className="flex gap-2 ml-4">
                           {(plan.status === 'Draft' || plan.status === 'Revision Required') && (
                             <button
-                              onClick={() => { setEditingAnnualPlan(plan); setAnnualForm({ ...emptyAnnualForm, ...plan, items: Array.isArray(plan.items) && plan.items.length > 0 ? plan.items : defaultAnnualItems() }); setIsAnnualModalOpen(true); }}
+                              onClick={() => {
+                                setEditingAnnualPlan(plan);
+                                setAnnualForm({
+                                  ...emptyAnnualForm,
+                                  ...plan,
+                                  deptHeadId: plan.dept_head_id || plan.deptHeadId || '',
+                                  courseId: plan.course_id || plan.courseId || '',
+                                  items: Array.isArray(plan.items) && plan.items.length > 0 ? plan.items : defaultAnnualItems()
+                                });
+                                setIsAnnualModalOpen(true);
+                              }}
                               className="px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white text-xs font-black rounded-xl transition-all"
                             >{uiText(" Edit & Submit ")}</button>
                           )}
@@ -2449,19 +2466,6 @@ export const TeacherPortal = () => {
                               onChange={e => updateDayAct('studentActivity', e.target.value)}
                               className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none text-slate-800 dark:text-white"
                             />
-                            {/* Preset chips */}
-                            <div className="flex gap-1 mt-1.5 flex-wrap">
-                              {['Listening & Note taking', 'Group Discussion', 'Solving Exercises', 'Asking Questions'].map(chip => (
-                                <button
-                                  key={chip}
-                                  type="button"
-                                  onClick={() => updateDayAct('studentActivity', act.studentActivity ? `${act.studentActivity}, ${chip}` : chip)}
-                                  className="text-[10px] px-2 py-0.5 bg-slate-200 dark:bg-slate-700 hover:bg-blue-100 hover:text-blue-700 rounded-md font-medium text-slate-600 dark:text-slate-300 transition-all"
-                                >
-                                  + {uiText(chip)}
-                                </button>
-                              ))}
-                            </div>
                           </div>
                           <div>
                             <label className="text-xs font-bold text-slate-500 uppercase block mb-1">{uiText("Teaching Method (ማስተማሪያ ዘዴ)")}</label>
@@ -2472,19 +2476,6 @@ export const TeacherPortal = () => {
                               onChange={e => updateDayAct('teachingMethod', e.target.value)}
                               className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none text-slate-800 dark:text-white"
                             />
-                            {/* Preset chips */}
-                            <div className="flex gap-1 mt-1.5 flex-wrap">
-                              {['Demonstration', 'Question & Answer', 'Group Discussion', 'Explanation', 'Brainstorming'].map(chip => (
-                                <button
-                                  key={chip}
-                                  type="button"
-                                  onClick={() => updateDayAct('teachingMethod', act.teachingMethod ? `${act.teachingMethod}, ${chip}` : chip)}
-                                  className="text-[10px] px-2 py-0.5 bg-slate-200 dark:bg-slate-700 hover:bg-blue-100 hover:text-blue-700 rounded-md font-medium text-slate-600 dark:text-slate-300 transition-all"
-                                >
-                                  + {uiText(chip)}
-                                </button>
-                              ))}
-                            </div>
                           </div>
                         </div>
 
@@ -2499,19 +2490,6 @@ export const TeacherPortal = () => {
                               onChange={e => updateDayAct('teachingAid', e.target.value)}
                               className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none text-slate-800 dark:text-white"
                             />
-                            {/* Preset chips */}
-                            <div className="flex gap-1 mt-1.5 flex-wrap">
-                              {['Textbook & Guide', 'Whiteboard / Blackboard', 'Charts & Diagrams', 'Real Objects'].map(chip => (
-                                <button
-                                  key={chip}
-                                  type="button"
-                                  onClick={() => updateDayAct('teachingAid', act.teachingAid ? `${act.teachingAid}, ${chip}` : chip)}
-                                  className="text-[10px] px-2 py-0.5 bg-slate-200 dark:bg-slate-700 hover:bg-blue-100 hover:text-blue-700 rounded-md font-medium text-slate-600 dark:text-slate-300 transition-all"
-                                >
-                                  + {uiText(chip)}
-                                </button>
-                              ))}
-                            </div>
                           </div>
                           <div>
                             <label className="text-xs font-bold text-slate-500 uppercase block mb-1">{uiText("Evaluation / Remark (ምዘና)")}</label>
@@ -3170,9 +3148,12 @@ export const TeacherPortal = () => {
                   <div>
                     <label className="text-[10px] font-black uppercase text-slate-500">{uiText("Subject")}</label>
                     <select value={annualForm.courseId} onChange={e => {
-                      const c = myCourses.find((x: any) => x.id === e.target.value);
+                      const selectedCourseId = e.target.value;
+                      const c = myCourses.find((x: any) => x.id === selectedCourseId);
                       const cleanName = capitalizeWords(cleanSubjectName(c?.name || ''));
-                      setAnnualForm(f => ({ ...f, courseId: e.target.value, subject: cleanName || f.subject }));
+                      const matchingHods = filterDeptHeadsForCourse(selectedCourseId);
+                      let newDeptHeadId = matchingHods.length > 0 ? (matchingHods[0].teacher_id || matchingHods[0].id) : annualForm.deptHeadId;
+                      setAnnualForm(f => ({ ...f, courseId: selectedCourseId, subject: cleanName || f.subject, deptHeadId: newDeptHeadId }));
                     }} className="w-full mt-1 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-violet-500">
                       <option value="">{uiText("Select course…")}</option>
                       {myCourses.map((c: any) => <option key={c.id} value={c.id}>{capitalizeWords(cleanSubjectName(c.name))}</option>)}
@@ -3181,6 +3162,21 @@ export const TeacherPortal = () => {
                       <input placeholder={uiText("Or type subject…")} value={annualForm.subject} onChange={e => setAnnualForm(f => ({ ...f, subject: capitalizeWords(e.target.value) }))}
                         className="w-full mt-1 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-violet-500" />
                     )}
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black uppercase text-violet-600 dark:text-violet-400">{uiText("Department Head Reviewer")}</label>
+                    <select
+                      value={annualForm.deptHeadId || ''}
+                      onChange={e => setAnnualForm(f => ({ ...f, deptHeadId: e.target.value }))}
+                      className="w-full mt-1 px-3 py-2 bg-white dark:bg-slate-900 border-2 border-violet-500/40 rounded-lg text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-violet-500 cursor-pointer"
+                    >
+                      <option value="">{uiText("Select Department Head")}</option>
+                      {(annualForm.courseId ? (filterDeptHeadsForCourse(annualForm.courseId).length > 0 ? filterDeptHeadsForCourse(annualForm.courseId) : deptHeads) : deptHeads).map((hod: any) => (
+                        <option key={hod.teacher_id || hod.id} value={hod.teacher_id || hod.id}>
+                          {hod.name} {(hod.department ? uiText("— {{value0}}", {value0: hod.department}) : uiText(''))}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div>
                     <label className="text-[10px] font-black uppercase text-slate-500">{uiText("Grade")}</label>
