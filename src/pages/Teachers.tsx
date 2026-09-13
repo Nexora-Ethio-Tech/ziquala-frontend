@@ -2925,7 +2925,11 @@ export const Teachers = () => {
                       : allCoursesWithGrade;
 
                     const courseNamesFromCourses = Array.from(
-                      new Map(matchingCourses.map(c => [c.name.toLowerCase(), c.name])).values()
+                      new Map(matchingCourses.map(c => {
+                        const raw = (c.name || '').trim();
+                        const formatted = raw.replace(/\w\S*/g, (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+                        return [formatted.toLowerCase(), formatted];
+                      })).values()
                     ).sort();
 
                     // Only use schedule-builder courses — no merge with the subjects table
