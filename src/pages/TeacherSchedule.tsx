@@ -201,7 +201,7 @@ export const TeacherSchedule = () => {
                                       </span>
                                     </div>
                                     <div className={`text-[10px] font-bold mt-0.5 ${theme.subText}`}>
-                                      {slot.class_name || 'Assigned Class'}
+                                      {(slot.class_name || 'Assigned Class').replace(/\bSection\s+Section\b/gi, 'Section')}
                                     </div>
                                   </div>
                                 );
