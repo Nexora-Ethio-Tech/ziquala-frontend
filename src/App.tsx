@@ -21,48 +21,68 @@ const StaffCategoryPlaceholder = () => {
 };
 //import LandingPage from './pages/LandingPage/LandingPage';
 
-const Dashboard = lazy(() => import('./pages/Dashboard').then((m) => ({ default: m.Dashboard })));
-const Students = lazy(() => import('./pages/Students').then((m) => ({ default: m.Students })));
-const Teachers = lazy(() => import('./pages/Teachers').then((m) => ({ default: m.Teachers })));
-const Staff = lazy(() => import('./pages/Staff').then((m) => ({ default: m.Staff })));
-const AcademicManagerDashboard = lazy(() => import('./pages/AcademicManagerDashboard').then((m) => ({ default: m.AcademicManagerDashboard })));
-const Branches = lazy(() => import('./pages/Branches').then((m) => ({ default: m.Branches })));
-const StudentProfile = lazy(() => import('./pages/StudentProfile').then((m) => ({ default: m.StudentProfile })));
-const StudentRecordPage = lazy(() => import('./pages/StudentRecordPage').then((m) => ({ default: m.StudentRecordPage })));
-const StudentPortal = lazy(() => import('./pages/StudentPortal').then((m) => ({ default: m.StudentPortal })));
-const StudentCourses = lazy(() => import('./pages/StudentCourses').then((m) => ({ default: m.StudentCourses })));
-const AcademicHistory = lazy(() => import('./pages/AcademicHistory').then((m) => ({ default: m.AcademicHistory })));
-const ParentPortal = lazy(() => import('./pages/ParentPortal').then((m) => ({ default: m.ParentPortal })));
-const TeacherPortal = lazy(() => import('./pages/TeacherPortal').then((m) => ({ default: m.TeacherPortal })));
-const TeacherAttendance = lazy(() => import('./pages/TeacherAttendance').then((m) => ({ default: m.TeacherAttendance })));
-const TeacherSchedule = lazy(() => import('./pages/TeacherSchedule').then((m) => ({ default: m.TeacherSchedule })));
-const GradeEntry = lazy(() => import('./pages/GradeEntry').then((m) => ({ default: m.GradeEntry })));
-const ScheduleBuilder = lazy(() => import('./pages/ScheduleBuilder').then((m) => ({ default: m.ScheduleBuilder })));
-const Inventory = lazy(() => import('./pages/Inventory').then((m) => ({ default: m.Inventory })));
-const Library = lazy(() => import('./pages/Library').then((m) => ({ default: m.Library })));
-const Attendance = lazy(() => import('./pages/Attendance').then((m) => ({ default: m.Attendance })));
-const Settings = lazy(() => import('./pages/Settings').then((m) => ({ default: m.Settings })));
-const ChangePassword = lazy(() => import('./pages/ChangePassword').then((m) => ({ default: m.ChangePassword })));
-const ExamSession = lazy(() => import('./pages/ExamSession').then((m) => ({ default: m.ExamSession })));
-const Transcripts = lazy(() => import('./pages/Transcripts').then((m) => ({ default: m.Transcripts })));
-const Exams = lazy(() => import('./pages/Exams'));
-const RegistrationPage = lazy(() => import('./pages/Registration').then((m) => ({ default: m.Registration })));
-const WebsitePosts = lazy(() => import('./pages/WebsitePosts').then((m) => ({ default: m.WebsitePosts })));
-const VicePrincipalDashboard = lazy(() => import('./pages/VicePrincipalDashboard').then((m) => ({ default: m.VicePrincipalDashboard })));
-const BranchUsers = lazy(() => import('./pages/BranchUsers').then((m) => ({ default: m.BranchUsers })));
-const Classes = lazy(() => import('./pages/Classes').then((m) => ({ default: m.Classes })));
-const Subjects = lazy(() => import('./pages/Subjects'));
-const AttendanceManagement = lazy(() => import('./pages/AttendanceManagement').then((m) => ({ default: m.AttendanceManagement })));
-const TeacherClasses = lazy(() => import('./pages/TeacherClasses').then((m) => ({ default: m.TeacherClasses })));
-const TeacherGrades = lazy(() => import('./pages/TeacherGrades').then((m) => ({ default: m.TeacherGrades })));
-const TeacherStudentGrades = lazy(() => import('./pages/TeacherStudentGrades').then((m) => ({ default: m.TeacherStudentGrades })));
-const VPAttendanceOversight = lazy(() => import('./pages/VPAttendanceOversight').then((m) => ({ default: m.VPAttendanceOversight })));
-const VPGradeManagement = lazy(() => import('./pages/VPGradeManagement').then((m) => ({ default: m.VPGradeManagement })));
-const VPTranscripts = lazy(() => import('./pages/VPTranscripts').then((m) => ({ default: m.VPTranscripts })));
-const VPCommunication = lazy(() => import('./pages/VPCommunication').then((m) => ({ default: m.VPCommunication })));
-const LibrarianStaff = lazy(() => import('./pages/LibrarianStaff').then((m) => ({ default: m.LibrarianStaff })));
-const StudentSchedulePage = lazy(() => import('./pages/StudentSchedule'));
-const ChatbotManagement = lazy(() => import('./pages/ChatbotManagement'));
+// Helper to automatically retry dynamic import failures caused by deployment chunk hash changes
+const lazyWithRetry = (componentImport: () => Promise<any>) =>
+  lazy(async () => {
+    const pageHasBeenRefreshed = JSON.parse(
+      window.sessionStorage.getItem('page_has_been_refreshed') || 'false'
+    );
+    try {
+      const component = await componentImport();
+      window.sessionStorage.setItem('page_has_been_refreshed', 'false');
+      return component;
+    } catch (error) {
+      if (!pageHasBeenRefreshed) {
+        window.sessionStorage.setItem('page_has_been_refreshed', 'true');
+        window.location.reload();
+        return new Promise(() => {});
+      }
+      throw error;
+    }
+  });
+
+const Dashboard = lazyWithRetry(() => import('./pages/Dashboard').then((m) => ({ default: m.Dashboard })));
+const Students = lazyWithRetry(() => import('./pages/Students').then((m) => ({ default: m.Students })));
+const Teachers = lazyWithRetry(() => import('./pages/Teachers').then((m) => ({ default: m.Teachers })));
+const Staff = lazyWithRetry(() => import('./pages/Staff').then((m) => ({ default: m.Staff })));
+const AcademicManagerDashboard = lazyWithRetry(() => import('./pages/AcademicManagerDashboard').then((m) => ({ default: m.AcademicManagerDashboard })));
+const Branches = lazyWithRetry(() => import('./pages/Branches').then((m) => ({ default: m.Branches })));
+const StudentProfile = lazyWithRetry(() => import('./pages/StudentProfile').then((m) => ({ default: m.StudentProfile })));
+const StudentRecordPage = lazyWithRetry(() => import('./pages/StudentRecordPage').then((m) => ({ default: m.StudentRecordPage })));
+const StudentPortal = lazyWithRetry(() => import('./pages/StudentPortal').then((m) => ({ default: m.StudentPortal })));
+const StudentCourses = lazyWithRetry(() => import('./pages/StudentCourses').then((m) => ({ default: m.StudentCourses })));
+const AcademicHistory = lazyWithRetry(() => import('./pages/AcademicHistory').then((m) => ({ default: m.AcademicHistory })));
+const ParentPortal = lazyWithRetry(() => import('./pages/ParentPortal').then((m) => ({ default: m.ParentPortal })));
+const TeacherPortal = lazyWithRetry(() => import('./pages/TeacherPortal').then((m) => ({ default: m.TeacherPortal })));
+const TeacherAttendance = lazyWithRetry(() => import('./pages/TeacherAttendance').then((m) => ({ default: m.TeacherAttendance })));
+const TeacherSchedule = lazyWithRetry(() => import('./pages/TeacherSchedule').then((m) => ({ default: m.TeacherSchedule })));
+const GradeEntry = lazyWithRetry(() => import('./pages/GradeEntry').then((m) => ({ default: m.GradeEntry })));
+const ScheduleBuilder = lazyWithRetry(() => import('./pages/ScheduleBuilder').then((m) => ({ default: m.ScheduleBuilder })));
+const Inventory = lazyWithRetry(() => import('./pages/Inventory').then((m) => ({ default: m.Inventory })));
+const Library = lazyWithRetry(() => import('./pages/Library').then((m) => ({ default: m.Library })));
+const Attendance = lazyWithRetry(() => import('./pages/Attendance').then((m) => ({ default: m.Attendance })));
+const Settings = lazyWithRetry(() => import('./pages/Settings').then((m) => ({ default: m.Settings })));
+const ChangePassword = lazyWithRetry(() => import('./pages/ChangePassword').then((m) => ({ default: m.ChangePassword })));
+const ExamSession = lazyWithRetry(() => import('./pages/ExamSession').then((m) => ({ default: m.ExamSession })));
+const Transcripts = lazyWithRetry(() => import('./pages/Transcripts').then((m) => ({ default: m.Transcripts })));
+const Exams = lazyWithRetry(() => import('./pages/Exams'));
+const RegistrationPage = lazyWithRetry(() => import('./pages/Registration').then((m) => ({ default: m.Registration })));
+const WebsitePosts = lazyWithRetry(() => import('./pages/WebsitePosts').then((m) => ({ default: m.WebsitePosts })));
+const VicePrincipalDashboard = lazyWithRetry(() => import('./pages/VicePrincipalDashboard').then((m) => ({ default: m.VicePrincipalDashboard })));
+const BranchUsers = lazyWithRetry(() => import('./pages/BranchUsers').then((m) => ({ default: m.BranchUsers })));
+const Classes = lazyWithRetry(() => import('./pages/Classes').then((m) => ({ default: m.Classes })));
+const Subjects = lazyWithRetry(() => import('./pages/Subjects'));
+const AttendanceManagement = lazyWithRetry(() => import('./pages/AttendanceManagement').then((m) => ({ default: m.AttendanceManagement })));
+const TeacherClasses = lazyWithRetry(() => import('./pages/TeacherClasses').then((m) => ({ default: m.TeacherClasses })));
+const TeacherGrades = lazyWithRetry(() => import('./pages/TeacherGrades').then((m) => ({ default: m.TeacherGrades })));
+const TeacherStudentGrades = lazyWithRetry(() => import('./pages/TeacherStudentGrades').then((m) => ({ default: m.TeacherStudentGrades })));
+const VPAttendanceOversight = lazyWithRetry(() => import('./pages/VPAttendanceOversight').then((m) => ({ default: m.VPAttendanceOversight })));
+const VPGradeManagement = lazyWithRetry(() => import('./pages/VPGradeManagement').then((m) => ({ default: m.VPGradeManagement })));
+const VPTranscripts = lazyWithRetry(() => import('./pages/VPTranscripts').then((m) => ({ default: m.VPTranscripts })));
+const VPCommunication = lazyWithRetry(() => import('./pages/VPCommunication').then((m) => ({ default: m.VPCommunication })));
+const LibrarianStaff = lazyWithRetry(() => import('./pages/LibrarianStaff').then((m) => ({ default: m.LibrarianStaff })));
+const StudentSchedulePage = lazyWithRetry(() => import('./pages/StudentSchedule'));
+const ChatbotManagement = lazyWithRetry(() => import('./pages/ChatbotManagement'));
 const ELearningLibrary = lazy(() => import('./pages/ELearningPage').then((m) => ({ default: m.ELearningPage })));
 const AcademicGradeManagement = lazy(() => import('./pages/AcademicGradeManagement').then((m) => ({ default: m.AcademicGradeManagement })));
 const StorekeeperPortal = lazy(() => import('./pages/StorekeeperPortal').then((m) => ({ default: m.StorekeeperPortal })));

@@ -177,7 +177,7 @@ export const TeacherSchedule = () => {
                     {/* Day Columns */}
                     {WEEKDAYS.map(day => {
                       const matchedSlots = schedule.filter(
-                        s => s.day === day && getSlotName(s) === periodName
+                        s => (s.day || '').trim().toLowerCase() === day.toLowerCase() && getSlotName(s).toLowerCase() === periodName.toLowerCase()
                       );
 
                       return (
