@@ -47,6 +47,7 @@ export interface TeacherOfWeekTeacher {
   name: string;
   subjects: string[];
   department: string | null;
+  votes?: number;
 }
 
 export interface TeacherOfWeekPayload {
@@ -56,6 +57,8 @@ export interface TeacherOfWeekPayload {
   hasVoted: boolean;
   votedTeacherId: string | null;
   teachers: TeacherOfWeekTeacher[];
+  /** The current leading / best teacher for this cycle (present once any votes exist). */
+  bestTeacher?: TeacherOfWeekTeacher | null;
 }
 
 // Course Interface
