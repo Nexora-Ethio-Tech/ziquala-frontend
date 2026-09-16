@@ -935,18 +935,6 @@ export const Teachers = () => {
                 </span>
               )}
             </button>
-
-            <button
-              onClick={() => setActiveTab('leaderboard')}
-              className={`pb-2.5 px-3 text-sm font-bold border-b-2 flex items-center gap-2 whitespace-nowrap transition-colors ${
-                activeTab === 'leaderboard'
-                  ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-                  : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400'
-              }`}
-            >
-              <Trophy size={16} />
-              <span>{t("teachers.leaderboard", "Leaderboard")}</span>
-            </button>
           </>
         ) : (
           <>
@@ -961,20 +949,6 @@ export const Teachers = () => {
               <Users size={16} />
               <span>{t("teachers.teachersList", "Teachers")}</span>
             </button>
-
-            {role !== 'school-admin' && (
-              <button
-                onClick={() => setActiveTab('leaderboard')}
-                className={`pb-2.5 px-3 text-sm font-bold border-b-2 flex items-center gap-2 whitespace-nowrap transition-colors ${
-                  activeTab === 'leaderboard'
-                    ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-                    : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400'
-                }`}
-              >
-                <Trophy size={16} />
-                <span>{t("teachers.leaderboard", "Leaderboard")}</span>
-              </button>
-            )}
           </>
         )}
       </div>
