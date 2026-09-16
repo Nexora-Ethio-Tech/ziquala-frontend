@@ -229,7 +229,24 @@ export const WebsitePosts = () => {
 
             <label className="block space-y-1">
               <span className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">{uiText('Category')}</span>
-              <input value={draft.category} placeholder={activeType === 'team' ? 'Office & management' : activeType === 'community' ? 'Sports, Club, Ceremony...' : 'Student voice'} onChange={(event) => setDraft({ ...draft, category: event.target.value })} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500 dark:border-slate-700 dark:bg-slate-900" />
+              {activeType === 'team' ? (
+                <select
+                  value={draft.category || 'Office & management'}
+                  onChange={(event) => setDraft({ ...draft, category: event.target.value })}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500 dark:border-slate-700 dark:bg-slate-900"
+                >
+                  <option value="Office & management">{uiText('Office & management')}</option>
+                  <option value="Grade 1–8 teachers">{uiText('Grade 1–8 teachers')}</option>
+                  <option value="Kindergarten team">{uiText('Kindergarten team')}</option>
+                </select>
+              ) : (
+                <input
+                  value={draft.category}
+                  placeholder={activeType === 'community' ? 'Sports, Club, Ceremony...' : 'Student voice'}
+                  onChange={(event) => setDraft({ ...draft, category: event.target.value })}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500 dark:border-slate-700 dark:bg-slate-900"
+                />
+              )}
             </label>
 
             <label className="block space-y-1">

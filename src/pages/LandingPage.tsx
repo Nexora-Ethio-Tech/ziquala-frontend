@@ -579,55 +579,49 @@ const StaffGallery = () => {
     kindergarten: 'Kindergarten team',
   };
 
-  const liveTitles = new Set(liveTeam.map((m) => m.title.trim().toLowerCase()));
+  const categoryToGroup: Record<string, string> = {
+    'Office & management': 'office',
+    'Grade 1–8 teachers': 'primary',
+    'Kindergarten team': 'kindergarten',
+  };
 
-  const mergedStaffList = [
-    ...liveTeam.map((m) => ({
-      id: m.id,
-      name: m.title,
-      role: m.subtitle || m.category,
-      group: Object.keys(groupLabelMap).find((k) => groupLabelMap[k] === m.category) || 'office',
-      category: m.category || 'Office & management',
-      image: m.image_url,
-      body: m.body,
-    })),
-    ...schoolStaff
-      .filter((m) => !liveTitles.has(m.name.trim().toLowerCase()))
-      .map((m, idx) => ({
-        id: `fallback-${idx}-${m.name}`,
-        name: m.name,
-        role: m.role,
-        group: m.group,
-        category: groupLabelMap[m.group] || m.group,
-        image: m.image,
-        body: '',
-      })),
-  ];
+  const fallbackForActive = schoolStaff.filter((m) => m.group === activeGroup);
+  const fallbackTitles = new Set(fallbackForActive.map((m) => m.name.trim().toLowerCase()));
 
-  const customCategories = Array.from(new Set(mergedStaffList.map((m) => m.category).filter(Boolean)));
-  const availableGroups: Array<{ id: string; categoryLabel: string; label: string; shortLabel: string }> = staffGroups.map((g) => ({
-    id: g.id as string,
-    categoryLabel: g.label,
-    label: g.label,
-    shortLabel: g.shortLabel,
+  const activeCategoryLabel = groupLabelMap[activeGroup] || 'Office & management';
+  const liveForActive = liveTeam.filter((m) => {
+    const cat = m.category || 'Office & management';
+    return cat === activeCategoryLabel || categoryToGroup[cat] === activeGroup;
+  });
+
+  const newLiveItems = liveForActive.filter((m) => !fallbackTitles.has(m.title.trim().toLowerCase()));
+  const overriddenLiveMap = new Map(
+    liveForActive
+      .filter((m) => fallbackTitles.has(m.title.trim().toLowerCase()))
+      .map((m) => [m.title.trim().toLowerCase(), m])
+  );
+
+  const initialItems = fallbackForActive.map((m, idx) => {
+    const key = m.name.trim().toLowerCase();
+    const dbOverride = overriddenLiveMap.get(key);
+    return {
+      id: dbOverride ? dbOverride.id : `fallback-${idx}-${m.name}`,
+      name: dbOverride ? dbOverride.title : m.name,
+      role: dbOverride ? (dbOverride.subtitle || dbOverride.category) : m.role,
+      image: dbOverride && dbOverride.image_url ? dbOverride.image_url : m.image,
+      body: dbOverride ? dbOverride.body : '',
+    };
+  });
+
+  const newlyAddedItems = newLiveItems.map((m) => ({
+    id: m.id,
+    name: m.title,
+    role: m.subtitle || m.category,
+    image: m.image_url,
+    body: m.body,
   }));
-  customCategories.forEach((cat) => {
-    if (!availableGroups.some((g) => g.categoryLabel === cat)) {
-      availableGroups.push({
-        id: cat,
-        categoryLabel: cat,
-        label: cat,
-        shortLabel: cat,
-      });
-    }
-  });
 
-  const visibleStaff = mergedStaffList.filter((m) => {
-    if (activeGroup === 'office') return m.group === 'office' || m.category === 'Office & management';
-    if (activeGroup === 'primary') return m.group === 'primary' || m.category === 'Grade 1–8 teachers';
-    if (activeGroup === 'kindergarten') return m.group === 'kindergarten' || m.category === 'Kindergarten team';
-    return m.category === activeGroup || m.group === activeGroup;
-  });
+  const visibleStaff = [...initialItems, ...newlyAddedItems];
 
   return (
     <section id="school-staff" className="scroll-mt-24 overflow-hidden bg-[#ebe4d5] py-20 dark:bg-slate-950 md:py-28">
@@ -635,7 +629,7 @@ const StaffGallery = () => {
         <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
           <SectionTitle eyebrow={uiText("Our people")} copy={uiText("School management, primary teachers, and kindergarten staff are kept separate from the four-member school board.")}>{uiText("Meet the school team")}</SectionTitle>
           <div className="-mx-1 flex max-w-full gap-2 overflow-x-auto px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" role="tablist" aria-label={uiText("Staff groups")}>
-            {availableGroups.map((group) => (
+            {staffGroups.map((group) => (
               <button
                 key={group.id}
                 type="button"
