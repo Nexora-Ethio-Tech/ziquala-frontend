@@ -188,8 +188,6 @@ export const schoolStaff = [
   { name: 'አብረሃም ከፍያለው', role: 'School Principal', group: 'office', image: '/images/staff/staff-46.jpg' },
   { name: 'አባ ገብረጻድቅ ኃይለኢየሱስ ብዙነህ', role: 'የት/ቤቱ ሥራ አስኪያጅ', group: 'office', image: '/images/staff/staff-37.jpg' },
   { name: 'አባ ብርሃነመስቀል ኃይለማርያም', role: 'የት/ቤቱ አካዳሚክ ማናጀር', group: 'office', image: '/images/staff/staff-33.jpg' },
-  { name: 'አባ ገብረጻድቅ ትዕዛዙ ወርቅነህ', role: 'የት/ቤቱ ፀሐፊ', group: 'office', image: '/images/staff/staff-36.jpg' },
-  { name: 'አባ ሀብተማርያም በፅሐ ጌታነህ', role: 'የት/ቤቱ ግምጃ ቤት', group: 'office', image: '/images/staff/staff-32.jpg' },
   { name: 'አባ ክንፈሚካኤል ወልደጊዮርጊስ ተክለጊዮርጊስ', role: 'Purchaser', group: 'office', image: '/images/staff/staff-34.jpg' },
   { name: 'Firehiwot Markos Hailu', role: 'ፀሐፊ', group: 'office', image: '/images/staff/staff-03.jpg' },
   { name: 'ስንዱ ለገሠ', role: 'Librarian', group: 'office', image: '/images/staff/staff-19.jpg' },
@@ -218,7 +216,6 @@ export const schoolStaff = [
   { name: 'ቴዎድሮስ አሰፋ ከበደ', role: 'የሳይንስ መምህር', group: 'primary', image: '/images/staff/staff-23.jpg' },
   { name: 'ፍቅር ደሳለኝ ደምሴ', role: 'የሳይንስ መምህር', group: 'primary', image: '/images/staff/staff-52.jpg' },
   { name: 'አባ ገብረሥላሴ በላቸው አባተ', role: 'የእንግሊዝኛ ቋንቋ መምህር', group: 'primary', image: '/images/staff/staff-35.jpg' },
-  { name: 'አባ ሀብተማርያም በፅሐ ጌታነህ', role: 'የሳይንስ መምህር', group: 'primary', image: '/images/staff/staff-31.jpg' },
 
   { name: 'እስራኤል አበባየሁ ተኮላ', role: 'የኬጂ መምህርት', group: 'kindergarten', image: '/images/staff/staff-41.jpg' },
   { name: 'ሲሳይ ዲንቁ ታደሰ', role: 'የኬጂ መምህርት', group: 'kindergarten', image: '/images/staff/staff-14.jpg' },

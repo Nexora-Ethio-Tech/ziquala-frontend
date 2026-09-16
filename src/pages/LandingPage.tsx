@@ -573,13 +573,61 @@ const StaffGallery = () => {
     };
   }, []);
 
-  const liveGroups = Array.from(new Set(liveTeam.map((member) => member.category).filter(Boolean)));
-  const availableGroups = liveGroups.length > 0
-    ? liveGroups.map((group) => ({ id: group, label: group, shortLabel: group }))
-    : staffGroups;
-  const activeLiveGroup = liveGroups.includes(activeGroup) ? activeGroup : liveGroups[0];
-  const visibleLiveStaff = liveTeam.filter((member) => !activeLiveGroup || member.category === activeLiveGroup);
-  const visibleStaff = liveTeam.length > 0 ? [] : schoolStaff.filter((member) => member.group === activeGroup);
+  const groupLabelMap: Record<string, string> = {
+    office: 'Office & management',
+    primary: 'Grade 1–8 teachers',
+    kindergarten: 'Kindergarten team',
+  };
+
+  const liveTitles = new Set(liveTeam.map((m) => m.title.trim().toLowerCase()));
+
+  const mergedStaffList = [
+    ...liveTeam.map((m) => ({
+      id: m.id,
+      name: m.title,
+      role: m.subtitle || m.category,
+      group: Object.keys(groupLabelMap).find((k) => groupLabelMap[k] === m.category) || 'office',
+      category: m.category || 'Office & management',
+      image: m.image_url,
+      body: m.body,
+    })),
+    ...schoolStaff
+      .filter((m) => !liveTitles.has(m.name.trim().toLowerCase()))
+      .map((m, idx) => ({
+        id: `fallback-${idx}-${m.name}`,
+        name: m.name,
+        role: m.role,
+        group: m.group,
+        category: groupLabelMap[m.group] || m.group,
+        image: m.image,
+        body: '',
+      })),
+  ];
+
+  const customCategories = Array.from(new Set(mergedStaffList.map((m) => m.category).filter(Boolean)));
+  const availableGroups: Array<{ id: string; categoryLabel: string; label: string; shortLabel: string }> = staffGroups.map((g) => ({
+    id: g.id as string,
+    categoryLabel: g.label,
+    label: g.label,
+    shortLabel: g.shortLabel,
+  }));
+  customCategories.forEach((cat) => {
+    if (!availableGroups.some((g) => g.categoryLabel === cat)) {
+      availableGroups.push({
+        id: cat,
+        categoryLabel: cat,
+        label: cat,
+        shortLabel: cat,
+      });
+    }
+  });
+
+  const visibleStaff = mergedStaffList.filter((m) => {
+    if (activeGroup === 'office') return m.group === 'office' || m.category === 'Office & management';
+    if (activeGroup === 'primary') return m.group === 'primary' || m.category === 'Grade 1–8 teachers';
+    if (activeGroup === 'kindergarten') return m.group === 'kindergarten' || m.category === 'Kindergarten team';
+    return m.category === activeGroup || m.group === activeGroup;
+  });
 
   return (
     <section id="school-staff" className="scroll-mt-24 overflow-hidden bg-[#ebe4d5] py-20 dark:bg-slate-950 md:py-28">
@@ -592,9 +640,9 @@ const StaffGallery = () => {
                 key={group.id}
                 type="button"
                 role="tab"
-                aria-selected={(liveTeam.length > 0 ? activeLiveGroup : activeGroup) === group.id}
+                aria-selected={activeGroup === group.id}
                 onClick={() => setActiveGroup(group.id)}
-                className={`shrink-0 border px-4 py-3 text-xs font-black transition-colors sm:px-5 ${(liveTeam.length > 0 ? activeLiveGroup : activeGroup) === group.id
+                className={`shrink-0 border px-4 py-3 text-xs font-black transition-colors sm:px-5 ${activeGroup === group.id
                   ? 'border-emerald-900 bg-emerald-900 text-white dark:border-amber-400 dark:bg-amber-400 dark:text-slate-950'
                   : 'border-emerald-950/20 text-emerald-950 hover:border-emerald-800 dark:border-white/20 dark:text-white dark:hover:border-amber-300'
                   }`}
@@ -607,7 +655,7 @@ const StaffGallery = () => {
         </div>
 
         <div className="mt-4 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-7 [scrollbar-color:#a16207_transparent] sm:gap-5" role="tabpanel" aria-live="polite">
-          {visibleLiveStaff.map((member, index) => (
+          {visibleStaff.map((member, index) => (
             <motion.article
               key={member.id}
               initial={{ opacity: 0, y: 30, scale: 0.96 }}
@@ -617,40 +665,22 @@ const StaffGallery = () => {
               className="w-[74vw] max-w-[17rem] shrink-0 snap-start sm:w-[17rem]"
             >
               <div className="aspect-[4/5] overflow-hidden bg-stone-300 dark:bg-slate-800">
-                {member.image_url ? (
-                  <img src={member.image_url} alt={uiText("{{value0}}, {{value1}}", { value0: member.title, value1: member.subtitle })} loading="lazy" decoding="async" className="h-full w-full object-cover object-top transition duration-500 hover:scale-[1.025]" />
+                {member.image ? (
+                  <img src={member.image} alt={uiText("{{value0}}, {{value1}}", { value0: member.name, value1: uiText(member.role) })} loading="lazy" decoding="async" className="h-full w-full object-cover object-top transition duration-500 hover:scale-[1.025]" />
                 ) : (
                   <div className="grid h-full place-items-center bg-emerald-950 text-white"><Users size={42} /></div>
                 )}
               </div>
               <div className="border-t-4 border-amber-500 bg-white px-4 py-5 dark:bg-slate-900">
-                <h3 className="text-base font-black leading-6 text-emerald-950 dark:text-white">{uiText(member.title)}</h3>
-                <p className="mt-2 text-xs font-bold leading-5 text-slate-500 dark:text-slate-400">{uiText(member.subtitle || member.category)}</p>
-                {member.body && <p className="mt-3 line-clamp-3 text-xs leading-5 text-slate-500 dark:text-slate-400">{uiText(member.body)}</p>}
-              </div>
-            </motion.article>
-          ))}
-          {visibleStaff.map((member, index) => (
-            <motion.article
-              key={`${member.group}-${member.image}`}
-              initial={{ opacity: 0, y: 30, scale: 0.96 }}
-              whileInView={{ opacity: 1, y: 0, scale: 1 }}
-              viewport={{ once: false, amount: 0.2 }}
-              transition={{ duration: 0.45, delay: Math.min(index * 0.04, 0.2) }}
-              className="w-[74vw] max-w-[17rem] shrink-0 snap-start sm:w-[17rem]"
-            >
-              <div className="aspect-[4/5] overflow-hidden bg-stone-300 dark:bg-slate-800">
-                <img src={member.image} alt={uiText("{{value0}}, {{value1}}", { value0: member.name, value1: uiText(member.role) })} loading="lazy" decoding="async" className="h-full w-full object-cover object-top transition duration-500 hover:scale-[1.025]" />
-              </div>
-              <div className="border-t-4 border-amber-500 bg-white px-4 py-5 dark:bg-slate-900">
                 <h3 className="text-base font-black leading-6 text-emerald-950 dark:text-white">{member.name}</h3>
                 <p className="mt-2 text-xs font-bold leading-5 text-slate-500 dark:text-slate-400">{uiText(member.role)}</p>
+                {member.body && <p className="mt-3 line-clamp-3 text-xs leading-5 text-slate-500 dark:text-slate-400">{uiText(member.body)}</p>}
               </div>
             </motion.article>
           ))}
           <div className="w-1 shrink-0" aria-hidden="true" />
         </div>
-        <p className="mt-2 text-xs font-bold uppercase tracking-[0.18em] text-emerald-900/55 dark:text-white/45">{uiText("Swipe or scroll to meet the full team · ")}{(liveTeam.length > 0 ? visibleLiveStaff : visibleStaff).length}{uiText(" people")}</p>
+        <p className="mt-2 text-xs font-bold uppercase tracking-[0.18em] text-emerald-900/55 dark:text-white/45">{uiText("Swipe or scroll to meet the full team · ")}{visibleStaff.length}{uiText(" people")}</p>
       </div>
     </section>
   );
@@ -678,7 +708,9 @@ const PublicCommunityHighlights = ({ compact = false }: { compact?: boolean }) =
     { id: 'student-life', title: 'Learning, achievement, and community', subtitle: 'School updates', body: 'Verified school announcements and student-facing updates will remain separate from monastery media.', image_url: schoolBuilding, category: 'Student life', event_date: null },
     { id: 'community', title: 'Clubs, service, and extracurricular life', subtitle: 'Activities', body: 'Published activities can show sports, clubs, service days, ceremonies, and wider community events.', image_url: studentAssembly, category: 'Activities', event_date: null },
   ];
-  const cards = items.length > 0 ? items : fallback;
+  const existingTitles = new Set(items.map((i) => i.title.trim().toLowerCase()));
+  const missingFallback = fallback.filter((f) => !existingTitles.has(f.title.trim().toLowerCase()));
+  const cards = [...items, ...missingFallback];
 
   return (
     <section id="school-community" className={`scroll-mt-24 ${compact ? '' : 'bg-white py-20 dark:bg-slate-900/50 md:py-28'}`}>
