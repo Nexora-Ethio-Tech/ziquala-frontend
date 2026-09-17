@@ -182,7 +182,7 @@ export const academicManagerProfile = {
   image: abbaBirhanemeskelHailemariam,
 } as const;
 
-export type SchoolStaffGroup = 'office' | 'primary' | 'kindergarten';
+export type SchoolStaffGroup = 'office' | 'primary' | 'kindergarten' | 'cleaning';
 
 export const schoolStaff = [
   { name: 'አብረሃም ከፍያለው', role: 'School Principal', group: 'office', image: '/images/staff/staff-46.jpg' },

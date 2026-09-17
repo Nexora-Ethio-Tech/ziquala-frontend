@@ -239,6 +239,7 @@ export const WebsitePosts = () => {
                   <option value="Office & management">{uiText('Office & management')}</option>
                   <option value="Grade 1–8 teachers">{uiText('Grade 1–8 teachers')}</option>
                   <option value="Kindergarten team">{uiText('Kindergarten team')}</option>
+                  <option value="Cleaning & Security">{uiText('Cleaning & Security')}</option>
                 </select>
               ) : (
                 <input

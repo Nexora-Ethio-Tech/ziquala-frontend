@@ -553,6 +553,7 @@ const staffGroups: Array<{ id: SchoolStaffGroup; label: string; shortLabel: stri
   { id: 'office', label: 'Office & management', shortLabel: 'Office' },
   { id: 'primary', label: 'Grade 1–8 teachers', shortLabel: 'Grade 1–8' },
   { id: 'kindergarten', label: 'Kindergarten team', shortLabel: 'Kindergarten' },
+  { id: 'cleaning', label: 'Cleaning & Security', shortLabel: 'Cleaning & Security' },
 ];
 
 const StaffGallery = () => {
@@ -588,12 +589,14 @@ const StaffGallery = () => {
     office: 'Office & management',
     primary: 'Grade 1–8 teachers',
     kindergarten: 'Kindergarten team',
+    cleaning: 'Cleaning & Security',
   };
 
   const categoryToGroup: Record<string, string> = {
     'Office & management': 'office',
     'Grade 1–8 teachers': 'primary',
     'Kindergarten team': 'kindergarten',
+    'Cleaning & Security': 'cleaning',
   };
 
   const fallbackForActive = schoolStaff.filter((m) => m.group === activeGroup);
