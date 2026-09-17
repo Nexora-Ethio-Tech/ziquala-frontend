@@ -117,6 +117,7 @@ export const WebsitePosts = () => {
       event_date: item.event_date,
     });
     if (fileInputRef.current) fileInputRef.current.value = '';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const saveItem = async (event: FormEvent<HTMLFormElement>) => {

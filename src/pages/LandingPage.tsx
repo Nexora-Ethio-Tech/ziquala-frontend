@@ -561,15 +561,26 @@ const StaffGallery = () => {
 
   useEffect(() => {
     let mounted = true;
-    websiteContentService.getPublic('team')
-      .then((items) => {
-        if (mounted) setLiveTeam(items);
-      })
-      .catch(() => {
-        if (mounted) setLiveTeam([]);
-      });
+    const fetchTeam = () => {
+      websiteContentService.getPublic('team')
+        .then((items) => {
+          if (mounted) setLiveTeam(items);
+        })
+        .catch(() => {
+          if (mounted) setLiveTeam([]);
+        });
+    };
+
+    fetchTeam();
+
+    const handleFocus = () => fetchTeam();
+    window.addEventListener('focus', handleFocus);
+    window.addEventListener('visibilitychange', handleFocus);
+
     return () => {
       mounted = false;
+      window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('visibilitychange', handleFocus);
     };
   }, []);
 
@@ -610,18 +621,20 @@ const StaffGallery = () => {
       role: dbOverride ? (dbOverride.subtitle || dbOverride.category) : m.role,
       image: dbOverride && dbOverride.image_url ? dbOverride.image_url : m.image,
       body: dbOverride ? dbOverride.body : '',
+      display_order: dbOverride ? Number(dbOverride.display_order) : (idx + 1),
     };
   });
 
-  const newlyAddedItems = newLiveItems.map((m) => ({
+  const newlyAddedItems = newLiveItems.map((m, idx) => ({
     id: m.id,
     name: m.title,
     role: m.subtitle || m.category,
     image: m.image_url,
     body: m.body,
+    display_order: Number(m.display_order) || (initialItems.length + idx + 1),
   }));
 
-  const visibleStaff = [...initialItems, ...newlyAddedItems];
+  const visibleStaff = [...initialItems, ...newlyAddedItems].sort((a, b) => a.display_order - b.display_order);
 
   return (
     <section id="school-staff" className="scroll-mt-24 overflow-hidden bg-[#ebe4d5] py-20 dark:bg-slate-950 md:py-28">
