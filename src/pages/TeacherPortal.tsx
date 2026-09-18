@@ -72,6 +72,48 @@ const matchGrade = (hodGrades: any[], courseGrade: any): boolean => {
   });
 };
 
+export const getAnnualItemValue = (item: any, key: string): string => {
+  if (!item) return '';
+  if (key === 'date') return item.date || item.weekDate || '';
+  if (key === 'pageRef') return item.pageRef || item.pageReference || '';
+  if (key === 'topicContent') return item.topicContent || item.topic_content || item.mainContent || (item.subContent ? `${item.mainContent || ''} ${item.subContent}` : '');
+  if (key === 'noOfSessions') return item.noOfSessions || item.no_of_sessions || item.noOfPeriods || '';
+  if (key === 'learningOutcome') return item.learningOutcome || item.learning_outcome || item.competence || '';
+  if (key === 'significanceSubject') return item.significanceSubject || item.significance_subject || '';
+  if (key === 'priorCompetency') return item.priorCompetency || item.prior_competency || '';
+  if (key === 'instructionalMaterials') return item.instructionalMaterials || item.instructional_materials || item.teachingAid || '';
+  if (key === 'teachingMethodology') return item.teachingMethodology || item.teaching_methodology || item.teachingMethod || '';
+  if (key === 'classroomManagement') return item.classroomManagement || item.classroom_management || '';
+  if (key === 'evaluation') return item.evaluation || item.remark || '';
+  return item[key] != null ? String(item[key]) : '';
+};
+
+const SEMESTER_1_MONTHS = ['September','October','November','December','January'];
+const SEMESTER_2_MONTHS = ['February','March','April','May','June'];
+
+const defaultAnnualItems = () => [
+  ...SEMESTER_1_MONTHS.flatMap(month =>
+    [1,2,3,4,5].map(week => ({
+      semester: '1st Semester',
+      month, week,
+      date: '', pageRef: '', unit: '', topicContent: '',
+      noOfSessions: '', learningOutcome: '', significanceSubject: '',
+      priorCompetency: '', instructionalMaterials: '', teachingMethodology: '',
+      classroomManagement: '', evaluation: ''
+    }))
+  ),
+  ...SEMESTER_2_MONTHS.flatMap(month =>
+    [1,2,3,4,5].map(week => ({
+      semester: '2nd Semester',
+      month, week,
+      date: '', pageRef: '', unit: '', topicContent: '',
+      noOfSessions: '', learningOutcome: '', significanceSubject: '',
+      priorCompetency: '', instructionalMaterials: '', teachingMethodology: '',
+      classroomManagement: '', evaluation: ''
+    }))
+  )
+];
+
 export const TeacherPortal = () => {
   const { t } = useTranslation();
   const { user } = useUser();
@@ -167,16 +209,9 @@ export const TeacherPortal = () => {
   const [annualReviewFeedback, setAnnualReviewFeedback] = useState('');
   const [selectedAnnualForView, setSelectedAnnualForView] = useState<any | null>(null);
 
-  const MONTHS = ['September','October','November','December','January','February','March','April','May','June'];
-  const defaultAnnualItems = () => MONTHS.flatMap(month =>
-    [1,2,3,4].map(week => ({
-      month, week,
-      noOfPeriods: '', unit: '', mainContent: '', subContent: '',
-      competence: '', teachingMethod: '', teachingAid: '', evaluation: '', remark: ''
-    }))
-  );
-
   const emptyAnnualForm = {
+    schoolName: 'Ziquala Lado Primary School',
+    teacherName: user?.name || '',
     academicYear: '2018 E.C.',
     subject: '',
     grade: '',
@@ -184,8 +219,8 @@ export const TeacherPortal = () => {
     deptHeadId: '',
     workingDaysYear: 180,
     periodsYear: 160,
-    periodsWeek: 4,
-    durationPeriod: '45 minutes',
+    periodsWeek: 5,
+    durationPeriod: "45'",
     status: 'Pending' as 'Pending' | 'Draft',
     items: defaultAnnualItems()
   };
@@ -3141,6 +3176,15 @@ export const TeacherPortal = () => {
                 <h4 className="text-xs font-black uppercase tracking-widest text-slate-500 mb-4">{uiText("📋 Plan Header Information")}</h4>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div>
+                    <label className="text-[10px] font-black uppercase text-slate-500">{uiText("Teacher's Name")}</label>
+                    <input
+                      value={annualForm.teacherName || user?.name || ''}
+                      onChange={e => setAnnualForm(f => ({ ...f, teacherName: capitalizeWords(e.target.value) }))}
+                      placeholder={uiText("Enter teacher's name")}
+                      className="w-full mt-1 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold outline-none focus:ring-2 focus:ring-violet-500"
+                    />
+                  </div>
+                  <div>
                     <label className="text-[10px] font-black uppercase text-slate-500">{uiText("Academic Year")}</label>
                     <input value={annualForm.academicYear} onChange={e => setAnnualForm(f => ({ ...f, academicYear: capitalizeWords(e.target.value) }))}
                       className="w-full mt-1 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-violet-500" />
@@ -3206,41 +3250,93 @@ export const TeacherPortal = () => {
                 </div>
               </div>
 
-              {/* 11-Column Matrix */}
+              {/* 15-Column Matrix */}
               <div>
-                <h4 className="text-xs font-black uppercase tracking-widest text-slate-500 mb-3">{uiText("📅 Yearly Matrix — September to June")}</h4>
+                <h4 className="text-center text-sm md:text-base font-black uppercase tracking-widest text-slate-900 dark:text-white mb-4 py-2 border-b border-slate-200 dark:border-slate-700">
+                  {uiText("ZIQUAL ABO PRIMARY SCHOOL ANNUAL PLAN")}
+                </h4>
                 <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
-                  <table className="w-full text-left min-w-[1400px] text-xs">
+                  <table className="w-full text-left min-w-[2000px] text-xs">
                     <thead>
-                      <tr className="bg-violet-600 text-white">
-                        {['Month','Week','# Periods','Unit','Main Content','Sub Content','Competence (Learning Outcome)','Teaching Method','Teaching Aid','Evaluation','Remark'].map(h => (
-                          <th key={h} className="px-3 py-3 font-black uppercase tracking-wide whitespace-nowrap border-r border-violet-500 last:border-r-0">{uiText(h)}</th>
+                      <tr className="bg-violet-700 text-white">
+                        {[
+                          { h: 'Semester', minW: 'min-w-[65px]' },
+                          { h: 'Month', minW: 'min-w-[90px]' },
+                          { h: 'Week', minW: 'min-w-[70px]' },
+                          { h: 'Date', minW: 'min-w-[80px]' },
+                          { h: 'Page reference', minW: 'min-w-[95px]' },
+                          { h: 'Unit', minW: 'min-w-[85px]' },
+                          { h: 'Topic/content', minW: 'min-w-[160px]' },
+                          { h: 'No. of sessions', minW: 'min-w-[80px]' },
+                          { h: 'Minimum learning outcome', minW: 'min-w-[160px]' },
+                          { h: 'Significance of the subject matter', minW: 'min-w-[160px]' },
+                          { h: 'Prior competency (knowledge)', minW: 'min-w-[150px]' },
+                          { h: 'Instructional materials', minW: 'min-w-[140px]' },
+                          { h: 'Teaching methodology', minW: 'min-w-[140px]' },
+                          { h: 'Class room management', minW: 'min-w-[140px]' },
+                          { h: 'Evaluation', minW: 'min-w-[160px]' }
+                        ].map(({ h, minW }) => (
+                          <th key={h} className={`px-3 py-3 font-black uppercase tracking-wide whitespace-nowrap border-r border-violet-600 last:border-r-0 text-center ${minW}`}>{uiText(h)}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
                       {annualForm.items.map((item, idx) => {
-                        const isFirstWeekOfMonth = item.week === 1;
+                        const semesterName = item.semester || (SEMESTER_1_MONTHS.includes(item.month) ? '1st Semester' : '2nd Semester');
+                        const isFirstRowOfSemester = idx === 0 || (
+                          (item.semester || semesterName) !== (annualForm.items[idx - 1]?.semester || (SEMESTER_1_MONTHS.includes(annualForm.items[idx - 1]?.month) ? '1st Semester' : '2nd Semester'))
+                        );
+                        const semesterRows = annualForm.items.filter(i => {
+                          const sem = i.semester || (SEMESTER_1_MONTHS.includes(i.month) ? '1st Semester' : '2nd Semester');
+                          return sem === semesterName;
+                        }).length;
+
+                        const isFirstWeekOfMonth = item.week === 1 || !annualForm.items.slice(0, idx).some(i => i.month === item.month);
                         const monthRows = annualForm.items.filter(i => i.month === item.month).length;
+
                         return (
                           <tr key={idx} className={`border-b border-slate-100 dark:border-slate-700 ${idx % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-slate-50/50 dark:bg-slate-800/30'}`}>
+                            {isFirstRowOfSemester ? (
+                              <td
+                                rowSpan={semesterRows}
+                                className="px-3 py-2 font-black text-slate-900 dark:text-white bg-slate-200/80 dark:bg-slate-800 border-r border-slate-300 dark:border-slate-700 text-center whitespace-nowrap align-middle uppercase tracking-widest text-[11px] min-w-[65px] shrink-0"
+                                style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
+                              >
+                                {uiText(semesterName)}
+                              </td>
+                            ) : null}
                             {isFirstWeekOfMonth ? (
-                              <td className="px-3 py-2 font-black text-violet-700 dark:text-violet-400 bg-violet-50 dark:bg-violet-900/10 border-r border-slate-200 dark:border-slate-700 whitespace-nowrap" rowSpan={monthRows}>
+                              <td rowSpan={monthRows} className="px-3 py-2 font-black text-violet-700 dark:text-violet-400 bg-violet-50 dark:bg-violet-900/10 border-r border-slate-200 dark:border-slate-700 whitespace-nowrap text-center align-middle min-w-[90px]">
                                 {uiText(item.month)}
                               </td>
                             ) : null}
-                            <td className="px-3 py-2 border-r border-slate-100 dark:border-slate-700 text-center font-bold text-slate-600 dark:text-slate-400 whitespace-nowrap">{uiText("Week ")}{uiText(item.week)}</td>
-                            {['noOfPeriods','unit','mainContent','subContent','competence','teachingMethod','teachingAid','evaluation','remark'].map(field => (
-                              <td key={field} className="px-1 py-1 border-r border-slate-100 dark:border-slate-700 last:border-r-0">
+                            <td className="px-2 py-2 border-r border-slate-100 dark:border-slate-700 text-center font-bold text-slate-600 dark:text-slate-400 whitespace-nowrap min-w-[70px]">
+                              {uiText("Week ")}{uiText(item.week)}
+                            </td>
+                            {[
+                              { field: 'date', minW: 'min-w-[80px]' },
+                              { field: 'pageRef', minW: 'min-w-[95px]' },
+                              { field: 'unit', minW: 'min-w-[85px]' },
+                              { field: 'topicContent', minW: 'min-w-[160px]' },
+                              { field: 'noOfSessions', minW: 'min-w-[80px]' },
+                              { field: 'learningOutcome', minW: 'min-w-[160px]' },
+                              { field: 'significanceSubject', minW: 'min-w-[160px]' },
+                              { field: 'priorCompetency', minW: 'min-w-[150px]' },
+                              { field: 'instructionalMaterials', minW: 'min-w-[140px]' },
+                              { field: 'teachingMethodology', minW: 'min-w-[140px]' },
+                              { field: 'classroomManagement', minW: 'min-w-[140px]' },
+                              { field: 'evaluation', minW: 'min-w-[160px]' }
+                            ].map(({ field, minW }) => (
+                              <td key={field} className={`px-1 py-1 border-r border-slate-100 dark:border-slate-700 last:border-r-0 ${minW}`}>
                                 <input
                                   type="text"
-                                  value={(item as any)[field]}
+                                  value={getAnnualItemValue(item, field)}
                                   onChange={e => {
                                     const newItems = [...annualForm.items];
-                                    (newItems[idx] as any)[field] = field === 'noOfPeriods' ? e.target.value : capitalizeWords(e.target.value);
+                                    (newItems[idx] as any)[field] = field === 'noOfSessions' ? e.target.value : capitalizeWords(e.target.value);
                                     setAnnualForm(f => ({ ...f, items: newItems }));
                                   }}
-                                  className="w-full px-2 py-1.5 bg-transparent border border-transparent hover:border-violet-300 focus:border-violet-500 focus:bg-white dark:focus:bg-slate-800 rounded-lg outline-none transition-all text-slate-800 dark:text-slate-200 min-w-[80px]"
+                                  className="w-full px-2 py-1.5 bg-transparent border border-transparent hover:border-violet-300 focus:border-violet-500 focus:bg-white dark:focus:bg-slate-800 rounded-lg outline-none transition-all text-slate-800 dark:text-slate-200"
                                   placeholder={uiText("—")}
                                 />
                               </td>
@@ -3339,29 +3435,86 @@ export const TeacherPortal = () => {
               {/* Matrix Preview */}
               {Array.isArray(selectedAnnualForView.items) && selectedAnnualForView.items.length > 0 && (
                 <div>
-                  <h4 className="text-xs font-black uppercase tracking-widest text-slate-500 mb-3">{uiText("📅 Yearly Matrix")}</h4>
+                  <h4 className="text-center text-sm md:text-base font-black uppercase tracking-widest text-slate-900 dark:text-white mb-4 py-2 border-b border-slate-200 dark:border-slate-700">
+                    {uiText("ZIQUAL ABO PRIMARY SCHOOL ANNUAL PLAN")}
+                  </h4>
                   <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-700">
-                    <table className="w-full text-left min-w-[1200px] text-xs">
+                    <table className="w-full text-left min-w-[2000px] text-xs">
                       <thead>
                         <tr className="bg-slate-800 text-white">
-                          {['Month','Week','# Periods','Unit','Main Content','Sub Content','Competence','Method','Aid','Evaluation','Remark'].map(h => (
-                            <th key={h} className="px-3 py-2.5 font-black uppercase tracking-wide whitespace-nowrap border-r border-slate-700 last:border-r-0">{uiText(h)}</th>
+                          {[
+                            { h: 'Semester', minW: 'min-w-[65px]' },
+                            { h: 'Month', minW: 'min-w-[90px]' },
+                            { h: 'Week', minW: 'min-w-[70px]' },
+                            { h: 'Date', minW: 'min-w-[80px]' },
+                            { h: 'Page reference', minW: 'min-w-[95px]' },
+                            { h: 'Unit', minW: 'min-w-[85px]' },
+                            { h: 'Topic/content', minW: 'min-w-[160px]' },
+                            { h: 'No. of sessions', minW: 'min-w-[80px]' },
+                            { h: 'Minimum learning outcome', minW: 'min-w-[160px]' },
+                            { h: 'Significance of the subject matter', minW: 'min-w-[160px]' },
+                            { h: 'Prior competency (knowledge)', minW: 'min-w-[150px]' },
+                            { h: 'Instructional materials', minW: 'min-w-[140px]' },
+                            { h: 'Teaching methodology', minW: 'min-w-[140px]' },
+                            { h: 'Class room management', minW: 'min-w-[140px]' },
+                            { h: 'Evaluation', minW: 'min-w-[160px]' }
+                          ].map(({ h, minW }) => (
+                            <th key={h} className={`px-3 py-2.5 font-black uppercase tracking-wide whitespace-nowrap border-r border-slate-700 last:border-r-0 text-center ${minW}`}>{uiText(h)}</th>
                           ))}
                         </tr>
                       </thead>
                       <tbody>
                         {selectedAnnualForView.items.map((item: any, idx: number) => {
-                          const isFirst = item.week === 1;
+                          const semesterName = item.semester || (SEMESTER_1_MONTHS.includes(item.month) ? '1st Semester' : '2nd Semester');
+                          const isFirstRowOfSemester = idx === 0 || (
+                            (item.semester || semesterName) !== (selectedAnnualForView.items[idx - 1]?.semester || (SEMESTER_1_MONTHS.includes(selectedAnnualForView.items[idx - 1]?.month) ? '1st Semester' : '2nd Semester'))
+                          );
+                          const semesterRows = selectedAnnualForView.items.filter((i: any) => {
+                            const sem = i.semester || (SEMESTER_1_MONTHS.includes(i.month) ? '1st Semester' : '2nd Semester');
+                            return sem === semesterName;
+                          }).length;
+
+                          const isFirstWeekOfMonth = item.week === 1 || !selectedAnnualForView.items.slice(0, idx).some((i: any) => i.month === item.month);
                           const monthRows = selectedAnnualForView.items.filter((i: any) => i.month === item.month).length;
+
                           return (
                             <tr key={idx} className={`border-b border-slate-100 dark:border-slate-700 ${idx % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-slate-50 dark:bg-slate-800/30'}`}>
-                              {isFirst ? (
-                                <td className="px-3 py-2 font-black text-violet-700 dark:text-violet-400 whitespace-nowrap border-r border-slate-200 dark:border-slate-700 bg-violet-50 dark:bg-violet-900/10" rowSpan={monthRows}>{uiText(item.month)}</td>
+                              {isFirstRowOfSemester ? (
+                                <td
+                                  rowSpan={semesterRows}
+                                  className="px-3 py-2 font-black text-slate-900 dark:text-white bg-slate-200/80 dark:bg-slate-800 border-r border-slate-300 dark:border-slate-700 text-center whitespace-nowrap align-middle uppercase tracking-widest text-[11px] min-w-[65px] shrink-0"
+                                  style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
+                                >
+                                  {uiText(semesterName)}
+                                </td>
                               ) : null}
-                              <td className="px-3 py-2 text-center font-bold text-slate-500 border-r border-slate-100 dark:border-slate-700 whitespace-nowrap">{uiText("Week ")}{uiText(item.week)}</td>
-                              {['noOfPeriods','unit','mainContent','subContent','competence','teachingMethod','teachingAid','evaluation','remark'].map(f => (
-                                <td key={f} className="px-3 py-2 text-slate-700 dark:text-slate-300 border-r border-slate-100 dark:border-slate-700 last:border-r-0">{item[f] || <span className="text-slate-300">—</span>}</td>
-                              ))}
+                              {isFirstWeekOfMonth ? (
+                                <td className="px-3 py-2 font-black text-violet-700 dark:text-violet-400 whitespace-nowrap border-r border-slate-200 dark:border-slate-700 bg-violet-50 dark:bg-violet-900/10 text-center align-middle min-w-[90px]" rowSpan={monthRows}>
+                                  {uiText(item.month)}
+                                </td>
+                              ) : null}
+                              <td className="px-3 py-2 text-center font-bold text-slate-500 border-r border-slate-100 dark:border-slate-700 whitespace-nowrap min-w-[70px]">{uiText("Week ")}{uiText(item.week)}</td>
+                              {[
+                                { f: 'date', minW: 'min-w-[80px]' },
+                                { f: 'pageRef', minW: 'min-w-[95px]' },
+                                { f: 'unit', minW: 'min-w-[85px]' },
+                                { f: 'topicContent', minW: 'min-w-[160px]' },
+                                { f: 'noOfSessions', minW: 'min-w-[80px]' },
+                                { f: 'learningOutcome', minW: 'min-w-[160px]' },
+                                { f: 'significanceSubject', minW: 'min-w-[160px]' },
+                                { f: 'priorCompetency', minW: 'min-w-[150px]' },
+                                { f: 'instructionalMaterials', minW: 'min-w-[140px]' },
+                                { f: 'teachingMethodology', minW: 'min-w-[140px]' },
+                                { f: 'classroomManagement', minW: 'min-w-[140px]' },
+                                { f: 'evaluation', minW: 'min-w-[160px]' }
+                              ].map(({ f, minW }) => {
+                                const val = getAnnualItemValue(item, f);
+                                return (
+                                  <td key={f} className={`px-3 py-2 text-slate-700 dark:text-slate-300 border-r border-slate-100 dark:border-slate-700 last:border-r-0 ${minW}`}>
+                                    {val ? uiText(val) : <span className="text-slate-300">—</span>}
+                                  </td>
+                                );
+                              })}
                             </tr>
                           );
                         })}

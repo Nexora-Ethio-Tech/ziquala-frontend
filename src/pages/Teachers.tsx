@@ -27,6 +27,24 @@ const isTeacherPending = (status?: string | null) => {
   return s === 'pending';
 };
 
+const getAnnualItemValue = (item: any, key: string): string => {
+  if (!item) return '';
+  if (key === 'date') return item.date || item.weekDate || '';
+  if (key === 'pageRef') return item.pageRef || item.pageReference || '';
+  if (key === 'topicContent') return item.topicContent || item.topic_content || item.mainContent || (item.subContent ? `${item.mainContent || ''} ${item.subContent}` : '');
+  if (key === 'noOfSessions') return item.noOfSessions || item.no_of_sessions || item.noOfPeriods || '';
+  if (key === 'learningOutcome') return item.learningOutcome || item.learning_outcome || item.competence || '';
+  if (key === 'significanceSubject') return item.significanceSubject || item.significance_subject || '';
+  if (key === 'priorCompetency') return item.priorCompetency || item.prior_competency || '';
+  if (key === 'instructionalMaterials') return item.instructionalMaterials || item.instructional_materials || item.teachingAid || '';
+  if (key === 'teachingMethodology') return item.teachingMethodology || item.teaching_methodology || item.teachingMethod || '';
+  if (key === 'classroomManagement') return item.classroomManagement || item.classroom_management || '';
+  if (key === 'evaluation') return item.evaluation || item.remark || '';
+  return item[key] != null ? String(item[key]) : '';
+};
+
+const SEMESTER_1_MONTHS = ['September','October','November','December','January'];
+
 const MultiSelectDropdown = ({
   options,
   selectedValues,
@@ -2084,37 +2102,87 @@ export const Teachers = () => {
 
               {/* Yearly Matrix */}
               <div>
-                <h4 className="text-xs font-black uppercase tracking-widest text-slate-500 mb-3 flex items-center gap-2">
-                  <span>📅</span>{uiText(" Yearly Matrix ")}</h4>
+                <h4 className="text-center text-sm md:text-base font-black uppercase tracking-widest text-slate-900 dark:text-white mb-4 py-2 border-b border-slate-200 dark:border-slate-700">
+                  {uiText("ZIQUAL ABO PRIMARY SCHOOL ANNUAL PLAN")}
+                </h4>
                 {Array.isArray(selectedAnnualPlan.items) && selectedAnnualPlan.items.length > 0 ? (
                   <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-700">
-                    <table className="w-full text-left min-w-[1200px] text-xs border-collapse">
+                    <table className="w-full text-left min-w-[2000px] text-xs border-collapse">
                       <thead>
                         <tr className="bg-slate-800 text-white">
-                          {['Month','Week','# Periods','Unit','Main Content','Sub Content','Competence','Method','Aid','Evaluation','Remark'].map(h => (
-                            <th key={h} className="px-3 py-2.5 font-black uppercase tracking-wide whitespace-nowrap border-r border-slate-700 last:border-r-0">{h}</th>
+                          {[
+                            { h: 'Semester', minW: 'min-w-[65px]' },
+                            { h: 'Month', minW: 'min-w-[90px]' },
+                            { h: 'Week', minW: 'min-w-[70px]' },
+                            { h: 'Date', minW: 'min-w-[80px]' },
+                            { h: 'Page reference', minW: 'min-w-[95px]' },
+                            { h: 'Unit', minW: 'min-w-[85px]' },
+                            { h: 'Topic/content', minW: 'min-w-[160px]' },
+                            { h: 'No. of sessions', minW: 'min-w-[80px]' },
+                            { h: 'Minimum learning outcome', minW: 'min-w-[160px]' },
+                            { h: 'Significance of the subject matter', minW: 'min-w-[160px]' },
+                            { h: 'Prior competency (knowledge)', minW: 'min-w-[150px]' },
+                            { h: 'Instructional materials', minW: 'min-w-[140px]' },
+                            { h: 'Teaching methodology', minW: 'min-w-[140px]' },
+                            { h: 'Class room management', minW: 'min-w-[140px]' },
+                            { h: 'Evaluation', minW: 'min-w-[160px]' }
+                          ].map(({ h, minW }) => (
+                            <th key={h} className={`px-3 py-2.5 font-black uppercase tracking-wide whitespace-nowrap border-r border-slate-700 last:border-r-0 text-center ${minW}`}>{uiText(h)}</th>
                           ))}
                         </tr>
                       </thead>
                       <tbody>
                         {selectedAnnualPlan.items.map((item: any, idx: number) => {
-                          const isFirst = item.week === 1 || !selectedAnnualPlan.items.slice(0, idx).some((i: any) => i.month === item.month);
+                          const semesterName = item.semester || (SEMESTER_1_MONTHS.includes(item.month) ? '1st Semester' : '2nd Semester');
+                          const isFirstRowOfSemester = idx === 0 || (
+                            (item.semester || semesterName) !== (selectedAnnualPlan.items[idx - 1]?.semester || (SEMESTER_1_MONTHS.includes(selectedAnnualPlan.items[idx - 1]?.month) ? '1st Semester' : '2nd Semester'))
+                          );
+                          const semesterRows = selectedAnnualPlan.items.filter((i: any) => {
+                            const sem = i.semester || (SEMESTER_1_MONTHS.includes(i.month) ? '1st Semester' : '2nd Semester');
+                            return sem === semesterName;
+                          }).length;
+
+                          const isFirstWeekOfMonth = item.week === 1 || !selectedAnnualPlan.items.slice(0, idx).some((i: any) => i.month === item.month);
                           const monthRows = selectedAnnualPlan.items.filter((i: any) => i.month === item.month).length;
+
                           return (
                             <tr key={idx} className={`border-b border-slate-100 dark:border-slate-700 ${idx % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-slate-50 dark:bg-slate-800/30'}`}>
-                              {isFirst ? (
-                                <td className="px-3 py-2 font-black text-violet-700 dark:text-violet-400 whitespace-nowrap border-r border-slate-200 dark:border-slate-700 bg-violet-50 dark:bg-violet-900/10" rowSpan={monthRows}>{item.month || '—'}</td>
+                              {isFirstRowOfSemester ? (
+                                <td
+                                  rowSpan={semesterRows}
+                                  className="px-3 py-2 font-black text-slate-900 dark:text-white bg-slate-200/80 dark:bg-slate-800 border-r border-slate-300 dark:border-slate-700 text-center whitespace-nowrap align-middle uppercase tracking-widest text-[11px] min-w-[65px] shrink-0"
+                                  style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
+                                >
+                                  {uiText(semesterName)}
+                                </td>
                               ) : null}
-                              <td className="px-3 py-2 text-center font-bold text-slate-500 border-r border-slate-100 dark:border-slate-700 whitespace-nowrap">{uiText("Week ")}{item.week || idx + 1}</td>
-                              <td className="px-3 py-2 text-slate-700 dark:text-slate-300 border-r border-slate-100 dark:border-slate-700">{item.noOfPeriods || item.periods || '—'}</td>
-                              <td className="px-3 py-2 text-slate-700 dark:text-slate-300 border-r border-slate-100 dark:border-slate-700">{item.unit || item.chapter || '—'}</td>
-                              <td className="px-3 py-2 text-slate-700 dark:text-slate-300 border-r border-slate-100 dark:border-slate-700">{item.mainContent || item.topic || item.content || '—'}</td>
-                              <td className="px-3 py-2 text-slate-700 dark:text-slate-300 border-r border-slate-100 dark:border-slate-700">{item.subContent || '—'}</td>
-                              <td className="px-3 py-2 text-slate-700 dark:text-slate-300 border-r border-slate-100 dark:border-slate-700">{item.competence || item.objectives || '—'}</td>
-                              <td className="px-3 py-2 text-slate-700 dark:text-slate-300 border-r border-slate-100 dark:border-slate-700">{item.teachingMethod || item.method || '—'}</td>
-                              <td className="px-3 py-2 text-slate-700 dark:text-slate-300 border-r border-slate-100 dark:border-slate-700">{item.teachingAid || item.aid || '—'}</td>
-                              <td className="px-3 py-2 text-slate-700 dark:text-slate-300 border-r border-slate-100 dark:border-slate-700">{item.evaluation || '—'}</td>
-                              <td className="px-3 py-2 text-slate-700 dark:text-slate-300 border-r border-slate-100 dark:border-slate-700 last:border-r-0">{item.remark || '—'}</td>
+                              {isFirstWeekOfMonth ? (
+                                <td className="px-3 py-2 font-black text-violet-700 dark:text-violet-400 whitespace-nowrap border-r border-slate-200 dark:border-slate-700 bg-violet-50 dark:bg-violet-900/10 text-center align-middle min-w-[90px]" rowSpan={monthRows}>
+                                  {uiText(item.month)}
+                                </td>
+                              ) : null}
+                              <td className="px-3 py-2 text-center font-bold text-slate-500 border-r border-slate-100 dark:border-slate-700 whitespace-nowrap min-w-[70px]">{uiText("Week ")}{uiText(item.week)}</td>
+                              {[
+                                { f: 'date', minW: 'min-w-[80px]' },
+                                { f: 'pageRef', minW: 'min-w-[95px]' },
+                                { f: 'unit', minW: 'min-w-[85px]' },
+                                { f: 'topicContent', minW: 'min-w-[160px]' },
+                                { f: 'noOfSessions', minW: 'min-w-[80px]' },
+                                { f: 'learningOutcome', minW: 'min-w-[160px]' },
+                                { f: 'significanceSubject', minW: 'min-w-[160px]' },
+                                { f: 'priorCompetency', minW: 'min-w-[150px]' },
+                                { f: 'instructionalMaterials', minW: 'min-w-[140px]' },
+                                { f: 'teachingMethodology', minW: 'min-w-[140px]' },
+                                { f: 'classroomManagement', minW: 'min-w-[140px]' },
+                                { f: 'evaluation', minW: 'min-w-[160px]' }
+                              ].map(({ f, minW }) => {
+                                const val = getAnnualItemValue(item, f);
+                                return (
+                                  <td key={f} className={`px-3 py-2 text-slate-700 dark:text-slate-300 border-r border-slate-100 dark:border-slate-700 last:border-r-0 ${minW}`}>
+                                    {val ? uiText(val) : <span className="text-slate-300">—</span>}
+                                  </td>
+                                );
+                              })}
                             </tr>
                           );
                         })}
