@@ -235,7 +235,7 @@ const MultiSelectOrCustomInput: React.FC<{
               key={idx}
               className="flex items-start justify-between gap-1.5 px-2 py-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-[11px] font-semibold text-slate-800 dark:text-slate-100 shadow-2xs"
             >
-              <span className="flex-1 break-words leading-tight">• {item}</span>
+              <span className="flex-1 break-words leading-tight">• {uiText(item)}</span>
               <button
                 type="button"
                 onClick={() => removeItem(idx)}
@@ -257,7 +257,7 @@ const MultiSelectOrCustomInput: React.FC<{
         <option value="">{items.length > 0 ? uiText("+ Add another option...") : uiText("-- Select option from dropdown --")}</option>
         {options.map((opt) => (
           <option key={opt} value={opt} disabled={items.includes(opt)}>
-            {items.includes(opt) ? `✓ ${opt}` : opt}
+            {items.includes(opt) ? `✓ ${uiText(opt)}` : uiText(opt)}
           </option>
         ))}
       </select>
