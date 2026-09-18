@@ -17,21 +17,42 @@ const contentTabs: Array<{ type: WebsiteContentType; label: string; hint: string
   { type: 'uniform', label: 'Uniform Stories', hint: 'Student-led explanations of uniform identity and uniqueness.', icon: Shirt },
 ];
 
-const emptyPayload = (type: WebsiteContentType): WebsiteContentPayload => ({
-  content_type: type,
-  title: '',
-  subtitle: '',
-  body: '',
-  image_url: '',
-  media_url: '',
-  cta_label: '',
-  cta_url: '',
-  category: type === 'team' ? 'Office & management' : '',
-  display_order: 0,
-  status: 'draft',
-  featured: false,
-  event_date: null,
-});
+const getNextDisplayOrder = (
+  type: WebsiteContentType,
+  category: string,
+  allItems: WebsiteContentItem[]
+): number => {
+  const matching = allItems.filter(
+    (item) => item.content_type === type && (!category || item.category === category)
+  );
+  if (matching.length === 0) return 1;
+  const maxOrder = Math.max(...matching.map((item) => Number(item.display_order) || 0));
+  return maxOrder + 1;
+};
+
+const emptyPayload = (
+  type: WebsiteContentType,
+  category?: string,
+  allItems: WebsiteContentItem[] = []
+): WebsiteContentPayload => {
+  const defaultCategory = category ?? (type === 'team' ? 'Office & management' : '');
+  const nextOrder = getNextDisplayOrder(type, defaultCategory, allItems);
+  return {
+    content_type: type,
+    title: '',
+    subtitle: '',
+    body: '',
+    image_url: '',
+    media_url: '',
+    cta_label: '',
+    cta_url: '',
+    category: defaultCategory,
+    display_order: nextOrder,
+    status: 'published',
+    featured: false,
+    event_date: null,
+  };
+};
 
 const normalizePayload = (payload: WebsiteContentPayload): WebsiteContentPayload => ({
   ...payload,
@@ -64,7 +85,9 @@ export const WebsitePosts = () => {
     try {
       setIsLoading(true);
       setError('');
-      setItems(await websiteContentService.getAll());
+      const fetched = await websiteContentService.getAll();
+      setItems(fetched);
+      setDraft((prev) => (!editingId ? emptyPayload(prev.content_type, prev.category, fetched) : prev));
     } catch (loadError: any) {
       setError(loadError?.message || 'Failed to load website content.');
     } finally {
@@ -76,9 +99,9 @@ export const WebsitePosts = () => {
     loadItems();
   }, []);
 
-  const resetForm = (type = activeType) => {
+  const resetForm = (type = activeType, category?: string) => {
     setEditingId(null);
-    setDraft(emptyPayload(type));
+    setDraft(emptyPayload(type, category, items));
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -87,12 +110,49 @@ export const WebsitePosts = () => {
     resetForm(type);
   };
 
-  const readSelectedImage = async () => {
+  const handleCategoryChange = (newCategory: string) => {
+    if (!editingId) {
+      const nextOrder = getNextDisplayOrder(activeType, newCategory, items);
+      setDraft({ ...draft, category: newCategory, display_order: nextOrder });
+    } else {
+      setDraft({ ...draft, category: newCategory });
+    }
+  };
+
+  const readSelectedImage = async (): Promise<string> => {
     const file = fileInputRef.current?.files?.[0];
     if (!file) return draft.image_url;
     return new Promise<string>((resolve, reject) => {
       const reader = new FileReader();
-      reader.onload = () => resolve(String(reader.result));
+      reader.onload = (event) => {
+        const resultStr = String(event.target?.result || '');
+        const img = new window.Image();
+        img.onload = () => {
+          const maxDim = 1000;
+          let { width, height } = img;
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/jpeg', 0.82));
+          } else {
+            resolve(resultStr);
+          }
+        };
+        img.onerror = () => resolve(resultStr);
+        img.src = resultStr;
+      };
       reader.onerror = reject;
       reader.readAsDataURL(file);
     });
@@ -233,7 +293,7 @@ export const WebsitePosts = () => {
               {activeType === 'team' ? (
                 <select
                   value={draft.category || 'Office & management'}
-                  onChange={(event) => setDraft({ ...draft, category: event.target.value })}
+                  onChange={(event) => handleCategoryChange(event.target.value)}
                   className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500 dark:border-slate-700 dark:bg-slate-900"
                 >
                   <option value="Office & management">{uiText('Office & management')}</option>
@@ -245,7 +305,7 @@ export const WebsitePosts = () => {
                 <input
                   value={draft.category}
                   placeholder={activeType === 'community' ? 'Sports, Club, Ceremony...' : 'Student voice'}
-                  onChange={(event) => setDraft({ ...draft, category: event.target.value })}
+                  onChange={(event) => handleCategoryChange(event.target.value)}
                   className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500 dark:border-slate-700 dark:bg-slate-900"
                 />
               )}
