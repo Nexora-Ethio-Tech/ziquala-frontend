@@ -2087,8 +2087,8 @@ export const Teachers = () => {
                   { label: 'Weeks Planned', value: Array.isArray(selectedAnnualPlan.items) ? selectedAnnualPlan.items.length : 40 },
                 ].map(({ label, value }) => (
                   <div key={label}>
-                    <p className="text-[9px] font-black uppercase text-slate-400">{label}</p>
-                    <p className="font-bold text-slate-800 dark:text-white text-sm mt-0.5">{value || '—'}</p>
+                    <p className="text-[9px] font-black uppercase text-slate-400">{uiText(label)}</p>
+                    <p className="font-bold text-slate-800 dark:text-white text-sm mt-0.5">{uiText(String(value || '—'))}</p>
                   </div>
                 ))}
               </div>
