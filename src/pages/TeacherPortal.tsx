@@ -2183,7 +2183,7 @@ export const TeacherPortal = () => {
                       type="text"
                       placeholder={uiText("Teacher Name")}
                       value={planForm.teacherName || (user as any)?.name || ''}
-                      onChange={e => setPlanForm({ ...planForm, teacherName: capitalizeWords(e.target.value) })}
+                      onChange={e => setPlanForm({ ...planForm, teacherName: e.target.value })}
                       className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
@@ -2213,7 +2213,7 @@ export const TeacherPortal = () => {
                       type="text"
                       placeholder={uiText("e.g. Unit 3: Linear Equations")}
                       value={planForm.chapterUnit || ''}
-                      onChange={e => setPlanForm({ ...planForm, chapterUnit: capitalizeWords(e.target.value) })}
+                      onChange={e => setPlanForm({ ...planForm, chapterUnit: e.target.value })}
                       className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-white"
                     />
                   </div>
@@ -2223,7 +2223,7 @@ export const TeacherPortal = () => {
                       type="text"
                       placeholder={uiText("e.g. Solving 2-step equations")}
                       value={planForm.topicTitle || ''}
-                      onChange={e => setPlanForm({ ...planForm, topicTitle: capitalizeWords(e.target.value) })}
+                      onChange={e => setPlanForm({ ...planForm, topicTitle: e.target.value })}
                       className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-white"
                     />
                   </div>
@@ -2233,7 +2233,7 @@ export const TeacherPortal = () => {
                       type="text"
                       placeholder={uiText("e.g. Grade 7 Section A")}
                       value={planForm.gradeSection || ''}
-                      onChange={e => setPlanForm({ ...planForm, gradeSection: capitalizeWords(e.target.value) })}
+                      onChange={e => setPlanForm({ ...planForm, gradeSection: e.target.value })}
                       className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-white"
                     />
                   </div>
@@ -2342,12 +2342,11 @@ export const TeacherPortal = () => {
                     };
 
                     const updateDayAct = (field: string, val: string) => {
-                      const formattedVal = field === 'timeDuration' ? val : capitalizeWords(val);
                       const newArr = [...planForm.dailyActivities];
                       if (dayActIndex >= 0) {
-                        newArr[dayActIndex] = { ...newArr[dayActIndex], [field]: formattedVal };
+                        newArr[dayActIndex] = { ...newArr[dayActIndex], [field]: val };
                       } else {
-                        newArr.push({ day: activePlanDay, [field]: formattedVal } as any);
+                        newArr.push({ day: activePlanDay, [field]: val } as any);
                       }
                       setPlanForm({ ...planForm, dailyActivities: newArr });
                     };
@@ -2554,12 +2553,11 @@ export const TeacherPortal = () => {
                         };
 
                         const updateDayAct = (field: string, val: string) => {
-                          const formattedVal = field === 'timeDuration' ? val : capitalizeWords(val);
                           const newArr = [...planForm.dailyActivities];
                           if (dayActIndex >= 0) {
-                            newArr[dayActIndex] = { ...newArr[dayActIndex], [field]: formattedVal };
+                            newArr[dayActIndex] = { ...newArr[dayActIndex], [field]: val };
                           } else {
-                            newArr.push({ day: dayName, [field]: formattedVal } as any);
+                            newArr.push({ day: dayName, [field]: val } as any);
                           }
                           setPlanForm({ ...planForm, dailyActivities: newArr });
                         };
@@ -2721,7 +2719,7 @@ export const TeacherPortal = () => {
               <div>
                 <label htmlFor="examTitle" className="text-xs font-bold text-slate-500 uppercase">{uiText("Exam Title")}</label>
                 <input id="examTitle" type="text" placeholder={uiText("e.g., Mid Exam - Mathematics")}
-                  value={examForm.title} onChange={e => setExamForm({ ...examForm, title: capitalizeWords(e.target.value) })}
+                  value={examForm.title} onChange={e => setExamForm({ ...examForm, title: e.target.value })}
                   className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
 
@@ -2818,7 +2816,7 @@ export const TeacherPortal = () => {
               <div>
                 <label htmlFor="examInstructions" className="text-xs font-bold text-slate-500 uppercase">{uiText("Instructions for Students")}</label>
                 <textarea id="examInstructions" rows={3} placeholder={uiText("e.g., Answer all questions. No calculators allowed. Duration: 1 hour")}
-                  value={examForm.instructions} onChange={e => setExamForm({ ...examForm, instructions: capitalizeWords(e.target.value) })}
+                  value={examForm.instructions} onChange={e => setExamForm({ ...examForm, instructions: e.target.value })}
                   className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
               </div>
 
@@ -3164,7 +3162,7 @@ export const TeacherPortal = () => {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div>
                     <label className="text-[10px] font-black uppercase text-slate-500">{uiText("Academic Year")}</label>
-                    <input value={annualForm.academicYear} onChange={e => setAnnualForm(f => ({ ...f, academicYear: capitalizeWords(e.target.value) }))}
+                    <input value={annualForm.academicYear} onChange={e => setAnnualForm(f => ({ ...f, academicYear: e.target.value }))}
                       className="w-full mt-1 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-violet-500" />
                   </div>
                   <div>
@@ -3178,18 +3176,18 @@ export const TeacherPortal = () => {
                       {myCourses.map((c: any) => <option key={c.id} value={c.id}>{capitalizeWords(cleanSubjectName(c.name))}</option>)}
                     </select>
                     {!annualForm.courseId && (
-                      <input placeholder={uiText("Or type subject…")} value={annualForm.subject} onChange={e => setAnnualForm(f => ({ ...f, subject: capitalizeWords(e.target.value) }))}
+                      <input placeholder={uiText("Or type subject…")} value={annualForm.subject} onChange={e => setAnnualForm(f => ({ ...f, subject: e.target.value }))}
                         className="w-full mt-1 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-violet-500" />
                     )}
                   </div>
                   <div>
                     <label className="text-[10px] font-black uppercase text-slate-500">{uiText("Grade")}</label>
-                    <input value={annualForm.grade} onChange={e => setAnnualForm(f => ({ ...f, grade: capitalizeWords(e.target.value) }))}
+                    <input value={annualForm.grade} onChange={e => setAnnualForm(f => ({ ...f, grade: e.target.value }))}
                       placeholder={uiText("e.g. Grade 9")} className="w-full mt-1 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-violet-500" />
                   </div>
                   <div>
                     <label className="text-[10px] font-black uppercase text-slate-500">{uiText("Duration / Period")}</label>
-                    <input value={annualForm.durationPeriod} onChange={e => setAnnualForm(f => ({ ...f, durationPeriod: capitalizeWords(e.target.value) }))}
+                    <input value={annualForm.durationPeriod} onChange={e => setAnnualForm(f => ({ ...f, durationPeriod: e.target.value }))}
                       className="w-full mt-1 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-violet-500" />
                   </div>
                   <div>
@@ -3241,7 +3239,7 @@ export const TeacherPortal = () => {
                                   value={(item as any)[field]}
                                   onChange={e => {
                                     const newItems = [...annualForm.items];
-                                    (newItems[idx] as any)[field] = field === 'noOfPeriods' ? e.target.value : capitalizeWords(e.target.value);
+                                    (newItems[idx] as any)[field] = e.target.value;
                                     setAnnualForm(f => ({ ...f, items: newItems }));
                                   }}
                                   className="w-full px-2 py-1.5 bg-transparent border border-transparent hover:border-violet-300 focus:border-violet-500 focus:bg-white dark:focus:bg-slate-800 rounded-lg outline-none transition-all text-slate-800 dark:text-slate-200 min-w-[80px]"
