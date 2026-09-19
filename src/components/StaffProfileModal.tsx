@@ -41,8 +41,16 @@ export const StaffProfileModal = ({ open, title, staff, onClose, onRefresh }: St
   const age = calculateAge(dob);
   const registeredAt = staff.createdAt || staff.created_at || profile.registeredAt || profile.dateRegistered;
 
+  const resolvedRole = staff.role || staff.user_role || profile.role || (title && title.toLowerCase().includes('teacher') ? 'Teacher' : '') || 'N/A';
+
+  const formatRoleName = (r?: string) => {
+    if (!r || r === 'N/A') return 'N/A';
+    const str = String(r).replace(/[-_]/g, ' ');
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  };
+
   const isAcademicOrStockKeeper = ['academic-manager', 'storekeeper', 'stockkeeper', 'academicmanager', 'stock_keeper', 'store_keeper'].includes(
-    String(staff.role || '').toLowerCase()
+    String(resolvedRole || '').toLowerCase()
   );
 
   const docFileName = staff.document_file_name || staff.documentFileName;
@@ -150,7 +158,7 @@ export const StaffProfileModal = ({ open, title, staff, onClose, onRefresh }: St
                 <h4 className="font-bold text-slate-900 dark:text-white text-base">{staff.name}</h4>
                 <div className="flex items-center gap-2 mt-1">
                   <span className="px-2.5 py-0.5 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded-full text-xs font-bold capitalize">
-                    {uiText(staff.role)}
+                    {uiText(formatRoleName(resolvedRole))}
                   </span>
                   <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
                     staff.status === 'Active' || staff.status === 'Approved'
@@ -185,7 +193,7 @@ export const StaffProfileModal = ({ open, title, staff, onClose, onRefresh }: St
               </div>
               <div>
                 <span className="text-xs text-slate-400 font-medium block">{uiText("Role")}</span>
-                <span className="text-sm font-semibold text-slate-800 dark:text-slate-100 capitalize">{uiText(staff.role) || 'N/A'}</span>
+                <span className="text-sm font-semibold text-slate-800 dark:text-slate-100 capitalize">{uiText(formatRoleName(resolvedRole))}</span>
               </div>
               <div>
                 <span className="text-xs text-slate-400 font-medium block">{uiText("Digital ID")}</span>

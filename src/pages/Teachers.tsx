@@ -181,6 +181,32 @@ export const Teachers = () => {
       return true;
     });
   }, [teachers, teacherSearchQuery, teacherEducationFilter, teacherStatusFilter]);
+
+  const handleExportTeachersToExcel = () => {
+    if (filteredTeachers.length === 0) return;
+
+    const exportData = filteredTeachers.map((teacher, index) => {
+      const edu = getTeacherEducationLevel(teacher) || 'N/A';
+      const spec = teacher.staffProfile?.specialty || teacher.specialty || 'N/A';
+      const status = teacher.status || 'N/A';
+
+      return {
+        "#": index + 1,
+        "Teacher Name": teacher.name || '',
+        "Digital ID": teacher.digitalId || '',
+        "Education Level": edu,
+        "Specialty / Subject": spec,
+        "Email": teacher.email || '',
+        "Status": status,
+        "ZK Device ID": teacher.zkDeviceId || 'N/A'
+      };
+    });
+
+    exportToExcel(
+      [{ name: 'Teachers List', rows: exportData }],
+      `Teachers_List_${new Date().toISOString().split('T')[0]}`
+    );
+  };
   const [annualPlans, setAnnualPlans] = useState<any[]>([]);
   const [weeklyPlans, setWeeklyPlans] = useState<any[]>([]);
   const [plansLoading, setPlansLoading] = useState(false);
@@ -671,6 +697,7 @@ export const Teachers = () => {
           id: teacher.id,
           name: teacher.name,
           email: teacher.email,
+          role: teacher.role || teacher.user_role || parsedProfile?.role || 'teacher',
           digitalId: teacher.digital_id,
           zkDeviceId: teacher.zk_device_id || teacher.zkDeviceId,
           status: teacher.status,
@@ -1099,6 +1126,17 @@ export const Teachers = () => {
                   {t("teachers.resetFilters", "Reset Filters")}
                 </button>
               )}
+
+              {/* Export to Excel Button */}
+              <button
+                onClick={handleExportTeachersToExcel}
+                disabled={filteredTeachers.length === 0}
+                className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm shrink-0 whitespace-nowrap"
+                title={uiText("Export teachers list to Excel file")}
+              >
+                <Download size={15} />
+                <span>{t("teachers.exportExcel", "Export Excel")}</span>
+              </button>
             </div>
           </div>
 
