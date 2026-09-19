@@ -1,6 +1,6 @@
 import { uiText, uiError, localizeHtml } from "../localization";
 import { useTranslation } from 'react-i18next';
-import { UserPlus, X, Check, ArrowLeft, MoreVertical, CheckCircle, XCircle, Trash2, Printer, Clock, Edit2, Loader2, FileText, Download, Upload } from 'lucide-react';
+import { UserPlus, X, Check, ArrowLeft, MoreVertical, CheckCircle, XCircle, Trash2, Printer, Clock, Eye, Edit2, Loader2, FileText, Download, Upload } from 'lucide-react';
 import PhoneInput from '../components/PhoneInput';
 import { formatEthiopianLabel } from '../utils/ethiopianCalendar';
 import { EthiopianDatePicker } from '../components/EthiopianDatePicker';
@@ -128,9 +128,11 @@ export const LibrarianStaff = () => {
     if (!editingStaff) return;
     setSubmitting(true);
     try {
+      const cleanName = editFormData.name.trim().split(/\s+/).filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+      const cleanEmail = editFormData.email.trim().toLowerCase();
       await updateUser(editingStaff.userId, {
-        name: editFormData.name,
-        email: editFormData.email
+        name: cleanName,
+        email: cleanEmail
       });
       alert(uiText('Librarian details updated successfully!'));
       setShowEditModal(false);
@@ -257,18 +259,19 @@ export const LibrarianStaff = () => {
     setCreating(true);
 
     try {
+      const formatTC = (val: string) => val ? val.trim().split(/\s+/).filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ') : '';
       const result = await registerUser({
-        name: formData.name.trim(),
-        email: formData.email.trim(),
+        name: formatTC(formData.name),
+        email: formData.email.trim().toLowerCase(),
         role: 'librarian',
         staffProfile: {
           phoneNumber: `+251${formData.phoneNumber}`,
-          emergencyContactName: formData.emergencyContactName,
+          emergencyContactName: formatTC(formData.emergencyContactName),
           emergencyContactPhone: formData.emergencyContactPhone ? `+251${formData.emergencyContactPhone}` : '',
           educationLevel: formData.educationLevel,
-          specialty: formData.specialty,
+          specialty: formatTC(formData.specialty),
           dob: formData.dob,
-          previousSchool: formData.previousSchool,
+          previousSchool: formatTC(formData.previousSchool),
           experienceYears: formData.experienceYears,
           registeredAt: new Date().toISOString()
         }
@@ -435,6 +438,13 @@ export const LibrarianStaff = () => {
                                 <XCircle size={14} />{uiText(" Revoke ")}</button>
                             );
                           })()}
+                          <button
+                            onClick={() => setSelectedStaff(staff)}
+                            className="p-1.5 text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-950/30 rounded-lg transition-colors"
+                            title={uiText("View Registration Details")}
+                          >
+                            <Eye size={16} />
+                          </button>
                           <button
                             onClick={() => openEditModal(staff)}
                             className="p-1.5 text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-950/30 rounded-lg transition-colors"
@@ -770,7 +780,8 @@ export const LibrarianStaff = () => {
                   type="text"
                   required
                   value={editFormData.name}
-                  onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                  onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value.replace(/[^a-zA-Z\u00C0-\u024F\s'-]/g, '') })}
+                  onBlur={(e) => { const c = e.target.value.trim().split(/\s+/).filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' '); setEditFormData({ ...editFormData, name: c }); }}
                   className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>

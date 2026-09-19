@@ -14,6 +14,7 @@ export interface Student {
   className?: string;
   branchId: string;
   status: 'Active' | 'Inactive' | 'Suspended' | 'Graduated';
+  graduationYear?: string;
   guardianName?: string;
   guardianPhone?: string;
   guardianEmail?: string;
@@ -46,6 +47,7 @@ export interface UpdateStudentData {
   gender?: string;
   grade?: string;
   status?: 'Active' | 'Inactive' | 'Suspended' | 'Graduated';
+  graduationYear?: string;
   guardianName?: string;
   guardianPhone?: string;
   guardianEmail?: string;
@@ -56,6 +58,7 @@ export interface StudentFilters {
   classId?: string;
   grade?: string;
   status?: string;
+  graduationYear?: string;
 }
 
 const studentService = {
@@ -92,6 +95,16 @@ const studentService = {
   getStudentsByClass: async (classId: string): Promise<Student[]> => {
     const response = await api.get(`/school-admin/students/class/${classId}`);
     return response.data.data;
+  },
+
+  bulkUpdateStatus: async (userIds: string[], status: string, graduationYear?: string) => {
+    const response = await api.post('/school-admin/students/bulk-status', { userIds, status, graduationYear });
+    return response.data;
+  },
+
+  bulkShiftGrade: async (studentIds: string[], grade: string, section?: string) => {
+    const response = await api.post('/school-admin/students/bulk-grade', { studentIds, grade, section });
+    return response.data;
   },
 };
 

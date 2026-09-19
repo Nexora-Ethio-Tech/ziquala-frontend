@@ -115,4 +115,29 @@ export const userService = {
     const response = await api.post(API_ENDPOINTS.RESET_USER_PASSWORD(userId));
     return response.data;
   },
+
+  // Get user document (Super Admin or School Admin)
+  getUserDocument: async (userId: string) => {
+    const role = getRole();
+    const endpoint = role === 'super-admin'
+      ? `/super-admin/users/${userId}/document`
+      : `/school-admin/users/${userId}/document`;
+    return api.get(endpoint, { responseType: 'blob' });
+  },
+
+  // Replace / Reupload user document
+  replaceUserDocument: async (userId: string, file: File) => {
+    const role = getRole();
+    const endpoint = role === 'super-admin'
+      ? `/super-admin/users/${userId}/document/replace`
+      : `/school-admin/users/${userId}/document/replace`;
+    const formData = new FormData();
+    formData.append('document', file);
+    const response = await api.post(endpoint, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
 };

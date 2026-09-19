@@ -27,6 +27,44 @@ const isTeacherPending = (status?: string | null) => {
   return s === 'pending';
 };
 
+const getTeacherEducationLevel = (teacher: any): string => {
+  const profile = teacher?.staffProfile;
+  return String(profile?.educationLevel || profile?.educationStatus || teacher?.educationLevel || '').trim();
+};
+
+const matchesEducationLevel = (teacherLevel: string, filterValue: string) => {
+  if (filterValue === 'all') return true;
+  if (!teacherLevel) return false;
+  
+  const normTeacher = teacherLevel.toLowerCase();
+  const normFilter = filterValue.toLowerCase();
+
+  if (normFilter === 'diploma') return normTeacher.includes('diploma');
+  if (normFilter === 'degree') return normTeacher.includes('degree') || normTeacher.includes('bachelor');
+  if (normFilter === 'master') return normTeacher.includes('master');
+  if (normFilter === 'phd') return normTeacher.includes('phd') || normTeacher.includes('doctorate') || normTeacher.includes('dr');
+  
+  return normTeacher === normFilter;
+};
+
+const getAnnualItemValue = (item: any, key: string): string => {
+  if (!item) return '';
+  if (key === 'date') return item.date || item.weekDate || '';
+  if (key === 'pageRef') return item.pageRef || item.pageReference || '';
+  if (key === 'topicContent') return item.topicContent || item.topic_content || item.mainContent || (item.subContent ? `${item.mainContent || ''} ${item.subContent}` : '');
+  if (key === 'noOfSessions') return item.noOfSessions || item.no_of_sessions || item.noOfPeriods || '';
+  if (key === 'learningOutcome') return item.learningOutcome || item.learning_outcome || item.competence || '';
+  if (key === 'significanceSubject') return item.significanceSubject || item.significance_subject || '';
+  if (key === 'priorCompetency') return item.priorCompetency || item.prior_competency || '';
+  if (key === 'instructionalMaterials') return item.instructionalMaterials || item.instructional_materials || item.teachingAid || '';
+  if (key === 'teachingMethodology') return item.teachingMethodology || item.teaching_methodology || item.teachingMethod || '';
+  if (key === 'classroomManagement') return item.classroomManagement || item.classroom_management || '';
+  if (key === 'evaluation') return item.evaluation || item.remark || '';
+  return item[key] != null ? String(item[key]) : '';
+};
+
+const SEMESTER_1_MONTHS = ['September','October','November','December','January'];
+
 const MultiSelectDropdown = ({
   options,
   selectedValues,
@@ -104,6 +142,71 @@ export const Teachers = () => {
   const [activeTab, setActiveTab] = useState<'annual-plans' | 'weekly-plans' | 'teachers' | 'leaderboard'>(
     isSuperviseRoute ? 'annual-plans' : 'teachers'
   );
+  const [teacherSearchQuery, setTeacherSearchQuery] = useState('');
+  const [teacherEducationFilter, setTeacherEducationFilter] = useState('all');
+  const [teacherStatusFilter, setTeacherStatusFilter] = useState('all');
+
+  const filteredTeachers = useMemo(() => {
+    return teachers.filter((teacher) => {
+      // 1. Search Query Filter (name, email, digitalId, specialty, educationLevel)
+      if (teacherSearchQuery.trim()) {
+        const q = teacherSearchQuery.toLowerCase().trim();
+        const edu = getTeacherEducationLevel(teacher).toLowerCase();
+        const spec = String(teacher.staffProfile?.specialty || teacher.specialty || '').toLowerCase();
+        const matchesSearch =
+          (teacher.name || '').toLowerCase().includes(q) ||
+          (teacher.email || '').toLowerCase().includes(q) ||
+          (teacher.digitalId || '').toLowerCase().includes(q) ||
+          edu.includes(q) ||
+          spec.includes(q);
+        if (!matchesSearch) return false;
+      }
+
+      // 2. Education Level Filter
+      if (teacherEducationFilter !== 'all') {
+        const eduLevel = getTeacherEducationLevel(teacher);
+        if (!matchesEducationLevel(eduLevel, teacherEducationFilter)) {
+          return false;
+        }
+      }
+
+      // 3. Status Filter
+      if (teacherStatusFilter !== 'all') {
+        const status = String(teacher.status || '').toLowerCase();
+        if (teacherStatusFilter === 'active' && !isTeacherActive(teacher.status)) return false;
+        if (teacherStatusFilter === 'pending' && !isTeacherPending(teacher.status)) return false;
+        if (teacherStatusFilter === 'revoked' && status !== 'revoked' && status !== 'inactive') return false;
+      }
+
+      return true;
+    });
+  }, [teachers, teacherSearchQuery, teacherEducationFilter, teacherStatusFilter]);
+
+  const handleExportTeachersToExcel = () => {
+    if (filteredTeachers.length === 0) return;
+
+    const exportData = filteredTeachers.map((teacher, index) => {
+      const edu = getTeacherEducationLevel(teacher) || 'N/A';
+      const spec = teacher.staffProfile?.specialty || teacher.specialty || 'N/A';
+      const status = teacher.status || 'N/A';
+
+      return {
+        "#": index + 1,
+        "Teacher Name": teacher.name || '',
+        "Digital ID": teacher.digitalId || '',
+        "Education Level": edu,
+        "Specialty / Subject": spec,
+        "Email": teacher.email || '',
+        "Status": status,
+        "ZK Device ID": teacher.zkDeviceId || 'N/A'
+      };
+    });
+
+    exportToExcel(
+      [{ name: 'Teachers List', rows: exportData }],
+      `Teachers_List_${new Date().toISOString().split('T')[0]}`
+    );
+  };
   const [annualPlans, setAnnualPlans] = useState<any[]>([]);
   const [weeklyPlans, setWeeklyPlans] = useState<any[]>([]);
   const [plansLoading, setPlansLoading] = useState(false);
@@ -594,6 +697,7 @@ export const Teachers = () => {
           id: teacher.id,
           name: teacher.name,
           email: teacher.email,
+          role: teacher.role || teacher.user_role || parsedProfile?.role || 'teacher',
           digitalId: teacher.digital_id,
           zkDeviceId: teacher.zk_device_id || teacher.zkDeviceId,
           status: teacher.status,
@@ -666,9 +770,10 @@ export const Teachers = () => {
     if (!editingStaff) return;
     setSubmitting(true);
     try {
+      const cleanEditName = editFormData.name.trim().split(/\s+/).filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
       await updateUser(editingStaff.userId, {
-        name: editFormData.name,
-        email: editFormData.email
+        name: cleanEditName,
+        email: editFormData.email.trim().toLowerCase()
       });
       alert(uiText('Teacher details updated successfully!'));
       setShowEditModal(false);
@@ -788,18 +893,23 @@ export const Teachers = () => {
 
     setCreating(true);
     try {
+      const cleanName = formData.name.trim().split(/\s+/).filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+      const cleanEmergencyName = formData.emergencyContactName.trim().split(/\s+/).filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+      const cleanSpecialty = formData.specialty.trim().split(/\s+/).filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+      const cleanPreviousSchool = formData.previousSchool.trim().split(/\s+/).filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+
       const response = await registerUser({
-        name: formData.name,
-        email: formData.email,
+        name: cleanName,
+        email: formData.email.trim().toLowerCase(),
         role: formData.role,
         staffProfile: {
           phoneNumber: `+251${formData.phoneNumber}`,
-          emergencyContactName: formData.emergencyContactName,
+          emergencyContactName: cleanEmergencyName,
           emergencyContactPhone: formData.emergencyContactPhone ? `+251${formData.emergencyContactPhone}` : undefined,
           educationLevel: formData.educationLevel,
-          specialty: formData.specialty,
+          specialty: cleanSpecialty,
           dob: formData.dob,
-          previousSchool: formData.previousSchool,
+          previousSchool: cleanPreviousSchool,
           experienceYears: formData.experienceYears,
           registeredAt: new Date().toISOString()
         }
@@ -929,18 +1039,6 @@ export const Teachers = () => {
                 </span>
               )}
             </button>
-
-            <button
-              onClick={() => setActiveTab('leaderboard')}
-              className={`pb-2.5 px-3 text-sm font-bold border-b-2 flex items-center gap-2 whitespace-nowrap transition-colors ${
-                activeTab === 'leaderboard'
-                  ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-                  : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400'
-              }`}
-            >
-              <Trophy size={16} />
-              <span>{t("teachers.leaderboard", "Leaderboard")}</span>
-            </button>
           </>
         ) : (
           <>
@@ -955,32 +1053,105 @@ export const Teachers = () => {
               <Users size={16} />
               <span>{t("teachers.teachersList", "Teachers")}</span>
             </button>
-
-            <button
-              onClick={() => setActiveTab('leaderboard')}
-              className={`pb-2.5 px-3 text-sm font-bold border-b-2 flex items-center gap-2 whitespace-nowrap transition-colors ${
-                activeTab === 'leaderboard'
-                  ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-                  : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400'
-              }`}
-            >
-              <Trophy size={16} />
-              <span>{t("teachers.leaderboard", "Leaderboard")}</span>
-            </button>
           </>
         )}
       </div>
 
       {activeTab === 'teachers' && (
         <div className="space-y-4">
+          {/* Search and Filters Bar */}
+          <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm space-y-3 md:space-y-0 md:flex md:items-center md:justify-between md:gap-4">
+            {/* Search Input */}
+            <div className="relative flex-1 min-w-[240px]">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+              <input
+                type="text"
+                value={teacherSearchQuery}
+                onChange={(e) => setTeacherSearchQuery(e.target.value)}
+                placeholder={t("teachers.searchPlaceholder", "Search by name, email, digital ID, specialty...")}
+                className="w-full pl-10 pr-8 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 dark:text-white placeholder:text-slate-400"
+              />
+              {teacherSearchQuery && (
+                <button
+                  onClick={() => setTeacherSearchQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                >
+                  <X size={16} />
+                </button>
+              )}
+            </div>
+
+            {/* Filter Controls */}
+            <div className="flex items-center gap-3 flex-wrap sm:flex-nowrap">
+              {/* Education Level Filter */}
+              <div className="flex items-center gap-2 min-w-[170px] flex-1 sm:flex-none">
+                <Filter size={16} className="text-slate-400 shrink-0" />
+                <select
+                  value={teacherEducationFilter}
+                  onChange={(e) => setTeacherEducationFilter(e.target.value)}
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="all">{t("teachers.allEducationLevels", "All Education Levels")}</option>
+                  <option value="Diploma">{t("teachers.diploma", "Diploma")}</option>
+                  <option value="Degree">{t("teachers.degree", "Degree")}</option>
+                  <option value="Master">{t("teachers.master", "Master's")}</option>
+                  <option value="PhD">{t("teachers.phd", "PhD")}</option>
+                </select>
+              </div>
+
+              {/* Status Filter */}
+              <div className="flex items-center gap-2 min-w-[140px] flex-1 sm:flex-none">
+                <select
+                  value={teacherStatusFilter}
+                  onChange={(e) => setTeacherStatusFilter(e.target.value)}
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="all">{t("teachers.allStatuses", "All Statuses")}</option>
+                  <option value="active">{t("teachers.statusActive", "Active")}</option>
+                  <option value="pending">{t("teachers.statusPending", "Pending")}</option>
+                  <option value="revoked">{t("teachers.statusRevoked", "Revoked")}</option>
+                </select>
+              </div>
+
+              {/* Reset Filters Button */}
+              {(teacherEducationFilter !== 'all' || teacherStatusFilter !== 'all' || teacherSearchQuery) && (
+                <button
+                  onClick={() => {
+                    setTeacherSearchQuery('');
+                    setTeacherEducationFilter('all');
+                    setTeacherStatusFilter('all');
+                  }}
+                  className="px-3 py-2 text-xs font-bold text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors whitespace-nowrap"
+                >
+                  {t("teachers.resetFilters", "Reset Filters")}
+                </button>
+              )}
+
+              {/* Export to Excel Button */}
+              <button
+                onClick={handleExportTeachersToExcel}
+                disabled={filteredTeachers.length === 0}
+                className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm shrink-0 whitespace-nowrap"
+                title={uiText("Export teachers list to Excel file")}
+              >
+                <Download size={15} />
+                <span>{t("teachers.exportExcel", "Export Excel")}</span>
+              </button>
+            </div>
+          </div>
+
           {/* Mobile Card View */}
           <div className="grid grid-cols-1 gap-4 md:hidden">
             {teachers.length === 0 ? (
               <div className="bg-white dark:bg-slate-900 rounded-2xl p-8 text-center text-slate-500 border border-slate-100 dark:border-slate-800 shadow-sm">
                 {t("teachers.noTeachersFound", "No teachers found. Register your first teacher.")}
               </div>
+            ) : filteredTeachers.length === 0 ? (
+              <div className="bg-white dark:bg-slate-900 rounded-2xl p-8 text-center text-slate-500 border border-slate-100 dark:border-slate-800 shadow-sm">
+                {t("teachers.noMatchingTeachers", "No teachers match the selected filters.")}
+              </div>
             ) : (
-              teachers.map((teacher) => (
+              filteredTeachers.map((teacher) => (
                 <div
                   key={teacher.id}
                   className="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-100 dark:border-slate-800 shadow-md space-y-3"
@@ -1028,7 +1199,7 @@ export const Teachers = () => {
                     </div>
                   </div>
 
-                  <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
+                  <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs flex-wrap gap-2">
                     <div className="flex items-center gap-2">
                       <span className="text-slate-400 uppercase font-semibold">{t("teachers.colDigitalId", "Digital ID")}:</span>
                       <span className="font-mono text-slate-600 dark:text-slate-300 font-bold">{teacher.digitalId}</span>
@@ -1037,6 +1208,11 @@ export const Teachers = () => {
                         </span>
                       )}
                     </div>
+                    {getTeacherEducationLevel(teacher) && (
+                      <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/50">
+                        {uiText(getTeacherEducationLevel(teacher))}
+                      </span>
+                    )}
                   </div>
 
                   {isAdmin && (
@@ -1059,6 +1235,13 @@ export const Teachers = () => {
                         className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all ${isTeacherPromoted(teacher) ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-indigo-600 hover:bg-indigo-700 text-white'}`}
                       >
                         {(isTeacherPromoted(teacher) ? uiText('Promoted') : uiText('Promote'))}
+                      </button>
+                      <button
+                        onClick={() => setSelectedStaff(teacher)}
+                        className="p-2 text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                        title={uiText("View Registration Details")}
+                      >
+                        <Eye size={16} />
                       </button>
                       <button
                         onClick={() => openEditModal(teacher)}
@@ -1088,6 +1271,7 @@ export const Teachers = () => {
                 <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
                   <tr>
                     <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("teachers.colTeacher", "Teacher")}</th>
+                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("teachers.colEducationLevel", "Education Level")}</th>
                     <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("teachers.colEmail", "Email")}</th>
                     <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("teachers.colDigitalId", "Digital ID")}</th>
                     <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("teachers.colStatus", "Status")}</th>
@@ -1097,12 +1281,18 @@ export const Teachers = () => {
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {teachers.length === 0 ? (
                     <tr>
-                      <td colSpan={isAdmin ? 5 : 4} className="px-6 py-12 text-center text-slate-500">
+                      <td colSpan={isAdmin ? 6 : 5} className="px-6 py-12 text-center text-slate-500">
                         {t("teachers.noTeachersFound", "No teachers found. Register your first teacher.")}
                       </td>
                     </tr>
+                  ) : filteredTeachers.length === 0 ? (
+                    <tr>
+                      <td colSpan={isAdmin ? 6 : 5} className="px-6 py-12 text-center text-slate-500">
+                        {t("teachers.noMatchingTeachers", "No teachers match the selected filters.")}
+                      </td>
+                    </tr>
                   ) : (
-                    teachers.map((teacher, idx) => (
+                    filteredTeachers.map((teacher, idx) => (
                       <tr key={teacher.id ? `${teacher.id}-${idx}` : `teacher-${idx}`} className="hover:bg-slate-50 dark:hover:bg-slate-800/30">
                         <td className="px-6 py-4">
                           <button type="button" onClick={() => setSelectedStaff(teacher)} className="flex items-center gap-3 text-left">
@@ -1111,6 +1301,15 @@ export const Teachers = () => {
                             </div>
                             <span className="font-bold text-slate-800 dark:text-white">{teacher.name}</span>
                           </button>
+                        </td>
+                        <td className="px-6 py-4 text-sm font-medium text-slate-700 dark:text-slate-300">
+                          {getTeacherEducationLevel(teacher) ? (
+                            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/50">
+                              {uiText(getTeacherEducationLevel(teacher))}
+                            </span>
+                          ) : (
+                            <span className="text-slate-400 italic text-xs">{uiText("N/A")}</span>
+                          )}
                         </td>
                         <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">{teacher.email}</td>
                         <td className="px-6 py-4">
@@ -1171,6 +1370,13 @@ export const Teachers = () => {
                                 title={isTeacherPromoted(teacher) ? 'Edit promotion' : 'Promote'}
                               >
                                 {(isTeacherPromoted(teacher) ? uiText('Promoted') : uiText('Promote'))}
+                              </button>
+                              <button
+                                onClick={() => setSelectedStaff(teacher)}
+                                className="p-1.5 text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-950/30 rounded-lg transition-colors"
+                                title={uiText("View Registration Details")}
+                              >
+                                <Eye size={16} />
                               </button>
                               <button
                                 onClick={() => openEditModal(teacher)}
@@ -2073,8 +2279,8 @@ export const Teachers = () => {
                   { label: 'Weeks Planned', value: Array.isArray(selectedAnnualPlan.items) ? selectedAnnualPlan.items.length : 40 },
                 ].map(({ label, value }) => (
                   <div key={label}>
-                    <p className="text-[9px] font-black uppercase text-slate-400">{label}</p>
-                    <p className="font-bold text-slate-800 dark:text-white text-sm mt-0.5">{value || '—'}</p>
+                    <p className="text-[9px] font-black uppercase text-slate-400">{uiText(label)}</p>
+                    <p className="font-bold text-slate-800 dark:text-white text-sm mt-0.5">{uiText(String(value || '—'))}</p>
                   </div>
                 ))}
               </div>
@@ -2088,37 +2294,87 @@ export const Teachers = () => {
 
               {/* Yearly Matrix */}
               <div>
-                <h4 className="text-xs font-black uppercase tracking-widest text-slate-500 mb-3 flex items-center gap-2">
-                  <span>📅</span>{uiText(" Yearly Matrix ")}</h4>
+                <h4 className="text-center text-sm md:text-base font-black uppercase tracking-widest text-slate-900 dark:text-white mb-4 py-2 border-b border-slate-200 dark:border-slate-700">
+                  {uiText("ZIQUAL ABO PRIMARY SCHOOL ANNUAL PLAN")}
+                </h4>
                 {Array.isArray(selectedAnnualPlan.items) && selectedAnnualPlan.items.length > 0 ? (
                   <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-700">
-                    <table className="w-full text-left min-w-[1200px] text-xs border-collapse">
+                    <table className="w-full text-left min-w-[2000px] text-xs border-collapse">
                       <thead>
                         <tr className="bg-slate-800 text-white">
-                          {['Month','Week','# Periods','Unit','Main Content','Sub Content','Competence','Method','Aid','Evaluation','Remark'].map(h => (
-                            <th key={h} className="px-3 py-2.5 font-black uppercase tracking-wide whitespace-nowrap border-r border-slate-700 last:border-r-0">{h}</th>
+                          {[
+                            { h: 'Semester', minW: 'min-w-[65px]' },
+                            { h: 'Month', minW: 'min-w-[90px]' },
+                            { h: 'Week', minW: 'min-w-[70px]' },
+                            { h: 'Date', minW: 'min-w-[80px]' },
+                            { h: 'Page reference', minW: 'min-w-[95px]' },
+                            { h: 'Unit', minW: 'min-w-[85px]' },
+                            { h: 'Topic/content', minW: 'min-w-[160px]' },
+                            { h: 'No. of sessions', minW: 'min-w-[80px]' },
+                            { h: 'Minimum learning outcome', minW: 'min-w-[160px]' },
+                            { h: 'Significance of the subject matter', minW: 'min-w-[160px]' },
+                            { h: 'Prior competency (knowledge)', minW: 'min-w-[150px]' },
+                            { h: 'Instructional materials', minW: 'min-w-[140px]' },
+                            { h: 'Teaching methodology', minW: 'min-w-[140px]' },
+                            { h: 'Class room management', minW: 'min-w-[140px]' },
+                            { h: 'Evaluation', minW: 'min-w-[160px]' }
+                          ].map(({ h, minW }) => (
+                            <th key={h} className={`px-3 py-2.5 font-black uppercase tracking-wide whitespace-nowrap border-r border-slate-700 last:border-r-0 text-center ${minW}`}>{uiText(h)}</th>
                           ))}
                         </tr>
                       </thead>
                       <tbody>
                         {selectedAnnualPlan.items.map((item: any, idx: number) => {
-                          const isFirst = item.week === 1 || !selectedAnnualPlan.items.slice(0, idx).some((i: any) => i.month === item.month);
+                          const semesterName = item.semester || (SEMESTER_1_MONTHS.includes(item.month) ? '1st Semester' : '2nd Semester');
+                          const isFirstRowOfSemester = idx === 0 || (
+                            (item.semester || semesterName) !== (selectedAnnualPlan.items[idx - 1]?.semester || (SEMESTER_1_MONTHS.includes(selectedAnnualPlan.items[idx - 1]?.month) ? '1st Semester' : '2nd Semester'))
+                          );
+                          const semesterRows = selectedAnnualPlan.items.filter((i: any) => {
+                            const sem = i.semester || (SEMESTER_1_MONTHS.includes(i.month) ? '1st Semester' : '2nd Semester');
+                            return sem === semesterName;
+                          }).length;
+
+                          const isFirstWeekOfMonth = item.week === 1 || !selectedAnnualPlan.items.slice(0, idx).some((i: any) => i.month === item.month);
                           const monthRows = selectedAnnualPlan.items.filter((i: any) => i.month === item.month).length;
+
                           return (
                             <tr key={idx} className={`border-b border-slate-100 dark:border-slate-700 ${idx % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-slate-50 dark:bg-slate-800/30'}`}>
-                              {isFirst ? (
-                                <td className="px-3 py-2 font-black text-violet-700 dark:text-violet-400 whitespace-nowrap border-r border-slate-200 dark:border-slate-700 bg-violet-50 dark:bg-violet-900/10" rowSpan={monthRows}>{item.month || '—'}</td>
+                              {isFirstRowOfSemester ? (
+                                <td
+                                  rowSpan={semesterRows}
+                                  className="px-3 py-2 font-black text-slate-900 dark:text-white bg-slate-200/80 dark:bg-slate-800 border-r border-slate-300 dark:border-slate-700 text-center whitespace-nowrap align-middle uppercase tracking-widest text-[11px] min-w-[65px] shrink-0"
+                                  style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
+                                >
+                                  {uiText(semesterName)}
+                                </td>
                               ) : null}
-                              <td className="px-3 py-2 text-center font-bold text-slate-500 border-r border-slate-100 dark:border-slate-700 whitespace-nowrap">{uiText("Week ")}{item.week || idx + 1}</td>
-                              <td className="px-3 py-2 text-slate-700 dark:text-slate-300 border-r border-slate-100 dark:border-slate-700">{item.noOfPeriods || item.periods || '—'}</td>
-                              <td className="px-3 py-2 text-slate-700 dark:text-slate-300 border-r border-slate-100 dark:border-slate-700">{item.unit || item.chapter || '—'}</td>
-                              <td className="px-3 py-2 text-slate-700 dark:text-slate-300 border-r border-slate-100 dark:border-slate-700">{item.mainContent || item.topic || item.content || '—'}</td>
-                              <td className="px-3 py-2 text-slate-700 dark:text-slate-300 border-r border-slate-100 dark:border-slate-700">{item.subContent || '—'}</td>
-                              <td className="px-3 py-2 text-slate-700 dark:text-slate-300 border-r border-slate-100 dark:border-slate-700">{item.competence || item.objectives || '—'}</td>
-                              <td className="px-3 py-2 text-slate-700 dark:text-slate-300 border-r border-slate-100 dark:border-slate-700">{item.teachingMethod || item.method || '—'}</td>
-                              <td className="px-3 py-2 text-slate-700 dark:text-slate-300 border-r border-slate-100 dark:border-slate-700">{item.teachingAid || item.aid || '—'}</td>
-                              <td className="px-3 py-2 text-slate-700 dark:text-slate-300 border-r border-slate-100 dark:border-slate-700">{item.evaluation || '—'}</td>
-                              <td className="px-3 py-2 text-slate-700 dark:text-slate-300 border-r border-slate-100 dark:border-slate-700 last:border-r-0">{item.remark || '—'}</td>
+                              {isFirstWeekOfMonth ? (
+                                <td className="px-3 py-2 font-black text-violet-700 dark:text-violet-400 whitespace-nowrap border-r border-slate-200 dark:border-slate-700 bg-violet-50 dark:bg-violet-900/10 text-center align-middle min-w-[90px]" rowSpan={monthRows}>
+                                  {uiText(item.month)}
+                                </td>
+                              ) : null}
+                              <td className="px-3 py-2 text-center font-bold text-slate-500 border-r border-slate-100 dark:border-slate-700 whitespace-nowrap min-w-[70px]">{uiText("Week ")}{uiText(item.week)}</td>
+                              {[
+                                { f: 'date', minW: 'min-w-[80px]' },
+                                { f: 'pageRef', minW: 'min-w-[95px]' },
+                                { f: 'unit', minW: 'min-w-[85px]' },
+                                { f: 'topicContent', minW: 'min-w-[160px]' },
+                                { f: 'noOfSessions', minW: 'min-w-[80px]' },
+                                { f: 'learningOutcome', minW: 'min-w-[160px]' },
+                                { f: 'significanceSubject', minW: 'min-w-[160px]' },
+                                { f: 'priorCompetency', minW: 'min-w-[150px]' },
+                                { f: 'instructionalMaterials', minW: 'min-w-[140px]' },
+                                { f: 'teachingMethodology', minW: 'min-w-[140px]' },
+                                { f: 'classroomManagement', minW: 'min-w-[140px]' },
+                                { f: 'evaluation', minW: 'min-w-[160px]' }
+                              ].map(({ f, minW }) => {
+                                const val = getAnnualItemValue(item, f);
+                                return (
+                                  <td key={f} className={`px-3 py-2 text-slate-700 dark:text-slate-300 border-r border-slate-100 dark:border-slate-700 last:border-r-0 ${minW}`}>
+                                    {val ? uiText(val) : <span className="text-slate-300">—</span>}
+                                  </td>
+                                );
+                              })}
                             </tr>
                           );
                         })}
@@ -2200,37 +2456,54 @@ export const Teachers = () => {
                           content: selectedWeeklyPlan.content || selectedWeeklyPlan.topic || '—',
                           competence: selectedWeeklyPlan.objectives || '—',
                           timeDuration: selectedWeeklyPlan.time_duration || selectedWeeklyPlan.timeDuration || '45 mins',
-                          teacherIntro: selectedWeeklyPlan.teacher_activity || selectedWeeklyPlan.teacherActivity || '—',
-                          teacherPresentation: selectedWeeklyPlan.presentation || 'Core presentation',
-                          teacherSummary: selectedWeeklyPlan.summary || 'Summary',
-                          teacherAssessment: selectedWeeklyPlan.evaluation || '—',
-                          studentActivity: selectedWeeklyPlan.student_activity || selectedWeeklyPlan.studentActivity || '—',
-                          teachingMethod: selectedWeeklyPlan.teaching_method || selectedWeeklyPlan.teachingMethod || selectedWeeklyPlan.method || '—',
-                          teachingAid: selectedWeeklyPlan.teaching_aids || selectedWeeklyPlan.teachingAids || selectedWeeklyPlan.aid || '—',
-                          evaluationRemark: selectedWeeklyPlan.remark || '—'
+                          teacherBefore: selectedWeeklyPlan.teacher_activity || selectedWeeklyPlan.teacherActivity || '—',
+                          teacherDuring: '—',
+                          teacherGeneralization: '—',
+                          teacherEvaluation: selectedWeeklyPlan.evaluation || '—',
+                          studentBefore: '—',
+                          studentDuring: selectedWeeklyPlan.student_activity || selectedWeeklyPlan.studentActivity || '—',
+                          studentGeneralization: '—',
+                          studentEvaluation: '—',
+                          teachingAid: selectedWeeklyPlan.teaching_aids || selectedWeeklyPlan.teachingAids || '—',
+                          evaluation: selectedWeeklyPlan.evaluation || '—',
+                          remark: selectedWeeklyPlan.remark || '—'
                         }));
 
                     const matrix: any[][] = [
-                      ['ZIQUALA ABO 1ST PRIMARY SCHOOL WEEKLY LESSON PLAN FORM'],
-                      [`Teacher Name: ${teacherName}`, `Subject / Lesson Type: ${subject}`, `Grade & Section: ${gradeSection}`, `Status: ${status}`],
-                      [`Chapter / Unit: ${chapterUnit}`, `Topic / Title: ${topicTitle}`, `Date Range: ${dateFrom} to ${dateTo}`, `Periods / Week: ${periodsWeek}`],
+                      ['Ziquala abo pirimary school weekly lesson plan'],
+                      [`Teachers name: ${teacherName}`, `Subject: ${subject}`, `Chapter: ${chapterUnit}`],
+                      [`Grade & Section: ${gradeSection}`, `No of Period: ${periodsWeek}`, `Date: ${dateFrom} to ${dateTo}`, `Topic: ${topicTitle}`],
                       [],
-                      ['Day (ቀን)', 'Content & Outcome (ይዘት እና ብቃት)', 'Time (ጊዜ)', 'Teacher Activity (የመምህሩ ተግባር)', 'Student Activity (የተማሪው)', 'Method (ማስተማሪያ ዘዴ)', 'Aid (መርጃ መሣሪያ)', 'Remark (ምዘና)']
+                      ['Day', 'Contents & competency', 'Time', "Teacher's Activities", 'Students Activities', 'Teaching Aids', 'Evaluation', 'Remark']
                     ];
 
-                    dailyList.forEach((act: any) => {
-                      const teacherActivityStr = `1. Intro: ${act.teacherIntro || act.intro || '—'}\n2. Presentation: ${act.teacherPresentation || act.presentation || '—'}\n3. Summary: ${act.teacherSummary || act.summary || '—'}\n4. Assessment: ${act.teacherAssessment || act.evaluation || '—'}`;
-                      const contentCompetenceStr = `Content: ${act.content || '—'}\nOutcome: ${act.competence || '—'}`;
+                    dailyList.forEach((rawAct: any) => {
+                      const act = {
+                        day: rawAct.day || 'Monday',
+                        content: `Contents: ${rawAct.content || '—'}\nCompetancy (Out put): ${rawAct.competence || '—'}`,
+                        timeDuration: rawAct.timeDuration || rawAct.time_duration || '45 mins',
+                        teacherBefore: rawAct.teacherBefore || rawAct.teacherBeforeLesson || rawAct.teacherIntro || rawAct.teacher_activity || rawAct.teacherActivity || '—',
+                        teacherDuring: rawAct.teacherDuring || rawAct.teacherDuringLesson || rawAct.teacherPresentation || '—',
+                        teacherGeneralization: rawAct.teacherGeneralization || rawAct.teacherSummary || '—',
+                        teacherEvaluation: rawAct.teacherEvaluation || rawAct.teacherAssessment || '—',
+                        studentBefore: rawAct.studentBefore || rawAct.studentBeforeLesson || '—',
+                        studentDuring: rawAct.studentDuring || rawAct.studentDuringLesson || rawAct.studentActivity || rawAct.student_activity || '—',
+                        studentGeneralization: rawAct.studentGeneralization || '—',
+                        studentEvaluation: rawAct.studentEvaluation || '—',
+                        teachingAid: rawAct.teachingAid || rawAct.teachingAids || rawAct.teaching_aids || '—',
+                        evaluation: rawAct.evaluation || '—',
+                        remark: rawAct.remark || rawAct.evaluationRemark || '—'
+                      };
+
                       matrix.push([
-                        act.day || '—',
-                        contentCompetenceStr,
-                        act.timeDuration || '45 mins',
-                        teacherActivityStr,
-                        act.studentActivity || '—',
-                        act.teachingMethod || '—',
-                        act.teachingAid || '—',
-                        act.evaluationRemark || '—'
+                        act.day, act.content, act.timeDuration,
+                        `Before lesson: ${act.teacherBefore}`,
+                        `Before lesson: ${act.studentBefore}`,
+                        act.teachingAid, act.evaluation, act.remark
                       ]);
+                      matrix.push(['', '', '', `During the lesson: ${act.teacherDuring}`, `During the lesson: ${act.studentDuring}`, '', '', '']);
+                      matrix.push(['', '', '', `Generalization: ${act.teacherGeneralization}`, `Generalization: ${act.studentGeneralization}`, '', '', '']);
+                      matrix.push(['', '', '', `Evaluation: ${act.teacherEvaluation}`, `Evaluation: ${act.studentEvaluation}`, '', '', '']);
                     });
 
                     exportToExcel(
@@ -2260,47 +2533,50 @@ export const Teachers = () => {
             </div>
 
             <div className="p-6 space-y-6 max-h-[75vh] overflow-y-auto print:max-h-none print:overflow-visible print:p-2 text-slate-800 dark:text-slate-200">
-              {/* Document Header Table Block */}
-              <div className="border border-slate-300 dark:border-slate-700 rounded-2xl overflow-hidden text-xs">
-                <div className="bg-slate-100 dark:bg-slate-800 p-3 font-black text-slate-800 dark:text-white uppercase tracking-wider text-center border-b border-slate-300 dark:border-slate-700">{uiText(" ZIQUALA ABO 1ST PRIMARY SCHOOL WEEKLY LESSON PLAN FORM ")}</div>
-                <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-y divide-slate-200 dark:divide-slate-700 bg-slate-50/50 dark:bg-slate-900/50">
-                  <div className="p-3">
-                    <span className="text-[9px] font-black uppercase text-slate-400 block">{uiText("Teacher Name")}</span>
-                    <span className="font-bold text-slate-800 dark:text-slate-100">{selectedWeeklyPlan.teacher_name || selectedWeeklyPlan.teacherName || 'Assigned Teacher'}</span>
+              {/* Centered Document Title */}
+              <div className="text-center mb-6">
+                <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight font-serif">{uiText("Ziquala abo pirimary school weekly lesson plan")}</h2>
+              </div>
+
+              {/* Document Header Table Block matching physical paper layout */}
+              <div className="border border-slate-300 dark:border-slate-700 rounded-xl p-4 bg-slate-50/50 dark:bg-slate-900/50 text-xs mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2.5">
+                  {/* Left Column Group */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="font-extrabold uppercase text-slate-700 dark:text-slate-300 w-32 shrink-0">{uiText("Teachers name")}:</span>
+                      <span className="font-bold border-b border-dashed border-slate-400 dark:border-slate-600 flex-1 px-1 py-0.5 text-slate-900 dark:text-slate-100">{selectedWeeklyPlan.teacher_name || selectedWeeklyPlan.teacherName || uiText('Assigned Teacher')}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-extrabold uppercase text-slate-700 dark:text-slate-300 w-32 shrink-0">{uiText("Subject")}:</span>
+                      <span className="font-bold border-b border-dashed border-slate-400 dark:border-slate-600 flex-1 px-1 py-0.5 text-blue-600 dark:text-blue-400">{selectedWeeklyPlan.subject || uiText('—')}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-extrabold uppercase text-slate-700 dark:text-slate-300 w-32 shrink-0">{uiText("Chapter")}:</span>
+                      <span className="font-bold border-b border-dashed border-slate-400 dark:border-slate-600 flex-1 px-1 py-0.5 text-slate-900 dark:text-slate-100">{selectedWeeklyPlan.chapter_unit || selectedWeeklyPlan.chapterUnit || selectedWeeklyPlan.chapter || selectedWeeklyPlan.unit || uiText('—')}</span>
+                    </div>
                   </div>
-                  <div className="p-3">
-                    <span className="text-[9px] font-black uppercase text-slate-400 block">{uiText("Subject / Lesson Type")}</span>
-                    <span className="font-bold text-blue-600 dark:text-blue-400">{selectedWeeklyPlan.subject || '—'}</span>
-                  </div>
-                  <div className="p-3">
-                    <span className="text-[9px] font-black uppercase text-slate-400 block">{uiText("Chapter / Unit")}</span>
-                    <span className="font-bold text-slate-800 dark:text-slate-100">{selectedWeeklyPlan.chapter_unit || selectedWeeklyPlan.chapterUnit || selectedWeeklyPlan.chapter || selectedWeeklyPlan.unit || '—'}</span>
-                  </div>
-                  <div className="p-3">
-                    <span className="text-[9px] font-black uppercase text-slate-400 block">{uiText("Topic / Title")}</span>
-                    <span className="font-bold text-slate-800 dark:text-slate-100">{selectedWeeklyPlan.topic_title || selectedWeeklyPlan.topicTitle || selectedWeeklyPlan.topic || '—'}</span>
-                  </div>
-                  <div className="p-3">
-                    <span className="text-[9px] font-black uppercase text-slate-400 block">{uiText("Grade & Section")}</span>
-                    <span className="font-bold text-slate-800 dark:text-slate-100">{selectedWeeklyPlan.grade_section || selectedWeeklyPlan.gradeSection || selectedWeeklyPlan.grade || '—'}</span>
-                  </div>
-                  <div className="p-3">
-                    <span className="text-[9px] font-black uppercase text-slate-400 block">{uiText("Date Range")}</span>
-                    <span className="font-bold text-slate-800 dark:text-slate-100">
-                      {(selectedWeeklyPlan.date_from || selectedWeeklyPlan.date ? (selectedWeeklyPlan.date_from || new Date(selectedWeeklyPlan.date).toLocaleDateString()) : uiText('—'))}{uiText(" to ")}{(selectedWeeklyPlan.date_to || selectedWeeklyPlan.date ? (selectedWeeklyPlan.date_to || new Date(selectedWeeklyPlan.date).toLocaleDateString()) : uiText('—'))}
-                    </span>
-                  </div>
-                  <div className="p-3">
-                    <span className="text-[9px] font-black uppercase text-slate-400 block">{uiText("Periods / Week")}</span>
-                    <span className="font-bold text-slate-800 dark:text-slate-100">{selectedWeeklyPlan.periods_per_week || selectedWeeklyPlan.periodsPerWeek || selectedWeeklyPlan.periods_week || '—'}</span>
-                  </div>
-                  <div className="p-3">
-                    <span className="text-[9px] font-black uppercase text-slate-400 block">{uiText("Status")}</span>
-                    <span className={`inline-block px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase ${
-                      selectedWeeklyPlan.status === 'Approved' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
-                      selectedWeeklyPlan.status === 'Revision Required' ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' :
-                      'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
-                    }`}>{uiText(selectedWeeklyPlan.status)}</span>
+
+                  {/* Right Column Group */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="font-extrabold uppercase text-slate-700 dark:text-slate-300 w-32 shrink-0">{uiText("Grade & Section")}:</span>
+                      <span className="font-bold border-b border-dashed border-slate-400 dark:border-slate-600 flex-1 px-1 py-0.5 text-slate-900 dark:text-slate-100">{selectedWeeklyPlan.grade_section || selectedWeeklyPlan.gradeSection || selectedWeeklyPlan.grade || uiText('—')}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-extrabold uppercase text-slate-700 dark:text-slate-300 w-32 shrink-0">{uiText("No of Period")}:</span>
+                      <span className="font-bold border-b border-dashed border-slate-400 dark:border-slate-600 flex-1 px-1 py-0.5 text-slate-900 dark:text-slate-100">{selectedWeeklyPlan.periods_per_week || selectedWeeklyPlan.periodsPerWeek || selectedWeeklyPlan.periods_week || uiText('—')}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-extrabold uppercase text-slate-700 dark:text-slate-300 w-32 shrink-0">{uiText("Date")}:</span>
+                      <span className="font-bold border-b border-dashed border-slate-400 dark:border-slate-600 flex-1 px-1 py-0.5 text-slate-900 dark:text-slate-100">
+                        {(selectedWeeklyPlan.date_from || selectedWeeklyPlan.date ? (selectedWeeklyPlan.date_from || new Date(selectedWeeklyPlan.date).toLocaleDateString()) : uiText('—'))}{uiText(" to ")}{(selectedWeeklyPlan.date_to || selectedWeeklyPlan.date ? (selectedWeeklyPlan.date_to || new Date(selectedWeeklyPlan.date).toLocaleDateString()) : uiText('—'))}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-extrabold uppercase text-slate-700 dark:text-slate-300 w-32 shrink-0">{uiText("Topic")}:</span>
+                      <span className="font-bold border-b border-dashed border-slate-400 dark:border-slate-600 flex-1 px-1 py-0.5 text-slate-900 dark:text-slate-100">{selectedWeeklyPlan.topic_title || selectedWeeklyPlan.topicTitle || selectedWeeklyPlan.topic || uiText('—')}</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -2312,21 +2588,21 @@ export const Teachers = () => {
                 </div>
               )}
 
-              {/* 5-Day Matrix Table matching paper layout with 4 sub-rows for Teacher Activity */}
+              {/* 5-Day Matrix Table matching paper layout with 4 sub-rows per day */}
               <div className="space-y-3">
                 <h4 className="text-xs font-black uppercase tracking-widest text-slate-500 print:hidden">{uiText("📅 Daily Lesson Plan Matrix Table")}</h4>
                 <div className="overflow-x-auto rounded-2xl border border-slate-300 dark:border-slate-700">
                   <table className="w-full text-left min-w-[1100px] text-xs border-collapse">
                     <thead>
-                      <tr className="bg-slate-800 text-white border-b border-slate-700">
-                        <th className="px-3 py-2.5 font-black uppercase w-20 border-r border-slate-700 text-center">{uiText("Day (ቀን)")}</th>
-                        <th className="px-3 py-2.5 font-black uppercase w-56 border-r border-slate-700">{uiText("Content & Outcome (ይዘት እና ብቃት)")}</th>
-                        <th className="px-2 py-2.5 font-black uppercase w-20 border-r border-slate-700 text-center">{uiText("Time (ጊዜ)")}</th>
-                        <th className="px-3 py-2.5 font-black uppercase w-60 border-r border-slate-700">{uiText("Teacher Activity (የመምህሩ ተግባር)")}</th>
-                        <th className="px-3 py-2.5 font-black uppercase border-r border-slate-700">{uiText("Student Activity (የተማሪው)")}</th>
-                        <th className="px-3 py-2.5 font-black uppercase border-r border-slate-700">{uiText("Method (ማስተማሪያ ዘዴ)")}</th>
-                        <th className="px-3 py-2.5 font-black uppercase border-r border-slate-700">{uiText("Aid (መርጃ መሣሪያ)")}</th>
-                        <th className="px-3 py-2.5 font-black uppercase">{uiText("Remark (ምዘና)")}</th>
+                      <tr className="bg-slate-800 text-white border-b border-slate-700 font-black uppercase">
+                        <th className="px-3 py-2.5 w-20 border-r border-slate-700 text-center">{uiText("Day")}</th>
+                        <th className="px-3 py-2.5 w-56 border-r border-slate-700">{uiText("Contents & competency")}</th>
+                        <th className="px-2 py-2.5 w-20 border-r border-slate-700 text-center">{uiText("Time")}</th>
+                        <th className="px-3 py-2.5 w-52 border-r border-slate-700">{uiText("Teacher's Activities")}</th>
+                        <th className="px-3 py-2.5 w-52 border-r border-slate-700">{uiText("Students Activities")}</th>
+                        <th className="px-3 py-2.5 w-36 border-r border-slate-700">{uiText("Teaching Aids")}</th>
+                        <th className="px-3 py-2.5 w-36 border-r border-slate-700">{uiText("Evaluation")}</th>
+                        <th className="px-3 py-2.5 w-36">{uiText("Remark")}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-300 dark:divide-slate-700">
@@ -2337,78 +2613,118 @@ export const Teachers = () => {
                             content: selectedWeeklyPlan.content || selectedWeeklyPlan.topic || '—',
                             competence: selectedWeeklyPlan.objectives || '—',
                             timeDuration: selectedWeeklyPlan.time_duration || selectedWeeklyPlan.timeDuration || '45 mins',
-                            teacherIntro: selectedWeeklyPlan.teacher_activity || selectedWeeklyPlan.teacherActivity || '—',
-                            teacherPresentation: selectedWeeklyPlan.presentation || 'Core presentation',
-                            teacherSummary: selectedWeeklyPlan.summary || 'Summary',
-                            teacherAssessment: selectedWeeklyPlan.evaluation || '—',
-                            studentActivity: selectedWeeklyPlan.student_activity || selectedWeeklyPlan.studentActivity || '—',
-                            teachingMethod: selectedWeeklyPlan.teaching_method || selectedWeeklyPlan.teachingMethod || selectedWeeklyPlan.method || '—',
+                            teacherBefore: selectedWeeklyPlan.teacher_activity || selectedWeeklyPlan.teacherActivity || '—',
+                            teacherDuring: '—',
+                            teacherGeneralization: '—',
+                            teacherEvaluation: selectedWeeklyPlan.evaluation || '—',
+                            studentBefore: '—',
+                            studentDuring: selectedWeeklyPlan.student_activity || selectedWeeklyPlan.studentActivity || '—',
+                            studentGeneralization: '—',
+                            studentEvaluation: '—',
                             teachingAid: selectedWeeklyPlan.teaching_aids || selectedWeeklyPlan.teachingAids || selectedWeeklyPlan.aid || '—',
-                            evaluationRemark: selectedWeeklyPlan.remark || '—'
+                            evaluation: selectedWeeklyPlan.evaluation || '—',
+                            remark: selectedWeeklyPlan.remark || '—'
                           }))
-                      ).map((act: any, idx: number) => (
-                        <Fragment key={idx}>
-                          {/* Sub-row 1: Introduction */}
-                          <tr className="bg-white dark:bg-slate-900 border-t-2 border-slate-300 dark:border-slate-700">
-                            <td rowSpan={4} className="px-3 py-3 font-black text-center text-blue-800 dark:text-blue-400 border-r border-slate-300 dark:border-slate-700 align-middle bg-slate-50/80 dark:bg-slate-800/40">
-                              <span className="text-sm">{uiText(act.day)}</span>
-                            </td>
-                            <td rowSpan={4} className="px-3 py-3 border-r border-slate-300 dark:border-slate-700 align-top space-y-2 max-w-[200px]">
-                              <div>
-                                <span className="text-[9px] font-black uppercase text-slate-400 block border-b border-slate-200 dark:border-slate-800 pb-0.5 mb-1">{uiText("Content (ይዘት)")}</span>
-                                <p className="font-semibold text-slate-900 dark:text-slate-100 whitespace-pre-wrap">{act.content || '—'}</p>
-                              </div>
-                              <div className="pt-2 border-t border-slate-200 dark:border-slate-800">
-                                <span className="text-[9px] font-black uppercase text-slate-400 block border-b border-slate-200 dark:border-slate-800 pb-0.5 mb-1">{uiText("Expected Outcome / Competence (ብቃት)")}</span>
-                                <p className="font-medium text-slate-600 dark:text-slate-400 whitespace-pre-wrap">{act.competence || '—'}</p>
-                              </div>
-                            </td>
-                            <td rowSpan={4} className="px-2 py-3 font-bold text-center text-slate-600 dark:text-slate-400 border-r border-slate-300 dark:border-slate-700 align-middle whitespace-nowrap">
-                              {act.timeDuration || '45 mins'}
-                            </td>
-                            <td className="px-3 py-2 border-r border-b border-slate-200 dark:border-slate-800 bg-blue-50/30 dark:bg-blue-950/20">
-                              <span className="text-[9px] font-black uppercase text-blue-700 dark:text-blue-400 block">{uiText("1. Intro (መግቢያ)")}</span>
-                              <p className="text-slate-800 dark:text-slate-200 font-medium mt-0.5">{act.teacherIntro || '—'}</p>
-                            </td>
-                            <td rowSpan={4} className="px-3 py-3 border-r border-slate-300 dark:border-slate-700 align-top text-slate-800 dark:text-slate-200 whitespace-pre-wrap max-w-[160px]">
-                              {act.studentActivity || '—'}
-                            </td>
-                            <td rowSpan={4} className="px-3 py-3 border-r border-slate-300 dark:border-slate-700 align-top text-slate-800 dark:text-slate-200 whitespace-pre-wrap max-w-[140px]">
-                              {act.teachingMethod || '—'}
-                            </td>
-                            <td rowSpan={4} className="px-3 py-3 border-r border-slate-300 dark:border-slate-700 align-top text-slate-800 dark:text-slate-200 whitespace-pre-wrap max-w-[140px]">
-                              {act.teachingAid || '—'}
-                            </td>
-                            <td rowSpan={4} className="px-3 py-3 align-top text-slate-800 dark:text-slate-200 whitespace-pre-wrap max-w-[140px]">
-                              {act.evaluationRemark || '—'}
-                            </td>
-                          </tr>
+                      ).map((rawAct: any, idx: number) => {
+                        const act = {
+                          day: rawAct.day || 'Monday',
+                          content: rawAct.content || rawAct.topic || '',
+                          competence: rawAct.competence || rawAct.objectives || '',
+                          timeDuration: rawAct.timeDuration || rawAct.time_duration || '45 mins',
+                          teacherBefore: rawAct.teacherBefore || rawAct.teacherBeforeLesson || rawAct.teacherIntro || rawAct.teacher_activity || rawAct.teacherActivity || '',
+                          teacherDuring: rawAct.teacherDuring || rawAct.teacherDuringLesson || rawAct.teacherPresentation || '',
+                          teacherGeneralization: rawAct.teacherGeneralization || rawAct.teacherSummary || '',
+                          teacherEvaluation: rawAct.teacherEvaluation || rawAct.teacherAssessment || '',
+                          studentBefore: rawAct.studentBefore || rawAct.studentBeforeLesson || '',
+                          studentDuring: rawAct.studentDuring || rawAct.studentDuringLesson || rawAct.studentActivity || rawAct.student_activity || '',
+                          studentGeneralization: rawAct.studentGeneralization || '',
+                          studentEvaluation: rawAct.studentEvaluation || '',
+                          teachingAid: rawAct.teachingAid || rawAct.teachingAids || rawAct.teaching_aids || '',
+                          evaluation: rawAct.evaluation || '',
+                          remark: rawAct.remark || rawAct.evaluationRemark || ''
+                        };
 
-                          {/* Sub-row 2: Lesson Presentation */}
-                          <tr className="bg-white dark:bg-slate-900">
-                            <td className="px-3 py-2 border-r border-b border-slate-200 dark:border-slate-800 bg-indigo-50/30 dark:bg-indigo-950/20">
-                              <span className="text-[9px] font-black uppercase text-indigo-700 dark:text-indigo-400 block">{uiText("2. Presentation (አቀራረብ)")}</span>
-                              <p className="text-slate-800 dark:text-slate-200 font-medium mt-0.5">{act.teacherPresentation || '—'}</p>
-                            </td>
-                          </tr>
+                        return (
+                          <Fragment key={idx}>
+                            {/* Sub-row 1: Before lesson */}
+                            <tr className="bg-white dark:bg-slate-900 border-t-2 border-slate-300 dark:border-slate-700">
+                              <td rowSpan={4} className="px-3 py-3 font-black text-center text-blue-800 dark:text-blue-400 border-r border-slate-300 dark:border-slate-700 align-middle bg-slate-50/80 dark:bg-slate-800/40 uppercase">
+                                <span className="text-xs tracking-wider">{uiText(act.day)}</span>
+                              </td>
+                              <td rowSpan={4} className="px-3 py-3 border-r border-slate-300 dark:border-slate-700 align-top space-y-3 max-w-[200px]">
+                                <div>
+                                  <span className="text-[9px] font-black uppercase text-slate-400 block border-b border-slate-200 dark:border-slate-800 pb-0.5 mb-1">{uiText("Contents")}</span>
+                                  <p className="font-semibold text-slate-900 dark:text-slate-100 whitespace-pre-wrap">{act.content || uiText('—')}</p>
+                                </div>
+                                <div className="pt-2 border-t border-slate-200 dark:border-slate-800">
+                                  <span className="text-[9px] font-black uppercase text-slate-400 block border-b border-slate-200 dark:border-slate-800 pb-0.5 mb-1">{uiText("Competancy (Out put)")}</span>
+                                  <p className="font-medium text-slate-600 dark:text-slate-400 whitespace-pre-wrap">{uiText(act.competence || '—')}</p>
+                                </div>
+                              </td>
+                              <td rowSpan={4} className="px-2 py-3 font-bold text-center text-slate-600 dark:text-slate-400 border-r border-slate-300 dark:border-slate-700 align-middle whitespace-nowrap">
+                                {uiText(act.timeDuration || '45 mins')}
+                              </td>
 
-                          {/* Sub-row 3: Summary */}
-                          <tr className="bg-white dark:bg-slate-900">
-                            <td className="px-3 py-2 border-r border-b border-slate-200 dark:border-slate-800 bg-violet-50/30 dark:bg-violet-950/20">
-                              <span className="text-[9px] font-black uppercase text-violet-700 dark:text-violet-400 block">{uiText("3. Summary (ማጠቃለያ)")}</span>
-                              <p className="text-slate-800 dark:text-slate-200 font-medium mt-0.5">{act.teacherSummary || '—'}</p>
-                            </td>
-                          </tr>
+                              {/* Teacher Before lesson */}
+                              <td className="px-3 py-2 border-r border-b border-slate-200 dark:border-slate-800 bg-blue-50/30 dark:bg-blue-950/20">
+                                <span className="text-[9px] font-black uppercase text-blue-700 dark:text-blue-400 block">{uiText("Before lesson")}</span>
+                                <p className="text-slate-800 dark:text-slate-200 font-medium mt-0.5">{uiText(act.teacherBefore || '—')}</p>
+                              </td>
+                              {/* Student Before lesson */}
+                              <td className="px-3 py-2 border-r border-b border-slate-200 dark:border-slate-800 bg-blue-50/20 dark:bg-blue-950/10">
+                                <span className="text-[9px] font-black uppercase text-blue-700 dark:text-blue-400 block">{uiText("Before lesson")}</span>
+                                <p className="text-slate-800 dark:text-slate-200 font-medium mt-0.5">{uiText(act.studentBefore || '—')}</p>
+                              </td>
 
-                          {/* Sub-row 4: Assessment */}
-                          <tr className="bg-white dark:bg-slate-900">
-                            <td className="px-3 py-2 border-r border-slate-200 dark:border-slate-800 bg-amber-50/30 dark:bg-amber-950/20">
-                              <span className="text-[9px] font-black uppercase text-amber-700 dark:text-amber-400 block">{uiText("4. Assessment (ምዘና)")}</span>
-                              <p className="text-slate-800 dark:text-slate-200 font-medium mt-0.5">{act.teacherAssessment || '—'}</p>
-                            </td>
-                          </tr>
-                        </Fragment>
-                      ))}
+                              <td rowSpan={4} className="px-3 py-3 border-r border-slate-300 dark:border-slate-700 align-top text-slate-800 dark:text-slate-200 whitespace-pre-wrap max-w-[140px]">
+                                {uiText(act.teachingAid || '—')}
+                              </td>
+                              <td rowSpan={4} className="px-3 py-3 border-r border-slate-300 dark:border-slate-700 align-top text-slate-800 dark:text-slate-200 whitespace-pre-wrap max-w-[140px]">
+                                {uiText(act.evaluation || '—')}
+                              </td>
+                              <td rowSpan={4} className="px-3 py-3 align-top text-slate-800 dark:text-slate-200 whitespace-pre-wrap max-w-[140px]">
+                                {uiText(act.remark || '—')}
+                              </td>
+                            </tr>
+
+                            {/* Sub-row 2: During the lesson */}
+                            <tr className="bg-white dark:bg-slate-900">
+                              <td className="px-3 py-2 border-r border-b border-slate-200 dark:border-slate-800 bg-indigo-50/30 dark:bg-indigo-950/20">
+                                <span className="text-[9px] font-black uppercase text-indigo-700 dark:text-indigo-400 block">{uiText("During the lesson")}</span>
+                                <p className="text-slate-800 dark:text-slate-200 font-medium mt-0.5">{uiText(act.teacherDuring || '—')}</p>
+                              </td>
+                              <td className="px-3 py-2 border-r border-b border-slate-200 dark:border-slate-800 bg-indigo-50/20 dark:bg-indigo-950/10">
+                                <span className="text-[9px] font-black uppercase text-indigo-700 dark:text-indigo-400 block">{uiText("During the lesson")}</span>
+                                <p className="text-slate-800 dark:text-slate-200 font-medium mt-0.5">{uiText(act.studentDuring || '—')}</p>
+                              </td>
+                            </tr>
+
+                            {/* Sub-row 3: Generalization */}
+                            <tr className="bg-white dark:bg-slate-900">
+                              <td className="px-3 py-2 border-r border-b border-slate-200 dark:border-slate-800 bg-violet-50/30 dark:bg-violet-950/20">
+                                <span className="text-[9px] font-black uppercase text-violet-700 dark:text-violet-400 block">{uiText("Generalization")}</span>
+                                <p className="text-slate-800 dark:text-slate-200 font-medium mt-0.5">{uiText(act.teacherGeneralization || '—')}</p>
+                              </td>
+                              <td className="px-3 py-2 border-r border-b border-slate-200 dark:border-slate-800 bg-violet-50/20 dark:bg-violet-950/10">
+                                <span className="text-[9px] font-black uppercase text-violet-700 dark:text-violet-400 block">{uiText("Generalization")}</span>
+                                <p className="text-slate-800 dark:text-slate-200 font-medium mt-0.5">{uiText(act.studentGeneralization || '—')}</p>
+                              </td>
+                            </tr>
+
+                            {/* Sub-row 4: Evaluation */}
+                            <tr className="bg-white dark:bg-slate-900">
+                              <td className="px-3 py-2 border-r border-slate-200 dark:border-slate-800 bg-amber-50/30 dark:bg-amber-950/20">
+                                <span className="text-[9px] font-black uppercase text-amber-700 dark:text-amber-400 block">{uiText("Evaluation")}</span>
+                                <p className="text-slate-800 dark:text-slate-200 font-medium mt-0.5">{uiText(act.teacherEvaluation || '—')}</p>
+                              </td>
+                              <td className="px-3 py-2 border-r border-slate-200 dark:border-slate-800 bg-amber-50/20 dark:bg-amber-950/10">
+                                <span className="text-[9px] font-black uppercase text-amber-700 dark:text-amber-400 block">{uiText("Evaluation")}</span>
+                                <p className="text-slate-800 dark:text-slate-200 font-medium mt-0.5">{uiText(act.studentEvaluation || '—')}</p>
+                              </td>
+                            </tr>
+                          </Fragment>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
@@ -2902,18 +3218,27 @@ export const Teachers = () => {
                       ? allCoursesWithGrade.filter(c => selectedGradeSet.has(normalizeGrade(c.grade_level)))
                       : allCoursesWithGrade;
 
-                    const courseNamesFromCourses = Array.from(new Set(matchingCourses.map(c => c.name))).sort();
-                    const courseNamesFromSubjects = Array.from(new Set(allSubjects.map((s: any) => s.name))).sort();
+                    const courseNamesFromCourses = Array.from(
+                      new Map(matchingCourses.map(c => {
+                        const raw = (c.name || '').trim();
+                        const formatted = raw.replace(/\w\S*/g, (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+                        return [formatted.toLowerCase(), formatted];
+                      })).values()
+                    ).sort();
 
-                    const combinedOptions = Array.from(new Set([
-                      ...courseNamesFromCourses,
-                      ...courseNamesFromSubjects
-                    ])).sort();
+                    // Only use schedule-builder courses — no merge with the subjects table
+                    const combinedOptions = courseNamesFromCourses;
 
                     const handleAddCustomSubject = () => {
                       if (!customSubjectInput.trim()) return;
-                      const newSub = customSubjectInput.trim();
+                      // Normalize to Title Case to match how courses are stored
+                      const newSub = customSubjectInput.trim().replace(/\w\S*/g, (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
                       setPromotionForm(prev => {
+                        // Case-insensitive duplicate check before adding
+                        const alreadyExists = (prev.hodSubjects || []).some(
+                          s => s.toLowerCase() === newSub.toLowerCase()
+                        );
+                        if (alreadyExists) return prev;
                         const next = new Set(prev.hodSubjects || []);
                         next.add(newSub);
                         return { ...prev, hodSubjects: Array.from(next) };
@@ -3365,6 +3690,7 @@ export const Teachers = () => {
                   required
                   value={editFormData.name}
                   onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                  onBlur={(e) => { const c = e.target.value.trim().split(/\s+/).filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' '); setEditFormData({ ...editFormData, name: c }); }}
                   className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>

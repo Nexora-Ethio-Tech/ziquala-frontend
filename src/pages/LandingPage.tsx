@@ -553,6 +553,7 @@ const staffGroups: Array<{ id: SchoolStaffGroup; label: string; shortLabel: stri
   { id: 'office', label: 'Office & management', shortLabel: 'Office' },
   { id: 'primary', label: 'Grade 1–8 teachers', shortLabel: 'Grade 1–8' },
   { id: 'kindergarten', label: 'Kindergarten team', shortLabel: 'Kindergarten' },
+  { id: 'cleaning', label: 'Cleaning & Security', shortLabel: 'Cleaning & Security' },
 ];
 
 const StaffGallery = () => {
@@ -561,25 +562,82 @@ const StaffGallery = () => {
 
   useEffect(() => {
     let mounted = true;
-    websiteContentService.getPublic('team')
-      .then((items) => {
-        if (mounted) setLiveTeam(items);
-      })
-      .catch(() => {
-        if (mounted) setLiveTeam([]);
-      });
+    const fetchTeam = () => {
+      websiteContentService.getPublic('team')
+        .then((items) => {
+          if (mounted) setLiveTeam(items);
+        })
+        .catch(() => {
+          if (mounted) setLiveTeam([]);
+        });
+    };
+
+    fetchTeam();
+
+    const handleFocus = () => fetchTeam();
+    window.addEventListener('focus', handleFocus);
+    window.addEventListener('visibilitychange', handleFocus);
+
     return () => {
       mounted = false;
+      window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('visibilitychange', handleFocus);
     };
   }, []);
 
-  const liveGroups = Array.from(new Set(liveTeam.map((member) => member.category).filter(Boolean)));
-  const availableGroups = liveGroups.length > 0
-    ? liveGroups.map((group) => ({ id: group, label: group, shortLabel: group }))
-    : staffGroups;
-  const activeLiveGroup = liveGroups.includes(activeGroup) ? activeGroup : liveGroups[0];
-  const visibleLiveStaff = liveTeam.filter((member) => !activeLiveGroup || member.category === activeLiveGroup);
-  const visibleStaff = liveTeam.length > 0 ? [] : schoolStaff.filter((member) => member.group === activeGroup);
+  const groupLabelMap: Record<string, string> = {
+    office: 'Office & management',
+    primary: 'Grade 1–8 teachers',
+    kindergarten: 'Kindergarten team',
+    cleaning: 'Cleaning & Security',
+  };
+
+  const categoryToGroup: Record<string, string> = {
+    'Office & management': 'office',
+    'Grade 1–8 teachers': 'primary',
+    'Kindergarten team': 'kindergarten',
+    'Cleaning & Security': 'cleaning',
+  };
+
+  const fallbackForActive = schoolStaff.filter((m) => m.group === activeGroup);
+  const fallbackTitles = new Set(fallbackForActive.map((m) => m.name.trim().toLowerCase()));
+
+  const activeCategoryLabel = groupLabelMap[activeGroup] || 'Office & management';
+  const liveForActive = liveTeam.filter((m) => {
+    const cat = m.category || 'Office & management';
+    return cat === activeCategoryLabel || categoryToGroup[cat] === activeGroup;
+  });
+
+  const newLiveItems = liveForActive.filter((m) => !fallbackTitles.has(m.title.trim().toLowerCase()));
+  const overriddenLiveMap = new Map(
+    liveForActive
+      .filter((m) => fallbackTitles.has(m.title.trim().toLowerCase()))
+      .map((m) => [m.title.trim().toLowerCase(), m])
+  );
+
+  const initialItems = fallbackForActive.map((m, idx) => {
+    const key = m.name.trim().toLowerCase();
+    const dbOverride = overriddenLiveMap.get(key);
+    return {
+      id: dbOverride ? dbOverride.id : `fallback-${idx}-${m.name}`,
+      name: dbOverride ? dbOverride.title : m.name,
+      role: dbOverride ? (dbOverride.subtitle || dbOverride.category) : m.role,
+      image: dbOverride && dbOverride.image_url ? dbOverride.image_url : m.image,
+      body: dbOverride ? dbOverride.body : '',
+      display_order: dbOverride ? Number(dbOverride.display_order) : (idx + 1),
+    };
+  });
+
+  const newlyAddedItems = newLiveItems.map((m, idx) => ({
+    id: m.id,
+    name: m.title,
+    role: m.subtitle || m.category,
+    image: m.image_url,
+    body: m.body,
+    display_order: Number(m.display_order) || (initialItems.length + idx + 1),
+  }));
+
+  const visibleStaff = [...initialItems, ...newlyAddedItems].sort((a, b) => a.display_order - b.display_order);
 
   return (
     <section id="school-staff" className="scroll-mt-24 overflow-hidden bg-[#ebe4d5] py-20 dark:bg-slate-950 md:py-28">
@@ -587,14 +645,14 @@ const StaffGallery = () => {
         <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
           <SectionTitle eyebrow={uiText("Our people")} copy={uiText("School management, primary teachers, and kindergarten staff are kept separate from the four-member school board.")}>{uiText("Meet the school team")}</SectionTitle>
           <div className="-mx-1 flex max-w-full gap-2 overflow-x-auto px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" role="tablist" aria-label={uiText("Staff groups")}>
-            {availableGroups.map((group) => (
+            {staffGroups.map((group) => (
               <button
                 key={group.id}
                 type="button"
                 role="tab"
-                aria-selected={(liveTeam.length > 0 ? activeLiveGroup : activeGroup) === group.id}
+                aria-selected={activeGroup === group.id}
                 onClick={() => setActiveGroup(group.id)}
-                className={`shrink-0 border px-4 py-3 text-xs font-black transition-colors sm:px-5 ${(liveTeam.length > 0 ? activeLiveGroup : activeGroup) === group.id
+                className={`shrink-0 border px-4 py-3 text-xs font-black transition-colors sm:px-5 ${activeGroup === group.id
                   ? 'border-emerald-900 bg-emerald-900 text-white dark:border-amber-400 dark:bg-amber-400 dark:text-slate-950'
                   : 'border-emerald-950/20 text-emerald-950 hover:border-emerald-800 dark:border-white/20 dark:text-white dark:hover:border-amber-300'
                   }`}
@@ -607,7 +665,7 @@ const StaffGallery = () => {
         </div>
 
         <div className="mt-4 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-7 [scrollbar-color:#a16207_transparent] sm:gap-5" role="tabpanel" aria-live="polite">
-          {visibleLiveStaff.map((member, index) => (
+          {visibleStaff.map((member, index) => (
             <motion.article
               key={member.id}
               initial={{ opacity: 0, y: 30, scale: 0.96 }}
@@ -617,40 +675,22 @@ const StaffGallery = () => {
               className="w-[74vw] max-w-[17rem] shrink-0 snap-start sm:w-[17rem]"
             >
               <div className="aspect-[4/5] overflow-hidden bg-stone-300 dark:bg-slate-800">
-                {member.image_url ? (
-                  <img src={member.image_url} alt={uiText("{{value0}}, {{value1}}", { value0: member.title, value1: member.subtitle })} loading="lazy" decoding="async" className="h-full w-full object-cover object-top transition duration-500 hover:scale-[1.025]" />
+                {member.image ? (
+                  <img src={member.image} alt={uiText("{{value0}}, {{value1}}", { value0: member.name, value1: uiText(member.role) })} loading="lazy" decoding="async" className="h-full w-full object-cover object-top transition duration-500 hover:scale-[1.025]" />
                 ) : (
                   <div className="grid h-full place-items-center bg-emerald-950 text-white"><Users size={42} /></div>
                 )}
               </div>
               <div className="border-t-4 border-amber-500 bg-white px-4 py-5 dark:bg-slate-900">
-                <h3 className="text-base font-black leading-6 text-emerald-950 dark:text-white">{uiText(member.title)}</h3>
-                <p className="mt-2 text-xs font-bold leading-5 text-slate-500 dark:text-slate-400">{uiText(member.subtitle || member.category)}</p>
-                {member.body && <p className="mt-3 line-clamp-3 text-xs leading-5 text-slate-500 dark:text-slate-400">{uiText(member.body)}</p>}
-              </div>
-            </motion.article>
-          ))}
-          {visibleStaff.map((member, index) => (
-            <motion.article
-              key={`${member.group}-${member.image}`}
-              initial={{ opacity: 0, y: 30, scale: 0.96 }}
-              whileInView={{ opacity: 1, y: 0, scale: 1 }}
-              viewport={{ once: false, amount: 0.2 }}
-              transition={{ duration: 0.45, delay: Math.min(index * 0.04, 0.2) }}
-              className="w-[74vw] max-w-[17rem] shrink-0 snap-start sm:w-[17rem]"
-            >
-              <div className="aspect-[4/5] overflow-hidden bg-stone-300 dark:bg-slate-800">
-                <img src={member.image} alt={uiText("{{value0}}, {{value1}}", { value0: member.name, value1: uiText(member.role) })} loading="lazy" decoding="async" className="h-full w-full object-cover object-top transition duration-500 hover:scale-[1.025]" />
-              </div>
-              <div className="border-t-4 border-amber-500 bg-white px-4 py-5 dark:bg-slate-900">
                 <h3 className="text-base font-black leading-6 text-emerald-950 dark:text-white">{member.name}</h3>
                 <p className="mt-2 text-xs font-bold leading-5 text-slate-500 dark:text-slate-400">{uiText(member.role)}</p>
+                {member.body && <p className="mt-3 line-clamp-3 text-xs leading-5 text-slate-500 dark:text-slate-400">{uiText(member.body)}</p>}
               </div>
             </motion.article>
           ))}
           <div className="w-1 shrink-0" aria-hidden="true" />
         </div>
-        <p className="mt-2 text-xs font-bold uppercase tracking-[0.18em] text-emerald-900/55 dark:text-white/45">{uiText("Swipe or scroll to meet the full team · ")}{(liveTeam.length > 0 ? visibleLiveStaff : visibleStaff).length}{uiText(" people")}</p>
+        <p className="mt-2 text-xs font-bold uppercase tracking-[0.18em] text-emerald-900/55 dark:text-white/45">{uiText("Swipe or scroll to meet the full team · ")}{visibleStaff.length}{uiText(" people")}</p>
       </div>
     </section>
   );
@@ -678,7 +718,9 @@ const PublicCommunityHighlights = ({ compact = false }: { compact?: boolean }) =
     { id: 'student-life', title: 'Learning, achievement, and community', subtitle: 'School updates', body: 'Verified school announcements and student-facing updates will remain separate from monastery media.', image_url: schoolBuilding, category: 'Student life', event_date: null },
     { id: 'community', title: 'Clubs, service, and extracurricular life', subtitle: 'Activities', body: 'Published activities can show sports, clubs, service days, ceremonies, and wider community events.', image_url: studentAssembly, category: 'Activities', event_date: null },
   ];
-  const cards = items.length > 0 ? items : fallback;
+  const existingTitles = new Set(items.map((i) => i.title.trim().toLowerCase()));
+  const missingFallback = fallback.filter((f) => !existingTitles.has(f.title.trim().toLowerCase()));
+  const cards = [...items, ...missingFallback];
 
   return (
     <section id="school-community" className={`scroll-mt-24 ${compact ? '' : 'bg-white py-20 dark:bg-slate-900/50 md:py-28'}`}>

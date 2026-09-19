@@ -72,6 +72,229 @@ const matchGrade = (hodGrades: any[], courseGrade: any): boolean => {
   });
 };
 
+export const getAnnualItemValue = (item: any, key: string): string => {
+  if (!item) return '';
+  if (key === 'date') return item.date || item.weekDate || '';
+  if (key === 'pageRef') return item.pageRef || item.pageReference || '';
+  if (key === 'topicContent') return item.topicContent || item.topic_content || item.mainContent || (item.subContent ? `${item.mainContent || ''} ${item.subContent}` : '');
+  if (key === 'noOfSessions') return item.noOfSessions || item.no_of_sessions || item.noOfPeriods || '';
+  if (key === 'learningOutcome') return item.learningOutcome || item.learning_outcome || item.competence || '';
+  if (key === 'significanceSubject') return item.significanceSubject || item.significance_subject || '';
+  if (key === 'priorCompetency') return item.priorCompetency || item.prior_competency || '';
+  if (key === 'instructionalMaterials') return item.instructionalMaterials || item.instructional_materials || item.teachingAid || '';
+  if (key === 'teachingMethodology') return item.teachingMethodology || item.teaching_methodology || item.teachingMethod || '';
+  if (key === 'classroomManagement') return item.classroomManagement || item.classroom_management || '';
+  if (key === 'evaluation') return item.evaluation || item.remark || '';
+  return item[key] != null ? String(item[key]) : '';
+};
+
+const SEMESTER_1_MONTHS = ['September','October','November','December','January'];
+const SEMESTER_2_MONTHS = ['February','March','April','May','June'];
+
+const defaultAnnualItems = () => [
+  ...SEMESTER_1_MONTHS.flatMap(month =>
+    [1,2,3,4,5].map(week => ({
+      semester: '1st Semester',
+      month, week,
+      date: '', pageRef: '', unit: '', topicContent: '',
+      noOfSessions: '', learningOutcome: '', significanceSubject: '',
+      priorCompetency: '', instructionalMaterials: '', teachingMethodology: '',
+      classroomManagement: '', evaluation: ''
+    }))
+  ),
+  ...SEMESTER_2_MONTHS.flatMap(month =>
+    [1,2,3,4,5].map(week => ({
+      semester: '2nd Semester',
+      month, week,
+      date: '', pageRef: '', unit: '', topicContent: '',
+      noOfSessions: '', learningOutcome: '', significanceSubject: '',
+      priorCompetency: '', instructionalMaterials: '', teachingMethodology: '',
+      classroomManagement: '', evaluation: ''
+    }))
+  )
+];
+
+export const TEACHER_ACTIVITIES_OPTIONS = [
+  "Direct instruction",
+  "Modeling and demonstrating",
+  "Guiding discussions",
+  "Monitoring student engagement",
+  "Enforcing classroom rules",
+  "Addressing distractions",
+  "Formative checking for understanding",
+  "Providing immediate feedback",
+  "Tracking individual participation",
+  "Recalling the previous lesson",
+  "Questioning and answering",
+  "Others"
+];
+
+export const STUDENT_ACTIVITIES_OPTIONS = [
+  "Active listening and note taking",
+  "Observing demonstrations",
+  "Asking and answering questions",
+  "Small group projects",
+  "Peer-review and feedback",
+  "Role-playing and simulations",
+  "Conducting laboratory experiments",
+  "Class debates and seminars",
+  "Creative writing and drafting",
+  "Silent reading",
+  "Doing exercises",
+  "Others"
+];
+
+export const EVALUATION_OPTIONS = [
+  "Classwork",
+  "Quizzes",
+  "Test",
+  "Homework",
+  "Brainstorming questions",
+  "Peer and self assessment",
+  "Systematic observation",
+  "Oral questions",
+  "Role-playing and simulations",
+  "Project work",
+  "Presentation",
+  "Others"
+];
+
+export const TEACHING_AIDS_OPTIONS = [
+  "Blackboard",
+  "Whiteboard",
+  "Textbooks",
+  "Reference books",
+  "Tables",
+  "Diagrams",
+  "Maps",
+  "Radio programs",
+  "Songs",
+  "Educational videos",
+  "3D geometric shapes",
+  "Real-world objects",
+  "Computers",
+  "Charts",
+  "Others"
+];
+
+const MultiSelectOrCustomInput: React.FC<{
+  value: string;
+  onChange: (val: string) => void;
+  options: string[];
+  placeholder?: string;
+  selectClassName?: string;
+}> = ({ value, onChange, options, placeholder = "Type custom piece of mind...", selectClassName }) => {
+  const [showCustomInput, setShowCustomInput] = useState(false);
+  const [customText, setCustomText] = useState("");
+
+  const items = (value || '')
+    .split('\n')
+    .map(s => s.trim())
+    .filter(Boolean);
+
+  const addItem = (item: string) => {
+    const trimmed = item.trim();
+    if (!trimmed) return;
+    if (!items.includes(trimmed)) {
+      const nextItems = [...items, trimmed];
+      onChange(nextItems.join('\n'));
+    }
+  };
+
+  const removeItem = (indexToRemove: number) => {
+    const nextItems = items.filter((_, idx) => idx !== indexToRemove);
+    onChange(nextItems.join('\n'));
+  };
+
+  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selected = e.target.value;
+    if (!selected) return;
+    if (selected === "Others") {
+      setShowCustomInput(true);
+    } else {
+      addItem(selected);
+      setShowCustomInput(false);
+    }
+    e.target.value = "";
+  };
+
+  const handleAddCustom = () => {
+    if (customText.trim()) {
+      addItem(customText.trim());
+      setCustomText("");
+      setShowCustomInput(false);
+    }
+  };
+
+  return (
+    <div className="space-y-1.5 w-full">
+      {items.length > 0 && (
+        <div className="flex flex-col gap-1 bg-slate-100 dark:bg-slate-900/90 p-1.5 rounded-xl border border-slate-200 dark:border-slate-800">
+          {items.map((item, idx) => (
+            <div
+              key={idx}
+              className="flex items-start justify-between gap-1.5 px-2 py-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-[11px] font-semibold text-slate-800 dark:text-slate-100 shadow-2xs"
+            >
+              <span className="flex-1 break-words leading-tight">• {uiText(item)}</span>
+              <button
+                type="button"
+                onClick={() => removeItem(idx)}
+                className="text-slate-400 hover:text-red-500 transition-colors shrink-0 mt-0.5"
+                title={uiText("Remove item")}
+              >
+                <X size={12} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <select
+        value=""
+        onChange={handleSelectChange}
+        className={selectClassName || "w-full p-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-white cursor-pointer"}
+      >
+        <option value="">{items.length > 0 ? uiText("+ Add another option...") : uiText("-- Select option from dropdown --")}</option>
+        {options.map((opt) => (
+          <option key={opt} value={opt} disabled={items.includes(opt)}>
+            {items.includes(opt) ? `✓ ${uiText(opt)}` : uiText(opt)}
+          </option>
+        ))}
+      </select>
+
+      {showCustomInput && (
+        <div className="p-2 bg-amber-50 dark:bg-slate-900 border border-amber-300 dark:border-amber-700/60 rounded-xl space-y-2">
+          <textarea
+            rows={2}
+            placeholder={uiText(placeholder)}
+            value={customText}
+            onChange={(e) => setCustomText(e.target.value)}
+            className="w-full p-2 bg-white dark:bg-slate-800 border border-amber-200 dark:border-slate-700 rounded-lg text-xs outline-none focus:ring-2 focus:ring-amber-500 text-slate-800 dark:text-white font-medium resize-none"
+            autoFocus
+          />
+          <div className="flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => { setShowCustomInput(false); setCustomText(""); }}
+              className="px-2.5 py-1 text-[10px] font-bold text-slate-500 hover:text-slate-700 dark:text-slate-400"
+            >
+              {uiText("Cancel")}
+            </button>
+            <button
+              type="button"
+              onClick={handleAddCustom}
+              disabled={!customText.trim()}
+              className="px-3 py-1 bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white font-bold text-[10px] rounded-lg transition-all"
+            >
+              {uiText("+ Add Custom Piece of Mind")}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 export const TeacherPortal = () => {
   const { t } = useTranslation();
   const { user } = useUser();
@@ -167,24 +390,18 @@ export const TeacherPortal = () => {
   const [annualReviewFeedback, setAnnualReviewFeedback] = useState('');
   const [selectedAnnualForView, setSelectedAnnualForView] = useState<any | null>(null);
 
-  const MONTHS = ['September','October','November','December','January','February','March','April','May','June'];
-  const defaultAnnualItems = () => MONTHS.flatMap(month =>
-    [1,2,3,4].map(week => ({
-      month, week,
-      noOfPeriods: '', unit: '', mainContent: '', subContent: '',
-      competence: '', teachingMethod: '', teachingAid: '', evaluation: '', remark: ''
-    }))
-  );
-
   const emptyAnnualForm = {
+    schoolName: 'Ziquala Lado Primary School',
+    teacherName: user?.name || '',
     academicYear: '2018 E.C.',
     subject: '',
     grade: '',
     courseId: '',
+    deptHeadId: '',
     workingDaysYear: 180,
     periodsYear: 160,
-    periodsWeek: 4,
-    durationPeriod: '45 minutes',
+    periodsWeek: 5,
+    durationPeriod: "45'",
     status: 'Pending' as 'Pending' | 'Draft',
     items: defaultAnnualItems()
   };
@@ -343,11 +560,11 @@ export const TeacherPortal = () => {
   };
 
   const defaultDailyActivities = () => [
-    { day: 'Monday', content: '', competence: '', timeDuration: '45 mins', teacherIntro: '', teacherPresentation: '', teacherSummary: '', teacherAssessment: '', studentActivity: '', teachingMethod: '', teachingAid: '', evaluationRemark: '' },
-    { day: 'Tuesday', content: '', competence: '', timeDuration: '45 mins', teacherIntro: '', teacherPresentation: '', teacherSummary: '', teacherAssessment: '', studentActivity: '', teachingMethod: '', teachingAid: '', evaluationRemark: '' },
-    { day: 'Wednesday', content: '', competence: '', timeDuration: '45 mins', teacherIntro: '', teacherPresentation: '', teacherSummary: '', teacherAssessment: '', studentActivity: '', teachingMethod: '', teachingAid: '', evaluationRemark: '' },
-    { day: 'Thursday', content: '', competence: '', timeDuration: '45 mins', teacherIntro: '', teacherPresentation: '', teacherSummary: '', teacherAssessment: '', studentActivity: '', teachingMethod: '', teachingAid: '', evaluationRemark: '' },
-    { day: 'Friday', content: '', competence: '', timeDuration: '45 mins', teacherIntro: '', teacherPresentation: '', teacherSummary: '', teacherAssessment: '', studentActivity: '', teachingMethod: '', teachingAid: '', evaluationRemark: '' },
+    { day: 'Monday', content: '', competence: '', timeDuration: '45 mins', teacherBefore: '', teacherDuring: '', teacherGeneralization: '', teacherEvaluation: '', studentBefore: '', studentDuring: '', studentGeneralization: '', studentEvaluation: '', teachingAid: '', evaluation: '', remark: '', teacherIntro: '', teacherPresentation: '', teacherSummary: '', teacherAssessment: '', studentActivity: '', teachingMethod: '', evaluationRemark: '' },
+    { day: 'Tuesday', content: '', competence: '', timeDuration: '45 mins', teacherBefore: '', teacherDuring: '', teacherGeneralization: '', teacherEvaluation: '', studentBefore: '', studentDuring: '', studentGeneralization: '', studentEvaluation: '', teachingAid: '', evaluation: '', remark: '', teacherIntro: '', teacherPresentation: '', teacherSummary: '', teacherAssessment: '', studentActivity: '', teachingMethod: '', evaluationRemark: '' },
+    { day: 'Wednesday', content: '', competence: '', timeDuration: '45 mins', teacherBefore: '', teacherDuring: '', teacherGeneralization: '', teacherEvaluation: '', studentBefore: '', studentDuring: '', studentGeneralization: '', studentEvaluation: '', teachingAid: '', evaluation: '', remark: '', teacherIntro: '', teacherPresentation: '', teacherSummary: '', teacherAssessment: '', studentActivity: '', teachingMethod: '', evaluationRemark: '' },
+    { day: 'Thursday', content: '', competence: '', timeDuration: '45 mins', teacherBefore: '', teacherDuring: '', teacherGeneralization: '', teacherEvaluation: '', studentBefore: '', studentDuring: '', studentGeneralization: '', studentEvaluation: '', teachingAid: '', evaluation: '', remark: '', teacherIntro: '', teacherPresentation: '', teacherSummary: '', teacherAssessment: '', studentActivity: '', teachingMethod: '', evaluationRemark: '' },
+    { day: 'Friday', content: '', competence: '', timeDuration: '45 mins', teacherBefore: '', teacherDuring: '', teacherGeneralization: '', teacherEvaluation: '', studentBefore: '', studentDuring: '', studentGeneralization: '', studentEvaluation: '', teachingAid: '', evaluation: '', remark: '', teacherIntro: '', teacherPresentation: '', teacherSummary: '', teacherAssessment: '', studentActivity: '', teachingMethod: '', evaluationRemark: '' },
   ];
 
   const emptyPlan = {
@@ -759,12 +976,15 @@ export const TeacherPortal = () => {
     const selectedCourse = myCourses.find((c: any) => c.id === courseId);
     if (!selectedCourse) return [];
 
-    const subjectName = (selectedCourse.name || '').toLowerCase();
+    const rawCourseName = cleanSubjectName(selectedCourse.name || '').toLowerCase().trim();
     const courseGrade = selectedCourse.grade_level || selectedCourse.grade || '';
 
     const filtered = deptHeads.filter((hod: any) => {
       const hodSubjects = Array.isArray(hod.subjects) ? hod.subjects : [];
-      const hasSubjectMatch = hodSubjects.some((s: any) => String(s).toLowerCase() === subjectName);
+      const hasSubjectMatch = hodSubjects.some((s: any) => {
+        const sub = cleanSubjectName(String(s)).toLowerCase().trim();
+        return sub === '*' || sub === rawCourseName || rawCourseName.includes(sub) || sub.includes(rawCourseName);
+      });
       if (!hasSubjectMatch) return false;
 
       const hodGrades = Array.isArray(hod.grades) ? hod.grades : [];
@@ -776,7 +996,10 @@ export const TeacherPortal = () => {
     if (filtered.length === 0) {
       return deptHeads.filter((hod: any) => {
         const hodSubjects = Array.isArray(hod.subjects) ? hod.subjects : [];
-        return hodSubjects.some((s: any) => String(s).toLowerCase() === subjectName);
+        return hodSubjects.some((s: any) => {
+          const sub = cleanSubjectName(String(s)).toLowerCase().trim();
+          return sub === '*' || sub === rawCourseName || rawCourseName.includes(sub) || sub.includes(rawCourseName);
+        });
       });
     }
 
@@ -1278,7 +1501,17 @@ export const TeacherPortal = () => {
                         <div className="flex gap-2 ml-4">
                           {(plan.status === 'Draft' || plan.status === 'Revision Required') && (
                             <button
-                              onClick={() => { setEditingAnnualPlan(plan); setAnnualForm({ ...emptyAnnualForm, ...plan, items: Array.isArray(plan.items) && plan.items.length > 0 ? plan.items : defaultAnnualItems() }); setIsAnnualModalOpen(true); }}
+                              onClick={() => {
+                                setEditingAnnualPlan(plan);
+                                setAnnualForm({
+                                  ...emptyAnnualForm,
+                                  ...plan,
+                                  deptHeadId: plan.dept_head_id || plan.deptHeadId || '',
+                                  courseId: plan.course_id || plan.courseId || '',
+                                  items: Array.isArray(plan.items) && plan.items.length > 0 ? plan.items : defaultAnnualItems()
+                                });
+                                setIsAnnualModalOpen(true);
+                              }}
                               className="px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white text-xs font-black rounded-xl transition-all"
                             >{uiText(" Edit & Submit ")}</button>
                           )}
@@ -2335,18 +2568,43 @@ export const TeacherPortal = () => {
                   {/* Single Day Form */}
                   {(() => {
                     const dayActIndex = planForm.dailyActivities.findIndex((a: any) => a.day === activePlanDay);
-                    const act = planForm.dailyActivities[dayActIndex] || {
-                      day: activePlanDay, content: '', competence: '', timeDuration: '45 mins',
-                      teacherIntro: '', teacherPresentation: '', teacherSummary: '', teacherAssessment: '',
-                      studentActivity: '', teachingMethod: '', teachingAid: '', evaluationRemark: ''
+                    const rawAct: any = planForm.dailyActivities[dayActIndex] || {};
+                    const act = {
+                      day: activePlanDay,
+                      content: rawAct.content || '',
+                      competence: rawAct.competence || '',
+                      timeDuration: rawAct.timeDuration || '45 mins',
+                      teacherBefore: rawAct.teacherBefore || rawAct.teacherBeforeLesson || rawAct.teacherIntro || '',
+                      teacherDuring: rawAct.teacherDuring || rawAct.teacherDuringLesson || rawAct.teacherPresentation || '',
+                      teacherGeneralization: rawAct.teacherGeneralization || rawAct.teacherSummary || '',
+                      teacherEvaluation: rawAct.teacherEvaluation || rawAct.teacherAssessment || '',
+                      studentBefore: rawAct.studentBefore || rawAct.studentBeforeLesson || '',
+                      studentDuring: rawAct.studentDuring || rawAct.studentDuringLesson || rawAct.studentActivity || '',
+                      studentGeneralization: rawAct.studentGeneralization || '',
+                      studentEvaluation: rawAct.studentEvaluation || '',
+                      teachingAid: rawAct.teachingAid || rawAct.teachingAids || '',
+                      evaluation: rawAct.evaluation || '',
+                      remark: rawAct.remark || rawAct.evaluationRemark || ''
                     };
 
                     const updateDayAct = (field: string, val: string) => {
-                      const newArr = [...planForm.dailyActivities];
+                      const formattedVal = field === 'timeDuration' ? val : capitalizeWords(val);
+                      const newArr: any[] = [...planForm.dailyActivities];
+                      const current: any = dayActIndex >= 0 ? { ...newArr[dayActIndex] } : { day: activePlanDay };
+                      current[field] = formattedVal;
+                      // keep legacy fields populated for backwards compatibility
+                      if (field === 'teacherBefore') current.teacherIntro = formattedVal;
+                      if (field === 'teacherDuring') current.teacherPresentation = formattedVal;
+                      if (field === 'teacherGeneralization') current.teacherSummary = formattedVal;
+                      if (field === 'teacherEvaluation') current.teacherAssessment = formattedVal;
+                      if (field === 'studentDuring') current.studentActivity = formattedVal;
+                      if (field === 'remark') current.evaluationRemark = formattedVal;
+                      if (field === 'teachingAid') current.teachingAids = formattedVal;
+
                       if (dayActIndex >= 0) {
-                        newArr[dayActIndex] = { ...newArr[dayActIndex], [field]: val };
+                        newArr[dayActIndex] = current;
                       } else {
-                        newArr.push({ day: activePlanDay, [field]: val } as any);
+                        newArr.push(current);
                       }
                       setPlanForm({ ...planForm, dailyActivities: newArr });
                     };
@@ -2367,158 +2625,128 @@ export const TeacherPortal = () => {
                           </div>
                         </div>
 
+                        {/* Contents & Competency */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
-                            <label className="text-xs font-bold text-slate-500 uppercase block mb-1">{uiText("Lesson Content (የትምህርት ይዘት)")}</label>
+                            <label className="text-xs font-bold text-slate-500 uppercase block mb-1">{uiText("Contents (የትምህርት ይዘት)")}</label>
                             <textarea
                               rows={3}
                               placeholder={uiText("Specify main topic & sub-topics to cover on this day…")}
                               value={act.content || ''}
                               onChange={e => updateDayAct('content', e.target.value)}
-                              className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none text-slate-800 dark:text-white"
+                              className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none text-slate-800 dark:text-white font-medium"
                             />
                           </div>
                           <div>
-                            <label className="text-xs font-bold text-slate-500 uppercase block mb-1">{uiText("Expected Outcome / Competence (የሚጠበቅ ውጤት / ብቃት)")}</label>
+                            <label className="text-xs font-bold text-slate-500 uppercase block mb-1">{uiText("Competancy (Out put) (ብቃት)")}</label>
                             <textarea
                               rows={3}
                               placeholder={uiText("What specific skills or knowledge should students gain?")}
                               value={act.competence || ''}
                               onChange={e => updateDayAct('competence', e.target.value)}
-                              className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none text-slate-800 dark:text-white"
+                              className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none text-slate-800 dark:text-white font-medium"
                             />
                           </div>
                         </div>
 
-                        {/* 4 Phases of Teacher Activity */}
-                        <div className="border border-slate-200 dark:border-slate-700 rounded-xl p-4 bg-white dark:bg-slate-800 space-y-3">
-                          <label className="text-xs font-black uppercase text-blue-600 dark:text-blue-400 tracking-wider block">{uiText(" Teacher Activity (የመምህሩ ተግባር - 4 Phases) ")}</label>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <div className="p-3 bg-blue-50/40 dark:bg-blue-950/20 rounded-xl border border-blue-100 dark:border-blue-900/30">
-                              <span className="text-[10px] font-black text-blue-700 dark:text-blue-400 uppercase block mb-1">{uiText("1. Introduction (መግቢያ)")}</span>
-                              <textarea
-                                rows={2}
-                                placeholder={uiText("Warm-up, attendance & review previous lesson…")}
-                                value={act.teacherIntro || ''}
-                                onChange={e => updateDayAct('teacherIntro', e.target.value)}
-                                className="w-full px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs outline-none focus:ring-2 focus:ring-blue-500 resize-none text-slate-800 dark:text-white"
-                              />
-                            </div>
-                            <div className="p-3 bg-indigo-50/40 dark:bg-indigo-950/20 rounded-xl border border-indigo-100 dark:border-indigo-900/30">
-                              <span className="text-[10px] font-black text-indigo-700 dark:text-indigo-400 uppercase block mb-1">{uiText("2. Lesson Presentation (ትምህርት አቀራረብ)")}</span>
-                              <textarea
-                                rows={2}
-                                placeholder={uiText("Core explanation, examples, and demonstration…")}
-                                value={act.teacherPresentation || ''}
-                                onChange={e => updateDayAct('teacherPresentation', e.target.value)}
-                                className="w-full px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs outline-none focus:ring-2 focus:ring-blue-500 resize-none text-slate-800 dark:text-white"
-                              />
-                            </div>
-                            <div className="p-3 bg-violet-50/40 dark:bg-violet-950/20 rounded-xl border border-violet-100 dark:border-violet-900/30">
-                              <span className="text-[10px] font-black text-violet-700 dark:text-violet-400 uppercase block mb-1">{uiText("3. Summary (ማጠቃለያ)")}</span>
-                              <textarea
-                                rows={2}
-                                placeholder={uiText("Wrap-up & key takeaways consolidation…")}
-                                value={act.teacherSummary || ''}
-                                onChange={e => updateDayAct('teacherSummary', e.target.value)}
-                                className="w-full px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs outline-none focus:ring-2 focus:ring-blue-500 resize-none text-slate-800 dark:text-white"
-                              />
-                            </div>
-                            <div className="p-3 bg-amber-50/40 dark:bg-amber-950/20 rounded-xl border border-amber-100 dark:border-amber-900/30">
-                              <span className="text-[10px] font-black text-amber-700 dark:text-amber-400 uppercase block mb-1">{uiText("4. Assessment / Evaluation (ምዘና)")}</span>
-                              <textarea
-                                rows={2}
-                                placeholder={uiText("Check understanding, oral questions or quiz…")}
-                                value={act.teacherAssessment || ''}
-                                onChange={e => updateDayAct('teacherAssessment', e.target.value)}
-                                className="w-full px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs outline-none focus:ring-2 focus:ring-blue-500 resize-none text-slate-800 dark:text-white"
-                              />
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Student Activity & Teaching Method */}
+                        {/* Teacher's Activities & Student's Activities 3 Lesson Delivery Phases Side-by-Side */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <label className="text-xs font-bold text-slate-500 uppercase block mb-1">{uiText("Student Activity (የተማሪው ተግባር)")}</label>
-                            <textarea
-                              rows={2}
-                              placeholder={uiText("e.g. Note-taking, asking questions, group work")}
-                              value={act.studentActivity || ''}
-                              onChange={e => updateDayAct('studentActivity', e.target.value)}
-                              className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none text-slate-800 dark:text-white"
-                            />
-                            {/* Preset chips */}
-                            <div className="flex gap-1 mt-1.5 flex-wrap">
-                              {['Listening & Note taking', 'Group Discussion', 'Solving Exercises', 'Asking Questions'].map(chip => (
-                                <button
-                                  key={chip}
-                                  type="button"
-                                  onClick={() => updateDayAct('studentActivity', act.studentActivity ? `${act.studentActivity}, ${chip}` : chip)}
-                                  className="text-[10px] px-2 py-0.5 bg-slate-200 dark:bg-slate-700 hover:bg-blue-100 hover:text-blue-700 rounded-md font-medium text-slate-600 dark:text-slate-300 transition-all"
-                                >
-                                  + {uiText(chip)}
-                                </button>
-                              ))}
+                          {/* Teacher's Activities */}
+                          <div className="border border-blue-200 dark:border-blue-900/50 rounded-xl p-4 bg-blue-50/20 dark:bg-slate-800/80 space-y-3">
+                            <label className="text-xs font-black uppercase text-blue-700 dark:text-blue-400 tracking-wider block">{uiText("Teacher's Activities (የመምህሩ ተግባር)")}</label>
+                            <div className="space-y-3">
+                              <div>
+                                <span className="text-[10px] font-black text-blue-800 dark:text-blue-300 uppercase block mb-1">{uiText("Before lesson")}</span>
+                                <MultiSelectOrCustomInput
+                                  options={TEACHER_ACTIVITIES_OPTIONS}
+                                  value={act.teacherBefore || ''}
+                                  onChange={val => updateDayAct('teacherBefore', val)}
+                                  placeholder="Type custom piece of mind..."
+                                />
+                              </div>
+                              <div>
+                                <span className="text-[10px] font-black text-indigo-800 dark:text-indigo-300 uppercase block mb-1">{uiText("During the lesson")}</span>
+                                <MultiSelectOrCustomInput
+                                  options={TEACHER_ACTIVITIES_OPTIONS}
+                                  value={act.teacherDuring || ''}
+                                  onChange={val => updateDayAct('teacherDuring', val)}
+                                  placeholder="Type custom piece of mind..."
+                                />
+                              </div>
+                              <div>
+                                <span className="text-[10px] font-black text-violet-800 dark:text-violet-300 uppercase block mb-1">{uiText("Generalization")}</span>
+                                <MultiSelectOrCustomInput
+                                  options={TEACHER_ACTIVITIES_OPTIONS}
+                                  value={act.teacherGeneralization || ''}
+                                  onChange={val => updateDayAct('teacherGeneralization', val)}
+                                  placeholder="Type custom piece of mind..."
+                                />
+                              </div>
                             </div>
                           </div>
-                          <div>
-                            <label className="text-xs font-bold text-slate-500 uppercase block mb-1">{uiText("Teaching Method (ማስተማሪያ ዘዴ)")}</label>
-                            <textarea
-                              rows={2}
-                              placeholder={uiText("e.g. Demonstration, Question & Answer, Lecture")}
-                              value={act.teachingMethod || ''}
-                              onChange={e => updateDayAct('teachingMethod', e.target.value)}
-                              className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none text-slate-800 dark:text-white"
-                            />
-                            {/* Preset chips */}
-                            <div className="flex gap-1 mt-1.5 flex-wrap">
-                              {['Demonstration', 'Question & Answer', 'Group Discussion', 'Explanation', 'Brainstorming'].map(chip => (
-                                <button
-                                  key={chip}
-                                  type="button"
-                                  onClick={() => updateDayAct('teachingMethod', act.teachingMethod ? `${act.teachingMethod}, ${chip}` : chip)}
-                                  className="text-[10px] px-2 py-0.5 bg-slate-200 dark:bg-slate-700 hover:bg-blue-100 hover:text-blue-700 rounded-md font-medium text-slate-600 dark:text-slate-300 transition-all"
-                                >
-                                  + {uiText(chip)}
-                                </button>
-                              ))}
+
+                          {/* Students Activities */}
+                          <div className="border border-indigo-200 dark:border-indigo-900/50 rounded-xl p-4 bg-indigo-50/20 dark:bg-slate-800/80 space-y-3">
+                            <label className="text-xs font-black uppercase text-indigo-700 dark:text-indigo-400 tracking-wider block">{uiText("Students Activities (የተማሪው ተግባር)")}</label>
+                            <div className="space-y-3">
+                              <div>
+                                <span className="text-[10px] font-black text-blue-800 dark:text-blue-300 uppercase block mb-1">{uiText("Before lesson")}</span>
+                                <MultiSelectOrCustomInput
+                                  options={STUDENT_ACTIVITIES_OPTIONS}
+                                  value={act.studentBefore || ''}
+                                  onChange={val => updateDayAct('studentBefore', val)}
+                                  placeholder="Type custom piece of mind..."
+                                />
+                              </div>
+                              <div>
+                                <span className="text-[10px] font-black text-indigo-800 dark:text-indigo-300 uppercase block mb-1">{uiText("During the lesson")}</span>
+                                <MultiSelectOrCustomInput
+                                  options={STUDENT_ACTIVITIES_OPTIONS}
+                                  value={act.studentDuring || ''}
+                                  onChange={val => updateDayAct('studentDuring', val)}
+                                  placeholder="Type custom piece of mind..."
+                                />
+                              </div>
+                              <div>
+                                <span className="text-[10px] font-black text-violet-800 dark:text-violet-300 uppercase block mb-1">{uiText("Generalization")}</span>
+                                <MultiSelectOrCustomInput
+                                  options={STUDENT_ACTIVITIES_OPTIONS}
+                                  value={act.studentGeneralization || ''}
+                                  onChange={val => updateDayAct('studentGeneralization', val)}
+                                  placeholder="Type custom piece of mind..."
+                                />
+                              </div>
                             </div>
                           </div>
                         </div>
 
-                        {/* Teaching Aid & Evaluation */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Teaching Aids, Evaluation, Remark */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div>
-                            <label className="text-xs font-bold text-slate-500 uppercase block mb-1">{uiText("Teaching Aid / Materials (መርጃ መሣሪያ)")}</label>
-                            <textarea
-                              rows={2}
-                              placeholder={uiText("e.g. Textbook, Chalk/Whiteboard, Charts, Models")}
+                            <label className="text-xs font-bold text-slate-500 uppercase block mb-1">{uiText("Teaching Aids (መርጃ መሣሪያ)")}</label>
+                            <MultiSelectOrCustomInput
+                              options={TEACHING_AIDS_OPTIONS}
                               value={act.teachingAid || ''}
-                              onChange={e => updateDayAct('teachingAid', e.target.value)}
-                              className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none text-slate-800 dark:text-white"
+                              onChange={val => updateDayAct('teachingAid', val)}
+                              placeholder="Type custom teaching aid..."
                             />
-                            {/* Preset chips */}
-                            <div className="flex gap-1 mt-1.5 flex-wrap">
-                              {['Textbook & Guide', 'Whiteboard / Blackboard', 'Charts & Diagrams', 'Real Objects'].map(chip => (
-                                <button
-                                  key={chip}
-                                  type="button"
-                                  onClick={() => updateDayAct('teachingAid', act.teachingAid ? `${act.teachingAid}, ${chip}` : chip)}
-                                  className="text-[10px] px-2 py-0.5 bg-slate-200 dark:bg-slate-700 hover:bg-blue-100 hover:text-blue-700 rounded-md font-medium text-slate-600 dark:text-slate-300 transition-all"
-                                >
-                                  + {uiText(chip)}
-                                </button>
-                              ))}
-                            </div>
                           </div>
                           <div>
-                            <label className="text-xs font-bold text-slate-500 uppercase block mb-1">{uiText("Evaluation / Remark (ምዘና)")}</label>
+                            <label className="text-xs font-bold text-slate-500 uppercase block mb-1">{uiText("Evaluation (ምዘና)")}</label>
+                            <MultiSelectOrCustomInput
+                              options={EVALUATION_OPTIONS}
+                              value={act.evaluation || ''}
+                              onChange={val => updateDayAct('evaluation', val)}
+                              placeholder="Type custom evaluation..."
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs font-bold text-slate-500 uppercase block mb-1">{uiText("Remark (ማስታወሻ)")}</label>
                             <textarea
                               rows={2}
-                              placeholder={uiText("Daily observations or remarks…")}
-                              value={act.evaluationRemark || ''}
-                              onChange={e => updateDayAct('evaluationRemark', e.target.value)}
+                              placeholder={uiText("Remarks or notes…")}
+                              value={act.remark || ''}
+                              onChange={e => updateDayAct('remark', e.target.value)}
                               className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none text-slate-800 dark:text-white"
                             />
                           </div>
@@ -2533,131 +2761,189 @@ export const TeacherPortal = () => {
                   <table className="w-full text-left min-w-[1200px] text-xs border-collapse">
                     <thead>
                       <tr className="bg-slate-800 text-white border-b border-slate-700 text-[11px] font-black uppercase">
-                        <th className="px-3 py-3 w-20 border-r border-slate-700 text-center">{uiText("Day (ቀን)")}</th>
-                        <th className="px-3 py-3 w-56 border-r border-slate-700">{uiText("Content & Outcome (ይዘት እና ብቃት)")}</th>
-                        <th className="px-2 py-3 w-20 border-r border-slate-700 text-center">{uiText("Time (ጊዜ)")}</th>
-                        <th className="px-3 py-3 w-64 border-r border-slate-700">{uiText("Teacher Activity (የመምህሩ ተግባር)")}</th>
-                        <th className="px-3 py-3 border-r border-slate-700">{uiText("Student Activity (የተማሪው)")}</th>
-                        <th className="px-3 py-3 border-r border-slate-700">{uiText("Method (ዘዴ)")}</th>
-                        <th className="px-3 py-3 border-r border-slate-700">{uiText("Aid (መርጃ)")}</th>
-                        <th className="px-3 py-3">{uiText("Remark (ምዘና)")}</th>
+                        <th className="px-3 py-3 w-20 border-r border-slate-700 text-center">{uiText("Day")}</th>
+                        <th className="px-3 py-3 w-56 border-r border-slate-700">{uiText("Contents & competency")}</th>
+                        <th className="px-2 py-3 w-20 border-r border-slate-700 text-center">{uiText("Time")}</th>
+                        <th className="px-3 py-3 w-56 border-r border-slate-700">{uiText("Teacher's Activities")}</th>
+                        <th className="px-3 py-3 w-56 border-r border-slate-700">{uiText("Students Activities")}</th>
+                        <th className="px-3 py-3 w-36 border-r border-slate-700">{uiText("Teaching Aids")}</th>
+                        <th className="px-3 py-3 w-36 border-r border-slate-700">{uiText("Evaluation")}</th>
+                        <th className="px-3 py-3 w-36">{uiText("Remark")}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-300 dark:divide-slate-700">
                       {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].map((dayName, dayIdx) => {
                         const dayActIndex = planForm.dailyActivities.findIndex((a: any) => a.day === dayName);
-                        const act = planForm.dailyActivities[dayActIndex] || {
-                          day: dayName, content: '', competence: '', timeDuration: '45 mins',
-                          teacherIntro: '', teacherPresentation: '', teacherSummary: '', teacherAssessment: '',
-                          studentActivity: '', teachingMethod: '', teachingAid: '', evaluationRemark: ''
+                        const rawAct: any = planForm.dailyActivities[dayActIndex] || {};
+                        const act = {
+                          day: dayName,
+                          content: rawAct.content || '',
+                          competence: rawAct.competence || '',
+                          timeDuration: rawAct.timeDuration || '45 mins',
+                          teacherBefore: rawAct.teacherBefore || rawAct.teacherBeforeLesson || rawAct.teacherIntro || '',
+                          teacherDuring: rawAct.teacherDuring || rawAct.teacherDuringLesson || rawAct.teacherPresentation || '',
+                          teacherGeneralization: rawAct.teacherGeneralization || rawAct.teacherSummary || '',
+                          teacherEvaluation: rawAct.teacherEvaluation || rawAct.teacherAssessment || '',
+                          studentBefore: rawAct.studentBefore || rawAct.studentBeforeLesson || '',
+                          studentDuring: rawAct.studentDuring || rawAct.studentDuringLesson || rawAct.studentActivity || '',
+                          studentGeneralization: rawAct.studentGeneralization || '',
+                          studentEvaluation: rawAct.studentEvaluation || '',
+                          teachingAid: rawAct.teachingAid || rawAct.teachingAids || '',
+                          evaluation: rawAct.evaluation || '',
+                          remark: rawAct.remark || rawAct.evaluationRemark || ''
                         };
 
                         const updateDayAct = (field: string, val: string) => {
-                          const newArr = [...planForm.dailyActivities];
+                          const formattedVal = field === 'timeDuration' ? val : capitalizeWords(val);
+                          const newArr: any[] = [...planForm.dailyActivities];
+                          const current: any = dayActIndex >= 0 ? { ...newArr[dayActIndex] } : { day: dayName };
+                          current[field] = formattedVal;
+                          if (field === 'teacherBefore') current.teacherIntro = formattedVal;
+                          if (field === 'teacherDuring') current.teacherPresentation = formattedVal;
+                          if (field === 'teacherGeneralization') current.teacherSummary = formattedVal;
+                          if (field === 'teacherEvaluation') current.teacherAssessment = formattedVal;
+                          if (field === 'studentDuring') current.studentActivity = formattedVal;
+                          if (field === 'remark') current.evaluationRemark = formattedVal;
+                          if (field === 'teachingAid') current.teachingAids = formattedVal;
+
                           if (dayActIndex >= 0) {
-                            newArr[dayActIndex] = { ...newArr[dayActIndex], [field]: val };
+                            newArr[dayActIndex] = current;
                           } else {
-                            newArr.push({ day: dayName, [field]: val } as any);
+                            newArr.push(current);
                           }
                           setPlanForm({ ...planForm, dailyActivities: newArr });
                         };
 
                         return (
-                          <tr key={dayName} className={dayIdx % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-slate-50/70 dark:bg-slate-800/40'}>
-                            <td className="px-3 py-3 font-black text-center text-blue-700 dark:text-blue-400 border-r border-slate-200 dark:border-slate-800 align-top">
-                              {uiText(dayName)}
-                            </td>
-                            <td className="px-2 py-2 border-r border-slate-200 dark:border-slate-800 align-top space-y-2">
-                              <textarea
-                                rows={2}
-                                placeholder={uiText("Lesson Content…")}
-                                value={act.content || ''}
-                                onChange={e => updateDayAct('content', e.target.value)}
-                                className="w-full p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs outline-none focus:ring-1 focus:ring-blue-500 resize-none text-slate-800 dark:text-white font-medium"
-                              />
-                              <textarea
-                                rows={2}
-                                placeholder={uiText("Expected Outcome…")}
-                                value={act.competence || ''}
-                                onChange={e => updateDayAct('competence', e.target.value)}
-                                className="w-full p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs outline-none focus:ring-1 focus:ring-blue-500 resize-none text-slate-600 dark:text-slate-300"
-                              />
-                            </td>
-                            <td className="px-2 py-2 border-r border-slate-200 dark:border-slate-800 align-top">
-                              <input
-                                type="text"
-                                value={act.timeDuration || ''}
-                                onChange={e => updateDayAct('timeDuration', e.target.value)}
-                                className="w-full p-1 text-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-bold text-slate-800 dark:text-white"
-                              />
-                            </td>
-                            <td className="px-2 py-2 border-r border-slate-200 dark:border-slate-800 align-top space-y-1.5">
-                              <input
-                                type="text"
-                                placeholder={uiText("1. Intro")}
-                                value={act.teacherIntro || ''}
-                                onChange={e => updateDayAct('teacherIntro', e.target.value)}
-                                className="w-full p-1.5 bg-blue-50/50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md text-xs text-slate-800 dark:text-white"
-                              />
-                              <input
-                                type="text"
-                                placeholder={uiText("2. Presentation")}
-                                value={act.teacherPresentation || ''}
-                                onChange={e => updateDayAct('teacherPresentation', e.target.value)}
-                                className="w-full p-1.5 bg-indigo-50/50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md text-xs text-slate-800 dark:text-white"
-                              />
-                              <input
-                                type="text"
-                                placeholder={uiText("3. Summary")}
-                                value={act.teacherSummary || ''}
-                                onChange={e => updateDayAct('teacherSummary', e.target.value)}
-                                className="w-full p-1.5 bg-violet-50/50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md text-xs text-slate-800 dark:text-white"
-                              />
-                              <input
-                                type="text"
-                                placeholder={uiText("4. Assessment")}
-                                value={act.teacherAssessment || ''}
-                                onChange={e => updateDayAct('teacherAssessment', e.target.value)}
-                                className="w-full p-1.5 bg-amber-50/50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md text-xs text-slate-800 dark:text-white"
-                              />
-                            </td>
-                            <td className="px-2 py-2 border-r border-slate-200 dark:border-slate-800 align-top">
-                              <textarea
-                                rows={4}
-                                placeholder={uiText("Student Activity…")}
-                                value={act.studentActivity || ''}
-                                onChange={e => updateDayAct('studentActivity', e.target.value)}
-                                className="w-full p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs outline-none focus:ring-1 focus:ring-blue-500 resize-none text-slate-800 dark:text-white"
-                              />
-                            </td>
-                            <td className="px-2 py-2 border-r border-slate-200 dark:border-slate-800 align-top">
-                              <textarea
-                                rows={4}
-                                placeholder={uiText("Method…")}
-                                value={act.teachingMethod || ''}
-                                onChange={e => updateDayAct('teachingMethod', e.target.value)}
-                                className="w-full p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs outline-none focus:ring-1 focus:ring-blue-500 resize-none text-slate-800 dark:text-white"
-                              />
-                            </td>
-                            <td className="px-2 py-2 border-r border-slate-200 dark:border-slate-800 align-top">
-                              <textarea
-                                rows={4}
-                                placeholder={uiText("Aid…")}
-                                value={act.teachingAid || ''}
-                                onChange={e => updateDayAct('teachingAid', e.target.value)}
-                                className="w-full p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs outline-none focus:ring-1 focus:ring-blue-500 resize-none text-slate-800 dark:text-white"
-                              />
-                            </td>
-                            <td className="px-2 py-2 align-top">
-                              <textarea
-                                rows={4}
-                                placeholder={uiText("Remark…")}
-                                value={act.evaluationRemark || ''}
-                                onChange={e => updateDayAct('evaluationRemark', e.target.value)}
-                                className="w-full p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs outline-none focus:ring-1 focus:ring-blue-500 resize-none text-slate-800 dark:text-white"
-                              />
-                            </td>
-                          </tr>
+                          <React.Fragment key={dayName}>
+                            {/* Sub-row 1: Before lesson */}
+                            <tr className={dayIdx % 2 === 0 ? 'bg-white dark:bg-slate-900 border-t-2 border-slate-300 dark:border-slate-700' : 'bg-slate-50/70 dark:bg-slate-800/40 border-t-2 border-slate-300 dark:border-slate-700'}>
+                              <td rowSpan={3} className="px-3 py-3 font-black text-center text-blue-700 dark:text-blue-400 border-r border-slate-200 dark:border-slate-800 align-middle uppercase">
+                                {uiText(dayName)}
+                              </td>
+                              <td rowSpan={3} className="px-2 py-2 border-r border-slate-200 dark:border-slate-800 align-top space-y-2">
+                                <div>
+                                  <span className="text-[9px] font-black uppercase text-slate-400 block mb-0.5">{uiText("Contents")}</span>
+                                  <textarea
+                                    rows={3}
+                                    placeholder={uiText("Lesson Content…")}
+                                    value={act.content || ''}
+                                    onChange={e => updateDayAct('content', e.target.value)}
+                                    className="w-full p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs outline-none focus:ring-1 focus:ring-blue-500 resize-none text-slate-800 dark:text-white font-medium"
+                                  />
+                                </div>
+                                <div>
+                                  <span className="text-[9px] font-black uppercase text-slate-400 block mb-0.5">{uiText("Competancy (Out put)")}</span>
+                                  <textarea
+                                    rows={3}
+                                    placeholder={uiText("Expected Outcome…")}
+                                    value={act.competence || ''}
+                                    onChange={e => updateDayAct('competence', e.target.value)}
+                                    className="w-full p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs outline-none focus:ring-1 focus:ring-blue-500 resize-none text-slate-600 dark:text-slate-300"
+                                  />
+                                </div>
+                              </td>
+                              <td rowSpan={3} className="px-2 py-2 border-r border-slate-200 dark:border-slate-800 align-middle">
+                                <input
+                                  type="text"
+                                  value={act.timeDuration || ''}
+                                  onChange={e => updateDayAct('timeDuration', e.target.value)}
+                                  className="w-full p-1 text-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-bold text-slate-800 dark:text-white"
+                                />
+                              </td>
+
+                              {/* Teacher Before lesson */}
+                              <td className="px-2 py-1.5 border-r border-b border-slate-200 dark:border-slate-800 align-top">
+                                <span className="text-[9px] font-black uppercase text-blue-600 dark:text-blue-400 block mb-0.5">{uiText("Before lesson")}</span>
+                                <MultiSelectOrCustomInput
+                                  options={TEACHER_ACTIVITIES_OPTIONS}
+                                  value={act.teacherBefore || ''}
+                                  onChange={val => updateDayAct('teacherBefore', val)}
+                                  placeholder="Type custom details..."
+                                />
+                              </td>
+                              {/* Student Before lesson */}
+                              <td className="px-2 py-1.5 border-r border-b border-slate-200 dark:border-slate-800 align-top">
+                                <span className="text-[9px] font-black uppercase text-blue-600 dark:text-blue-400 block mb-0.5">{uiText("Before lesson")}</span>
+                                <MultiSelectOrCustomInput
+                                  options={STUDENT_ACTIVITIES_OPTIONS}
+                                  value={act.studentBefore || ''}
+                                  onChange={val => updateDayAct('studentBefore', val)}
+                                  placeholder="Type custom details..."
+                                />
+                              </td>
+
+                              <td rowSpan={3} className="px-2 py-2 border-r border-slate-200 dark:border-slate-800 align-top">
+                                <MultiSelectOrCustomInput
+                                  options={TEACHING_AIDS_OPTIONS}
+                                  value={act.teachingAid || ''}
+                                  onChange={val => updateDayAct('teachingAid', val)}
+                                  placeholder="Type custom teaching aids..."
+                                />
+                              </td>
+                              <td rowSpan={3} className="px-2 py-2 border-r border-slate-200 dark:border-slate-800 align-top">
+                                <MultiSelectOrCustomInput
+                                  options={EVALUATION_OPTIONS}
+                                  value={act.evaluation || ''}
+                                  onChange={val => updateDayAct('evaluation', val)}
+                                  placeholder="Type custom evaluation..."
+                                />
+                              </td>
+                              <td rowSpan={3} className="px-2 py-2 align-top">
+                                <textarea
+                                  rows={6}
+                                  placeholder={uiText("Remark…")}
+                                  value={act.remark || ''}
+                                  onChange={e => updateDayAct('remark', e.target.value)}
+                                  className="w-full p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs outline-none focus:ring-1 focus:ring-blue-500 resize-none text-slate-800 dark:text-white"
+                                />
+                              </td>
+                            </tr>
+
+                            {/* Sub-row 2: During the lesson */}
+                            <tr className={dayIdx % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-slate-50/70 dark:bg-slate-800/40'}>
+                              <td className="px-2 py-1.5 border-r border-b border-slate-200 dark:border-slate-800 align-top">
+                                <span className="text-[9px] font-black uppercase text-indigo-600 dark:text-indigo-400 block mb-0.5">{uiText("During the lesson")}</span>
+                                <MultiSelectOrCustomInput
+                                  options={TEACHER_ACTIVITIES_OPTIONS}
+                                  value={act.teacherDuring || ''}
+                                  onChange={val => updateDayAct('teacherDuring', val)}
+                                  placeholder="Type custom details..."
+                                />
+                              </td>
+                              <td className="px-2 py-1.5 border-r border-b border-slate-200 dark:border-slate-800 align-top">
+                                <span className="text-[9px] font-black uppercase text-indigo-600 dark:text-indigo-400 block mb-0.5">{uiText("During the lesson")}</span>
+                                <MultiSelectOrCustomInput
+                                  options={STUDENT_ACTIVITIES_OPTIONS}
+                                  value={act.studentDuring || ''}
+                                  onChange={val => updateDayAct('studentDuring', val)}
+                                  placeholder="Type custom details..."
+                                />
+                              </td>
+                            </tr>
+
+                            {/* Sub-row 3: Generalization */}
+                            <tr className={dayIdx % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-slate-50/70 dark:bg-slate-800/40'}>
+                              <td className="px-2 py-1.5 border-r border-slate-200 dark:border-slate-800 align-top">
+                                <span className="text-[9px] font-black uppercase text-violet-600 dark:text-violet-400 block mb-0.5">{uiText("Generalization")}</span>
+                                <MultiSelectOrCustomInput
+                                  options={TEACHER_ACTIVITIES_OPTIONS}
+                                  value={act.teacherGeneralization || ''}
+                                  onChange={val => updateDayAct('teacherGeneralization', val)}
+                                  placeholder="Type custom details..."
+                                />
+                              </td>
+                              <td className="px-2 py-1.5 border-r border-slate-200 dark:border-slate-800 align-top">
+                                <span className="text-[9px] font-black uppercase text-violet-600 dark:text-violet-400 block mb-0.5">{uiText("Generalization")}</span>
+                                <MultiSelectOrCustomInput
+                                  options={STUDENT_ACTIVITIES_OPTIONS}
+                                  value={act.studentGeneralization || ''}
+                                  onChange={val => updateDayAct('studentGeneralization', val)}
+                                  placeholder="Type custom details..."
+                                />
+                              </td>
+                            </tr>
+                          </React.Fragment>
                         );
                       })}
                     </tbody>
@@ -2892,64 +3178,67 @@ export const TeacherPortal = () => {
 
             <div className="p-6 space-y-6 max-h-[75vh] overflow-y-auto print:max-h-none print:overflow-visible print:p-2">
 
-              {/* Document Header Table Block */}
-              <div className="border border-slate-300 dark:border-slate-700 rounded-2xl overflow-hidden text-xs">
-                <div className="bg-slate-100 dark:bg-slate-800 p-3 font-black text-slate-800 dark:text-white uppercase tracking-wider text-center border-b border-slate-300 dark:border-slate-700">{uiText(" ZIQUALA ABO 1ST PRIMARY SCHOOL WEEKLY LESSON PLAN FORM ")}</div>
-                <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-y divide-slate-200 dark:divide-slate-700 bg-slate-50/50 dark:bg-slate-900/50">
-                  <div className="p-3">
-                    <span className="text-[9px] font-black uppercase text-slate-400 block">{uiText("Teacher Name")}</span>
-                    <span className="font-bold text-slate-800 dark:text-slate-100">{selectedPlanForView.teacher_name || selectedPlanForView.teacherName || uiText('Assigned Teacher')}</span>
+              {/* Centered Document Title */}
+              <div className="text-center mb-6">
+                <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight font-serif">{uiText("Ziquala abo pirimary school weekly lesson plan")}</h2>
+              </div>
+
+              {/* Document Header Table Block matching physical paper layout */}
+              <div className="border border-slate-300 dark:border-slate-700 rounded-xl p-4 bg-slate-50/50 dark:bg-slate-900/50 text-xs mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2.5">
+                  {/* Left Column Group */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="font-extrabold uppercase text-slate-700 dark:text-slate-300 w-32 shrink-0">{uiText("Teachers name")}:</span>
+                      <span className="font-bold border-b border-dashed border-slate-400 dark:border-slate-600 flex-1 px-1 py-0.5 text-slate-900 dark:text-slate-100">{selectedPlanForView.teacher_name || selectedPlanForView.teacherName || uiText('Assigned Teacher')}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-extrabold uppercase text-slate-700 dark:text-slate-300 w-32 shrink-0">{uiText("Subject")}:</span>
+                      <span className="font-bold border-b border-dashed border-slate-400 dark:border-slate-600 flex-1 px-1 py-0.5 text-blue-600 dark:text-blue-400">{selectedPlanForView.subject || uiText('—')}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-extrabold uppercase text-slate-700 dark:text-slate-300 w-32 shrink-0">{uiText("Chapter")}:</span>
+                      <span className="font-bold border-b border-dashed border-slate-400 dark:border-slate-600 flex-1 px-1 py-0.5 text-slate-900 dark:text-slate-100">{selectedPlanForView.chapter_unit || selectedPlanForView.chapterUnit || uiText('—')}</span>
+                    </div>
                   </div>
-                  <div className="p-3">
-                    <span className="text-[9px] font-black uppercase text-slate-400 block">{uiText("Subject / Lesson Type")}</span>
-                    <span className="font-bold text-blue-600 dark:text-blue-400">{selectedPlanForView.subject || uiText('—')}</span>
-                  </div>
-                  <div className="p-3">
-                    <span className="text-[9px] font-black uppercase text-slate-400 block">{uiText("Chapter / Unit")}</span>
-                    <span className="font-bold text-slate-800 dark:text-slate-100">{selectedPlanForView.chapter_unit || selectedPlanForView.chapterUnit || uiText('—')}</span>
-                  </div>
-                  <div className="p-3">
-                    <span className="text-[9px] font-black uppercase text-slate-400 block">{uiText("Topic / Title")}</span>
-                    <span className="font-bold text-slate-800 dark:text-slate-100">{selectedPlanForView.topic_title || selectedPlanForView.topicTitle || uiText('—')}</span>
-                  </div>
-                  <div className="p-3">
-                    <span className="text-[9px] font-black uppercase text-slate-400 block">{uiText("Grade & Section")}</span>
-                    <span className="font-bold text-slate-800 dark:text-slate-100">{selectedPlanForView.grade_section || selectedPlanForView.gradeSection || uiText('—')}</span>
-                  </div>
-                  <div className="p-3">
-                    <span className="text-[9px] font-black uppercase text-slate-400 block">{uiText("Date Range")}</span>
-                    <span className="font-bold text-slate-800 dark:text-slate-100">{selectedPlanForView.date_from || selectedPlanForView.date || uiText('—')}{uiText(" to ")}{selectedPlanForView.date_to || selectedPlanForView.date || uiText('—')}</span>
-                  </div>
-                  <div className="p-3">
-                    <span className="text-[9px] font-black uppercase text-slate-400 block">{uiText("Periods / Week")}</span>
-                    <span className="font-bold text-slate-800 dark:text-slate-100">{selectedPlanForView.periods_per_week || selectedPlanForView.periodsPerWeek || uiText('—')}</span>
-                  </div>
-                  <div className="p-3">
-                    <span className="text-[9px] font-black uppercase text-slate-400 block">{uiText("Status")}</span>
-                    <span className={`inline-block px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase ${
-                      selectedPlanForView.status === 'Approved' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
-                      selectedPlanForView.status === 'Revision Required' ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' :
-                      'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
-                    }`}>{uiText(selectedPlanForView.status)}</span>
+
+                  {/* Right Column Group */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="font-extrabold uppercase text-slate-700 dark:text-slate-300 w-32 shrink-0">{uiText("Grade & Section")}:</span>
+                      <span className="font-bold border-b border-dashed border-slate-400 dark:border-slate-600 flex-1 px-1 py-0.5 text-slate-900 dark:text-slate-100">{selectedPlanForView.grade_section || selectedPlanForView.gradeSection || uiText('—')}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-extrabold uppercase text-slate-700 dark:text-slate-300 w-32 shrink-0">{uiText("No of Period")}:</span>
+                      <span className="font-bold border-b border-dashed border-slate-400 dark:border-slate-600 flex-1 px-1 py-0.5 text-slate-900 dark:text-slate-100">{selectedPlanForView.periods_per_week || selectedPlanForView.periodsPerWeek || uiText('—')}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-extrabold uppercase text-slate-700 dark:text-slate-300 w-32 shrink-0">{uiText("Date")}:</span>
+                      <span className="font-bold border-b border-dashed border-slate-400 dark:border-slate-600 flex-1 px-1 py-0.5 text-slate-900 dark:text-slate-100">{selectedPlanForView.date_from || selectedPlanForView.date || uiText('—')}{uiText(" to ")}{selectedPlanForView.date_to || selectedPlanForView.date || uiText('—')}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-extrabold uppercase text-slate-700 dark:text-slate-300 w-32 shrink-0">{uiText("Topic")}:</span>
+                      <span className="font-bold border-b border-dashed border-slate-400 dark:border-slate-600 flex-1 px-1 py-0.5 text-slate-900 dark:text-slate-100">{selectedPlanForView.topic_title || selectedPlanForView.topicTitle || uiText('—')}</span>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* 5-Day Matrix Table matching paper layout with 4 sub-rows for Teacher Activity */}
+              {/* 5-Day Matrix Table matching physical paper layout */}
               <div className="space-y-3">
                 <h4 className="text-xs font-black uppercase tracking-widest text-slate-500 print:hidden">{uiText("📅 Daily Lesson Plan Matrix Table")}</h4>
                 <div className="overflow-x-auto rounded-2xl border border-slate-300 dark:border-slate-700">
                   <table className="w-full text-left min-w-[1100px] text-xs border-collapse">
                     <thead>
-                      <tr className="bg-slate-800 text-white border-b border-slate-700">
-                        <th className="px-3 py-2.5 font-black uppercase w-20 border-r border-slate-700 text-center">{uiText("Day (ቀን)")}</th>
-                        <th className="px-3 py-2.5 font-black uppercase w-56 border-r border-slate-700">{uiText("Content & Outcome (ይዘት እና ብቃት)")}</th>
-                        <th className="px-2 py-2.5 font-black uppercase w-20 border-r border-slate-700 text-center">{uiText("Time (ጊዜ)")}</th>
-                        <th className="px-3 py-2.5 font-black uppercase w-60 border-r border-slate-700">{uiText("Teacher Activity (የመምህሩ ተግባር)")}</th>
-                        <th className="px-3 py-2.5 font-black uppercase border-r border-slate-700">{uiText("Student Activity (የተማሪው)")}</th>
-                        <th className="px-3 py-2.5 font-black uppercase border-r border-slate-700">{uiText("Method (ማስተማሪያ ዘዴ)")}</th>
-                        <th className="px-3 py-2.5 font-black uppercase border-r border-slate-700">{uiText("Aid (መርጃ መሣሪያ)")}</th>
-                        <th className="px-3 py-2.5 font-black uppercase">{uiText("Remark (ምዘና)")}</th>
+                      <tr className="bg-slate-800 text-white border-b border-slate-700 font-black uppercase">
+                        <th className="px-3 py-2.5 w-20 border-r border-slate-700 text-center">{uiText("Day")}</th>
+                        <th className="px-3 py-2.5 w-56 border-r border-slate-700">{uiText("Contents & competency")}</th>
+                        <th className="px-2 py-2.5 w-20 border-r border-slate-700 text-center">{uiText("Time")}</th>
+                        <th className="px-3 py-2.5 w-52 border-r border-slate-700">{uiText("Teacher's Activities")}</th>
+                        <th className="px-3 py-2.5 w-52 border-r border-slate-700">{uiText("Students Activities")}</th>
+                        <th className="px-3 py-2.5 w-36 border-r border-slate-700">{uiText("Teaching Aids")}</th>
+                        <th className="px-3 py-2.5 w-36 border-r border-slate-700">{uiText("Evaluation")}</th>
+                        <th className="px-3 py-2.5 w-36">{uiText("Remark")}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-300 dark:divide-slate-700">
@@ -2960,78 +3249,118 @@ export const TeacherPortal = () => {
                             content: selectedPlanForView.content || '—',
                             competence: selectedPlanForView.objectives || '—',
                             timeDuration: selectedPlanForView.time_duration || selectedPlanForView.timeDuration || '45 mins',
-                            teacherIntro: selectedPlanForView.teacher_activity || selectedPlanForView.teacherActivity || '—',
-                            teacherPresentation: 'Core presentation',
-                            teacherSummary: 'Summary',
-                            teacherAssessment: selectedPlanForView.evaluation || '—',
-                            studentActivity: selectedPlanForView.student_activity || selectedPlanForView.studentActivity || '—',
-                            teachingMethod: selectedPlanForView.teaching_method || selectedPlanForView.teachingMethod || '—',
+                            teacherBefore: selectedPlanForView.teacher_activity || selectedPlanForView.teacherActivity || '—',
+                            teacherDuring: '—',
+                            teacherGeneralization: '—',
+                            teacherEvaluation: selectedPlanForView.evaluation || '—',
+                            studentBefore: '—',
+                            studentDuring: selectedPlanForView.student_activity || selectedPlanForView.studentActivity || '—',
+                            studentGeneralization: '—',
+                            studentEvaluation: '—',
                             teachingAid: selectedPlanForView.teaching_aids || selectedPlanForView.teachingAids || '—',
-                            evaluationRemark: selectedPlanForView.remark || '—'
+                            evaluation: selectedPlanForView.evaluation || '—',
+                            remark: selectedPlanForView.remark || '—'
                           }))
-                      ).map((act: any, idx: number) => (
-                        <React.Fragment key={idx}>
-                          {/* Sub-row 1: Introduction */}
-                          <tr className="bg-white dark:bg-slate-900 border-t-2 border-slate-300 dark:border-slate-700">
-                            <td rowSpan={4} className="px-3 py-3 font-black text-center text-blue-800 dark:text-blue-400 border-r border-slate-300 dark:border-slate-700 align-middle bg-slate-50/80 dark:bg-slate-800/40">
-                              <span className="text-sm">{uiText(act.day)}</span>
-                            </td>
-                            <td rowSpan={4} className="px-3 py-3 border-r border-slate-300 dark:border-slate-700 align-top space-y-2 max-w-[200px]">
-                              <div>
-                                <span className="text-[9px] font-black uppercase text-slate-400 block border-b border-slate-200 dark:border-slate-800 pb-0.5 mb-1">{uiText("Content (ይዘት)")}</span>
-                                <p className="font-semibold text-slate-900 dark:text-slate-100 whitespace-pre-wrap">{act.content || uiText('—')}</p>
-                              </div>
-                              <div className="pt-2 border-t border-slate-200 dark:border-slate-800">
-                                <span className="text-[9px] font-black uppercase text-slate-400 block border-b border-slate-200 dark:border-slate-800 pb-0.5 mb-1">{uiText("Expected Outcome / Competence (ብቃት)")}</span>
-                                <p className="font-medium text-slate-600 dark:text-slate-400 whitespace-pre-wrap">{uiText(act.competence || '—')}</p>
-                              </div>
-                            </td>
-                            <td rowSpan={4} className="px-2 py-3 font-bold text-center text-slate-600 dark:text-slate-400 border-r border-slate-300 dark:border-slate-700 align-middle whitespace-nowrap">
-                              {uiText(act.timeDuration || '45 mins')}
-                            </td>
-                            <td className="px-3 py-2 border-r border-b border-slate-200 dark:border-slate-800 bg-blue-50/30 dark:bg-blue-950/20">
-                              <span className="text-[9px] font-black uppercase text-blue-700 dark:text-blue-400 block">{uiText("1. Intro (መግቢያ)")}</span>
-                              <p className="text-slate-800 dark:text-slate-200 font-medium mt-0.5">{uiText(act.teacherIntro || '—')}</p>
-                            </td>
-                            <td rowSpan={4} className="px-3 py-3 border-r border-slate-300 dark:border-slate-700 align-top text-slate-800 dark:text-slate-200 whitespace-pre-wrap max-w-[160px]">
-                              {uiText(act.studentActivity || '—')}
-                            </td>
-                            <td rowSpan={4} className="px-3 py-3 border-r border-slate-300 dark:border-slate-700 align-top text-slate-800 dark:text-slate-200 whitespace-pre-wrap max-w-[140px]">
-                              {uiText(act.teachingMethod || '—')}
-                            </td>
-                            <td rowSpan={4} className="px-3 py-3 border-r border-slate-300 dark:border-slate-700 align-top text-slate-800 dark:text-slate-200 whitespace-pre-wrap max-w-[140px]">
-                              {uiText(act.teachingAid || '—')}
-                            </td>
-                            <td rowSpan={4} className="px-3 py-3 align-top text-slate-800 dark:text-slate-200 whitespace-pre-wrap max-w-[140px]">
-                              {uiText(act.evaluationRemark || '—')}
-                            </td>
-                          </tr>
+                      ).map((rawAct: any, idx: number) => {
+                        const act = {
+                          day: rawAct.day || 'Monday',
+                          content: rawAct.content || rawAct.topic || '',
+                          competence: rawAct.competence || rawAct.objectives || '',
+                          timeDuration: rawAct.timeDuration || rawAct.time_duration || '45 mins',
+                          teacherBefore: rawAct.teacherBefore || rawAct.teacherBeforeLesson || rawAct.teacherIntro || rawAct.teacher_activity || rawAct.teacherActivity || '',
+                          teacherDuring: rawAct.teacherDuring || rawAct.teacherDuringLesson || rawAct.teacherPresentation || '',
+                          teacherGeneralization: rawAct.teacherGeneralization || rawAct.teacherSummary || '',
+                          teacherEvaluation: rawAct.teacherEvaluation || rawAct.teacherAssessment || '',
+                          studentBefore: rawAct.studentBefore || rawAct.studentBeforeLesson || '',
+                          studentDuring: rawAct.studentDuring || rawAct.studentDuringLesson || rawAct.studentActivity || rawAct.student_activity || '',
+                          studentGeneralization: rawAct.studentGeneralization || '',
+                          studentEvaluation: rawAct.studentEvaluation || '',
+                          teachingAid: rawAct.teachingAid || rawAct.teachingAids || rawAct.teaching_aids || '',
+                          evaluation: rawAct.evaluation || '',
+                          remark: rawAct.remark || rawAct.evaluationRemark || ''
+                        };
 
-                          {/* Sub-row 2: Lesson Presentation */}
-                          <tr className="bg-white dark:bg-slate-900">
-                            <td className="px-3 py-2 border-r border-b border-slate-200 dark:border-slate-800 bg-indigo-50/30 dark:bg-indigo-950/20">
-                              <span className="text-[9px] font-black uppercase text-indigo-700 dark:text-indigo-400 block">{uiText("2. Presentation (አቀራረብ)")}</span>
-                              <p className="text-slate-800 dark:text-slate-200 font-medium mt-0.5">{uiText(act.teacherPresentation || '—')}</p>
-                            </td>
-                          </tr>
+                        return (
+                          <React.Fragment key={idx}>
+                            {/* Sub-row 1: Before lesson */}
+                            <tr className="bg-white dark:bg-slate-900 border-t-2 border-slate-300 dark:border-slate-700">
+                              <td rowSpan={4} className="px-3 py-3 font-black text-center text-blue-800 dark:text-blue-400 border-r border-slate-300 dark:border-slate-700 align-middle bg-slate-50/80 dark:bg-slate-800/40 uppercase">
+                                <span className="text-xs tracking-wider">{uiText(act.day)}</span>
+                              </td>
+                              <td rowSpan={4} className="px-3 py-3 border-r border-slate-300 dark:border-slate-700 align-top space-y-3 max-w-[200px]">
+                                <div>
+                                  <span className="text-[9px] font-black uppercase text-slate-400 block border-b border-slate-200 dark:border-slate-800 pb-0.5 mb-1">{uiText("Contents")}</span>
+                                  <p className="font-semibold text-slate-900 dark:text-slate-100 whitespace-pre-wrap">{act.content || uiText('—')}</p>
+                                </div>
+                                <div className="pt-2 border-t border-slate-200 dark:border-slate-800">
+                                  <span className="text-[9px] font-black uppercase text-slate-400 block border-b border-slate-200 dark:border-slate-800 pb-0.5 mb-1">{uiText("Competancy (Out put)")}</span>
+                                  <p className="font-medium text-slate-600 dark:text-slate-400 whitespace-pre-wrap">{uiText(act.competence || '—')}</p>
+                                </div>
+                              </td>
+                              <td rowSpan={4} className="px-2 py-3 font-bold text-center text-slate-600 dark:text-slate-400 border-r border-slate-300 dark:border-slate-700 align-middle whitespace-nowrap">
+                                {uiText(act.timeDuration || '45 mins')}
+                              </td>
 
-                          {/* Sub-row 3: Summary */}
-                          <tr className="bg-white dark:bg-slate-900">
-                            <td className="px-3 py-2 border-r border-b border-slate-200 dark:border-slate-800 bg-violet-50/30 dark:bg-violet-950/20">
-                              <span className="text-[9px] font-black uppercase text-violet-700 dark:text-violet-400 block">{uiText("3. Summary (ማጠቃለያ)")}</span>
-                              <p className="text-slate-800 dark:text-slate-200 font-medium mt-0.5">{uiText(act.teacherSummary || '—')}</p>
-                            </td>
-                          </tr>
+                              {/* Teacher Before lesson */}
+                              <td className="px-3 py-2 border-r border-b border-slate-200 dark:border-slate-800 bg-blue-50/30 dark:bg-blue-950/20">
+                                <span className="text-[9px] font-black uppercase text-blue-700 dark:text-blue-400 block">{uiText("Before lesson")}</span>
+                                <p className="text-slate-800 dark:text-slate-200 font-medium mt-0.5">{uiText(act.teacherBefore || '—')}</p>
+                              </td>
+                              {/* Student Before lesson */}
+                              <td className="px-3 py-2 border-r border-b border-slate-200 dark:border-slate-800 bg-blue-50/20 dark:bg-blue-950/10">
+                                <span className="text-[9px] font-black uppercase text-blue-700 dark:text-blue-400 block">{uiText("Before lesson")}</span>
+                                <p className="text-slate-800 dark:text-slate-200 font-medium mt-0.5">{uiText(act.studentBefore || '—')}</p>
+                              </td>
 
-                          {/* Sub-row 4: Assessment */}
-                          <tr className="bg-white dark:bg-slate-900">
-                            <td className="px-3 py-2 border-r border-slate-200 dark:border-slate-800 bg-amber-50/30 dark:bg-amber-950/20">
-                              <span className="text-[9px] font-black uppercase text-amber-700 dark:text-amber-400 block">{uiText("4. Assessment (ምዘና)")}</span>
-                              <p className="text-slate-800 dark:text-slate-200 font-medium mt-0.5">{uiText(act.teacherAssessment || '—')}</p>
-                            </td>
-                          </tr>
-                        </React.Fragment>
-                      ))}
+                              <td rowSpan={4} className="px-3 py-3 border-r border-slate-300 dark:border-slate-700 align-top text-slate-800 dark:text-slate-200 whitespace-pre-wrap max-w-[140px]">
+                                {uiText(act.teachingAid || '—')}
+                              </td>
+                              <td rowSpan={4} className="px-3 py-3 border-r border-slate-300 dark:border-slate-700 align-top text-slate-800 dark:text-slate-200 whitespace-pre-wrap max-w-[140px]">
+                                {uiText(act.evaluation || '—')}
+                              </td>
+                              <td rowSpan={4} className="px-3 py-3 align-top text-slate-800 dark:text-slate-200 whitespace-pre-wrap max-w-[140px]">
+                                {uiText(act.remark || '—')}
+                              </td>
+                            </tr>
+
+                            {/* Sub-row 2: During the lesson */}
+                            <tr className="bg-white dark:bg-slate-900">
+                              <td className="px-3 py-2 border-r border-b border-slate-200 dark:border-slate-800 bg-indigo-50/30 dark:bg-indigo-950/20">
+                                <span className="text-[9px] font-black uppercase text-indigo-700 dark:text-indigo-400 block">{uiText("During the lesson")}</span>
+                                <p className="text-slate-800 dark:text-slate-200 font-medium mt-0.5">{uiText(act.teacherDuring || '—')}</p>
+                              </td>
+                              <td className="px-3 py-2 border-r border-b border-slate-200 dark:border-slate-800 bg-indigo-50/20 dark:bg-indigo-950/10">
+                                <span className="text-[9px] font-black uppercase text-indigo-700 dark:text-indigo-400 block">{uiText("During the lesson")}</span>
+                                <p className="text-slate-800 dark:text-slate-200 font-medium mt-0.5">{uiText(act.studentDuring || '—')}</p>
+                              </td>
+                            </tr>
+
+                            {/* Sub-row 3: Generalization */}
+                            <tr className="bg-white dark:bg-slate-900">
+                              <td className="px-3 py-2 border-r border-b border-slate-200 dark:border-slate-800 bg-violet-50/30 dark:bg-violet-950/20">
+                                <span className="text-[9px] font-black uppercase text-violet-700 dark:text-violet-400 block">{uiText("Generalization")}</span>
+                                <p className="text-slate-800 dark:text-slate-200 font-medium mt-0.5">{uiText(act.teacherGeneralization || '—')}</p>
+                              </td>
+                              <td className="px-3 py-2 border-r border-b border-slate-200 dark:border-slate-800 bg-violet-50/20 dark:bg-violet-950/10">
+                                <span className="text-[9px] font-black uppercase text-violet-700 dark:text-violet-400 block">{uiText("Generalization")}</span>
+                                <p className="text-slate-800 dark:text-slate-200 font-medium mt-0.5">{uiText(act.studentGeneralization || '—')}</p>
+                              </td>
+                            </tr>
+
+                            {/* Sub-row 4: Evaluation */}
+                            <tr className="bg-white dark:bg-slate-900">
+                              <td className="px-3 py-2 border-r border-slate-200 dark:border-slate-800 bg-amber-50/30 dark:bg-amber-950/20">
+                                <span className="text-[9px] font-black uppercase text-amber-700 dark:text-amber-400 block">{uiText("Evaluation")}</span>
+                                <p className="text-slate-800 dark:text-slate-200 font-medium mt-0.5">{uiText(act.teacherEvaluation || '—')}</p>
+                              </td>
+                              <td className="px-3 py-2 border-r border-slate-200 dark:border-slate-800 bg-amber-50/20 dark:bg-amber-950/10">
+                                <span className="text-[9px] font-black uppercase text-amber-700 dark:text-amber-400 block">{uiText("Evaluation")}</span>
+                                <p className="text-slate-800 dark:text-slate-200 font-medium mt-0.5">{uiText(act.studentEvaluation || '—')}</p>
+                              </td>
+                            </tr>
+                          </React.Fragment>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
@@ -3161,6 +3490,15 @@ export const TeacherPortal = () => {
                 <h4 className="text-xs font-black uppercase tracking-widest text-slate-500 mb-4">{uiText("📋 Plan Header Information")}</h4>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div>
+                    <label className="text-[10px] font-black uppercase text-slate-500">{uiText("Teacher's Name")}</label>
+                    <input
+                      value={annualForm.teacherName || user?.name || ''}
+                      onChange={e => setAnnualForm(f => ({ ...f, teacherName: capitalizeWords(e.target.value) }))}
+                      placeholder={uiText("Enter teacher's name")}
+                      className="w-full mt-1 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold outline-none focus:ring-2 focus:ring-violet-500"
+                    />
+                  </div>
+                  <div>
                     <label className="text-[10px] font-black uppercase text-slate-500">{uiText("Academic Year")}</label>
                     <input value={annualForm.academicYear} onChange={e => setAnnualForm(f => ({ ...f, academicYear: e.target.value }))}
                       className="w-full mt-1 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-violet-500" />
@@ -3168,9 +3506,12 @@ export const TeacherPortal = () => {
                   <div>
                     <label className="text-[10px] font-black uppercase text-slate-500">{uiText("Subject")}</label>
                     <select value={annualForm.courseId} onChange={e => {
-                      const c = myCourses.find((x: any) => x.id === e.target.value);
+                      const selectedCourseId = e.target.value;
+                      const c = myCourses.find((x: any) => x.id === selectedCourseId);
                       const cleanName = capitalizeWords(cleanSubjectName(c?.name || ''));
-                      setAnnualForm(f => ({ ...f, courseId: e.target.value, subject: cleanName || f.subject }));
+                      const matchingHods = filterDeptHeadsForCourse(selectedCourseId);
+                      let newDeptHeadId = matchingHods.length > 0 ? (matchingHods[0].teacher_id || matchingHods[0].id) : annualForm.deptHeadId;
+                      setAnnualForm(f => ({ ...f, courseId: selectedCourseId, subject: cleanName || f.subject, deptHeadId: newDeptHeadId }));
                     }} className="w-full mt-1 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-violet-500">
                       <option value="">{uiText("Select course…")}</option>
                       {myCourses.map((c: any) => <option key={c.id} value={c.id}>{capitalizeWords(cleanSubjectName(c.name))}</option>)}
@@ -3179,6 +3520,21 @@ export const TeacherPortal = () => {
                       <input placeholder={uiText("Or type subject…")} value={annualForm.subject} onChange={e => setAnnualForm(f => ({ ...f, subject: e.target.value }))}
                         className="w-full mt-1 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-violet-500" />
                     )}
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black uppercase text-violet-600 dark:text-violet-400">{uiText("Department Head Reviewer")}</label>
+                    <select
+                      value={annualForm.deptHeadId || ''}
+                      onChange={e => setAnnualForm(f => ({ ...f, deptHeadId: e.target.value }))}
+                      className="w-full mt-1 px-3 py-2 bg-white dark:bg-slate-900 border-2 border-violet-500/40 rounded-lg text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-violet-500 cursor-pointer"
+                    >
+                      <option value="">{uiText("Select Department Head")}</option>
+                      {(annualForm.courseId ? (filterDeptHeadsForCourse(annualForm.courseId).length > 0 ? filterDeptHeadsForCourse(annualForm.courseId) : deptHeads) : deptHeads).map((hod: any) => (
+                        <option key={hod.teacher_id || hod.id} value={hod.teacher_id || hod.id}>
+                          {hod.name} {(hod.department ? uiText("— {{value0}}", {value0: hod.department}) : uiText(''))}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div>
                     <label className="text-[10px] font-black uppercase text-slate-500">{uiText("Grade")}</label>
@@ -3208,41 +3564,93 @@ export const TeacherPortal = () => {
                 </div>
               </div>
 
-              {/* 11-Column Matrix */}
+              {/* 15-Column Matrix */}
               <div>
-                <h4 className="text-xs font-black uppercase tracking-widest text-slate-500 mb-3">{uiText("📅 Yearly Matrix — September to June")}</h4>
+                <h4 className="text-center text-sm md:text-base font-black uppercase tracking-widest text-slate-900 dark:text-white mb-4 py-2 border-b border-slate-200 dark:border-slate-700">
+                  {uiText("ZIQUAL ABO PRIMARY SCHOOL ANNUAL PLAN")}
+                </h4>
                 <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
-                  <table className="w-full text-left min-w-[1400px] text-xs">
+                  <table className="w-full text-left min-w-[2000px] text-xs">
                     <thead>
-                      <tr className="bg-violet-600 text-white">
-                        {['Month','Week','# Periods','Unit','Main Content','Sub Content','Competence (Learning Outcome)','Teaching Method','Teaching Aid','Evaluation','Remark'].map(h => (
-                          <th key={h} className="px-3 py-3 font-black uppercase tracking-wide whitespace-nowrap border-r border-violet-500 last:border-r-0">{uiText(h)}</th>
+                      <tr className="bg-violet-700 text-white">
+                        {[
+                          { h: 'Semester', minW: 'min-w-[65px]' },
+                          { h: 'Month', minW: 'min-w-[90px]' },
+                          { h: 'Week', minW: 'min-w-[70px]' },
+                          { h: 'Date', minW: 'min-w-[80px]' },
+                          { h: 'Page reference', minW: 'min-w-[95px]' },
+                          { h: 'Unit', minW: 'min-w-[85px]' },
+                          { h: 'Topic/content', minW: 'min-w-[160px]' },
+                          { h: 'No. of sessions', minW: 'min-w-[80px]' },
+                          { h: 'Minimum learning outcome', minW: 'min-w-[160px]' },
+                          { h: 'Significance of the subject matter', minW: 'min-w-[160px]' },
+                          { h: 'Prior competency (knowledge)', minW: 'min-w-[150px]' },
+                          { h: 'Instructional materials', minW: 'min-w-[140px]' },
+                          { h: 'Teaching methodology', minW: 'min-w-[140px]' },
+                          { h: 'Class room management', minW: 'min-w-[140px]' },
+                          { h: 'Evaluation', minW: 'min-w-[160px]' }
+                        ].map(({ h, minW }) => (
+                          <th key={h} className={`px-3 py-3 font-black uppercase tracking-wide whitespace-nowrap border-r border-violet-600 last:border-r-0 text-center ${minW}`}>{uiText(h)}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
                       {annualForm.items.map((item, idx) => {
-                        const isFirstWeekOfMonth = item.week === 1;
+                        const semesterName = item.semester || (SEMESTER_1_MONTHS.includes(item.month) ? '1st Semester' : '2nd Semester');
+                        const isFirstRowOfSemester = idx === 0 || (
+                          (item.semester || semesterName) !== (annualForm.items[idx - 1]?.semester || (SEMESTER_1_MONTHS.includes(annualForm.items[idx - 1]?.month) ? '1st Semester' : '2nd Semester'))
+                        );
+                        const semesterRows = annualForm.items.filter(i => {
+                          const sem = i.semester || (SEMESTER_1_MONTHS.includes(i.month) ? '1st Semester' : '2nd Semester');
+                          return sem === semesterName;
+                        }).length;
+
+                        const isFirstWeekOfMonth = item.week === 1 || !annualForm.items.slice(0, idx).some(i => i.month === item.month);
                         const monthRows = annualForm.items.filter(i => i.month === item.month).length;
+
                         return (
                           <tr key={idx} className={`border-b border-slate-100 dark:border-slate-700 ${idx % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-slate-50/50 dark:bg-slate-800/30'}`}>
+                            {isFirstRowOfSemester ? (
+                              <td
+                                rowSpan={semesterRows}
+                                className="px-3 py-2 font-black text-slate-900 dark:text-white bg-slate-200/80 dark:bg-slate-800 border-r border-slate-300 dark:border-slate-700 text-center whitespace-nowrap align-middle uppercase tracking-widest text-[11px] min-w-[65px] shrink-0"
+                                style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
+                              >
+                                {uiText(semesterName)}
+                              </td>
+                            ) : null}
                             {isFirstWeekOfMonth ? (
-                              <td className="px-3 py-2 font-black text-violet-700 dark:text-violet-400 bg-violet-50 dark:bg-violet-900/10 border-r border-slate-200 dark:border-slate-700 whitespace-nowrap" rowSpan={monthRows}>
+                              <td rowSpan={monthRows} className="px-3 py-2 font-black text-violet-700 dark:text-violet-400 bg-violet-50 dark:bg-violet-900/10 border-r border-slate-200 dark:border-slate-700 whitespace-nowrap text-center align-middle min-w-[90px]">
                                 {uiText(item.month)}
                               </td>
                             ) : null}
-                            <td className="px-3 py-2 border-r border-slate-100 dark:border-slate-700 text-center font-bold text-slate-600 dark:text-slate-400 whitespace-nowrap">{uiText("Week ")}{uiText(item.week)}</td>
-                            {['noOfPeriods','unit','mainContent','subContent','competence','teachingMethod','teachingAid','evaluation','remark'].map(field => (
-                              <td key={field} className="px-1 py-1 border-r border-slate-100 dark:border-slate-700 last:border-r-0">
+                            <td className="px-2 py-2 border-r border-slate-100 dark:border-slate-700 text-center font-bold text-slate-600 dark:text-slate-400 whitespace-nowrap min-w-[70px]">
+                              {uiText("Week ")}{uiText(item.week)}
+                            </td>
+                            {[
+                              { field: 'date', minW: 'min-w-[80px]' },
+                              { field: 'pageRef', minW: 'min-w-[95px]' },
+                              { field: 'unit', minW: 'min-w-[85px]' },
+                              { field: 'topicContent', minW: 'min-w-[160px]' },
+                              { field: 'noOfSessions', minW: 'min-w-[80px]' },
+                              { field: 'learningOutcome', minW: 'min-w-[160px]' },
+                              { field: 'significanceSubject', minW: 'min-w-[160px]' },
+                              { field: 'priorCompetency', minW: 'min-w-[150px]' },
+                              { field: 'instructionalMaterials', minW: 'min-w-[140px]' },
+                              { field: 'teachingMethodology', minW: 'min-w-[140px]' },
+                              { field: 'classroomManagement', minW: 'min-w-[140px]' },
+                              { field: 'evaluation', minW: 'min-w-[160px]' }
+                            ].map(({ field, minW }) => (
+                              <td key={field} className={`px-1 py-1 border-r border-slate-100 dark:border-slate-700 last:border-r-0 ${minW}`}>
                                 <input
                                   type="text"
-                                  value={(item as any)[field]}
+                                  value={getAnnualItemValue(item, field)}
                                   onChange={e => {
                                     const newItems = [...annualForm.items];
                                     (newItems[idx] as any)[field] = e.target.value;
                                     setAnnualForm(f => ({ ...f, items: newItems }));
                                   }}
-                                  className="w-full px-2 py-1.5 bg-transparent border border-transparent hover:border-violet-300 focus:border-violet-500 focus:bg-white dark:focus:bg-slate-800 rounded-lg outline-none transition-all text-slate-800 dark:text-slate-200 min-w-[80px]"
+                                  className="w-full px-2 py-1.5 bg-transparent border border-transparent hover:border-violet-300 focus:border-violet-500 focus:bg-white dark:focus:bg-slate-800 rounded-lg outline-none transition-all text-slate-800 dark:text-slate-200"
                                   placeholder={uiText("—")}
                                 />
                               </td>
@@ -3341,29 +3749,86 @@ export const TeacherPortal = () => {
               {/* Matrix Preview */}
               {Array.isArray(selectedAnnualForView.items) && selectedAnnualForView.items.length > 0 && (
                 <div>
-                  <h4 className="text-xs font-black uppercase tracking-widest text-slate-500 mb-3">{uiText("📅 Yearly Matrix")}</h4>
+                  <h4 className="text-center text-sm md:text-base font-black uppercase tracking-widest text-slate-900 dark:text-white mb-4 py-2 border-b border-slate-200 dark:border-slate-700">
+                    {uiText("ZIQUAL ABO PRIMARY SCHOOL ANNUAL PLAN")}
+                  </h4>
                   <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-700">
-                    <table className="w-full text-left min-w-[1200px] text-xs">
+                    <table className="w-full text-left min-w-[2000px] text-xs">
                       <thead>
                         <tr className="bg-slate-800 text-white">
-                          {['Month','Week','# Periods','Unit','Main Content','Sub Content','Competence','Method','Aid','Evaluation','Remark'].map(h => (
-                            <th key={h} className="px-3 py-2.5 font-black uppercase tracking-wide whitespace-nowrap border-r border-slate-700 last:border-r-0">{uiText(h)}</th>
+                          {[
+                            { h: 'Semester', minW: 'min-w-[65px]' },
+                            { h: 'Month', minW: 'min-w-[90px]' },
+                            { h: 'Week', minW: 'min-w-[70px]' },
+                            { h: 'Date', minW: 'min-w-[80px]' },
+                            { h: 'Page reference', minW: 'min-w-[95px]' },
+                            { h: 'Unit', minW: 'min-w-[85px]' },
+                            { h: 'Topic/content', minW: 'min-w-[160px]' },
+                            { h: 'No. of sessions', minW: 'min-w-[80px]' },
+                            { h: 'Minimum learning outcome', minW: 'min-w-[160px]' },
+                            { h: 'Significance of the subject matter', minW: 'min-w-[160px]' },
+                            { h: 'Prior competency (knowledge)', minW: 'min-w-[150px]' },
+                            { h: 'Instructional materials', minW: 'min-w-[140px]' },
+                            { h: 'Teaching methodology', minW: 'min-w-[140px]' },
+                            { h: 'Class room management', minW: 'min-w-[140px]' },
+                            { h: 'Evaluation', minW: 'min-w-[160px]' }
+                          ].map(({ h, minW }) => (
+                            <th key={h} className={`px-3 py-2.5 font-black uppercase tracking-wide whitespace-nowrap border-r border-slate-700 last:border-r-0 text-center ${minW}`}>{uiText(h)}</th>
                           ))}
                         </tr>
                       </thead>
                       <tbody>
                         {selectedAnnualForView.items.map((item: any, idx: number) => {
-                          const isFirst = item.week === 1;
+                          const semesterName = item.semester || (SEMESTER_1_MONTHS.includes(item.month) ? '1st Semester' : '2nd Semester');
+                          const isFirstRowOfSemester = idx === 0 || (
+                            (item.semester || semesterName) !== (selectedAnnualForView.items[idx - 1]?.semester || (SEMESTER_1_MONTHS.includes(selectedAnnualForView.items[idx - 1]?.month) ? '1st Semester' : '2nd Semester'))
+                          );
+                          const semesterRows = selectedAnnualForView.items.filter((i: any) => {
+                            const sem = i.semester || (SEMESTER_1_MONTHS.includes(i.month) ? '1st Semester' : '2nd Semester');
+                            return sem === semesterName;
+                          }).length;
+
+                          const isFirstWeekOfMonth = item.week === 1 || !selectedAnnualForView.items.slice(0, idx).some((i: any) => i.month === item.month);
                           const monthRows = selectedAnnualForView.items.filter((i: any) => i.month === item.month).length;
+
                           return (
                             <tr key={idx} className={`border-b border-slate-100 dark:border-slate-700 ${idx % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-slate-50 dark:bg-slate-800/30'}`}>
-                              {isFirst ? (
-                                <td className="px-3 py-2 font-black text-violet-700 dark:text-violet-400 whitespace-nowrap border-r border-slate-200 dark:border-slate-700 bg-violet-50 dark:bg-violet-900/10" rowSpan={monthRows}>{uiText(item.month)}</td>
+                              {isFirstRowOfSemester ? (
+                                <td
+                                  rowSpan={semesterRows}
+                                  className="px-3 py-2 font-black text-slate-900 dark:text-white bg-slate-200/80 dark:bg-slate-800 border-r border-slate-300 dark:border-slate-700 text-center whitespace-nowrap align-middle uppercase tracking-widest text-[11px] min-w-[65px] shrink-0"
+                                  style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
+                                >
+                                  {uiText(semesterName)}
+                                </td>
                               ) : null}
-                              <td className="px-3 py-2 text-center font-bold text-slate-500 border-r border-slate-100 dark:border-slate-700 whitespace-nowrap">{uiText("Week ")}{uiText(item.week)}</td>
-                              {['noOfPeriods','unit','mainContent','subContent','competence','teachingMethod','teachingAid','evaluation','remark'].map(f => (
-                                <td key={f} className="px-3 py-2 text-slate-700 dark:text-slate-300 border-r border-slate-100 dark:border-slate-700 last:border-r-0">{item[f] || <span className="text-slate-300">—</span>}</td>
-                              ))}
+                              {isFirstWeekOfMonth ? (
+                                <td className="px-3 py-2 font-black text-violet-700 dark:text-violet-400 whitespace-nowrap border-r border-slate-200 dark:border-slate-700 bg-violet-50 dark:bg-violet-900/10 text-center align-middle min-w-[90px]" rowSpan={monthRows}>
+                                  {uiText(item.month)}
+                                </td>
+                              ) : null}
+                              <td className="px-3 py-2 text-center font-bold text-slate-500 border-r border-slate-100 dark:border-slate-700 whitespace-nowrap min-w-[70px]">{uiText("Week ")}{uiText(item.week)}</td>
+                              {[
+                                { f: 'date', minW: 'min-w-[80px]' },
+                                { f: 'pageRef', minW: 'min-w-[95px]' },
+                                { f: 'unit', minW: 'min-w-[85px]' },
+                                { f: 'topicContent', minW: 'min-w-[160px]' },
+                                { f: 'noOfSessions', minW: 'min-w-[80px]' },
+                                { f: 'learningOutcome', minW: 'min-w-[160px]' },
+                                { f: 'significanceSubject', minW: 'min-w-[160px]' },
+                                { f: 'priorCompetency', minW: 'min-w-[150px]' },
+                                { f: 'instructionalMaterials', minW: 'min-w-[140px]' },
+                                { f: 'teachingMethodology', minW: 'min-w-[140px]' },
+                                { f: 'classroomManagement', minW: 'min-w-[140px]' },
+                                { f: 'evaluation', minW: 'min-w-[160px]' }
+                              ].map(({ f, minW }) => {
+                                const val = getAnnualItemValue(item, f);
+                                return (
+                                  <td key={f} className={`px-3 py-2 text-slate-700 dark:text-slate-300 border-r border-slate-100 dark:border-slate-700 last:border-r-0 ${minW}`}>
+                                    {val ? uiText(val) : <span className="text-slate-300">—</span>}
+                                  </td>
+                                );
+                              })}
                             </tr>
                           );
                         })}

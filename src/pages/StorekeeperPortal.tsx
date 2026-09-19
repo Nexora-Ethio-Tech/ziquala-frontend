@@ -16,6 +16,8 @@ interface Asset {
   amount: number;
   value: number;
   category?: string;
+  item_type?: 'Returnable' | 'Consumable';
+  is_consumable?: boolean;
   condition?: 'Excellent' | 'Good' | 'Fair' | 'Poor' | 'Damaged';
   location?: string;
   serial_number?: string;
@@ -30,6 +32,8 @@ interface AssetIssue {
   asset_id: string;
   asset_name: string;
   asset_category?: string;
+  item_type?: 'Returnable' | 'Consumable';
+  is_consumable?: boolean;
   issued_to_name: string;
   issued_to_role?: string;
   purpose?: string;
@@ -37,7 +41,7 @@ interface AssetIssue {
   issued_at: string;
   expected_return?: string;
   returned_at?: string;
-  status: 'Issued' | 'Returned' | 'Overdue' | 'Lost';
+  status: 'Issued' | 'Returned' | 'Overdue' | 'Lost' | 'Consumed';
   notes?: string;
 }
 
@@ -80,6 +84,7 @@ export const StorekeeperPortal = () => {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
+  const [itemTypeFilter, setItemTypeFilter] = useState<'All' | 'Returnable' | 'Consumable'>('All');
   const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({ show: false, message: '', type: 'success' });
 
   // Add / Edit Asset form
@@ -89,6 +94,8 @@ export const StorekeeperPortal = () => {
     amount: 1,
     value: 0,
     category: 'General',
+    item_type: 'Returnable' as 'Returnable' | 'Consumable',
+    is_consumable: false,
     condition: 'Good' as 'Excellent' | 'Good' | 'Fair' | 'Poor' | 'Damaged',
     location: '',
     serial_number: '',
@@ -146,13 +153,15 @@ export const StorekeeperPortal = () => {
   const categoriesList = ['All', ...Array.from(new Set(assets.map(a => a.category || 'General')))];
 
   const filteredAssets = assets.filter(a => {
+    const isConsumable = a.is_consumable || a.item_type === 'Consumable' || a.category === 'Stationery & Supplies';
     const matchesSearch =
       a.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (a.description || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
       (a.location || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
       (a.serial_number || '').toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCat = categoryFilter === 'All' || (a.category || 'General') === categoryFilter;
-    return matchesSearch && matchesCat;
+    const matchesType = itemTypeFilter === 'All' || (itemTypeFilter === 'Consumable' ? isConsumable : !isConsumable);
+    return matchesSearch && matchesCat && matchesType;
   });
 
   // ─── Asset Submit ──────────────────────────────────────────────────────────
@@ -160,7 +169,7 @@ export const StorekeeperPortal = () => {
     e.preventDefault();
     setSubmitting(true);
     try {
-      const payload = { ...form, branch_id: branchId };
+      const payload = { ...form, is_consumable: form.item_type === 'Consumable', branch_id: branchId };
       if (editingId) {
         await api.patch(`/storekeeper/assets/${editingId}`, payload);
         showToast(uiText("Asset updated successfully"));
@@ -180,12 +189,15 @@ export const StorekeeperPortal = () => {
   };
 
   const handleEdit = (asset: Asset) => {
+    const isConsumable = asset.is_consumable || asset.item_type === 'Consumable' || asset.category === 'Stationery & Supplies';
     setForm({
       name: asset.name,
       description: asset.description || '',
       amount: asset.amount,
       value: asset.value,
-      category: asset.category || 'General',
+      category: asset.category || (isConsumable ? 'Stationery & Supplies' : 'General'),
+      item_type: isConsumable ? 'Consumable' : 'Returnable',
+      is_consumable: isConsumable,
       condition: asset.condition || 'Good',
       location: asset.location || '',
       serial_number: asset.serial_number || '',
@@ -212,13 +224,25 @@ export const StorekeeperPortal = () => {
     e.preventDefault();
     setIssuing(true);
     try {
-      await api.post('/storekeeper/issues', { ...issueForm, branch_id: branchId });
-      showToast(uiText("Asset issued successfully"));
+      const selectedAsset = assets.find(a => a.id === issueForm.asset_id);
+      const isConsumable = selectedAsset?.is_consumable || selectedAsset?.item_type === 'Consumable' || selectedAsset?.category === 'Stationery & Supplies';
+
+      const payload = {
+        ...issueForm,
+        item_type: isConsumable ? 'Consumable' : 'Returnable',
+        is_consumable: isConsumable,
+        status: isConsumable ? 'Consumed' : 'Issued',
+        expected_return: isConsumable ? null : issueForm.expected_return,
+        branch_id: branchId
+      };
+
+      await api.post('/storekeeper/issues', payload);
+      showToast(uiText(isConsumable ? "Consumable item issued & deducted from stock" : "Returnable asset issued successfully"));
       setIssueModalOpen(false);
       setIssueForm({ asset_id: '', issued_to_name: '', issued_to_role: 'Teacher', purpose: '', quantity: 1, expected_return: '', notes: '' });
       fetchAllData();
     } catch (e: any) {
-      showToast(uiText(e?.response?.data?.error || 'Failed to issue asset'), 'error');
+      showToast(uiText(e?.response?.data?.error || 'Failed to issue property'), 'error');
     } finally {
       setIssuing(false);
     }
@@ -271,120 +295,155 @@ export const StorekeeperPortal = () => {
       )}
 
       {/* Issue Asset Modal */}
-      {issueModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => setIssueModalOpen(false)}>
-          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-slate-200 dark:border-slate-800" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-5">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-indigo-100 dark:bg-indigo-500/10 rounded-2xl">
-                  <ArrowRightLeft size={20} className="text-indigo-600 dark:text-indigo-400" />
-                </div>
-                <div>
-                  <h3 className="font-black text-lg text-slate-900 dark:text-white">{uiText("Checkout / Issue Asset")}</h3>
-                  <p className="text-xs text-slate-500">{uiText("Assign school property to a staff member or department")}</p>
-                </div>
-              </div>
-              <button onClick={() => setIssueModalOpen(false)} className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg"><X size={18} /></button>
-            </div>
+      {issueModalOpen && (() => {
+        const selectedAssetForIssue = assets.find(a => a.id === issueForm.asset_id);
+        const isSelectedConsumable = selectedAssetForIssue?.is_consumable || selectedAssetForIssue?.item_type === 'Consumable' || selectedAssetForIssue?.category === 'Stationery & Supplies';
 
-            <form onSubmit={handleCreateIssue} className="space-y-4">
-              <div className="space-y-1">
-                <label className="text-xs font-black text-slate-500 uppercase tracking-wide">{uiText("Select Asset *")}</label>
-                <select
-                  value={issueForm.asset_id}
-                  onChange={e => setIssueForm({ ...issueForm, asset_id: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"
-                  required
-                >
-                  <option value="">{uiText("-- Choose Item from Register --")}</option>
-                  {assets.map(a => (
-                    <option key={a.id} value={a.id} disabled={a.amount <= 0}>
-                      {a.name}{uiText(" (Stock: ")}{a.amount}{uiText(") ")}{uiText(a.amount <= 0 ? '— Out of Stock' : '')}
-                    </option>
-                  ))}
-                </select>
+        return (
+          <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => setIssueModalOpen(false)}>
+            <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-slate-200 dark:border-slate-800" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 bg-indigo-100 dark:bg-indigo-500/10 rounded-2xl">
+                    <ArrowRightLeft size={20} className="text-indigo-600 dark:text-indigo-400" />
+                  </div>
+                  <div>
+                    <h3 className="font-black text-lg text-slate-900 dark:text-white">{uiText("Checkout / Issue Item")}</h3>
+                    <p className="text-xs text-slate-500">{uiText("Assign returnable property or issue non-returnable consumables to staff")}</p>
+                  </div>
+                </div>
+                <button onClick={() => setIssueModalOpen(false)} className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg"><X size={18} /></button>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <form onSubmit={handleCreateIssue} className="space-y-4">
                 <div className="space-y-1">
-                  <label className="text-xs font-black text-slate-500 uppercase tracking-wide">{uiText("Issued To (Person/Dept) *")}</label>
-                  <input
-                    type="text"
-                    value={issueForm.issued_to_name}
-                    onChange={e => setIssueForm({ ...issueForm, issued_to_name: e.target.value })}
-                    placeholder={uiText("e.g. Teacher Abebe, Main Office...")}
+                  <label className="text-xs font-black text-slate-500 uppercase tracking-wide">{uiText("Select Item from Stock *")}</label>
+                  <select
+                    value={issueForm.asset_id}
+                    onChange={e => setIssueForm({ ...issueForm, asset_id: e.target.value })}
                     className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"
                     required
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-black text-slate-500 uppercase tracking-wide">{uiText("Role / Department")}</label>
-                  <select
-                    value={issueForm.issued_to_role}
-                    onChange={e => setIssueForm({ ...issueForm, issued_to_role: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"
                   >
-                    <option value="Teacher">{uiText("Teacher")}</option>
-                    <option value="Department Head">{uiText("Department Head")}</option>
-                    <option value="Administrative Staff">{uiText("Administrative Staff")}</option>
-                    <option value="Maintenance">{uiText("Maintenance")}</option>
-                    <option value="Lab Tech">{uiText("Lab Tech")}</option>
-                    <option value="Other">{uiText("Other")}</option>
+                    <option value="">{uiText("-- Choose Item from Register --")}</option>
+                    {assets.map(a => {
+                      const isCons = a.is_consumable || a.item_type === 'Consumable' || a.category === 'Stationery & Supplies';
+                      return (
+                        <option key={a.id} value={a.id} disabled={a.amount <= 0}>
+                          {uiText(a.name)} [{uiText(isCons ? 'Consumable' : 'Returnable')}]{uiText(" (Stock: ")}{a.amount}{uiText(") ")}{uiText(a.amount <= 0 ? '— Out of Stock' : '')}
+                        </option>
+                      );
+                    })}
                   </select>
                 </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-3">
+                {selectedAssetForIssue && (
+                  <div className={`p-3 rounded-xl border flex items-center gap-2.5 text-xs font-medium ${
+                    isSelectedConsumable
+                      ? 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800/50 text-amber-800 dark:text-amber-300'
+                      : 'bg-indigo-50 dark:bg-indigo-950/30 border-indigo-200 dark:border-indigo-800/50 text-indigo-800 dark:text-indigo-300'
+                  }`}>
+                    {isSelectedConsumable ? <Package size={16} className="text-amber-600 shrink-0" /> : <RotateCcw size={16} className="text-indigo-600 shrink-0" />}
+                    <span>
+                      {uiText(isSelectedConsumable
+                        ? "Non-Returnable Consumable Item (e.g. Chalk, Pens, Paper). Quantity issued will be permanently consumed from stock."
+                        : "Returnable Property (e.g. Projector, Laptop, Furniture). Expected return date is required."
+                      )}
+                    </span>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-xs font-black text-slate-500 uppercase tracking-wide">{uiText("Issued To (Person/Dept) *")}</label>
+                    <input
+                      type="text"
+                      value={issueForm.issued_to_name}
+                      onChange={e => setIssueForm({ ...issueForm, issued_to_name: e.target.value })}
+                      placeholder={uiText("e.g. Teacher Abebe, Main Office...")}
+                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-black text-slate-500 uppercase tracking-wide">{uiText("Role / Department")}</label>
+                    <select
+                      value={issueForm.issued_to_role}
+                      onChange={e => setIssueForm({ ...issueForm, issued_to_role: e.target.value })}
+                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+                      <option value="Teacher">{uiText("Teacher")}</option>
+                      <option value="Department Head">{uiText("Department Head")}</option>
+                      <option value="Administrative Staff">{uiText("Administrative Staff")}</option>
+                      <option value="Maintenance">{uiText("Maintenance")}</option>
+                      <option value="Lab Tech">{uiText("Lab Tech")}</option>
+                      <option value="Other">{uiText("Other")}</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-xs font-black text-slate-500 uppercase tracking-wide">{uiText("Quantity *")}</label>
+                    <input
+                      type="number"
+                      min={1}
+                      value={issueForm.quantity}
+                      onChange={e => setIssueForm({ ...issueForm, quantity: parseInt(e.target.value) || 1 })}
+                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-black text-slate-500 uppercase tracking-wide">{uiText("Expected Return Date")}</label>
+                    {isSelectedConsumable ? (
+                      <input
+                        type="text"
+                        disabled
+                        value={uiText("N/A — Consumed upon issue")}
+                        className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-400 cursor-not-allowed"
+                      />
+                    ) : (
+                      <input
+                        type="date"
+                        value={issueForm.expected_return}
+                        onChange={e => setIssueForm({ ...issueForm, expected_return: e.target.value })}
+                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
+                    )}
+                  </div>
+                </div>
+
                 <div className="space-y-1">
-                  <label className="text-xs font-black text-slate-500 uppercase tracking-wide">{uiText("Quantity *")}</label>
-                  <input
-                    type="number"
-                    min={1}
-                    value={issueForm.quantity}
-                    onChange={e => setIssueForm({ ...issueForm, quantity: parseInt(e.target.value) || 1 })}
+                  <label className="text-xs font-black text-slate-500 uppercase tracking-wide">{uiText("Purpose / Notes")}</label>
+                  <textarea
+                    rows={2}
+                    value={issueForm.purpose}
+                    onChange={e => setIssueForm({ ...issueForm, purpose: e.target.value })}
+                    placeholder={uiText("e.g. For Grade 10 Science Lab exam, Chalk for classrooms...")}
                     className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"
-                    required
                   />
                 </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-black text-slate-500 uppercase tracking-wide">{uiText("Expected Return Date")}</label>
-                  <input
-                    type="date"
-                    value={issueForm.expected_return}
-                    onChange={e => setIssueForm({ ...issueForm, expected_return: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"
-                  />
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setIssueModalOpen(false)}
+                    className="flex-1 px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800"
+                  >{uiText("Cancel")}</button>
+                  <button
+                    type="submit"
+                    disabled={issuing}
+                    className="flex-1 px-4 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-bold hover:bg-indigo-700 disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {issuing ? <RefreshCw size={15} className="animate-spin" /> : <ArrowRightLeft size={15} />}
+                    {uiText(isSelectedConsumable ? "Confirm Consumable Issue" : "Confirm Issue")}
+                  </button>
                 </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-black text-slate-500 uppercase tracking-wide">{uiText("Purpose / Notes")}</label>
-                <textarea
-                  rows={2}
-                  value={issueForm.purpose}
-                  onChange={e => setIssueForm({ ...issueForm, purpose: e.target.value })}
-                  placeholder={uiText("e.g. For Grade 10 Science Lab exam, Event setup...")}
-                  className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
-
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setIssueModalOpen(false)}
-                  className="flex-1 px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800"
-                >{uiText("Cancel")}</button>
-                <button
-                  type="submit"
-                  disabled={issuing}
-                  className="flex-1 px-4 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-bold hover:bg-indigo-700 disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  {issuing ? <RefreshCw size={15} className="animate-spin" /> : <ArrowRightLeft size={15} />}{uiText("Confirm Issue")}</button>
-              </div>
-            </form>
+              </form>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Header Banner */}
       <div className="bg-gradient-to-r from-indigo-600 via-indigo-700 to-violet-800 rounded-3xl p-8 text-white shadow-xl shadow-indigo-500/20">
@@ -541,6 +600,15 @@ export const StorekeeperPortal = () => {
                 <option key={c} value={c}>{uiText(c === 'All' ? 'All Categories' : c)}</option>
               ))}
             </select>
+            <select
+              value={itemTypeFilter}
+              onChange={e => setItemTypeFilter(e.target.value as 'All' | 'Returnable' | 'Consumable')}
+              className="px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="All">{uiText("All Item Types")}</option>
+              <option value="Returnable">{uiText("Returnable Assets")}</option>
+              <option value="Consumable">{uiText("Non-Returnable Consumables")}</option>
+            </select>
             <button
               onClick={fetchAllData}
               className="flex items-center gap-2 px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
@@ -581,67 +649,84 @@ export const StorekeeperPortal = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
-                    {filteredAssets.map(asset => (
-                      <tr key={asset.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
-                        <td className="px-5 py-4">
-                          <div className="flex items-center gap-3">
-                            <div className="p-2 bg-indigo-50 dark:bg-indigo-500/10 rounded-lg"><Box size={16} className="text-indigo-600 dark:text-indigo-400" /></div>
-                            <div>
-                              <div className="font-bold text-sm text-slate-800 dark:text-white">{asset.name}</div>
-                              {uiText(asset.serial_number && <div className="text-[11px] text-slate-400 font-mono">{uiText("S/N: ")}{uiText(asset.serial_number)}</div>)}
+                    {filteredAssets.map(asset => {
+                      const isCons = asset.is_consumable || asset.item_type === 'Consumable' || asset.category === 'Stationery & Supplies';
+
+                      return (
+                        <tr key={asset.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+                          <td className="px-5 py-4">
+                            <div className="flex items-center gap-3">
+                              <div className={`p-2 rounded-lg ${isCons ? 'bg-amber-50 dark:bg-amber-500/10' : 'bg-indigo-50 dark:bg-indigo-500/10'}`}>
+                                {isCons ? <Package size={16} className="text-amber-600 dark:text-amber-400" /> : <Box size={16} className="text-indigo-600 dark:text-indigo-400" />}
+                              </div>
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <span className="font-bold text-sm text-slate-800 dark:text-white">{asset.name}</span>
+                                  {isCons ? (
+                                    <span className="px-2 py-0.5 text-[10px] font-black rounded-md bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                                      {uiText("Consumable")}
+                                    </span>
+                                  ) : (
+                                    <span className="px-2 py-0.5 text-[10px] font-black rounded-md bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800">
+                                      {uiText("Returnable")}
+                                    </span>
+                                  )}
+                                </div>
+                                {uiText(asset.serial_number && <div className="text-[11px] text-slate-400 font-mono">{uiText("S/N: ")}{uiText(asset.serial_number)}</div>)}
+                              </div>
                             </div>
-                          </div>
-                        </td>
-                        <td className="px-5 py-4">
-                          <span className="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-300">
-                            {uiText(asset.category || 'General')}
-                          </span>
-                        </td>
-                        <td className="px-5 py-4">
-                          <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${CONDITION_COLORS[asset.condition || 'Good']}`}>
-                            {uiText(asset.condition || 'Good')}
-                          </span>
-                        </td>
-                        <td className="px-5 py-4 text-sm text-slate-500">
-                          {asset.location ? <span className="flex items-center gap-1"><MapPin size={13} /> {uiText(asset.location)}</span> : <span className="text-slate-300 italic">{uiText("—")}</span>}
-                        </td>
-                        <td className="px-5 py-4 text-center">
-                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-black ${asset.amount <= 2 ? 'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400'}`}>
-                            {asset.amount}
-                          </span>
-                        </td>
-                        <td className="px-5 py-4 text-right text-sm text-slate-600 dark:text-slate-300 font-bold">{uiText(asset.value.toLocaleString(localeTag()))}</td>
-                        <td className="px-5 py-4 text-right text-sm font-black text-slate-800 dark:text-white">{uiText((asset.value * asset.amount).toLocaleString(localeTag()))}</td>
-                        <td className="px-5 py-4">
-                          <div className="flex items-center justify-center gap-1">
-                            <button
-                              onClick={() => {
-                                setIssueForm(f => ({ ...f, asset_id: asset.id }));
-                                setIssueModalOpen(true);
-                              }}
-                              className="p-2 text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 rounded-lg"
-                              title={uiText("Issue to Staff")}
-                            >
-                              <ArrowRightLeft size={15} />
-                            </button>
-                            <button
-                              onClick={() => handleEdit(asset)}
-                              className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-lg"
-                              title={uiText("Edit")}
-                            >
-                              <Pencil size={15} />
-                            </button>
-                            <button
-                              onClick={() => setDeleteConfirm({ id: asset.id, name: asset.name })}
-                              className="p-2 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg"
-                              title={uiText("Delete")}
-                            >
-                              <Trash2 size={15} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
+                          </td>
+                          <td className="px-5 py-4">
+                            <span className="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-300">
+                              {uiText(asset.category || 'General')}
+                            </span>
+                          </td>
+                          <td className="px-5 py-4">
+                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${CONDITION_COLORS[asset.condition || 'Good']}`}>
+                              {uiText(asset.condition || 'Good')}
+                            </span>
+                          </td>
+                          <td className="px-5 py-4 text-sm text-slate-500">
+                            {asset.location ? <span className="flex items-center gap-1"><MapPin size={13} /> {uiText(asset.location)}</span> : <span className="text-slate-300 italic">{uiText("—")}</span>}
+                          </td>
+                          <td className="px-5 py-4 text-center">
+                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-black ${asset.amount <= 2 ? 'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400'}`}>
+                              {asset.amount}
+                            </span>
+                          </td>
+                          <td className="px-5 py-4 text-right text-sm text-slate-600 dark:text-slate-300 font-bold">{uiText(asset.value.toLocaleString(localeTag()))}</td>
+                          <td className="px-5 py-4 text-right text-sm font-black text-slate-800 dark:text-white">{uiText((asset.value * asset.amount).toLocaleString(localeTag()))}</td>
+                          <td className="px-5 py-4">
+                            <div className="flex items-center justify-center gap-1">
+                              <button
+                                onClick={() => {
+                                  setIssueForm(f => ({ ...f, asset_id: asset.id }));
+                                  setIssueModalOpen(true);
+                                }}
+                                className="p-2 text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 rounded-lg"
+                                title={uiText("Issue to Staff")}
+                              >
+                                <ArrowRightLeft size={15} />
+                              </button>
+                              <button
+                                onClick={() => handleEdit(asset)}
+                                className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-lg"
+                                title={uiText("Edit")}
+                              >
+                                <Pencil size={15} />
+                              </button>
+                              <button
+                                onClick={() => setDeleteConfirm({ id: asset.id, name: asset.name })}
+                                className="p-2 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg"
+                                title={uiText("Delete")}
+                              >
+                                <Trash2 size={15} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -687,32 +772,71 @@ export const StorekeeperPortal = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
-                    {issues.map(iss => (
-                      <tr key={iss.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30">
-                        <td className="px-5 py-4 font-bold text-sm text-slate-800 dark:text-white">{uiText(iss.asset_name)}</td>
-                        <td className="px-5 py-4">
-                          <div className="font-bold text-sm text-slate-800 dark:text-white">{uiText(iss.issued_to_name)}</div>
-                          <div className="text-xs text-slate-400">{uiText(iss.issued_to_role || 'Staff')}</div>
-                        </td>
-                        <td className="px-5 py-4 text-center font-black text-sm text-indigo-600 dark:text-indigo-400">{iss.quantity}</td>
-                        <td className="px-5 py-4 text-sm text-slate-500">{uiText(new Date(iss.issued_at).toLocaleDateString(localeTag()))}</td>
-                        <td className="px-5 py-4 text-sm text-slate-500">{uiText(iss.expected_return ? new Date(iss.expected_return).toLocaleDateString(localeTag()) : '—')}</td>
-                        <td className="px-5 py-4 text-center">
-                          <span className={`px-2.5 py-1 rounded-full text-xs font-black ${iss.status === 'Issued' ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400'}`}>
-                            {uiText(iss.status)}
-                          </span>
-                        </td>
-                        <td className="px-5 py-4 text-center">
-                          {iss.status === 'Issued' && (
-                            <button
-                              onClick={() => handleReturnIssue(iss.id)}
-                              className="px-3 py-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 mx-auto"
-                            >
-                              <RotateCcw size={13} />{uiText(" Mark Returned")}</button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
+                    {issues.map(iss => {
+                      const isCons = iss.status === 'Consumed' || iss.is_consumable || iss.item_type === 'Consumable' || iss.asset_category === 'Stationery & Supplies';
+
+                      return (
+                        <tr key={iss.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30">
+                          <td className="px-5 py-4 font-bold text-sm text-slate-800 dark:text-white">
+                            <div>{uiText(iss.asset_name)}</div>
+                            {isCons ? (
+                              <span className="inline-block mt-0.5 px-2 py-0.5 text-[10px] font-black rounded bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300">
+                                {uiText("Consumable Item")}
+                              </span>
+                            ) : (
+                              <span className="inline-block mt-0.5 px-2 py-0.5 text-[10px] font-black rounded bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-400">
+                                {uiText("Returnable Asset")}
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-5 py-4">
+                            <div className="font-bold text-sm text-slate-800 dark:text-white">{uiText(iss.issued_to_name)}</div>
+                            <div className="text-xs text-slate-400">{uiText(iss.issued_to_role || 'Staff')}</div>
+                          </td>
+                          <td className="px-5 py-4 text-center font-black text-sm text-indigo-600 dark:text-indigo-400">{iss.quantity}</td>
+                          <td className="px-5 py-4 text-sm text-slate-500">{uiText(new Date(iss.issued_at).toLocaleDateString(localeTag()))}</td>
+                          <td className="px-5 py-4 text-sm text-slate-500">
+                            {isCons ? (
+                              <span className="text-amber-700 dark:text-amber-400 font-bold text-xs bg-amber-50 dark:bg-amber-950/40 px-2.5 py-1 rounded-md">
+                                {uiText("N/A (Consumable)")}
+                              </span>
+                            ) : (
+                              uiText(iss.expected_return ? new Date(iss.expected_return).toLocaleDateString(localeTag()) : '—')
+                            )}
+                          </td>
+                          <td className="px-5 py-4 text-center">
+                            <span className={`px-2.5 py-1 rounded-full text-xs font-black ${
+                              iss.status === 'Consumed'
+                                ? 'bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300 border border-amber-300 dark:border-amber-700'
+                                : iss.status === 'Issued'
+                                ? 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400'
+                                : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400'
+                            }`}>
+                              {uiText(iss.status === 'Consumed' ? 'Consumed / Issued' : iss.status)}
+                            </span>
+                          </td>
+                          <td className="px-5 py-4 text-center">
+                            {iss.status === 'Issued' && (
+                              <button
+                                onClick={() => handleReturnIssue(iss.id)}
+                                className="px-3 py-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 mx-auto"
+                              >
+                                <RotateCcw size={13} />{uiText(" Mark Returned")}</button>
+                            )}
+                            {iss.status === 'Consumed' && (
+                              <span className="text-xs font-bold text-slate-400 italic">
+                                {uiText("No return required")}
+                              </span>
+                            )}
+                            {iss.status === 'Returned' && (
+                              <span className="text-xs font-bold text-emerald-600">
+                                {uiText("Returned")}
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -741,6 +865,49 @@ export const StorekeeperPortal = () => {
             </div>
 
             <form onSubmit={handleSubmitAsset} className="space-y-4">
+              {/* Item Type Toggle */}
+              <div className="space-y-1">
+                <label className="text-xs font-black text-slate-500 uppercase tracking-wide">{uiText("Item Classification *")}</label>
+                <div className="grid grid-cols-2 gap-3 p-1.5 bg-slate-100 dark:bg-slate-800 rounded-2xl">
+                  <button
+                    type="button"
+                    onClick={() => setForm({ ...form, item_type: 'Returnable', is_consumable: false })}
+                    className={`flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl font-bold text-sm transition-all ${
+                      form.item_type === 'Returnable'
+                        ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm border border-indigo-200 dark:border-indigo-500/30'
+                        : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                    }`}
+                  >
+                    <RotateCcw size={16} />
+                    <div className="text-left">
+                      <div className="leading-none">{uiText("Returnable Asset")}</div>
+                      <div className="text-[10px] font-normal text-slate-400 mt-1">{uiText("Laptops, Projectors, Furniture")}</div>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setForm({
+                      ...form,
+                      item_type: 'Consumable',
+                      is_consumable: true,
+                      category: form.category === 'General' ? 'Stationery & Supplies' : form.category
+                    })}
+                    className={`flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl font-bold text-sm transition-all ${
+                      form.item_type === 'Consumable'
+                        ? 'bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 shadow-sm border border-amber-300 dark:border-amber-700'
+                        : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                    }`}
+                  >
+                    <Package size={16} />
+                    <div className="text-left">
+                      <div className="leading-none">{uiText("Non-Returnable Consumable")}</div>
+                      <div className="text-[10px] font-normal text-slate-400 mt-1">{uiText("Chalk, Pens, Paper, Markers")}</div>
+                    </div>
+                  </button>
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-xs font-black text-slate-500 uppercase tracking-wide">{uiText("Property Name *")}</label>
@@ -748,7 +915,7 @@ export const StorekeeperPortal = () => {
                     type="text"
                     value={form.name}
                     onChange={e => setForm({ ...form, name: e.target.value })}
-                    placeholder={uiText("e.g. Science Lab Projector, Desk, Marker Box...")}
+                    placeholder={uiText("e.g. Science Lab Projector, Chalk Box, Pens...")}
                     className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"
                     required
                   />

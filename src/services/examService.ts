@@ -60,8 +60,13 @@ export interface SubmitResult {
 // ─── Student Exam APIs ────────────────────────────────────────────────────────
 
 export const getAvailableExams = async (): Promise<PublishedExam[]> => {
-  const response = await api.get('/student/exams');
-  return response.data.data;
+  try {
+    const response = await api.get('/student/exams');
+    return response.data.data || [];
+  } catch (err) {
+    console.warn('Failed to fetch available student exams:', err);
+    return [];
+  }
 };
 
 export const getExamById = async (examId: string): Promise<ExamDetail> => {

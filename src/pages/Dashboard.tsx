@@ -1,8 +1,8 @@
 import { uiError, uiText, localeTag } from "../localization";
 
-import { Users, GraduationCap, Clock, TrendingUp, Lock, Unlock, Megaphone, Plus, X, Bell, Book, BookOpen, AlertTriangle, ShieldAlert, ArrowRight, ArrowLeft, Trash2, Edit, Calendar, CheckCircle } from 'lucide-react';
+import { Users, GraduationCap, Clock, TrendingUp, Lock, Unlock, Megaphone, Plus, X, Bell, Book, BookOpen, AlertTriangle, ShieldAlert, ArrowRight, ArrowLeft, Trash2, Edit, Calendar, CheckCircle, Search, Filter } from 'lucide-react';
 import { useUser } from '../context/UserContext';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useStore } from '../context/useStore';
 import { useTranslation } from 'react-i18next';
@@ -42,6 +42,10 @@ export const Dashboard = () => {
   const [showEventModal, setShowEventModal] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [watchlistExpanded, setWatchlistExpanded] = useState(true);
+  const [watchlistSearch, setWatchlistSearch] = useState('');
+  const [watchlistGradeFilter, setWatchlistGradeFilter] = useState('all');
+  const [watchlistRiskFilter, setWatchlistRiskFilter] = useState('all');
+  const [showAllWatchlist, setShowAllWatchlist] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deletingEvent, setDeletingEvent] = useState<Event | null>(null);
@@ -69,6 +73,7 @@ export const Dashboard = () => {
   const [dashboardStats, setDashboardStats] = useState<any>(null);
   const [schoolAdminStats, setSchoolAdminStats] = useState<any>(null);
   const [atRiskStudents, setAtRiskStudents] = useState<AtRiskStudent[]>([]);
+  const [selectedAtRiskStudent, setSelectedAtRiskStudent] = useState<any>(null);
   const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(false);
   const [branchReportLoading, setBranchReportLoading] = useState(false);
@@ -183,6 +188,34 @@ export const Dashboard = () => {
 
     fetchDashboardStats();
   }, [role]);
+
+  // Priority Watchlist Filtering
+  const availableWatchlistGrades = useMemo(() => {
+    const grades = Array.from(new Set(atRiskStudents.map((s) => s.grade).filter(Boolean)));
+    return grades.sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
+  }, [atRiskStudents]);
+
+  const filteredAtRiskStudents = useMemo(() => {
+    return atRiskStudents.filter((student) => {
+      // Search query filter (matches name, digital_id, student_id, or risk_factor)
+      if (watchlistSearch.trim()) {
+        const q = watchlistSearch.toLowerCase().trim();
+        const matchName = student.name?.toLowerCase().includes(q);
+        const matchId = student.digital_id?.toLowerCase().includes(q) || student.student_id?.toLowerCase().includes(q);
+        const matchFactor = student.risk_factor?.toLowerCase().includes(q);
+        if (!matchName && !matchId && !matchFactor) return false;
+      }
+      // Grade filter
+      if (watchlistGradeFilter !== 'all' && student.grade !== watchlistGradeFilter) {
+        return false;
+      }
+      // Risk level filter
+      if (watchlistRiskFilter !== 'all' && student.risk_level !== watchlistRiskFilter) {
+        return false;
+      }
+      return true;
+    });
+  }, [atRiskStudents, watchlistSearch, watchlistGradeFilter, watchlistRiskFilter]);
 
 
   // Event Management Handlers
@@ -981,40 +1014,146 @@ export const Dashboard = () => {
 
         {isAdmin && (
           <div className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 transition-colors duration-300">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
               <button
                 onClick={() => setWatchlistExpanded(!watchlistExpanded)}
                 className="text-lg font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-2 hover:opacity-70 transition-opacity"
               >
                 <ShieldAlert size={20} className="text-rose-600" />
                 {t('dashboard.priorityWatchlist')}
+                <span className="px-2 py-0.5 text-xs font-bold rounded-full bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
+                  {filteredAtRiskStudents.length}
+                </span>
                 <div className={`transition-transform duration-300 ${watchlistExpanded ? 'rotate-90' : ''}`}>
                   <ArrowRight size={18} className="text-slate-400" />
                 </div>
               </button>
             </div>
+
             {watchlistExpanded && (
               <div className="space-y-4 animate-in slide-in-from-top-2 duration-300">
+                {/* Watchlist Filter Bar */}
+                <div className="space-y-2 p-2.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-100 dark:border-slate-700/80">
+                  {/* Search Input (Full Width) */}
+                  <div className="relative w-full">
+                    <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type="text"
+                      placeholder={uiText("Search student name or ID...")}
+                      value={watchlistSearch}
+                      onChange={(e) => setWatchlistSearch(e.target.value)}
+                      className="w-full pl-8 pr-2.5 py-1.5 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 font-medium"
+                    />
+                  </div>
+
+                  {/* Filters & Clear button (Row 2) */}
+                  <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                    {/* Grade Filter */}
+                    <select
+                      value={watchlistGradeFilter}
+                      onChange={(e) => setWatchlistGradeFilter(e.target.value)}
+                      className="flex-1 min-w-[100px] px-2.5 py-1.5 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-slate-100 font-medium cursor-pointer"
+                    >
+                      <option value="all">{uiText("All Grades")}</option>
+                      {availableWatchlistGrades.map((g) => (
+                        <option key={g} value={g}>{uiText(g)}</option>
+                      ))}
+                    </select>
+
+                    {/* Risk Level Filter */}
+                    <select
+                      value={watchlistRiskFilter}
+                      onChange={(e) => setWatchlistRiskFilter(e.target.value)}
+                      className="flex-1 min-w-[110px] px-2.5 py-1.5 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-slate-100 font-medium cursor-pointer"
+                    >
+                      <option value="all">{uiText("All Risk Levels")}</option>
+                      <option value="High">{uiText("High Risk")}</option>
+                      <option value="Medium">{uiText("Medium Risk")}</option>
+                      <option value="Low">{uiText("Low Risk")}</option>
+                    </select>
+
+                    {/* Clear Filters */}
+                    {(watchlistSearch || watchlistGradeFilter !== 'all' || watchlistRiskFilter !== 'all') && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setWatchlistSearch('');
+                          setWatchlistGradeFilter('all');
+                          setWatchlistRiskFilter('all');
+                        }}
+                        className="px-2 py-1 text-xs text-rose-600 hover:text-rose-700 dark:text-rose-400 font-bold hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors shrink-0"
+                      >
+                        {uiText("Clear")}
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* List Content */}
                 {atRiskStudents.length === 0 ? (
                   <div className="text-center py-8">
                     <p className="text-sm text-slate-500">{t('dashboard.noAtRiskStudents')}</p>
                   </div>
+                ) : filteredAtRiskStudents.length === 0 ? (
+                  <div className="text-center py-8 bg-slate-50/50 dark:bg-slate-800/30 rounded-xl border border-dashed border-slate-200 dark:border-slate-700">
+                    <p className="text-sm text-slate-500 font-medium">{uiText("No students match the selected filters.")}</p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setWatchlistSearch('');
+                        setWatchlistGradeFilter('all');
+                        setWatchlistRiskFilter('all');
+                      }}
+                      className="mt-2 text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline"
+                    >
+                      {uiText("Reset Filters")}
+                    </button>
+                  </div>
                 ) : (
-                  atRiskStudents.slice(0, 4).map((student) => (
-                    <div key={student.student_id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-2 h-2 rounded-full ${student.risk_level === 'High' ? 'bg-rose-500' : 'bg-amber-500'}`} />
-                        <div>
-                          <p className="text-sm font-bold text-slate-800 dark:text-slate-100">{student.name}</p>
-                          <p className="text-[10px] text-slate-400 font-medium uppercase">{uiText(student.grade)}{uiText(" • ")}{uiText(student.risk_level)}{uiText(" Risk")}</p>
-                          <p className="text-[10px] text-slate-500 mt-1">{uiText(student.risk_factor)}</p>
+                  <div className="space-y-3 max-h-[420px] overflow-y-auto pr-1">
+                    {(showAllWatchlist ? filteredAtRiskStudents : filteredAtRiskStudents.slice(0, 5)).map((student) => (
+                      <div
+                        key={student.student_id}
+                        onClick={() => setSelectedAtRiskStudent(student)}
+                        className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600 transition-all cursor-pointer group"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`w-2.5 h-2.5 rounded-full ${student.risk_level === 'High' ? 'bg-rose-500 animate-pulse' : 'bg-amber-500'}`} />
+                          <div>
+                            <p className="text-sm font-bold text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{student.name}</p>
+                            <p className="text-[10px] text-slate-400 font-medium uppercase">{uiText(student.grade)} • {uiText(student.risk_level)} {uiText("Risk")}</p>
+                            <p className="text-[10px] text-rose-500 dark:text-rose-400 font-semibold mt-0.5">{uiText(student.risk_factor)}</p>
+                          </div>
                         </div>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedAtRiskStudent(student);
+                          }}
+                          className="p-2 text-slate-400 hover:text-blue-600 hover:bg-white dark:hover:bg-slate-800 rounded-lg transition-all"
+                          title={uiText("View Detailed Student Results")}
+                        >
+                          <ArrowRight size={16} />
+                        </button>
                       </div>
-                      <Link to={`/students/${student.student_id}`} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-white dark:hover:bg-slate-800 rounded-lg transition-all">
-                        <ArrowRight size={16} />
-                      </Link>
-                    </div>
-                  ))
+                    ))}
+                  </div>
+                )}
+
+                {/* Show All / Show Less Toggle Button */}
+                {filteredAtRiskStudents.length > 5 && (
+                  <div className="pt-2 text-center border-t border-slate-100 dark:border-slate-800">
+                    <button
+                      type="button"
+                      onClick={() => setShowAllWatchlist(!showAllWatchlist)}
+                      className="px-4 py-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 rounded-lg transition-colors"
+                    >
+                      {showAllWatchlist
+                        ? uiText("Show Top 5 Only")
+                        : uiText("Show All {{count}} Watchlist Students", { count: filteredAtRiskStudents.length })}
+                    </button>
+                  </div>
                 )}
               </div>
             )}
@@ -1377,6 +1516,126 @@ export const Dashboard = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Priority Watchlist Student Detailed Modal */}
+      {selectedAtRiskStudent && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+            {/* Header */}
+            <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/80 dark:bg-slate-800/50 shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400 rounded-xl">
+                  <ShieldAlert size={22} />
+                </div>
+                <div>
+                  <h3 className="font-black text-slate-800 dark:text-slate-100 text-lg">{uiText("First Semester Academic Performance")}</h3>
+                  <p className="text-xs text-slate-500 font-medium">{uiText("Priority Watchlist Student Detailed Results")}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedAtRiskStudent(null)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-2 rounded-xl transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-6 space-y-6 flex-1 overflow-y-auto">
+              {/* Student Summary Card */}
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-md">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                      {uiText(selectedAtRiskStudent.risk_level)} {uiText("Risk")} (&lt; 50%)
+                    </span>
+                    <span className="text-xs text-slate-400 font-mono">{selectedAtRiskStudent.digital_id || 'N/A'}</span>
+                  </div>
+                  <h4 className="text-xl font-black text-white">{selectedAtRiskStudent.name}</h4>
+                  <p className="text-xs text-slate-300 font-medium mt-0.5">{uiText(selectedAtRiskStudent.grade)} • {uiText(selectedAtRiskStudent.risk_factor)}</p>
+                </div>
+
+                <div className="text-left sm:text-right bg-white/10 p-3 rounded-xl backdrop-blur-sm border border-white/10 w-full sm:w-auto">
+                  <p className="text-[10px] uppercase font-bold text-slate-300 tracking-wider">{uiText("1st Sem Average")}</p>
+                  <p className={`text-2xl font-black ${Number(selectedAtRiskStudent.average_grade) < 50 ? 'text-rose-400' : 'text-emerald-400'}`}>
+                    {selectedAtRiskStudent.average_grade}%
+                  </p>
+                </div>
+              </div>
+
+              {/* Course Scores Table */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h5 className="text-sm font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wider">
+                    {uiText("Course Breakdown")} ({(selectedAtRiskStudent.courses?.length || 0)} {uiText("Subjects")})
+                  </h5>
+                  <span className="text-xs font-semibold text-rose-500">{uiText("Passing Grade: 50%")}</span>
+                </div>
+
+                {!selectedAtRiskStudent.courses || selectedAtRiskStudent.courses.length === 0 ? (
+                  <div className="text-center py-8 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
+                    <p className="text-sm text-slate-500">{uiText("No course grades recorded yet for this semester.")}</p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-slate-100 dark:bg-slate-800/80 text-[11px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider border-b border-slate-200 dark:border-slate-800">
+                          <th className="py-3 px-4">{uiText("Subject")}</th>
+                          <th className="py-3 px-4 text-center">{uiText("Score / Max")}</th>
+                          <th className="py-3 px-4 text-center">{uiText("Percentage")}</th>
+                          <th className="py-3 px-4 text-right">{uiText("Status")}</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm font-medium">
+                        {selectedAtRiskStudent.courses.map((course: any) => (
+                          <tr key={course.course_id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                            <td className="py-3 px-4">
+                              <span className="font-bold text-slate-800 dark:text-slate-100 capitalize">{uiText(course.course_name)}</span>
+                              {course.course_code && (
+                                <span className="block text-[10px] text-slate-400 font-mono">{course.course_code}</span>
+                              )}
+                            </td>
+                            <td className="py-3 px-4 text-center font-semibold text-slate-700 dark:text-slate-300">
+                              {course.score} / {course.total}
+                            </td>
+                            <td className="py-3 px-4 text-center">
+                              <span className={`font-black ${course.percentage < 50 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                                {course.percentage}%
+                              </span>
+                            </td>
+                            <td className="py-3 px-4 text-right">
+                              <span className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                                course.percentage < 50
+                                  ? 'bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-800'
+                                  : 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'
+                              }`}>
+                                {uiText(course.percentage < 50 ? 'Needs Improvement' : 'Passing')}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="p-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 flex justify-end shrink-0">
+              <button
+                type="button"
+                onClick={() => setSelectedAtRiskStudent(null)}
+                className="px-5 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 text-slate-800 dark:text-white rounded-xl text-xs font-bold transition-all"
+              >
+                {uiText("Close")}
+              </button>
+            </div>
           </div>
         </div>
       )}

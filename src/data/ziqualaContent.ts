@@ -11,9 +11,9 @@ export const ziqualaIdentity = {
   amharicName: officialSchoolStatement.am.name,
   oromoName: officialSchoolStatement.om.name,
   location: 'Bishoftu, Kebele 03',
-  owner: 'Ziquala Debre Kewakibt Abune Gebre Menfes Kidus Unity Monastery',
+  owner: 'Ziquala Debre Kewakibt Abune Gebre Menfes Kidus communal Monastery',
   monasteryNameAm: 'የዝቋላ ደብረ ከዋክብት አቡነ ገብረ መንፈስ ቅዱስ አንድነት ገዳም',
-  monasteryNameEn: 'Ziquala Debre Kewakibt Abune Gebre Menfes Kidus Unity Monastery',
+  monasteryNameEn: 'Ziquala Debre Kewakibt Abune Gebre Menfes Kidus communal Monastery',
   motto: 'Modern knowledge, spiritual wisdom, and responsible citizenship.',
 } as const;
 
@@ -112,7 +112,7 @@ export const monasteryDevelopmentProjects = [
 export const schoolDocumentContent = {
   vision: 'ራሳቸውን በራሳቸው ማስተማር በሚችል አሳታፊ ወይም ተማሪ ተኮር የማስተማር ዘዴን በመጠቀም መልካም የሆነውን ኢትዮጵያዊ ስነ ምግባር የሚጠብቁ ለሀገርም ለወገንም ጠቃሚ ዜጎችን ማየት።',
   mission: 'በዘመናዊው ዓለም አቀፋዊ ጥራቱን የጠበቀና ኢትዮጵያዊነትን የተላበሰ ስርዓተ ትምህርትን በብቁ ባለሙያዎች በመስጠት በስነምግባር የታነፀ ትውልድ ማፍራት ነው።',
-  values: ['በኢትዮጵያ ኦርቶዶክስ ተዋሕዶ ቤተክርስቲያን ሥነ-ምግባር የታነፁ ዜጎችን ማፍራት።', 'ፈሪሀ እግዚአብሔርን የተላበሱ ብቁ ዜጎችን መፍጠር።', 'ሕፃናትን በመንፈሳዊ ጥበብ እና በዘመናዊ ሳይንሳዊ ዕውቀት አጣምሮ ማነጽ።', 'ለተፈጥሮና ሰው ሰራሽ ቅርሶች አክብሮት እንዲኖራቸው ማብቃት።', 'በዕውቀት፣ በግንዛቤ፣ በክህሎትና በችሎታ የተገነቡ ዜጎችን ማፍራት።'],
+  values: ['በመልካም ሥነ-ምግባርና በሰብአዊ እሴቶች የታነፁ ዜጎችን ማፍራት።', 'ፈሪሀ እግዚአብሔርን የተላበሱ ብቁ ዜጎችን መፍጠር።', 'ሕፃናትን በመንፈሳዊ ጥበብ እና በዘመናዊ ሳይንሳዊ ዕውቀት አጣምሮ ማነጽ።', 'ለተፈጥሮና ሰው ሰራሽ ቅርሶች አክብሮት እንዲኖራቸው ማብቃት።', 'በዕውቀት፣ በግንዛቤ፣ በክህሎትና በችሎታ የተገነቡ ዜጎችን ማፍራት።'],
   abbotMessage: 'በስመ አብ ወወልድ ወመንፈስ ቅዱስ አሐዱ አምላክ፤ አሜን።\n\nወደ ዝቋላ አቦ ገዳም አፀደ ህፃናትና አንደኛ ደረጃ ትምህርት ቤት እንኳን በደህና መጣችሁ! የዝቋላ ደብረ ከዋክብት አቡነ ገብረመንፈስ ቅዱስ ገዳማችን ይህንን ትምህርት ቤት ያቋቋመው ሕፃናትንና ታዳጊ ወጣቶችን በዘመናዊ ሳይንሳዊ ዕውቀትና በመንፈሳዊ ጥበብ አጣምሮ ለማነጽ ነው።\n\nበሙያ ብቃታቸውና በክርስቲያናዊ ሥነ-ምግባራቸው የተመረጡ መምህራንና የአስተዳደር ሠራተኞች ልጆቻችሁን በፍቅር ይመራሉ፤ በጥበብም ያንፃሉ።',
   socialResponsibility: 'ጥራት ያለው ትምህርት ለሁሉም መዳረስ አለበት በሚል እምነት፣ ትምህርት ቤታችን ከአቅመ ደካማ ቤተሰብ ለተውጣጡ ተማሪዎች ነፃ የትምህርት ዕድል ይሰጣል። ከመንግሥታዊና የግል ተቋማት ጋርም በመተባበር ለማኅበረሰቡ ያገለግላል።',
 } as const;
@@ -182,14 +182,12 @@ export const academicManagerProfile = {
   image: abbaBirhanemeskelHailemariam,
 } as const;
 
-export type SchoolStaffGroup = 'office' | 'primary' | 'kindergarten';
+export type SchoolStaffGroup = 'office' | 'primary' | 'kindergarten' | 'cleaning';
 
 export const schoolStaff = [
   { name: 'አብረሃም ከፍያለው', role: 'School Principal', group: 'office', image: '/images/staff/staff-46.jpg' },
   { name: 'አባ ገብረጻድቅ ኃይለኢየሱስ ብዙነህ', role: 'የት/ቤቱ ሥራ አስኪያጅ', group: 'office', image: '/images/staff/staff-37.jpg' },
   { name: 'አባ ብርሃነመስቀል ኃይለማርያም', role: 'የት/ቤቱ አካዳሚክ ማናጀር', group: 'office', image: '/images/staff/staff-33.jpg' },
-  { name: 'አባ ገብረጻድቅ ትዕዛዙ ወርቅነህ', role: 'የት/ቤቱ ፀሐፊ', group: 'office', image: '/images/staff/staff-36.jpg' },
-  { name: 'አባ ሀብተማርያም በፅሐ ጌታነህ', role: 'የት/ቤቱ ግምጃ ቤት', group: 'office', image: '/images/staff/staff-32.jpg' },
   { name: 'አባ ክንፈሚካኤል ወልደጊዮርጊስ ተክለጊዮርጊስ', role: 'Purchaser', group: 'office', image: '/images/staff/staff-34.jpg' },
   { name: 'Firehiwot Markos Hailu', role: 'ፀሐፊ', group: 'office', image: '/images/staff/staff-03.jpg' },
   { name: 'ስንዱ ለገሠ', role: 'Librarian', group: 'office', image: '/images/staff/staff-19.jpg' },
@@ -218,7 +216,6 @@ export const schoolStaff = [
   { name: 'ቴዎድሮስ አሰፋ ከበደ', role: 'የሳይንስ መምህር', group: 'primary', image: '/images/staff/staff-23.jpg' },
   { name: 'ፍቅር ደሳለኝ ደምሴ', role: 'የሳይንስ መምህር', group: 'primary', image: '/images/staff/staff-52.jpg' },
   { name: 'አባ ገብረሥላሴ በላቸው አባተ', role: 'የእንግሊዝኛ ቋንቋ መምህር', group: 'primary', image: '/images/staff/staff-35.jpg' },
-  { name: 'አባ ሀብተማርያም በፅሐ ጌታነህ', role: 'የሳይንስ መምህር', group: 'primary', image: '/images/staff/staff-31.jpg' },
 
   { name: 'እስራኤል አበባየሁ ተኮላ', role: 'የኬጂ መምህርት', group: 'kindergarten', image: '/images/staff/staff-41.jpg' },
   { name: 'ሲሳይ ዲንቁ ታደሰ', role: 'የኬጂ መምህርት', group: 'kindergarten', image: '/images/staff/staff-14.jpg' },

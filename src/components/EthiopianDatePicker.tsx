@@ -1,7 +1,7 @@
 import { uiText } from "../localization";
 import React, { useState, useRef, useEffect } from 'react';
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, X } from 'lucide-react';
-import { parseEthiopianDateString } from '../utils/ethiopianCalendar';
+import { parseEthiopianDateString, gregorianToEthiopian, getTodayEthiopianDate } from '../utils/ethiopianCalendar';
 
 const ETHIOPIAN_MONTHS = [
   'Meskerem', 'Tikimt', 'Hidar', 'Tahsas', 'Tir', 'Yekatit',
@@ -29,8 +29,9 @@ export const EthiopianDatePicker: React.FC<EthiopianDatePickerProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Derive initial visible year/month from value, or default to current Ethiopian year/month
-  const [viewYear, setViewYear] = useState(2018);
-  const [viewMonth, setViewMonth] = useState(1); // 1-indexed (1 to 13)
+  const initialTodayEth = gregorianToEthiopian(new Date());
+  const [viewYear, setViewYear] = useState(initialTodayEth.year);
+  const [viewMonth, setViewMonth] = useState(initialTodayEth.month); // 1-indexed (1 to 13)
 
   useEffect(() => {
     const parsed = parseEthiopianDateString(value);
@@ -38,9 +39,9 @@ export const EthiopianDatePicker: React.FC<EthiopianDatePickerProps> = ({
       setViewYear(parsed.year);
       setViewMonth(parsed.month);
     } else {
-      // Default to a sensible default year (2018/2026 Gregorian is ~2018 Ethiopian)
-      setViewYear(2018);
-      setViewMonth(9);
+      const currentEth = gregorianToEthiopian(new Date());
+      setViewYear(currentEth.year);
+      setViewMonth(currentEth.month);
     }
   }, [value, isOpen]);
 
@@ -111,6 +112,11 @@ export const EthiopianDatePicker: React.FC<EthiopianDatePickerProps> = ({
 
   const daysInMonth = getDaysInMonth(viewMonth, viewYear);
   const parsedValue = parseEthiopianDateString(value);
+  const currentTodayEth = gregorianToEthiopian(new Date());
+
+  // Year options list from 1950 to current EC Year + 10
+  const maxYear = currentTodayEth.year + 10;
+  const yearOptions = Array.from({ length: maxYear - 1950 + 1 }, (_, i) => maxYear - i);
 
   return (
     <div className="relative inline-block w-full" ref={containerRef}>
@@ -131,7 +137,7 @@ export const EthiopianDatePicker: React.FC<EthiopianDatePickerProps> = ({
           className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 cursor-pointer"
           onClick={() => setIsOpen(!isOpen)}
         />
-        {uiText(value && (
+        {value && (
           <button
             type="button"
             title={uiText("Clear selected date")}
@@ -141,7 +147,7 @@ export const EthiopianDatePicker: React.FC<EthiopianDatePickerProps> = ({
           >
             <X size={14} />
           </button>
-        ))}
+        )}
       </div>
 
       {isOpen && (
@@ -167,11 +173,12 @@ export const EthiopianDatePicker: React.FC<EthiopianDatePickerProps> = ({
                   title={uiText("Select Year")}
                   value={viewYear}
                   onChange={(e) => setViewYear(Number(e.target.value))}
-                  className="bg-transparent text-[11px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest border-none p-0 focus:ring-0 cursor-pointer outline-none"
+                  className="bg-transparent text-[11px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest border-none p-0 focus:ring-0 cursor-pointer outline-none max-h-48 overflow-y-auto"
                 >
-                  {Array.from({ length: 36 }, (_, i) => 2000 + i).map((yr) => (
+                  {yearOptions.map((yr) => (
                     <option key={yr} value={yr} className="bg-white dark:bg-slate-900 text-slate-850 dark:text-white font-bold">
-                      {yr}{uiText(" E.C.")}</option>
+                      {yr}{uiText(" E.C.")}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -195,6 +202,9 @@ export const EthiopianDatePicker: React.FC<EthiopianDatePickerProps> = ({
                                  parsedValue.year === viewYear &&
                                  parsedValue.month === viewMonth &&
                                  parsedValue.day === day;
+              const isToday = currentTodayEth.year === viewYear &&
+                              currentTodayEth.month === viewMonth &&
+                              currentTodayEth.day === day;
               return (
                 <button
                   key={day}
@@ -202,7 +212,9 @@ export const EthiopianDatePicker: React.FC<EthiopianDatePickerProps> = ({
                   onClick={() => handleSelectDay(day)}
                   className={`py-2 rounded-xl text-xs font-bold transition-all ${
                     isSelected
-                      ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
+                      ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20 font-black'
+                      : isToday
+                      ? 'bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400 border border-blue-400 dark:border-blue-600 font-bold'
                       : 'hover:bg-slate-100 dark:hover:bg-slate-800/80 text-slate-800 dark:text-slate-200'
                   }`}
                 >
@@ -217,18 +229,16 @@ export const EthiopianDatePicker: React.FC<EthiopianDatePickerProps> = ({
             <button
               type="button"
               onClick={() => {
-                // Default to current date (derived from today's Gregorian equivalent)
-                const todayEth = new Date();
-                // A quick approximate shift for today
-                const jdn = Math.floor(todayEth.getTime() / 86400000) + 2440588;
-                const r = jdn - 1723856;
-                const year = Math.floor(r / 1461) * 4 + Math.floor((r % 1461) / 365) + 1;
-                const month = Math.floor(((r % 1461) % 365) / 30) + 1;
-                const day = (((r % 1461) % 365) % 30) + 1;
-                onChange(`${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`);
+                const todayStr = getTodayEthiopianDate();
+                const parsedToday = parseEthiopianDateString(todayStr);
+                if (parsedToday) {
+                  setViewYear(parsedToday.year);
+                  setViewMonth(parsedToday.month);
+                }
+                onChange(todayStr);
                 setIsOpen(false);
               }}
-              className="text-blue-600 hover:text-blue-700"
+              className="text-blue-600 hover:text-blue-700 font-bold"
             >{uiText("Today")}</button>
           </div>
         </div>

@@ -10,6 +10,7 @@ import { useUser } from '../context/UserContext';
 import { StudentRegistration } from '../components/StudentRegistration';
 import * as sectionService from '../services/sectionService';
 import { exportToExcel } from '../utils/exportUtils';
+import { getCurrentECYear } from '../utils/ethiopianCalendar';
 
 export const Students = () => {
   const { t } = useTranslation();
@@ -85,7 +86,7 @@ export const Students = () => {
   const [resettingPassword, setResettingPassword] = useState(false);
   const [generatedPassword, setGeneratedPassword] = useState<string | null>(null);
 
-  // Bulk section assignment state
+  // Bulk section & status management state
   const [selectedStudentIds, setSelectedStudentIds] = useState<Set<string>>(new Set());
   const [showBulkAssignModal, setShowBulkAssignModal] = useState(false);
   const [bulkTargetGrade, setBulkTargetGrade] = useState('');
@@ -94,6 +95,18 @@ export const Students = () => {
   const [bulkAssigning, setBulkAssigning] = useState(false);
   const [loadingBulkSections, setLoadingBulkSections] = useState(false);
   const [autoDistributing, setAutoDistributing] = useState(false);
+
+  // Bulk status shift & promotion state
+  const [showBulkStatusModal, setShowBulkStatusModal] = useState(false);
+  const [bulkTargetStatus, setBulkTargetStatus] = useState<string>('Graduated');
+  const [bulkGraduationYear, setBulkGraduationYear] = useState<string>(() => String(getCurrentECYear()));
+  const [filterGraduationYear, setFilterGraduationYear] = useState(() => searchParams.get('gradYear') || '');
+  const [bulkStatusUpdating, setBulkStatusUpdating] = useState(false);
+
+  const [showBulkShiftGradeModal, setShowBulkShiftGradeModal] = useState(false);
+  const [bulkShiftTargetGrade, setBulkShiftTargetGrade] = useState('');
+  const [bulkShiftTargetSection, setBulkShiftTargetSection] = useState('');
+  const [bulkShiftUpdating, setBulkShiftUpdating] = useState(false);
 
   const handlePhoneInput = (value: string) => {
     // Remove any non-digit characters
@@ -154,6 +167,7 @@ export const Students = () => {
     if (filterGrade) params.set('grade', filterGrade);
     if (filterSection) params.set('section', filterSection);
     if (filterStatus) params.set('status', filterStatus);
+    if (filterGraduationYear) params.set('gradYear', filterGraduationYear);
     if (activeView !== 'students') params.set('view', activeView);
     const qs = params.toString();
     return `/students${qs ? `?${qs}` : ''}`;
@@ -169,9 +183,10 @@ export const Students = () => {
     if (filterGrade) next.set('grade', filterGrade);
     if (filterSection) next.set('section', filterSection);
     if (filterStatus) next.set('status', filterStatus);
+    if (filterGraduationYear) next.set('gradYear', filterGraduationYear);
     if (activeView !== 'students') next.set('view', activeView);
     setSearchParams(next, { replace: true });
-  }, [search, filterGrade, filterSection, filterStatus, activeView, setSearchParams]);
+  }, [search, filterGrade, filterSection, filterStatus, filterGraduationYear, activeView, setSearchParams]);
 
   const toggleStudentSelection = (studentId: string) => {
     const newSelected = new Set(selectedStudentIds);
@@ -184,18 +199,79 @@ export const Students = () => {
   };
 
   const selectAllFiltered = () => {
-    const unassignedFiltered = filtered.filter(s => !s.section);
-    if (unassignedFiltered.length === 0) return;
+    if (filtered.length === 0) return;
 
-    const allUnassignedSelected = unassignedFiltered.every(s => selectedStudentIds.has(s.id));
+    const allSelected = filtered.every(s => selectedStudentIds.has(s.id));
     const newSelected = new Set(selectedStudentIds);
 
-    if (allUnassignedSelected) {
-      unassignedFiltered.forEach(s => newSelected.delete(s.id));
+    if (allSelected) {
+      filtered.forEach(s => newSelected.delete(s.id));
     } else {
-      unassignedFiltered.forEach(s => newSelected.add(s.id));
+      filtered.forEach(s => newSelected.add(s.id));
     }
     setSelectedStudentIds(newSelected);
+  };
+
+  const handleBulkUpdateStatus = async (statusToSet?: string) => {
+    const targetStatus = statusToSet || bulkTargetStatus;
+    if (selectedStudentIds.size === 0) {
+      showToast(uiText("Please select at least one student"), 'error');
+      return;
+    }
+    try {
+      setBulkStatusUpdating(true);
+      const selectedIds = students
+        .filter(s => selectedStudentIds.has(s.id))
+        .map(s => s.userId || s.id);
+
+      const gradYearToPass = targetStatus === 'Graduated' ? (bulkGraduationYear || String(getCurrentECYear())) : undefined;
+
+      await studentService.bulkUpdateStatus(selectedIds, targetStatus, gradYearToPass);
+      showToast(
+        uiText("Successfully updated status to {{value0}} for {{value1}} student(s)", {
+          value0: uiText(targetStatus),
+          value1: selectedStudentIds.size
+        }),
+        'success'
+      );
+      setShowBulkStatusModal(false);
+      setSelectedStudentIds(new Set());
+      fetchStudents();
+    } catch (err: any) {
+      showToast(uiText(getErrorMessage(err, 'Failed to update student status')), 'error');
+    } finally {
+      setBulkStatusUpdating(false);
+    }
+  };
+
+  const handleBulkShiftGrade = async () => {
+    if (selectedStudentIds.size === 0) {
+      showToast(uiText("Please select at least one student"), 'error');
+      return;
+    }
+    if (!bulkShiftTargetGrade) {
+      showToast(uiText("Please select a target grade"), 'error');
+      return;
+    }
+    try {
+      setBulkShiftUpdating(true);
+      const selectedIds = Array.from(selectedStudentIds);
+      await studentService.bulkShiftGrade(selectedIds, bulkShiftTargetGrade, bulkShiftTargetSection || undefined);
+      showToast(
+        uiText("Successfully shifted {{value0}} student(s) to {{value1}}", {
+          value0: selectedStudentIds.size,
+          value1: `${bulkShiftTargetGrade}${bulkShiftTargetSection ? ` Section ${bulkShiftTargetSection}` : ''}`
+        }),
+        'success'
+      );
+      setShowBulkShiftGradeModal(false);
+      setSelectedStudentIds(new Set());
+      fetchStudents();
+    } catch (err: any) {
+      showToast(uiText(getErrorMessage(err, 'Failed to shift student grade')), 'error');
+    } finally {
+      setBulkShiftUpdating(false);
+    }
   };
 
   const openBulkAssignModal = async () => {
@@ -503,6 +579,10 @@ export const Students = () => {
     exportToExcel([{ name: 'Students', rows }], 'students');
   };
 
+  const availableGraduationYears = Array.from(
+    new Set(students.map(s => s.graduationYear || s.graduation_year).filter(Boolean))
+  ).sort().reverse() as string[];
+
   const filtered = students.filter(s => {
     const matchSearch = !search || `${s.firstName} ${s.lastName} ${s.email} ${s.digitalId}`.toLowerCase().includes(search.toLowerCase());
     const studentGradeNumber = getGradeNumber(s.grade);
@@ -510,7 +590,20 @@ export const Students = () => {
     const matchGrade = !filterGrade || studentGradeNumber === filterGrade;
     const matchSection = !filterSection || studentSectionNumber === filterSection;
 
-    return matchSearch && matchGrade && matchSection;
+    let matchStatus = true;
+    if (filterStatus === 'ALL') {
+      matchStatus = true;
+    } else if (filterStatus) {
+      matchStatus = (s.status || '').toLowerCase() === filterStatus.toLowerCase();
+    } else {
+      // Default view when status filter is not set: hide Graduated students so active & graduated don't mix on the same page
+      matchStatus = (s.status || '').toLowerCase() !== 'graduated';
+    }
+
+    const studentGradYear = s.graduationYear || s.graduation_year;
+    const matchGradYear = !filterGraduationYear || studentGradYear === filterGraduationYear;
+
+    return matchSearch && matchGrade && matchSection && matchStatus && matchGradYear;
   });
 
   return (
@@ -621,14 +714,28 @@ export const Students = () => {
           aria-label={uiText("Filter by status")}
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value)}
-          className="w-full sm:w-auto px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full sm:w-auto px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium"
         >
-          <option value="">{t("students.allStatus","All Status")}</option>
+          <option value="">{t("students.statusActiveDefault","Active (Default)")}</option>
           <option value="Active">{uiText("Active")}</option>
+          <option value="Graduated">🎓 {uiText("Graduated")}</option>
           <option value="Inactive">{uiText("Inactive")}</option>
           <option value="Suspended">{uiText("Suspended")}</option>
-          <option value="Graduated">{uiText("Graduated")}</option>
+          <option value="ALL">{uiText("All Statuses (Incl. Graduated)")}</option>
         </select>
+        {(filterStatus === 'Graduated' || filterStatus === 'ALL' || availableGraduationYears.length > 0) && (
+          <select
+            aria-label={uiText("Filter by graduation year")}
+            value={filterGraduationYear}
+            onChange={(e) => setFilterGraduationYear(e.target.value)}
+            className="w-full sm:w-auto px-4 py-2 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-700 text-emerald-900 dark:text-emerald-100 rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500 font-bold"
+          >
+            <option value="">🎓 {uiText("All Graduation Years (ዓ.ም)")}</option>
+            {Array.from(new Set([...availableGraduationYears, String(getCurrentECYear())])).sort().reverse().map(yr => (
+              <option key={yr} value={yr}>{uiText("Class of ")}{yr} {uiText("ዓ.ም")}</option>
+            ))}
+          </select>
+        )}
         {uiText(isSchoolAdmin && activeView === 'students' && filterGrade && (
           <button
             type="button"
@@ -685,12 +792,25 @@ export const Students = () => {
                     <span className="font-bold text-sm text-blue-700 dark:text-blue-300">
                       {selectedStudentIds.size}{uiText(" student")}{uiText(selectedStudentIds.size !== 1 ? 's' : '')}{uiText(" selected")}</span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                    <button
+                      onClick={() => setShowBulkStatusModal(true)}
+                      className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-sm font-bold shadow-sm"
+                    >
+                      <GraduationCap size={16} />{uiText("Shift Status / Graduate")}
+                    </button>
+                    <button
+                      onClick={() => setShowBulkShiftGradeModal(true)}
+                      className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-bold shadow-sm"
+                    >
+                      <RefreshCw size={16} />{uiText("Promote / Shift Grade")}
+                    </button>
                     <button
                       onClick={openBulkAssignModal}
-                      className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-bold"
+                      className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-bold shadow-sm"
                     >
-                      <GraduationCap size={16} />{uiText("Assign Section")}</button>
+                      <Users size={16} />{uiText("Assign Section")}
+                    </button>
                     <button
                       onClick={() => setSelectedStudentIds(new Set())}
                       className="flex-1 sm:flex-none px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-lg hover:bg-slate-300 transition-colors text-sm font-bold"
@@ -709,12 +829,11 @@ export const Students = () => {
                           type="checkbox"
                           checked={
                             filtered.length > 0 &&
-                            filtered.filter(s => !s.section).length > 0 &&
-                            filtered.filter(s => !s.section).every(s => selectedStudentIds.has(s.id))
+                            filtered.every(s => selectedStudentIds.has(s.id))
                           }
                           onChange={selectAllFiltered}
                           className="rounded cursor-pointer"
-                          title={uiText("Select all visible unassigned students")}
+                          title={uiText("Select all visible students")}
                           aria-label={uiText("Select all students")}
                         />
                       </th>
@@ -769,13 +888,15 @@ export const Students = () => {
                         <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">{uiText(formatSectionDisplay(student.section))}</td>
                         <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">{uiText(formatGradeDisplay(student.grade))}</td>
                         <td className="px-6 py-4">
-                          <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${
-                            student.status === 'Active' || student.status === 'Approved' ? 'bg-green-100 text-green-700' :
-                            student.status === 'Inactive' ? 'bg-slate-100 text-slate-600' :
-                            student.status === 'Suspended' ? 'bg-red-100 text-red-700' :
-                            'bg-blue-100 text-blue-700'
+                          <span className={`px-2.5 py-1 rounded-full text-xs font-bold uppercase inline-flex items-center gap-1 ${
+                            student.status === 'Graduated' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300' :
+                            student.status === 'Active' || student.status === 'Approved' ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300' :
+                            student.status === 'Inactive' ? 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400' :
+                            'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300'
                           }`}>
+                            {student.status === 'Graduated' && '🎓 '}
                             {uiText(student.status === 'Approved' ? 'ACTIVE' : student.status)}
+                            {student.status === 'Graduated' && (student.graduationYear || student.graduation_year) ? ` (${student.graduationYear || student.graduation_year} ዓ.ም)` : ''}
                           </span>
                         </td>
                         {isSchoolAdmin && (
@@ -1284,6 +1405,203 @@ export const Students = () => {
                 ) : (
                   <>
                     <Check size={16} />{uiText("Assign Students")}</>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Status / Graduate Modal */}
+      {showBulkStatusModal && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 w-full max-w-md animate-in zoom-in-95 duration-200 overflow-hidden">
+            <div className="bg-emerald-600 text-white p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-black flex items-center gap-2">
+                    <GraduationCap size={24} />
+                    {uiText("Shift Status / Graduate")}
+                  </h3>
+                  <p className="text-emerald-100 text-xs font-medium mt-1">
+                    {selectedStudentIds.size}{uiText(" student(s) selected")}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowBulkStatusModal(false)}
+                  className="p-2 hover:bg-emerald-700 rounded-lg transition-colors"
+                  title={uiText("Close")}
+                  aria-label={uiText("Close modal")}
+                >
+                  <X size={20} />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div>
+                <label htmlFor="bulk-status-select" className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">
+                  {uiText("Target Status")}
+                </label>
+                <select
+                  id="bulk-status-select"
+                  value={bulkTargetStatus}
+                  onChange={(e) => setBulkTargetStatus(e.target.value)}
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg font-bold text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+                >
+                  <option value="Graduated">🎓 {uiText("Graduated")}</option>
+                  <option value="Active">✅ {uiText("Active")}</option>
+                  <option value="Inactive">⏸️ {uiText("Inactive")}</option>
+                  <option value="Suspended">⛔ {uiText("Suspended")}</option>
+                </select>
+              </div>
+
+              {bulkTargetStatus === 'Graduated' && (
+                <div>
+                  <label htmlFor="bulk-grad-year" className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">
+                    {uiText("Graduation Year (Ethiopian Calendar - ዓ.ም)")}
+                  </label>
+                  <input
+                    id="bulk-grad-year"
+                    type="text"
+                    value={bulkGraduationYear}
+                    onChange={(e) => setBulkGraduationYear(e.target.value)}
+                    placeholder={`e.g. ${getCurrentECYear()} ዓ.ም`}
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg font-bold text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+                  />
+                </div>
+              )}
+
+              <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4">
+                <p className="text-xs font-medium text-emerald-900 dark:text-emerald-200 leading-relaxed">
+                  {uiText("This will update the status of all {{value0}} selected student(s) to ", { value0: selectedStudentIds.size })}
+                  <strong className="font-bold">{uiText(bulkTargetStatus)}</strong>.
+                  {bulkTargetStatus === 'Graduated' && uiText(" Graduated students will retain their records but won't be counted in active class lists.")}
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-slate-50 dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 p-6 flex gap-3">
+              <button
+                onClick={() => setShowBulkStatusModal(false)}
+                className="flex-1 px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors font-bold text-sm"
+                disabled={bulkStatusUpdating}
+              >
+                {uiText("Cancel")}
+              </button>
+              <button
+                onClick={() => handleBulkUpdateStatus()}
+                disabled={bulkStatusUpdating}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:bg-slate-400 disabled:cursor-not-allowed transition-colors font-bold text-sm shadow-md"
+              >
+                {bulkStatusUpdating ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" />
+                    {uiText("Updating...")}
+                  </>
+                ) : (
+                  <>
+                    <Check size={16} />
+                    {uiText("Update Status")}
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Shift Grade & Section Modal */}
+      {showBulkShiftGradeModal && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 w-full max-w-md animate-in zoom-in-95 duration-200 overflow-hidden">
+            <div className="bg-indigo-600 text-white p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-black flex items-center gap-2">
+                    <RefreshCw size={24} />
+                    {uiText("Promote / Shift Grade")}
+                  </h3>
+                  <p className="text-indigo-100 text-xs font-medium mt-1">
+                    {selectedStudentIds.size}{uiText(" student(s) selected")}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowBulkShiftGradeModal(false)}
+                  className="p-2 hover:bg-indigo-700 rounded-lg transition-colors"
+                  title={uiText("Close")}
+                  aria-label={uiText("Close modal")}
+                >
+                  <X size={20} />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div>
+                <label htmlFor="shift-target-grade" className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">
+                  {uiText("Target Grade")}
+                </label>
+                <select
+                  id="shift-target-grade"
+                  value={bulkShiftTargetGrade}
+                  onChange={(e) => setBulkShiftTargetGrade(e.target.value)}
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg font-medium focus:ring-2 focus:ring-indigo-500 outline-none"
+                >
+                  <option value="">{uiText("-- Select Grade --")}</option>
+                  {['KG 1', 'KG 2', 'KG 3', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12'].map(g => (
+                    <option key={g} value={g}>{uiText(g)}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="shift-target-section" className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">
+                  {uiText("Target Section (Optional)")}
+                </label>
+                <select
+                  id="shift-target-section"
+                  value={bulkShiftTargetSection}
+                  onChange={(e) => setBulkShiftTargetSection(e.target.value)}
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg font-medium focus:ring-2 focus:ring-indigo-500 outline-none"
+                >
+                  <option value="">{uiText("-- Keep Unassigned / Default --")}</option>
+                  {[1, 2, 3, 4, 5, 6].map(sec => (
+                    <option key={sec} value={String(sec)}>{uiText("Section ")}{sec}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-xl p-4">
+                <p className="text-xs font-medium text-indigo-900 dark:text-indigo-200 leading-relaxed">
+                  {uiText("Shift grade level for all {{value0}} selected student(s).", { value0: selectedStudentIds.size })}
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-slate-50 dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 p-6 flex gap-3">
+              <button
+                onClick={() => setShowBulkShiftGradeModal(false)}
+                className="flex-1 px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors font-bold text-sm"
+                disabled={bulkShiftUpdating}
+              >
+                {uiText("Cancel")}
+              </button>
+              <button
+                onClick={handleBulkShiftGrade}
+                disabled={!bulkShiftTargetGrade || bulkShiftUpdating}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:bg-slate-400 disabled:cursor-not-allowed transition-colors font-bold text-sm shadow-md"
+              >
+                {bulkShiftUpdating ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" />
+                    {uiText("Shifting...")}
+                  </>
+                ) : (
+                  <>
+                    <Check size={16} />
+                    {uiText("Shift Grade")}
+                  </>
                 )}
               </button>
             </div>
