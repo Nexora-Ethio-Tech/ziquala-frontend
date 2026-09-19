@@ -27,6 +27,26 @@ const isTeacherPending = (status?: string | null) => {
   return s === 'pending';
 };
 
+const getTeacherEducationLevel = (teacher: any): string => {
+  const profile = teacher?.staffProfile;
+  return String(profile?.educationLevel || profile?.educationStatus || teacher?.educationLevel || '').trim();
+};
+
+const matchesEducationLevel = (teacherLevel: string, filterValue: string) => {
+  if (filterValue === 'all') return true;
+  if (!teacherLevel) return false;
+  
+  const normTeacher = teacherLevel.toLowerCase();
+  const normFilter = filterValue.toLowerCase();
+
+  if (normFilter === 'diploma') return normTeacher.includes('diploma');
+  if (normFilter === 'degree') return normTeacher.includes('degree') || normTeacher.includes('bachelor');
+  if (normFilter === 'master') return normTeacher.includes('master');
+  if (normFilter === 'phd') return normTeacher.includes('phd') || normTeacher.includes('doctorate') || normTeacher.includes('dr');
+  
+  return normTeacher === normFilter;
+};
+
 const getAnnualItemValue = (item: any, key: string): string => {
   if (!item) return '';
   if (key === 'date') return item.date || item.weekDate || '';
@@ -122,6 +142,45 @@ export const Teachers = () => {
   const [activeTab, setActiveTab] = useState<'annual-plans' | 'weekly-plans' | 'teachers' | 'leaderboard'>(
     isSuperviseRoute ? 'annual-plans' : 'teachers'
   );
+  const [teacherSearchQuery, setTeacherSearchQuery] = useState('');
+  const [teacherEducationFilter, setTeacherEducationFilter] = useState('all');
+  const [teacherStatusFilter, setTeacherStatusFilter] = useState('all');
+
+  const filteredTeachers = useMemo(() => {
+    return teachers.filter((teacher) => {
+      // 1. Search Query Filter (name, email, digitalId, specialty, educationLevel)
+      if (teacherSearchQuery.trim()) {
+        const q = teacherSearchQuery.toLowerCase().trim();
+        const edu = getTeacherEducationLevel(teacher).toLowerCase();
+        const spec = String(teacher.staffProfile?.specialty || teacher.specialty || '').toLowerCase();
+        const matchesSearch =
+          (teacher.name || '').toLowerCase().includes(q) ||
+          (teacher.email || '').toLowerCase().includes(q) ||
+          (teacher.digitalId || '').toLowerCase().includes(q) ||
+          edu.includes(q) ||
+          spec.includes(q);
+        if (!matchesSearch) return false;
+      }
+
+      // 2. Education Level Filter
+      if (teacherEducationFilter !== 'all') {
+        const eduLevel = getTeacherEducationLevel(teacher);
+        if (!matchesEducationLevel(eduLevel, teacherEducationFilter)) {
+          return false;
+        }
+      }
+
+      // 3. Status Filter
+      if (teacherStatusFilter !== 'all') {
+        const status = String(teacher.status || '').toLowerCase();
+        if (teacherStatusFilter === 'active' && !isTeacherActive(teacher.status)) return false;
+        if (teacherStatusFilter === 'pending' && !isTeacherPending(teacher.status)) return false;
+        if (teacherStatusFilter === 'revoked' && status !== 'revoked' && status !== 'inactive') return false;
+      }
+
+      return true;
+    });
+  }, [teachers, teacherSearchQuery, teacherEducationFilter, teacherStatusFilter]);
   const [annualPlans, setAnnualPlans] = useState<any[]>([]);
   const [weeklyPlans, setWeeklyPlans] = useState<any[]>([]);
   const [plansLoading, setPlansLoading] = useState(false);
@@ -973,14 +1032,88 @@ export const Teachers = () => {
 
       {activeTab === 'teachers' && (
         <div className="space-y-4">
+          {/* Search and Filters Bar */}
+          <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm space-y-3 md:space-y-0 md:flex md:items-center md:justify-between md:gap-4">
+            {/* Search Input */}
+            <div className="relative flex-1 min-w-[240px]">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+              <input
+                type="text"
+                value={teacherSearchQuery}
+                onChange={(e) => setTeacherSearchQuery(e.target.value)}
+                placeholder={t("teachers.searchPlaceholder", "Search by name, email, digital ID, specialty...")}
+                className="w-full pl-10 pr-8 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 dark:text-white placeholder:text-slate-400"
+              />
+              {teacherSearchQuery && (
+                <button
+                  onClick={() => setTeacherSearchQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                >
+                  <X size={16} />
+                </button>
+              )}
+            </div>
+
+            {/* Filter Controls */}
+            <div className="flex items-center gap-3 flex-wrap sm:flex-nowrap">
+              {/* Education Level Filter */}
+              <div className="flex items-center gap-2 min-w-[170px] flex-1 sm:flex-none">
+                <Filter size={16} className="text-slate-400 shrink-0" />
+                <select
+                  value={teacherEducationFilter}
+                  onChange={(e) => setTeacherEducationFilter(e.target.value)}
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="all">{t("teachers.allEducationLevels", "All Education Levels")}</option>
+                  <option value="Diploma">{t("teachers.diploma", "Diploma")}</option>
+                  <option value="Degree">{t("teachers.degree", "Degree")}</option>
+                  <option value="Master">{t("teachers.master", "Master's")}</option>
+                  <option value="PhD">{t("teachers.phd", "PhD")}</option>
+                </select>
+              </div>
+
+              {/* Status Filter */}
+              <div className="flex items-center gap-2 min-w-[140px] flex-1 sm:flex-none">
+                <select
+                  value={teacherStatusFilter}
+                  onChange={(e) => setTeacherStatusFilter(e.target.value)}
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="all">{t("teachers.allStatuses", "All Statuses")}</option>
+                  <option value="active">{t("teachers.statusActive", "Active")}</option>
+                  <option value="pending">{t("teachers.statusPending", "Pending")}</option>
+                  <option value="revoked">{t("teachers.statusRevoked", "Revoked")}</option>
+                </select>
+              </div>
+
+              {/* Reset Filters Button */}
+              {(teacherEducationFilter !== 'all' || teacherStatusFilter !== 'all' || teacherSearchQuery) && (
+                <button
+                  onClick={() => {
+                    setTeacherSearchQuery('');
+                    setTeacherEducationFilter('all');
+                    setTeacherStatusFilter('all');
+                  }}
+                  className="px-3 py-2 text-xs font-bold text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors whitespace-nowrap"
+                >
+                  {t("teachers.resetFilters", "Reset Filters")}
+                </button>
+              )}
+            </div>
+          </div>
+
           {/* Mobile Card View */}
           <div className="grid grid-cols-1 gap-4 md:hidden">
             {teachers.length === 0 ? (
               <div className="bg-white dark:bg-slate-900 rounded-2xl p-8 text-center text-slate-500 border border-slate-100 dark:border-slate-800 shadow-sm">
                 {t("teachers.noTeachersFound", "No teachers found. Register your first teacher.")}
               </div>
+            ) : filteredTeachers.length === 0 ? (
+              <div className="bg-white dark:bg-slate-900 rounded-2xl p-8 text-center text-slate-500 border border-slate-100 dark:border-slate-800 shadow-sm">
+                {t("teachers.noMatchingTeachers", "No teachers match the selected filters.")}
+              </div>
             ) : (
-              teachers.map((teacher) => (
+              filteredTeachers.map((teacher) => (
                 <div
                   key={teacher.id}
                   className="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-100 dark:border-slate-800 shadow-md space-y-3"
@@ -1028,7 +1161,7 @@ export const Teachers = () => {
                     </div>
                   </div>
 
-                  <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
+                  <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs flex-wrap gap-2">
                     <div className="flex items-center gap-2">
                       <span className="text-slate-400 uppercase font-semibold">{t("teachers.colDigitalId", "Digital ID")}:</span>
                       <span className="font-mono text-slate-600 dark:text-slate-300 font-bold">{teacher.digitalId}</span>
@@ -1037,6 +1170,11 @@ export const Teachers = () => {
                         </span>
                       )}
                     </div>
+                    {getTeacherEducationLevel(teacher) && (
+                      <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/50">
+                        {uiText(getTeacherEducationLevel(teacher))}
+                      </span>
+                    )}
                   </div>
 
                   {isAdmin && (
@@ -1095,6 +1233,7 @@ export const Teachers = () => {
                 <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
                   <tr>
                     <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("teachers.colTeacher", "Teacher")}</th>
+                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("teachers.colEducationLevel", "Education Level")}</th>
                     <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("teachers.colEmail", "Email")}</th>
                     <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("teachers.colDigitalId", "Digital ID")}</th>
                     <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{t("teachers.colStatus", "Status")}</th>
@@ -1104,12 +1243,18 @@ export const Teachers = () => {
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {teachers.length === 0 ? (
                     <tr>
-                      <td colSpan={isAdmin ? 5 : 4} className="px-6 py-12 text-center text-slate-500">
+                      <td colSpan={isAdmin ? 6 : 5} className="px-6 py-12 text-center text-slate-500">
                         {t("teachers.noTeachersFound", "No teachers found. Register your first teacher.")}
                       </td>
                     </tr>
+                  ) : filteredTeachers.length === 0 ? (
+                    <tr>
+                      <td colSpan={isAdmin ? 6 : 5} className="px-6 py-12 text-center text-slate-500">
+                        {t("teachers.noMatchingTeachers", "No teachers match the selected filters.")}
+                      </td>
+                    </tr>
                   ) : (
-                    teachers.map((teacher, idx) => (
+                    filteredTeachers.map((teacher, idx) => (
                       <tr key={teacher.id ? `${teacher.id}-${idx}` : `teacher-${idx}`} className="hover:bg-slate-50 dark:hover:bg-slate-800/30">
                         <td className="px-6 py-4">
                           <button type="button" onClick={() => setSelectedStaff(teacher)} className="flex items-center gap-3 text-left">
@@ -1118,6 +1263,15 @@ export const Teachers = () => {
                             </div>
                             <span className="font-bold text-slate-800 dark:text-white">{teacher.name}</span>
                           </button>
+                        </td>
+                        <td className="px-6 py-4 text-sm font-medium text-slate-700 dark:text-slate-300">
+                          {getTeacherEducationLevel(teacher) ? (
+                            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/50">
+                              {uiText(getTeacherEducationLevel(teacher))}
+                            </span>
+                          ) : (
+                            <span className="text-slate-400 italic text-xs">{uiText("N/A")}</span>
+                          )}
                         </td>
                         <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">{teacher.email}</td>
                         <td className="px-6 py-4">
