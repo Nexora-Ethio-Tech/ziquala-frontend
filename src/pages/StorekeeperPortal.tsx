@@ -329,7 +329,7 @@ export const StorekeeperPortal = () => {
                       const isCons = a.is_consumable || a.item_type === 'Consumable' || a.category === 'Stationery & Supplies';
                       return (
                         <option key={a.id} value={a.id} disabled={a.amount <= 0}>
-                          {a.name} [{uiText(isCons ? 'Consumable' : 'Returnable')}]{uiText(" (Stock: ")}{a.amount}{uiText(") ")}{uiText(a.amount <= 0 ? '— Out of Stock' : '')}
+                          {uiText(a.name)} [{uiText(isCons ? 'Consumable' : 'Returnable')}]{uiText(" (Stock: ")}{a.amount}{uiText(") ")}{uiText(a.amount <= 0 ? '— Out of Stock' : '')}
                         </option>
                       );
                     })}
