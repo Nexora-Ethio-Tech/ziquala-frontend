@@ -1506,6 +1506,14 @@ export const TeacherPortal = () => {
                                 setAnnualForm({
                                   ...emptyAnnualForm,
                                   ...plan,
+                                  // Annual-plan rows come from PostgreSQL with snake_case keys.
+                                  // Map them back to the form's camelCase keys so opening an
+                                  // existing plan never replaces its saved values with defaults.
+                                  academicYear: plan.academic_year ?? plan.academicYear ?? emptyAnnualForm.academicYear,
+                                  workingDaysYear: plan.working_days_year ?? plan.workingDaysYear ?? emptyAnnualForm.workingDaysYear,
+                                  periodsYear: plan.periods_year ?? plan.periodsYear ?? emptyAnnualForm.periodsYear,
+                                  periodsWeek: plan.periods_week ?? plan.periodsWeek ?? emptyAnnualForm.periodsWeek,
+                                  durationPeriod: plan.duration_period ?? plan.durationPeriod ?? emptyAnnualForm.durationPeriod,
                                   deptHeadId: plan.dept_head_id || plan.deptHeadId || '',
                                   courseId: plan.course_id || plan.courseId || '',
                                   items: Array.isArray(plan.items) && plan.items.length > 0 ? plan.items : defaultAnnualItems()
