@@ -62,7 +62,7 @@ export const Attendance = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { role } = useUser();
-  const isAdmin = role === 'school-admin' || role === 'super-admin';
+  const isAdmin = role === 'school-admin' || role === 'super-admin' || role === 'vice-principal';
   const isVP = role === 'vice-principal';
   const [selectedGrade, setSelectedGrade] = useState('');
   const [selectedDate, setSelectedDate] = useState(getTodayEthiopianDate());
