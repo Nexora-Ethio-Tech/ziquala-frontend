@@ -170,6 +170,16 @@ export const StorekeeperPortal = () => {
     const matchesType = itemTypeFilter === 'All' || (itemTypeFilter === 'Consumable' ? isConsumable : !isConsumable);
     return matchesSearch && matchesCat && matchesType;
   });
+  const groupedAssets = filteredAssets.reduce<Record<string, Asset[]>>((groups, asset) => {
+    const category = asset.category || 'General';
+    (groups[category] ??= []).push(asset);
+    return groups;
+  }, {});
+  const groupedIssues = filteredIssues.reduce<Record<string, AssetIssue[]>>((groups, issue) => {
+    const category = issue.asset_category || 'General';
+    (groups[category] ??= []).push(issue);
+    return groups;
+  }, {});
 
   // ─── Asset Submit ──────────────────────────────────────────────────────────
   const handleSubmitAsset = async (e: React.FormEvent) => {
@@ -676,7 +686,17 @@ export const StorekeeperPortal = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
-                    {filteredAssets.map(asset => {
+                    {Object.entries(groupedAssets).sort(([a], [b]) => a.localeCompare(b)).flatMap(([category, categoryAssets]) => [
+                      <tr key={`asset-category-${category}`} className="bg-indigo-50/80 dark:bg-indigo-500/10 border-y border-indigo-100 dark:border-indigo-500/20">
+                        <td colSpan={8} className="px-5 py-3">
+                          <div className="flex items-center gap-2 text-indigo-800 dark:text-indigo-300">
+                            <Tag size={15} />
+                            <span className="text-xs font-black uppercase tracking-wider">{uiText(category)}</span>
+                            <span className="text-[11px] font-bold text-indigo-500 dark:text-indigo-400">({categoryAssets.length})</span>
+                          </div>
+                        </td>
+                      </tr>,
+                      ...categoryAssets.map(asset => {
                       const isCons = asset.is_consumable || asset.item_type === 'Consumable' || asset.category === 'Stationery & Supplies';
 
                       return (
@@ -754,7 +774,8 @@ export const StorekeeperPortal = () => {
                           </td>
                         </tr>
                       );
-                    })}
+                      })
+                    ])}
                   </tbody>
                 </table>
               </div>
@@ -820,7 +841,17 @@ export const StorekeeperPortal = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
-                    {filteredIssues.map(iss => {
+                    {Object.entries(groupedIssues).sort(([a], [b]) => a.localeCompare(b)).flatMap(([category, categoryIssues]) => [
+                      <tr key={`issue-category-${category}`} className="bg-indigo-50/80 dark:bg-indigo-500/10 border-y border-indigo-100 dark:border-indigo-500/20">
+                        <td colSpan={8} className="px-5 py-3">
+                          <div className="flex items-center gap-2 text-indigo-800 dark:text-indigo-300">
+                            <Tag size={15} />
+                            <span className="text-xs font-black uppercase tracking-wider">{uiText(category)}</span>
+                            <span className="text-[11px] font-bold text-indigo-500 dark:text-indigo-400">({categoryIssues.length})</span>
+                          </div>
+                        </td>
+                      </tr>,
+                      ...categoryIssues.map(iss => {
                       const isCons = iss.status === 'Consumed' || iss.is_consumable || iss.item_type === 'Consumable' || iss.asset_category === 'Stationery & Supplies';
 
                       return (
@@ -889,7 +920,8 @@ export const StorekeeperPortal = () => {
                           </td>
                         </tr>
                       );
-                    })}
+                      })
+                    ])}
                   </tbody>
                 </table>
               </div>
