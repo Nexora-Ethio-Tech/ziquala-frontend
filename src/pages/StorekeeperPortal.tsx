@@ -120,6 +120,15 @@ export const StorekeeperPortal = () => {
   const [issueCategoryFilter, setIssueCategoryFilter] = useState('');
   const [issueLogCategoryFilter, setIssueLogCategoryFilter] = useState('All');
   const [issuing, setIssuing] = useState(false);
+  const [editingIssue, setEditingIssue] = useState<AssetIssue | null>(null);
+  const [issueEditForm, setIssueEditForm] = useState({
+    issued_to_name: '',
+    issued_to_role: 'Teacher',
+    purpose: '',
+    expected_return: '',
+    notes: ''
+  });
+  const [updatingIssue, setUpdatingIssue] = useState(false);
 
   // ─── Data Fetching ────────────────────────────────────────────────────────
   const fetchAllData = async () => {
@@ -186,7 +195,12 @@ export const StorekeeperPortal = () => {
     e.preventDefault();
     setSubmitting(true);
     try {
-      const payload = { ...form, is_consumable: form.item_type === 'Consumable', branch_id: branchId };
+      const payload = {
+        ...form,
+        acquisition_date: form.acquisition_date || null,
+        is_consumable: form.item_type === 'Consumable',
+        branch_id: branchId
+      };
       if (editingId) {
         await api.patch(`/storekeeper/assets/${editingId}`, payload);
         showToast(uiText("Asset updated successfully"));
@@ -276,6 +290,37 @@ export const StorekeeperPortal = () => {
     }
   };
 
+  const handleEditIssue = (issue: AssetIssue) => {
+    setEditingIssue(issue);
+    setIssueEditForm({
+      issued_to_name: issue.issued_to_name,
+      issued_to_role: issue.issued_to_role || 'Teacher',
+      purpose: issue.purpose || '',
+      expected_return: issue.expected_return ? issue.expected_return.split('T')[0] : '',
+      notes: issue.notes || ''
+    });
+  };
+
+  const handleUpdateIssue = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingIssue) return;
+
+    setUpdatingIssue(true);
+    try {
+      await api.patch(`/storekeeper/issues/${editingIssue.id}`, {
+        ...issueEditForm,
+        expected_return: issueEditForm.expected_return || null
+      });
+      showToast(uiText('Issue record updated successfully'));
+      setEditingIssue(null);
+      fetchAllData();
+    } catch (e: any) {
+      showToast(uiText(e?.response?.data?.error || 'Failed to update issue record'), 'error');
+    } finally {
+      setUpdatingIssue(false);
+    }
+  };
+
   // ─── Tab Config ────────────────────────────────────────────────────────────
   const tabs: { key: Tab; label: string; icon: typeof Package }[] = [
     { key: 'overview', label: 'Dashboard', icon: BarChart3 },
@@ -311,6 +356,74 @@ export const StorekeeperPortal = () => {
           </div>
         </div>
       )}
+
+      {/* Edit Issue Modal */}
+      {editingIssue && (() => {
+        const isConsumable = editingIssue.status === 'Consumed' || editingIssue.is_consumable || editingIssue.item_type === 'Consumable' || editingIssue.asset_category === 'Stationery & Supplies';
+
+        return (
+          <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => setEditingIssue(null)}>
+            <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-slate-200 dark:border-slate-800" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 bg-blue-100 dark:bg-blue-500/10 rounded-2xl"><Pencil size={20} className="text-blue-600 dark:text-blue-400" /></div>
+                  <div>
+                    <h3 className="font-black text-lg text-slate-900 dark:text-white">{uiText('Edit Issue Record')}</h3>
+                    <p className="text-xs text-slate-500">{uiText(editingIssue.asset_name)} · {uiText('Quantity remains unchanged to protect stock balance.')}</p>
+                  </div>
+                </div>
+                <button onClick={() => setEditingIssue(null)} className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg"><X size={18} /></button>
+              </div>
+
+              <form onSubmit={handleUpdateIssue} className="space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-xs font-black text-slate-500 uppercase tracking-wide">{uiText('Issued To (Person/Dept) *')}</label>
+                    <input type="text" required value={issueEditForm.issued_to_name} onChange={e => setIssueEditForm({ ...issueEditForm, issued_to_name: e.target.value })} className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-black text-slate-500 uppercase tracking-wide">{uiText('Role / Department')}</label>
+                    <select value={issueEditForm.issued_to_role} onChange={e => setIssueEditForm({ ...issueEditForm, issued_to_role: e.target.value })} className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+                      <option value="Teacher">{uiText('Teacher')}</option>
+                      <option value="Department Head">{uiText('Department Head')}</option>
+                      <option value="Administrative Staff">{uiText('Administrative Staff')}</option>
+                      <option value="Maintenance">{uiText('Maintenance')}</option>
+                      <option value="Lab Tech">{uiText('Lab Tech')}</option>
+                      <option value="Other">{uiText('Other')}</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-black text-slate-500 uppercase tracking-wide">{uiText('Purpose')}</label>
+                  <textarea rows={2} value={issueEditForm.purpose} onChange={e => setIssueEditForm({ ...issueEditForm, purpose: e.target.value })} className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-black text-slate-500 uppercase tracking-wide">{uiText('Expected Return Date')}</label>
+                  {isConsumable ? (
+                    <input type="text" disabled value={uiText('N/A — Consumed upon issue')} className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-400 cursor-not-allowed" />
+                  ) : (
+                    <input type="date" value={issueEditForm.expected_return} onChange={e => setIssueEditForm({ ...issueEditForm, expected_return: e.target.value })} className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
+                  )}
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-black text-slate-500 uppercase tracking-wide">{uiText('Notes')}</label>
+                  <textarea rows={2} value={issueEditForm.notes} onChange={e => setIssueEditForm({ ...issueEditForm, notes: e.target.value })} className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button type="button" onClick={() => setEditingIssue(null)} className="flex-1 px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800">{uiText('Cancel')}</button>
+                  <button type="submit" disabled={updatingIssue} className="flex-1 px-4 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-bold hover:bg-indigo-700 disabled:opacity-50 flex items-center justify-center gap-2">
+                    {updatingIssue ? <RefreshCw size={15} className="animate-spin" /> : <Pencil size={15} />}{uiText('Save Changes')}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Issue Asset Modal */}
       {issueModalOpen && (() => {
@@ -900,23 +1013,30 @@ export const StorekeeperPortal = () => {
                             </span>
                           </td>
                           <td className="px-5 py-4 text-center">
-                            {iss.status === 'Issued' && (
+                            <div className="flex flex-col items-center gap-2">
                               <button
-                                onClick={() => handleReturnIssue(iss.id)}
-                                className="px-3 py-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 mx-auto"
+                                onClick={() => handleEditIssue(iss)}
+                                className="px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-xs font-bold transition-colors flex items-center gap-1"
                               >
-                                <RotateCcw size={13} />{uiText(" Mark Returned")}</button>
-                            )}
-                            {iss.status === 'Consumed' && (
-                              <span className="text-xs font-bold text-slate-400 italic">
-                                {uiText("No return required")}
-                              </span>
-                            )}
-                            {iss.status === 'Returned' && (
-                              <span className="text-xs font-bold text-emerald-600">
-                                {uiText("Returned")}
-                              </span>
-                            )}
+                                <Pencil size={13} />{uiText(' Edit')}</button>
+                              {iss.status === 'Issued' && (
+                                <button
+                                  onClick={() => handleReturnIssue(iss.id)}
+                                  className="px-3 py-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-lg text-xs font-bold transition-colors flex items-center gap-1"
+                                >
+                                  <RotateCcw size={13} />{uiText(" Mark Returned")}</button>
+                              )}
+                              {iss.status === 'Consumed' && (
+                                <span className="text-xs font-bold text-slate-400 italic">
+                                  {uiText("No return required")}
+                                </span>
+                              )}
+                              {iss.status === 'Returned' && (
+                                <span className="text-xs font-bold text-emerald-600">
+                                  {uiText("Returned")}
+                                </span>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       );
