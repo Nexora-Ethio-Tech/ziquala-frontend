@@ -117,6 +117,8 @@ export const StorekeeperPortal = () => {
     expected_return: '',
     notes: ''
   });
+  const [issueCategoryFilter, setIssueCategoryFilter] = useState('');
+  const [issueLogCategoryFilter, setIssueLogCategoryFilter] = useState('All');
   const [issuing, setIssuing] = useState(false);
 
   // ─── Data Fetching ────────────────────────────────────────────────────────
@@ -151,6 +153,11 @@ export const StorekeeperPortal = () => {
 
   // ─── Category List ────────────────────────────────────────────────────────
   const categoriesList = ['All', ...Array.from(new Set(assets.map(a => a.category || 'General')))];
+  const issueCategories = categoriesList.filter(category => category !== 'All');
+  const issueableAssets = assets.filter(asset => (asset.category || 'General') === issueCategoryFilter);
+  const filteredIssues = issues.filter(issue =>
+    issueLogCategoryFilter === 'All' || (issue.asset_category || 'General') === issueLogCategoryFilter
+  );
 
   const filteredAssets = assets.filter(a => {
     const isConsumable = a.is_consumable || a.item_type === 'Consumable' || a.category === 'Stationery & Supplies';
@@ -239,6 +246,7 @@ export const StorekeeperPortal = () => {
       await api.post('/storekeeper/issues', payload);
       showToast(uiText(isConsumable ? "Consumable item issued & deducted from stock" : "Returnable asset issued successfully"));
       setIssueModalOpen(false);
+      setIssueCategoryFilter('');
       setIssueForm({ asset_id: '', issued_to_name: '', issued_to_role: 'Teacher', purpose: '', quantity: 1, expected_return: '', notes: '' });
       fetchAllData();
     } catch (e: any) {
@@ -317,15 +325,34 @@ export const StorekeeperPortal = () => {
 
               <form onSubmit={handleCreateIssue} className="space-y-4">
                 <div className="space-y-1">
+                  <label className="text-xs font-black text-slate-500 uppercase tracking-wide">{uiText("Select Category First *")}</label>
+                  <select
+                    value={issueCategoryFilter}
+                    onChange={e => {
+                      setIssueCategoryFilter(e.target.value);
+                      setIssueForm(form => ({ ...form, asset_id: '' }));
+                    }}
+                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+                    required
+                  >
+                    <option value="">{uiText("-- Choose Category --")}</option>
+                    {issueCategories.map(category => (
+                      <option key={category} value={category}>{uiText(category)}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-1">
                   <label className="text-xs font-black text-slate-500 uppercase tracking-wide">{uiText("Select Item from Stock *")}</label>
                   <select
                     value={issueForm.asset_id}
                     onChange={e => setIssueForm({ ...issueForm, asset_id: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+                    disabled={!issueCategoryFilter}
+                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60 disabled:cursor-not-allowed"
                     required
                   >
-                    <option value="">{uiText("-- Choose Item from Register --")}</option>
-                    {assets.map(a => {
+                    <option value="">{uiText(issueCategoryFilter ? '-- Choose Item from Register --' : '-- Choose a Category First --')}</option>
+                    {issueableAssets.map(a => {
                       const isCons = a.is_consumable || a.item_type === 'Consumable' || a.category === 'Stationery & Supplies';
                       return (
                         <option key={a.id} value={a.id} disabled={a.amount <= 0}>
@@ -461,7 +488,7 @@ export const StorekeeperPortal = () => {
           </div>
           <div className="flex gap-3">
             <button
-              onClick={() => setIssueModalOpen(true)}
+              onClick={() => { setIssueCategoryFilter(''); setIssueForm({ asset_id: '', issued_to_name: '', issued_to_role: 'Teacher', purpose: '', quantity: 1, expected_return: '', notes: '' }); setIssueModalOpen(true); }}
               className="flex items-center gap-2 px-5 py-3 bg-white text-indigo-900 rounded-2xl font-black text-sm hover:bg-indigo-50 shadow-lg transition-all"
             >
               <ArrowRightLeft size={18} />{uiText("Issue Asset")}</button>
@@ -700,6 +727,7 @@ export const StorekeeperPortal = () => {
                             <div className="flex items-center justify-center gap-1">
                               <button
                                 onClick={() => {
+                                  setIssueCategoryFilter(asset.category || 'General');
                                   setIssueForm(f => ({ ...f, asset_id: asset.id }));
                                   setIssueModalOpen(true);
                                 }}
@@ -744,17 +772,36 @@ export const StorekeeperPortal = () => {
               <p className="text-xs text-slate-500">{uiText("Track property assigned to teachers, staff, and departments")}</p>
             </div>
             <button
-              onClick={() => setIssueModalOpen(true)}
+              onClick={() => { setIssueCategoryFilter(''); setIssueForm({ asset_id: '', issued_to_name: '', issued_to_role: 'Teacher', purpose: '', quantity: 1, expected_return: '', notes: '' }); setIssueModalOpen(true); }}
               className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-bold hover:bg-indigo-700"
             >
               <ArrowRightLeft size={16} />{uiText(" New Checkout")}</button>
           </div>
 
+          {issues.length > 0 && (
+            <div className="flex justify-end">
+              <select
+                value={issueLogCategoryFilter}
+                onChange={e => setIssueLogCategoryFilter(e.target.value)}
+                className="px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                {categoriesList.map(category => (
+                  <option key={category} value={category}>{uiText(category === 'All' ? 'All Categories' : category)}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
           {issues.length === 0 ? (
             <div className="text-center py-16 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800">
               <ArrowRightLeft size={44} className="mx-auto mb-3 text-slate-300" />
               <p className="font-bold text-slate-400">{uiText("No active or past property issues recorded")}</p>
-              <button onClick={() => setIssueModalOpen(true)} className="mt-3 text-sm text-indigo-600 font-bold hover:underline">{uiText("+ Issue property to staff")}</button>
+              <button onClick={() => { setIssueCategoryFilter(''); setIssueForm({ asset_id: '', issued_to_name: '', issued_to_role: 'Teacher', purpose: '', quantity: 1, expected_return: '', notes: '' }); setIssueModalOpen(true); }} className="mt-3 text-sm text-indigo-600 font-bold hover:underline">{uiText("+ Issue property to staff")}</button>
+            </div>
+          ) : filteredIssues.length === 0 ? (
+            <div className="text-center py-16 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800">
+              <Tag size={44} className="mx-auto mb-3 text-slate-300" />
+              <p className="font-bold text-slate-400">{uiText("No issue records in this category")}</p>
             </div>
           ) : (
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 overflow-hidden shadow-sm">
@@ -763,6 +810,7 @@ export const StorekeeperPortal = () => {
                   <thead>
                     <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 text-slate-500">
                       <th className="text-left px-5 py-3.5 text-xs font-black uppercase">{uiText("Item Name")}</th>
+                      <th className="text-left px-5 py-3.5 text-xs font-black uppercase">{uiText("Category")}</th>
                       <th className="text-left px-5 py-3.5 text-xs font-black uppercase">{uiText("Issued To")}</th>
                       <th className="text-center px-5 py-3.5 text-xs font-black uppercase">{uiText("Qty")}</th>
                       <th className="text-left px-5 py-3.5 text-xs font-black uppercase">{uiText("Issued Date")}</th>
@@ -772,7 +820,7 @@ export const StorekeeperPortal = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
-                    {issues.map(iss => {
+                    {filteredIssues.map(iss => {
                       const isCons = iss.status === 'Consumed' || iss.is_consumable || iss.item_type === 'Consumable' || iss.asset_category === 'Stationery & Supplies';
 
                       return (
@@ -788,6 +836,11 @@ export const StorekeeperPortal = () => {
                                 {uiText("Returnable Asset")}
                               </span>
                             )}
+                          </td>
+                          <td className="px-5 py-4">
+                            <span className="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-300">
+                              {uiText(iss.asset_category || 'General')}
+                            </span>
                           </td>
                           <td className="px-5 py-4">
                             <div className="font-bold text-sm text-slate-800 dark:text-white">{uiText(iss.issued_to_name)}</div>
