@@ -376,6 +376,21 @@ export const StorekeeperPortal = () => {
               </div>
 
               <form onSubmit={handleUpdateIssue} className="space-y-4">
+                <div className="rounded-2xl border border-indigo-100 dark:border-indigo-500/20 bg-indigo-50/70 dark:bg-indigo-500/10 p-4">
+                  <div className="flex items-center gap-2 mb-3 text-indigo-800 dark:text-indigo-300">
+                    <ClipboardList size={16} />
+                    <span className="text-xs font-black uppercase tracking-wider">{uiText('Original Issue Details')}</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+                    <div><p className="text-[10px] font-black uppercase text-slate-400">{uiText('Category')}</p><p className="font-bold text-slate-800 dark:text-white">{uiText(editingIssue.asset_category || 'General')}</p></div>
+                    <div><p className="text-[10px] font-black uppercase text-slate-400">{uiText('Item')}</p><p className="font-bold text-slate-800 dark:text-white">{uiText(editingIssue.asset_name)}</p></div>
+                    <div><p className="text-[10px] font-black uppercase text-slate-400">{uiText('Quantity')}</p><p className="font-bold text-slate-800 dark:text-white">{editingIssue.quantity}</p></div>
+                    <div><p className="text-[10px] font-black uppercase text-slate-400">{uiText('Item Type')}</p><p className="font-bold text-slate-800 dark:text-white">{uiText(isConsumable ? 'Consumable' : 'Returnable')}</p></div>
+                    <div><p className="text-[10px] font-black uppercase text-slate-400">{uiText('Issued Date')}</p><p className="font-bold text-slate-800 dark:text-white">{uiText(new Date(editingIssue.issued_at).toLocaleDateString(localeTag()))}</p></div>
+                    <div><p className="text-[10px] font-black uppercase text-slate-400">{uiText('Status')}</p><p className="font-bold text-slate-800 dark:text-white">{uiText(editingIssue.status === 'Consumed' ? 'Consumed / Issued' : editingIssue.status)}</p></div>
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
                     <label className="text-xs font-black text-slate-500 uppercase tracking-wide">{uiText('Issued To (Person/Dept) *')}</label>
@@ -1140,6 +1155,10 @@ export const StorekeeperPortal = () => {
                     <option value="Laboratory Equipment">{uiText("Laboratory Equipment")}</option>
                     <option value="Sports & PE">{uiText("Sports & PE")}</option>
                     <option value="Building & Infrastructure">{uiText("Building & Infrastructure")}</option>
+                    <option value="Books">{uiText("Books")}</option>
+                    <option value="Detergents">{uiText("Detergents")}</option>
+                    <option value="Kitchen Utensils">{uiText("Kitchen Utensils")}</option>
+                    <option value="Plumbing Fixtures & Parts">{uiText("Plumbing Fixtures & Parts")}</option>
                   </select>
                 </div>
               </div>
