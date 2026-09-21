@@ -1,7 +1,7 @@
 import { uiText } from "../localization";
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { BookOpen, Users, Calendar, ArrowRight, ArrowLeft, ClipboardList, FileText, Plus, X, CheckCircle2, XCircle, Loader2, Star, Save, Send, Search, ChevronLeft, ChevronRight, ChevronDown, AlertCircle, ShieldCheck } from 'lucide-react';
+import { BookOpen, Users, Calendar, ArrowRight, ArrowLeft, ClipboardList, FileText, Plus, X, CheckCircle2, XCircle, Loader2, Star, Save, Send, Search, ChevronLeft, ChevronRight, ChevronDown, AlertCircle, ShieldCheck, Eye } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useCallback } from 'react';
 import { useUser } from '../context/UserContext';
@@ -389,6 +389,7 @@ export const TeacherPortal = () => {
   const [annualReviewRating, setAnnualReviewRating] = useState(0);
   const [annualReviewFeedback, setAnnualReviewFeedback] = useState('');
   const [selectedAnnualForView, setSelectedAnnualForView] = useState<any | null>(null);
+  const [isViewingOwnAnnualPlan, setIsViewingOwnAnnualPlan] = useState(false);
 
   const emptyAnnualForm = {
     schoolName: 'Ziquala Lado Primary School',
@@ -600,6 +601,7 @@ export const TeacherPortal = () => {
   const [weeklyPlanSubTab, setWeeklyPlanSubTab] = useState<'my-plans' | 'dept-plans' | 'communication-book'>('my-plans');
   // Plan detail expand overlay
   const [selectedPlanForView, setSelectedPlanForView] = useState<any | null>(null);
+  const [isViewingOwnWeeklyPlan, setIsViewingOwnWeeklyPlan] = useState(false);
   // Temporary evaluation rating
   const [reviewRating, setReviewRating] = useState<number>(0);
   // Simulation mode for Department Head role preview
@@ -1499,6 +1501,16 @@ export const TeacherPortal = () => {
                           {plan.feedback && <p className="text-xs text-orange-600 mt-1 italic">{uiText("Feedback: \"")}{plan.feedback}"</p>}
                         </div>
                         <div className="flex gap-2 ml-4">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedAnnualForView(plan);
+                              setIsViewingOwnAnnualPlan(true);
+                            }}
+                            className="flex items-center gap-1.5 px-4 py-2 border border-violet-200 dark:border-violet-800 text-violet-700 dark:text-violet-300 hover:bg-violet-50 dark:hover:bg-violet-900/20 text-xs font-black rounded-xl transition-all"
+                          >
+                            <Eye size={14} />{uiText(" View Plan ")}
+                          </button>
                           {(plan.status === 'Draft' || plan.status === 'Revision Required') && (
                             <button
                               onClick={() => {
@@ -2011,9 +2023,19 @@ export const TeacherPortal = () => {
                         </span>
                         <div className="flex items-center gap-2">
                           <button
-                            onClick={() => openEditModal(plan)}
-                            className="px-3 py-1.5 bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-100 rounded-xl text-xs font-bold hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
-                          >{uiText(" Edit ")}</button>
+                            type="button"
+                            onClick={() => {
+                              setSelectedPlanForView({ ...plan, teacher_name: plan.teacher_name || user?.name });
+                              setIsViewingOwnWeeklyPlan(true);
+                            }}
+                            className="px-3 py-1.5 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 rounded-xl text-xs font-bold hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors flex items-center gap-1"
+                          ><Eye size={14} />{uiText(" View Plan ")}</button>
+                          {(plan.status === 'Draft' || plan.status === 'Revision Required') && (
+                            <button
+                              onClick={() => openEditModal(plan)}
+                              className="px-3 py-1.5 bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-100 rounded-xl text-xs font-bold hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
+                            >{uiText(" Edit ")}</button>
+                          )}
                           {(plan.status === 'Draft' || plan.status === 'Revision Required') && (
                             <button
                               onClick={async () => {
@@ -2146,7 +2168,7 @@ export const TeacherPortal = () => {
                   }).map((plan: any) => (
                     <div
                       key={plan.id}
-                      onClick={() => { setSelectedAnnualForView(plan); setAnnualReviewRating(plan.rating || 0); setAnnualReviewFeedback(plan.feedback || ''); }}
+                      onClick={() => { setSelectedAnnualForView(plan); setIsViewingOwnAnnualPlan(false); setAnnualReviewRating(plan.rating || 0); setAnnualReviewFeedback(plan.feedback || ''); }}
                       className="bg-slate-50 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-md hover:shadow-lg hover:border-violet-300 dark:hover:border-violet-800 transition-all p-6 space-y-4 cursor-pointer group relative overflow-hidden"
                     >
                       <div className="absolute top-0 right-0 w-2 h-full bg-violet-600 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -2292,6 +2314,7 @@ export const TeacherPortal = () => {
                   key={plan.id}
                   onClick={() => {
                     setSelectedPlanForView(plan);
+                    setIsViewingOwnWeeklyPlan(false);
                     setReviewRating(plan.dean_rating || plan.rating || 0);
                     setReviewFeedback(plan.dean_feedback || plan.feedback || '');
                   }}
@@ -3393,7 +3416,15 @@ export const TeacherPortal = () => {
                 </div>
               </div>
 
-              {/* Interactive Evaluation Section for Dept Head */}
+              {isViewingOwnWeeklyPlan ? (
+                (selectedPlanForView.dean_feedback || selectedPlanForView.feedback) && (
+                  <div className="p-5 bg-amber-50/50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900/40 rounded-2xl space-y-1 print:hidden">
+                    <h4 className="text-xs font-black text-amber-900 dark:text-amber-400 uppercase tracking-widest">{uiText("Department Head Feedback")}</h4>
+                    <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap">{selectedPlanForView.dean_feedback || selectedPlanForView.feedback}</p>
+                  </div>
+                )
+              ) : (
+              /* Interactive Evaluation Section for Dept Head */
               <div className="p-5 bg-blue-50/50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/40 rounded-2xl space-y-4 print:hidden">
                 <h4 className="text-xs font-black text-blue-900 dark:text-blue-400 uppercase tracking-widest">{uiText("✍️ Department Head Evaluation & Rating")}</h4>
                 <div>
@@ -3442,6 +3473,7 @@ export const TeacherPortal = () => {
                   >{uiText(" ⟲ Request Revision ")}</button>
                 </div>
               </div>
+              )}
             </div>
           </div>
         </div>
@@ -3719,16 +3751,16 @@ export const TeacherPortal = () => {
         </div>
       )}
 
-      {/* ── Annual Plan Review Modal (Dept Head) ── */}
+      {/* ── Annual Plan Review / Read-only View ── */}
       {selectedAnnualForView && (
         <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-start justify-center p-4 overflow-y-auto">
           <div className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl border border-slate-100 dark:border-slate-800 w-full max-w-5xl my-4">
             {/* Header */}
             <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-gradient-to-r from-slate-800 to-slate-900 rounded-t-[2rem]">
               <div>
-                <h3 className="font-black text-white uppercase tracking-tight text-lg">{uiText("Annual Plan Review")}</h3>
+                <h3 className="font-black text-white uppercase tracking-tight text-lg">{uiText(isViewingOwnAnnualPlan ? "My Annual Plan" : "Annual Plan Review")}</h3>
                 <p className="text-xs text-slate-400 mt-0.5 font-bold">
-                  {selectedAnnualForView.teacher_name} · {selectedAnnualForView.subject} · {selectedAnnualForView.grade}
+                  {selectedAnnualForView.teacher_name || user?.name} · {selectedAnnualForView.subject} · {selectedAnnualForView.grade}
                 </p>
               </div>
               <button onClick={() => setSelectedAnnualForView(null)} className="p-2 hover:bg-white/10 rounded-xl text-white transition-all"><X size={20} /></button>
@@ -3846,7 +3878,15 @@ export const TeacherPortal = () => {
                 </div>
               )}
 
-              {/* Review Panel */}
+              {isViewingOwnAnnualPlan ? (
+                selectedAnnualForView.feedback && (
+                  <div className="bg-amber-50 dark:bg-amber-900/20 rounded-2xl p-5 border border-amber-200 dark:border-amber-800 space-y-1">
+                    <h4 className="text-xs font-black uppercase tracking-widest text-amber-700 dark:text-amber-300">{uiText("Reviewer Feedback")}</h4>
+                    <p className="text-sm text-amber-900 dark:text-amber-100 whitespace-pre-wrap">{selectedAnnualForView.feedback}</p>
+                  </div>
+                )
+              ) : (
+              /* Review Panel */
               <div className="bg-slate-50 dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 space-y-4">
                 <h4 className="text-xs font-black uppercase tracking-widest text-slate-500">{uiText("✍️ Your Review")}</h4>
                 {/* Star Rating */}
@@ -3876,13 +3916,14 @@ export const TeacherPortal = () => {
                   />
                 </div>
               </div>
+              )}
             </div>
 
             {/* Footer Buttons */}
             <div className="p-6 border-t border-slate-100 dark:border-slate-800 flex gap-3 justify-end flex-wrap">
               <button onClick={() => setSelectedAnnualForView(null)}
                 className="px-6 py-3 border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">{uiText(" Close ")}</button>
-              <button
+              {!isViewingOwnAnnualPlan && <button
                 onClick={async () => {
                   if (!annualReviewFeedback.trim()) { showToast('Feedback is required when requesting revision.', 'error'); return; }
                   try {
@@ -3896,8 +3937,8 @@ export const TeacherPortal = () => {
                 }}
                 disabled={submitting}
                 className="flex items-center gap-2 px-6 py-3 bg-orange-500 hover:bg-orange-600 disabled:opacity-60 text-white font-black text-xs uppercase tracking-widest rounded-2xl transition-all">
-                <XCircle size={16} />{uiText(" Request Revision ")}</button>
-              <button
+                <XCircle size={16} />{uiText(" Request Revision ")}</button>}
+              {!isViewingOwnAnnualPlan && <button
                 onClick={async () => {
                   try {
                     setSubmitting(true);
@@ -3911,7 +3952,7 @@ export const TeacherPortal = () => {
                 }}
                 disabled={submitting}
                 className="flex items-center gap-2 px-8 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white font-black text-xs uppercase tracking-widest rounded-2xl transition-all shadow-lg shadow-emerald-500/20">
-                {submitting ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}{uiText(" Approve Plan ")}</button>
+                {submitting ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}{uiText(" Approve Plan ")}</button>}
             </div>
           </div>
         </div>
