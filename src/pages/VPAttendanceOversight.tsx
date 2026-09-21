@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Users, MessageSquare, Send, Loader, CheckCircle, AlertCircle, Phone, Trash2, Calendar } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import api from '../services/api';
-import { getTodayEthiopianDate, formatEthiopianLabel } from '../utils/ethiopianCalendar';
+import { getTodayEthiopianDate, formatEthiopianLabel, ethiopianToGregorianIso } from '../utils/ethiopianCalendar';
 import { EthiopianDatePicker } from '../components/EthiopianDatePicker';
 
 interface AbsentStudent {
@@ -208,9 +208,9 @@ export const VPAttendanceOversight = () => {
     setSelectAll(false);
     setNotifiedStudents(new Set());
     try {
-      // Send Ethiopian date directly (YYYY-MM-DD E.C.) to backend
+      const gregDate = ethiopianToGregorianIso(selectedDate);
       const response = await api.get('/vice-principal/attendance/absences-today', {
-        params: { date: selectedDate },
+        params: { date: selectedDate, gregDate },
         headers: {
           'Cache-Control': 'no-cache',
           Pragma: 'no-cache'
@@ -398,44 +398,58 @@ export const VPAttendanceOversight = () => {
 
           {/* Status Summary Cards */}
           {!loading && (
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-lg transition-shadow">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-rose-100 dark:bg-rose-900/30 rounded-xl">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+              <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-lg transition-shadow">
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className="p-3 bg-rose-100 dark:bg-rose-900/30 rounded-xl flex-shrink-0">
                     <AlertCircle className="text-rose-600 dark:text-rose-400" size={24} />
                   </div>
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">{t("vp.absentToday", "Absent Today")}</p>
-                    <p className="text-3xl font-black text-slate-900 dark:text-white mt-1">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 truncate">{t("vp.absentToday", "Absent Today")}</p>
+                    <p className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-0.5 tracking-tight">
                       {absentStudents.filter(s => s.status === 'absent').length}
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-lg transition-shadow">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
+              <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-lg transition-shadow">
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex-shrink-0">
                     <CheckCircle className="text-blue-600 dark:text-blue-400" size={24} />
                   </div>
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">{t("vp.excusedToday", "Excused Today")}</p>
-                    <p className="text-3xl font-black text-slate-900 dark:text-white mt-1">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 truncate">{t("vp.excusedToday", "Excused Today")}</p>
+                    <p className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-0.5 tracking-tight">
                       {absentStudents.filter(s => s.status === 'excused').length}
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-lg transition-shadow">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-amber-100 dark:bg-amber-900/30 rounded-xl">
-                    <AlertCircle className="text-amber-600 dark:text-amber-400" size={24} />
+              <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-lg transition-shadow">
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className="p-3 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl flex-shrink-0">
+                    <Users className="text-indigo-600 dark:text-indigo-400" size={24} />
                   </div>
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">{t("vp.exceededLimit", "Limit Exceeded")}</p>
-                    <p className="text-3xl font-black text-slate-900 dark:text-white mt-1">
-                      {absentStudents.filter(s => s.status === 'exceeded' || (s.totalAbsences && s.totalAbsences >= 3)).length}
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 truncate">{t("vp.selected", "Selected")}</p>
+                    <p className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-0.5 tracking-tight">
+                      {selectedStudents.size}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-lg transition-shadow">
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-xl flex-shrink-0">
+                    <Phone className="text-purple-600 dark:text-purple-400" size={24} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 truncate">{t("vp.parentsNotified", "Parents Notified")}</p>
+                    <p className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-0.5 tracking-tight">
+                      {notifiedStudents.size}
                     </p>
                   </div>
                 </div>
@@ -465,10 +479,12 @@ export const VPAttendanceOversight = () => {
             </div>
           ) : absentStudents.length === 0 ? (
             <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700 p-12 text-center shadow-sm">
-              <CheckCircle className="mx-auto mb-4 text-emerald-500" size={48} />
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{t("vp.noAbsencesRecorded", "No Attendance Issues / Perfect Attendance")}</h3>
-              <p className="text-slate-600 dark:text-slate-300 max-w-md mx-auto">
-                {t("vp.perfectAttendanceDesc", "No absent or limit-exceeded students found for this date. Records appear only after homeroom teachers submit attendance.")}
+              <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-950/40 rounded-full flex items-center justify-center mx-auto mb-4">
+                <CheckCircle className="text-emerald-500 dark:text-emerald-400" size={36} />
+              </div>
+              <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-2">{t("vp.perfectAttendance", "Perfect Attendance")}</h3>
+              <p className="text-slate-600 dark:text-slate-300 max-w-md mx-auto text-sm leading-relaxed">
+                {t("vp.perfectAttendanceDesc", "No absences recorded for today. Try checking again later or make sure attendance has been saved by a teacher.")}
               </p>
             </div>
           ) : (
@@ -613,56 +629,57 @@ export const VPAttendanceOversight = () => {
           ) : (
             <>
               {/* Teacher Summary Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-lg transition-shadow">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-lg transition-shadow">
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="p-3 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl flex-shrink-0">
                       <Users className="text-indigo-600 dark:text-indigo-400" size={24} />
                     </div>
-                    <div>
-                      <p className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">{t("vp.totalTeachers", "Total Teachers")}</p>
-                      <p className="text-3xl font-black text-slate-900 dark:text-white mt-1">{teachers.length}</p>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 truncate">{t("vp.totalTeachers", "Total Teachers")}</p>
+                      <p className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-0.5 tracking-tight">{teachers.length}</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-lg transition-shadow">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl">
+                <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-lg transition-shadow">
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl flex-shrink-0">
                       <CheckCircle className="text-emerald-600 dark:text-emerald-400" size={24} />
                     </div>
-                    <div>
-                      <p className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">{t("vp.presentToday", "Present Today")}</p>
-                      <p className="text-3xl font-black text-slate-900 dark:text-white mt-1">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 truncate">{t("vp.presentToday", "Present Today")}</p>
+                      <p className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-0.5 tracking-tight">
                         {teachers.filter(t => t.attendanceStatus === 'present').length}
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-lg transition-shadow">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 bg-rose-100 dark:bg-rose-900/30 rounded-xl">
+                <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-lg transition-shadow">
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="p-3 bg-rose-100 dark:bg-rose-900/30 rounded-xl flex-shrink-0">
                       <AlertCircle className="text-rose-600 dark:text-rose-400" size={24} />
                     </div>
-                    <div>
-                      <p className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">{t("vp.absentExcused", "Absent / Excused")}</p>
-                      <p className="text-3xl font-black text-slate-900 dark:text-white mt-1">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 truncate">{t("vp.absentExcused", "Absent / Excused")}</p>
+                      <p className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-0.5 tracking-tight">
                         {teachers.filter(t => t.attendanceStatus === 'absent' || t.attendanceStatus === 'excused').length}
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-lg transition-shadow">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 bg-amber-100 dark:bg-amber-900/30 rounded-xl">
+                <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-lg transition-shadow">
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="p-3 bg-amber-100 dark:bg-amber-900/30 rounded-xl flex-shrink-0">
                       <Users className="text-amber-600 dark:text-amber-400" size={24} />
                     </div>
-                    <div>
-                      <p className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">{t("vp.proxyCoverages", "Proxy Coverages")}</p>
-                      <p className="text-xl font-black text-slate-900 dark:text-white mt-1.5">
-                        {t("vp.assigned", { count: proxies.length, defaultValue: `${proxies.length} Assigned` })}
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 truncate">{t("vp.proxyCoverages", "Proxy Coverages")}</p>
+                      <p className="text-2xl font-black text-slate-900 dark:text-white mt-0.5 tracking-tight flex items-baseline gap-1">
+                        <span>{proxies.length}</span>
+                        <span className="text-xs font-bold text-slate-500 dark:text-slate-400">{t("vp.assigned", { count: proxies.length, defaultValue: "Assigned" })}</span>
                       </p>
                     </div>
                   </div>

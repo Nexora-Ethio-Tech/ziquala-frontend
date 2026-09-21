@@ -120,6 +120,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
       case 'vice-principal':
         return [
           { icon: LayoutDashboard, label: t('nav.dashboard', 'Dashboard'), path: dashboardRoutes['vice-principal'] },
+          { icon: CalendarCheck, label: t('nav.attendanceOversight', 'Attendance Oversight'), path: '/vp-attendance' },
           { icon: ClipboardList, label: t('nav.gradeManagement', 'Grade Management'), path: '/vp-grade-management' },
           { icon: FileText, label: t('nav.transcripts', 'Transcripts'), path: '/vp-transcripts' },
           { icon: BookOpen, label: t('nav.communicationBook', 'Communication Book'), path: '/vp-communication' },
