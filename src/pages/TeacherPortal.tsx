@@ -3,7 +3,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { BookOpen, Users, Calendar, ArrowRight, ArrowLeft, ClipboardList, FileText, Plus, X, CheckCircle2, XCircle, Loader2, Star, Save, Send, Search, ChevronLeft, ChevronRight, ChevronDown, AlertCircle, ShieldCheck, Eye, FlaskConical, Trash2, Printer } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useUser } from '../context/UserContext';
 import { useStore } from '../context/useStore';
 import { getTodayEthiopianDate, gregorianToEthiopian, formatEthiopianLabel } from '../utils/ethiopianCalendar';
@@ -26,7 +26,15 @@ import {
   getMyAnnualPlans,
   updateAnnualPlan,
   getDeptAnnualPlans,
-  reviewDeptAnnualPlan
+  reviewDeptAnnualPlan,
+  getLabTechnicians,
+  getSchoolPrincipals,
+  submitLabRequisition,
+  getMyLabRequisitions,
+  getBranchLabRequisitions,
+  updateLabRequisition,
+  reviewLabRequisition,
+  deleteLabRequisition
 } from '../services/teacherService';
 import {
   getTeacherExams,
@@ -601,7 +609,19 @@ export const TeacherPortal = () => {
   // Sub-tab selection for weekly plans
   const [weeklyPlanSubTab, setWeeklyPlanSubTab] = useState<'my-plans' | 'dept-plans' | 'annual-plans' | 'lab-requisition' | 'communication-book'>('my-plans');
 
-  // ─── Lab Requisition States ──────────────────────────────────────────────────
+  // ─── Lab Requisition States & Role Check ────────────────────────────────────
+  const isLabTech = useMemo(() => {
+    if (!user) return false;
+    const r = String(user.role || '').toLowerCase();
+    const pType = String((user as any).staff_profile?.promotion?.promotion_type || (user as any).promotion?.promotion_type || (user as any).promotionType || (dashboard?.teacherInfo?.promotion?.promotion_type) || '').toLowerCase();
+    const pRoles = (user as any).staff_profile?.promotion?.roles || (user as any).promotion?.roles || (user as any).roles || (dashboard?.teacherInfo?.promotion?.roles) || [];
+
+    if (r === 'lab-technician' || r === 'lab_technician' || (dashboard?.teacherInfo?.is_lab_tech) || (dashboard?.teacherInfo?.isLabTech)) return true;
+    if (pType === 'lab-technician' || pType === 'lab_technician' || pType.includes('lab')) return true;
+    if (Array.isArray(pRoles) && pRoles.some((pr: string) => String(pr).toLowerCase().includes('lab'))) return true;
+    return false;
+  }, [user, dashboard]);
+
   const [labRequests, setLabRequests] = useState<any[]>(() => {
     try {
       const stored = localStorage.getItem('lab_requisition_requests');
@@ -619,12 +639,37 @@ export const TeacherPortal = () => {
   const [selectedLabForView, setSelectedLabForView] = useState<any | null>(null);
   const [labReviewFeedback, setLabReviewFeedback] = useState('');
 
-  // ─── Branch Staff Fetching for Lab Requisition ───
+  // ─── Branch Staff & Lab Requisition Fetching ───
   const [branchLabTechs, setBranchLabTechs] = useState<any[]>([]);
   const [branchPrincipals, setBranchPrincipals] = useState<any[]>([]);
 
   const fetchBranchStaff = useCallback(async () => {
     const userBranchId = (user as any)?.branch_id || (user as any)?.branchId || (user as any)?.staff_profile?.branch_id || (user as any)?.staffProfile?.branchId || '';
+
+    try {
+      const [apiTechs, apiPrincipals] = await Promise.all([
+        getLabTechnicians().catch(() => null),
+        getSchoolPrincipals().catch(() => null)
+      ]);
+
+      if (Array.isArray(apiTechs) && apiTechs.length > 0) {
+        const formattedTechs = apiTechs.map((t: any) => ({
+          id: t.id,
+          name: t.name,
+          role: t.promotionType || 'lab-technician'
+        }));
+        setBranchLabTechs(formattedTechs);
+      }
+
+      if (Array.isArray(apiPrincipals) && apiPrincipals.length > 0) {
+        const formattedPrincipals = apiPrincipals.map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          role: p.role || 'School Admin'
+        }));
+        setBranchPrincipals(formattedPrincipals);
+      }
+    } catch {}
 
     try {
       let rawUsers: any[] = [];
@@ -660,42 +705,87 @@ export const TeacherPortal = () => {
           })
         : allUsers;
 
-      const labTechs = branchFiltered.filter((u: any) => {
-        const r = String(u.role || u.user_role || '').toLowerCase();
-        const pRole = String(u.promoted_role || u.promotedRole || '').toLowerCase();
-        const pType = String(u.staff_profile?.promotion?.promotion_type || u.promotion?.promotion_type || u.promotionType || '').toLowerCase();
-        const pRoles = u.staff_profile?.promotion?.roles || u.promotion?.roles || [];
-        return r === 'lab-technician' || r === 'lab_technician' || r.includes('lab') ||
-          pRole === 'lab-technician' || pRole === 'lab_technician' ||
-          pType === 'lab-technician' || pType === 'lab_technician' ||
-          (Array.isArray(pRoles) && (pRoles.includes('lab-technician') || pRoles.includes('lab_technician')));
-      }).map((u: any) => ({
-        id: u.id || u.user_id || u.digital_id,
-        name: u.name || u.full_name || u.email,
-        role: 'Lab Technician'
-      }));
+      setBranchLabTechs(prev => {
+        if (prev.length > 0) return prev;
+        const labTechs = branchFiltered.filter((u: any) => {
+          const r = String(u.role || u.user_role || '').toLowerCase();
+          const pRole = String(u.promoted_role || u.promotedRole || '').toLowerCase();
+          const pType = String(u.staff_profile?.promotion?.promotion_type || u.promotion?.promotion_type || u.promotionType || '').toLowerCase();
+          const pRoles = u.staff_profile?.promotion?.roles || u.promotion?.roles || [];
+          return r === 'lab-technician' || r === 'lab_technician' || r.includes('lab') ||
+            pRole === 'lab-technician' || pRole === 'lab_technician' ||
+            pType === 'lab-technician' || pType === 'lab_technician' ||
+            (Array.isArray(pRoles) && (pRoles.includes('lab-technician') || pRoles.includes('lab_technician')));
+        }).map((u: any) => ({
+          id: u.id || u.user_id || u.digital_id,
+          name: u.name || u.full_name || u.email,
+          role: 'lab-technician'
+        }));
+        return labTechs;
+      });
 
-      const principals = branchFiltered.filter((u: any) => {
-        const r = String(u.role || u.user_role || '').toLowerCase();
-        return r === 'school-admin' || r === 'school_admin' || r === 'vice-principal' || r === 'vice_principal' || r === 'principal' || r === 'academic-manager' || r === 'super-admin';
-      }).map((u: any) => ({
-        id: u.id || u.user_id || u.digital_id,
-        name: u.name || u.full_name || u.email,
-        role: u.role === 'school-admin' || u.role === 'school_admin' ? 'School Admin' : u.role === 'vice-principal' || u.role === 'vice_principal' ? 'Vice Principal' : 'Principal'
-      }));
-
-      setBranchLabTechs(labTechs);
-      setBranchPrincipals(principals);
+      setBranchPrincipals(prev => {
+        if (prev.length > 0) return prev;
+        const principals = branchFiltered.filter((u: any) => {
+          const r = String(u.role || u.user_role || '').toLowerCase();
+          return r === 'school-admin' || r === 'school_admin' || r === 'vice-principal' || r === 'vice_principal' || r === 'principal' || r === 'academic-manager' || r === 'super-admin';
+        }).map((u: any) => ({
+          id: u.id || u.user_id || u.digital_id,
+          name: u.name || u.full_name || u.email,
+          role: u.role === 'school-admin' || u.role === 'school_admin' ? 'School Admin' : u.role === 'vice-principal' || u.role === 'vice_principal' ? 'Vice Principal' : 'Principal'
+        }));
+        return principals;
+      });
     } catch (err) {
       console.error('Error fetching branch staff:', err);
-      setBranchLabTechs([]);
-      setBranchPrincipals([]);
     }
   }, [user]);
 
+  const fetchLabRequests = useCallback(async () => {
+    try {
+      const myReqs = await getMyLabRequisitions().catch(() => null);
+      const branchReqs = await getBranchLabRequisitions().catch(() => null);
+
+      const reqMap = new Map<string, any>();
+      const addRow = (r: any) => {
+        if (!r || !r.id) return;
+        reqMap.set(r.id, {
+          id: r.id,
+          academicYear: r.academic_year || r.academicYear || '2017 ዓ.ም',
+          gradeLevel: r.grade_level || r.gradeLevel || '',
+          subject: r.subject || '',
+          teacherName: r.teacher_name || r.teacherName || '',
+          teacherId: r.teacher_id || r.teacherId || r.user_id,
+          labTechId: r.lab_tech_id || r.labTechId || '',
+          labTechName: r.lab_tech_name || r.labTechName || '',
+          labTechSignature: r.lab_tech_signature || r.labTechSignature || '',
+          labTechFeedback: r.lab_tech_feedback || r.labTechFeedback || '',
+          principalId: r.principal_id || r.principalId || '',
+          principalName: r.principal_name || r.principalName || '',
+          principalSignature: r.principal_signature || r.principalSignature || '',
+          principalFeedback: r.principal_feedback || r.principalFeedback || '',
+          items: typeof r.items === 'string' ? JSON.parse(r.items) : (Array.isArray(r.items) ? r.items : []),
+          status: r.status || 'Submitted to Lab Tech',
+          created_at: r.created_at || r.createdAt || new Date().toISOString()
+        });
+      };
+
+      if (Array.isArray(myReqs)) myReqs.forEach(addRow);
+      if (Array.isArray(branchReqs)) branchReqs.forEach(addRow);
+
+      const combined = Array.from(reqMap.values());
+      if (combined.length > 0) {
+        setLabRequests(combined);
+      }
+    } catch (err) {
+      console.error('Error fetching lab requisitions:', err);
+    }
+  }, []);
+
   useEffect(() => {
     fetchBranchStaff();
-  }, [fetchBranchStaff]);
+    fetchLabRequests();
+  }, [fetchBranchStaff, fetchLabRequests]);
 
   const emptyLabForm = {
     academicYear: '2017 ዓ.ም',
@@ -722,6 +812,36 @@ export const TeacherPortal = () => {
   };
 
   const [labForm, setLabForm] = useState(emptyLabForm);
+
+  useEffect(() => {
+    if (branchLabTechs.length > 0) {
+      setLabForm(prev => {
+        if (!prev.labTechName) {
+          return {
+            ...prev,
+            labTechName: branchLabTechs[0].name,
+            labTechId: branchLabTechs[0].id
+          };
+        }
+        return prev;
+      });
+    }
+  }, [branchLabTechs]);
+
+  useEffect(() => {
+    if (branchPrincipals.length > 0) {
+      setLabForm(prev => {
+        if (!prev.principalName) {
+          return {
+            ...prev,
+            principalName: branchPrincipals[0].name,
+            principalId: branchPrincipals[0].id
+          };
+        }
+        return prev;
+      });
+    }
+  }, [branchPrincipals]);
   // ─────────────────────────────────────────────────────────────────────────────
   // Plan detail expand overlay
   const [selectedPlanForView, setSelectedPlanForView] = useState<any | null>(null);
@@ -1566,6 +1686,16 @@ export const TeacherPortal = () => {
                     : 'border-transparent text-slate-400 hover:text-slate-600'
                   }`}
               >{uiText(" 🧪 Lab Requisition ")}</button>
+              {(isLabTech || isDean || user?.role === 'school-admin' || user?.role === 'vice-principal') && (
+                <button
+                  type="button"
+                  onClick={() => setWeeklyPlanSubTab('lab-review' as any)}
+                  className={`pb-3 text-xs font-black uppercase tracking-wider border-b-2 transition-all ${(weeklyPlanSubTab as any) === 'lab-review'
+                      ? 'border-orange-600 text-orange-600'
+                      : 'border-transparent text-slate-400 hover:text-slate-600'
+                    }`}
+                >{uiText(" 🧪 Lab Review & Supervision ")}</button>
+              )}
               <button
                 type="button"
                 onClick={() => setWeeklyPlanSubTab('communication-book')}
@@ -1576,10 +1706,18 @@ export const TeacherPortal = () => {
               >{uiText(" Communication Book ")}</button>
             </div>
 
-            {isDean && (
-              <div className="flex items-center gap-2 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-3.5 py-1.5 rounded-xl border border-purple-200 dark:border-purple-800 text-xs font-bold shadow-sm">
-                <ShieldCheck size={14} className="text-purple-600 dark:text-purple-400" />{uiText(" Department Head ")}</div>
-            )}
+            <div className="flex items-center gap-2 flex-wrap">
+              {isLabTech && (
+                <div className="flex items-center gap-2 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 px-3.5 py-1.5 rounded-xl border border-amber-200 dark:border-amber-800 text-xs font-bold shadow-sm">
+                  <FlaskConical size={14} className="text-amber-600 dark:text-amber-400" />{uiText(" Lab Technician ")}
+                </div>
+              )}
+              {isDean && (
+                <div className="flex items-center gap-2 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-3.5 py-1.5 rounded-xl border border-purple-200 dark:border-purple-800 text-xs font-bold shadow-sm">
+                  <ShieldCheck size={14} className="text-purple-600 dark:text-purple-400" />{uiText(" Department Head ")}
+                </div>
+              )}
+            </div>
           </div>
 
           {(weeklyPlanSubTab as any) === 'annual-plans' ? (
@@ -1791,6 +1929,100 @@ export const TeacherPortal = () => {
                             title={uiText("Delete")}
                           >
                             <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (weeklyPlanSubTab as any) === 'lab-review' ? (
+            <div className="animate-in fade-in duration-200 space-y-6">
+              {/* Header Banner */}
+              <div className="bg-gradient-to-br from-amber-600 via-orange-600 to-red-700 rounded-[2rem] p-8 text-white shadow-2xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-10 opacity-10"><FlaskConical size={160} /></div>
+                <div className="relative z-10">
+                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-200 mb-2 block">{uiText("Lab Technician Portal")}</span>
+                  <h2 className="text-3xl font-black mb-1 tracking-tight">{uiText("የቤተ-ሙከራ መጠየቂያ ግምገማ / Lab Requisitions Supervision")}</h2>
+                  <p className="text-amber-100 font-medium text-sm">{uiText("Review, verify, and approve laboratory experiment requests submitted by branch teachers.")}</p>
+                </div>
+              </div>
+
+              {/* Summary Stats Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-5 rounded-2xl flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-black text-amber-800 dark:text-amber-300 uppercase tracking-wider">{uiText("Pending Review")}</p>
+                    <p className="text-2xl font-black text-amber-900 dark:text-amber-100 mt-1">
+                      {labRequests.filter(r => r.status === 'Submitted to Lab Tech').length}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-amber-500/20 text-amber-600 rounded-xl"><FlaskConical size={24} /></div>
+                </div>
+                <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 p-5 rounded-2xl flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-black text-emerald-800 dark:text-emerald-300 uppercase tracking-wider">{uiText("Approved by Tech")}</p>
+                    <p className="text-2xl font-black text-emerald-900 dark:text-emerald-100 mt-1">
+                      {labRequests.filter(r => r.status === 'Approved by Lab Tech' || r.status === 'Approved by Principal').length}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-emerald-500/20 text-emerald-600 rounded-xl"><CheckCircle2 size={24} /></div>
+                </div>
+                <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 p-5 rounded-2xl flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-black text-orange-800 dark:text-orange-300 uppercase tracking-wider">{uiText("Revision Required")}</p>
+                    <p className="text-2xl font-black text-orange-900 dark:text-orange-100 mt-1">
+                      {labRequests.filter(r => r.status === 'Revision Required').length}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-orange-500/20 text-orange-600 rounded-xl"><XCircle size={24} /></div>
+                </div>
+              </div>
+
+              {/* Requisitions List for Lab Tech */}
+              <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-xl overflow-hidden">
+                <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between flex-wrap gap-4">
+                  <div>
+                    <h3 className="font-black text-slate-800 dark:text-white">{uiText("Branch Laboratory Requisitions")}</h3>
+                    <p className="text-xs text-slate-500 mt-0.5">{uiText("Inspect and sign experiment requests from teachers in your branch")}</p>
+                  </div>
+                </div>
+
+                {labRequests.length === 0 ? (
+                  <div className="p-12 text-center">
+                    <div className="bg-amber-50 dark:bg-amber-900/20 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                      <FlaskConical size={28} className="text-amber-500" />
+                    </div>
+                    <p className="font-bold text-slate-500">{uiText("No lab requisitions found for review")}</p>
+                    <p className="text-xs text-slate-400 mt-1">{uiText("When teachers submit experiment requests, they will appear here for your approval.")}</p>
+                  </div>
+                ) : (
+                  <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {labRequests.map((req: any) => (
+                      <div key={req.id} className="p-5 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all flex-wrap gap-4">
+                        <div className="flex-1 min-w-[280px]">
+                          <div className="flex items-center gap-3 flex-wrap">
+                            <p className="font-black text-slate-800 dark:text-white text-sm">{req.subject} — {req.gradeLevel}</p>
+                            <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase ${
+                              req.status === 'Approved by Principal' || req.status === 'Approved by Lab Tech' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+                              : req.status === 'Revision Required' ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
+                              : req.status === 'Draft' ? 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
+                              : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                            }`}>{uiText(req.status)}</span>
+                          </div>
+                          <p className="text-xs text-slate-500 mt-1">
+                            {uiText("Submitted by: ")}<strong className="text-slate-700 dark:text-slate-300">{req.teacherName}</strong> · {uiText("Academic Year: ")}{req.academicYear} · {Array.isArray(req.items) ? req.items.length : 0} {uiText("experiment(s)")}
+                          </p>
+                          {req.labTechFeedback && <p className="text-xs text-orange-600 mt-1 italic">{uiText("Your Feedback: \"")}{req.labTechFeedback}"</p>}
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setSelectedLabForView(req)}
+                            className="flex items-center gap-1.5 px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-black rounded-xl transition-all shadow-md shadow-amber-500/20"
+                          >
+                            <Eye size={14} />{uiText(" Review & Sign Form ")}
                           </button>
                         </div>
                       </div>
@@ -4507,11 +4739,24 @@ export const TeacherPortal = () => {
                 {uiText(" Cancel ")}
               </button>
               <button
-                onClick={() => {
-                  const reqObj = {
-                    id: editingLabRequest ? editingLabRequest.id : 'lab-req-' + Date.now(),
+                onClick={async () => {
+                  const payload = {
                     ...labForm,
-                    created_at: editingLabRequest ? editingLabRequest.created_at : new Date().toISOString(),
+                    status: 'Draft'
+                  };
+                  let backendRes: any = null;
+                  try {
+                    if (editingLabRequest && editingLabRequest.id && !editingLabRequest.id.startsWith('lab-req-')) {
+                      backendRes = await updateLabRequisition(editingLabRequest.id, payload).catch(() => null);
+                    } else {
+                      backendRes = await submitLabRequisition(payload).catch(() => null);
+                    }
+                  } catch {}
+
+                  const reqObj = {
+                    id: backendRes?.id || (editingLabRequest ? editingLabRequest.id : 'lab-req-' + Date.now()),
+                    ...labForm,
+                    created_at: backendRes?.created_at || (editingLabRequest ? editingLabRequest.created_at : new Date().toISOString()),
                     status: 'Draft'
                   };
                   if (editingLabRequest) {
@@ -4528,15 +4773,28 @@ export const TeacherPortal = () => {
                 <Save size={16} />{uiText(" Save Draft ")}
               </button>
               <button
-                onClick={() => {
+                onClick={async () => {
                   if (!labForm.subject || !labForm.gradeLevel) {
                     showToast('Please enter subject and grade level', 'error');
                     return;
                   }
-                  const reqObj = {
-                    id: editingLabRequest ? editingLabRequest.id : 'lab-req-' + Date.now(),
+                  const payload = {
                     ...labForm,
-                    created_at: editingLabRequest ? editingLabRequest.created_at : new Date().toISOString(),
+                    status: 'Submitted to Lab Tech'
+                  };
+                  let backendRes: any = null;
+                  try {
+                    if (editingLabRequest && editingLabRequest.id && !editingLabRequest.id.startsWith('lab-req-')) {
+                      backendRes = await updateLabRequisition(editingLabRequest.id, payload).catch(() => null);
+                    } else {
+                      backendRes = await submitLabRequisition(payload).catch(() => null);
+                    }
+                  } catch {}
+
+                  const reqObj = {
+                    id: backendRes?.id || (editingLabRequest ? editingLabRequest.id : 'lab-req-' + Date.now()),
+                    ...labForm,
+                    created_at: backendRes?.created_at || (editingLabRequest ? editingLabRequest.created_at : new Date().toISOString()),
                     status: 'Submitted to Lab Tech'
                   };
                   if (editingLabRequest) {
@@ -4683,12 +4941,22 @@ export const TeacherPortal = () => {
                   </div>
                   <div className="flex gap-3 justify-end">
                     <button
-                      onClick={() => {
+                      onClick={async () => {
+                        const newStatus = 'Revision Required';
+                        const feedback = labReviewFeedback || 'Revision requested by Lab Technician';
                         setLabRequests(prev => prev.map(r => r.id === selectedLabForView.id ? {
                           ...r,
-                          status: 'Revision Required',
-                          labTechFeedback: labReviewFeedback || 'Revision requested by Lab Technician'
+                          status: newStatus,
+                          labTechFeedback: feedback
                         } : r));
+                        try {
+                          if (selectedLabForView.id && !selectedLabForView.id.startsWith('lab-req-')) {
+                            await reviewLabRequisition(selectedLabForView.id, {
+                              status: newStatus,
+                              labTechFeedback: feedback
+                            }).catch(() => null);
+                          }
+                        } catch {}
                         showToast('Revision request sent to teacher.', 'success');
                         setSelectedLabForView(null);
                       }}
@@ -4697,13 +4965,25 @@ export const TeacherPortal = () => {
                       <XCircle size={15} />{uiText(" Request Revision ")}
                     </button>
                     <button
-                      onClick={() => {
+                      onClick={async () => {
+                        const newStatus = 'Approved by Lab Tech';
+                        const feedback = labReviewFeedback || 'Approved by Lab Tech';
+                        const sig = user?.name || 'Lab Tech Manager';
                         setLabRequests(prev => prev.map(r => r.id === selectedLabForView.id ? {
                           ...r,
-                          status: 'Approved by Lab Tech',
-                          labTechSignature: user?.name || 'Lab Tech Manager',
-                          labTechFeedback: labReviewFeedback || 'Approved by Lab Tech'
+                          status: newStatus,
+                          labTechSignature: sig,
+                          labTechFeedback: feedback
                         } : r));
+                        try {
+                          if (selectedLabForView.id && !selectedLabForView.id.startsWith('lab-req-')) {
+                            await reviewLabRequisition(selectedLabForView.id, {
+                              status: newStatus,
+                              labTechFeedback: feedback,
+                              labTechSignature: sig
+                            }).catch(() => null);
+                          }
+                        } catch {}
                         showToast('Lab requisition approved & forwarded to School Admin / Principal!', 'success');
                         setSelectedLabForView(null);
                       }}

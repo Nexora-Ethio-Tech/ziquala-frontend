@@ -345,6 +345,49 @@ export const reviewDeptAnnualPlan = async (planId: string, data: { status: strin
   return response.data;
 };
 
+// ── Lab Requisitions Frontend API ───────────────────────────────────────────
+export const getLabTechnicians = async () => {
+  const response = await api.get('/teacher/lab-technicians');
+  return response.data.data;
+};
+
+export const getSchoolPrincipals = async () => {
+  const response = await api.get('/teacher/school-principals');
+  return response.data.data;
+};
+
+export const submitLabRequisition = async (data: any) => {
+  const response = await api.post('/teacher/lab-requisitions', data);
+  return response.data.data;
+};
+
+export const getMyLabRequisitions = async (status?: string) => {
+  const params = status ? `?status=${status}` : '';
+  const response = await api.get(`/teacher/lab-requisitions${params}`);
+  return response.data.data;
+};
+
+export const getBranchLabRequisitions = async (status?: string) => {
+  const params = status ? `?status=${status}` : '';
+  const response = await api.get(`/teacher/branch-lab-requisitions${params}`);
+  return response.data.data;
+};
+
+export const updateLabRequisition = async (reqId: string, data: any) => {
+  const response = await api.post(`/teacher/lab-requisitions/${reqId}`, data);
+  return response.data.data;
+};
+
+export const reviewLabRequisition = async (reqId: string, data: { status: string; labTechFeedback?: string; principalFeedback?: string; labTechSignature?: string; principalSignature?: string }) => {
+  const response = await api.post(`/teacher/lab-requisitions/${reqId}/review`, data);
+  return response.data.data;
+};
+
+export const deleteLabRequisition = async (reqId: string) => {
+  const response = await api.delete(`/teacher/lab-requisitions/${reqId}`);
+  return response.data;
+};
+
 const teacherService = {
   getMyClasses,
   getClassStudents,
@@ -372,6 +415,14 @@ const teacherService = {
   getDeptPlans,
   reviewDeptPlan,
   getSchoolAnnouncements,
+  getLabTechnicians,
+  getSchoolPrincipals,
+  submitLabRequisition,
+  getMyLabRequisitions,
+  getBranchLabRequisitions,
+  updateLabRequisition,
+  reviewLabRequisition,
+  deleteLabRequisition,
 };
 
 export default teacherService;

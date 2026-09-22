@@ -2,7 +2,7 @@ import { uiText, uiError, localizeHtml } from "../localization";
 import { useTranslation } from 'react-i18next';
 import { Plus, UserPlus, X, Check, ArrowLeft, MoreVertical, CheckCircle, XCircle, Trash2, Printer, Eye, Edit2, Loader2, FileText, Download, Upload, Users, Calendar, Clock, BookOpen, FileCheck, AlertCircle, CheckCircle2, MessageSquare, Filter, Lock, Unlock, AlertTriangle, FlaskConical } from 'lucide-react';
 import PhoneInput from '../components/PhoneInput';
-import React, { useState, useEffect, useMemo, useRef, Fragment } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef, Fragment } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import { registerUser, getBranchTeachers, approveTeacher, revokeTeacher, deleteTeacher, promoteTeacher, updateUser, resetUserPIN, removeTeacherPromotion, replaceUserDocument } from '../services/schoolAdminService';
@@ -11,6 +11,7 @@ import classService from '../services/classService';
 import { StaffProfileModal } from '../components/StaffProfileModal';
 import subjectService, { CourseWithGrade } from '../services/subjectService';
 import { getVPTeachers, getLeaderboard, rateTeacher, resetLeaderboard, getVPAnnualPlans, reviewVPAnnualPlan, getWeeklyPlans, getVPAnnualPlanById, getVPWeeklyPlanById } from '../services/vicePrincipalService';
+import { getBranchLabRequisitions, reviewLabRequisition } from '../services/teacherService';
 import { Star, Trophy, RefreshCcw, Search, ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
 import { TeacherAttendanceModal } from '../components/TeacherAttendanceModal';
 import { formatEthiopianLabel, gregorianToEthiopian, ethiopianToGregorianIso } from '../utils/ethiopianCalendar';
@@ -155,12 +156,36 @@ export const Teachers = () => {
     return [];
   });
 
-  useEffect(() => {
+  const fetchSuperviseLabRequests = useCallback(async () => {
     try {
-      const stored = localStorage.getItem('lab_requisition_requests');
-      if (stored) setSuperviseLabRequests(JSON.parse(stored));
+      const data = await getBranchLabRequisitions().catch(() => null);
+      if (Array.isArray(data) && data.length > 0) {
+        const mapped = data.map((r: any) => ({
+          id: r.id,
+          academicYear: r.academic_year || r.academicYear,
+          gradeLevel: r.grade_level || r.gradeLevel,
+          subject: r.subject,
+          teacherName: r.teacher_name || r.teacherName,
+          labTechId: r.lab_tech_id || r.labTechId,
+          labTechName: r.lab_tech_name || r.labTechName,
+          labTechSignature: r.lab_tech_signature || r.labTechSignature,
+          labTechFeedback: r.lab_tech_feedback || r.labTechFeedback,
+          principalId: r.principal_id || r.principalId,
+          principalName: r.principal_name || r.principalName,
+          principalSignature: r.principal_signature || r.principalSignature,
+          principalFeedback: r.principal_feedback || r.principalFeedback,
+          items: typeof r.items === 'string' ? JSON.parse(r.items) : (r.items || []),
+          status: r.status,
+          created_at: r.created_at || r.createdAt
+        }));
+        setSuperviseLabRequests(mapped);
+      }
     } catch {}
-  }, [activeTab]);
+  }, []);
+
+  useEffect(() => {
+    fetchSuperviseLabRequests();
+  }, [activeTab, fetchSuperviseLabRequests]);
 
   const [labSearchQuery, setLabSearchQuery] = useState('');
   const [labGradeFilter, setLabGradeFilter] = useState('all');
@@ -168,14 +193,26 @@ export const Teachers = () => {
   const [selectedLabForView, setSelectedLabForView] = useState<any | null>(null);
   const [adminReviewFeedback, setAdminReviewFeedback] = useState('');
 
-  const handleApproveAsPrincipal = (labId: string) => {
+  const handleApproveAsPrincipal = async (labId: string) => {
+    const feedback = adminReviewFeedback || 'Approved by Principal';
+    const sig = user?.name || 'School Principal / Admin';
+    try {
+      if (!labId.startsWith('lab-req-')) {
+        await reviewLabRequisition(labId, {
+          status: 'Approved by Principal',
+          principalFeedback: feedback,
+          principalSignature: sig
+        }).catch(() => null);
+      }
+    } catch {}
+
     const updated = superviseLabRequests.map((r: any) => {
       if (r.id === labId) {
         return {
           ...r,
           status: 'Approved by Principal',
-          principalSignature: user?.name || 'School Principal / Admin',
-          principalFeedback: adminReviewFeedback || 'Approved by Principal'
+          principalSignature: sig,
+          principalFeedback: feedback
         };
       }
       return r;
@@ -186,19 +223,29 @@ export const Teachers = () => {
       setSelectedLabForView((prev: any) => prev ? {
         ...prev,
         status: 'Approved by Principal',
-        principalSignature: user?.name || 'School Principal / Admin',
-        principalFeedback: adminReviewFeedback || 'Approved by Principal'
+        principalSignature: sig,
+        principalFeedback: feedback
       } : null);
     }
   };
 
-  const handleRequestRevisionAsPrincipal = (labId: string) => {
+  const handleRequestRevisionAsPrincipal = async (labId: string) => {
+    const feedback = adminReviewFeedback || 'Revision requested by Principal';
+    try {
+      if (!labId.startsWith('lab-req-')) {
+        await reviewLabRequisition(labId, {
+          status: 'Revision Required',
+          principalFeedback: feedback
+        }).catch(() => null);
+      }
+    } catch {}
+
     const updated = superviseLabRequests.map((r: any) => {
       if (r.id === labId) {
         return {
           ...r,
           status: 'Revision Required',
-          principalFeedback: adminReviewFeedback || 'Revision requested by Principal'
+          principalFeedback: feedback
         };
       }
       return r;
@@ -209,13 +256,17 @@ export const Teachers = () => {
       setSelectedLabForView((prev: any) => prev ? {
         ...prev,
         status: 'Revision Required',
-        principalFeedback: adminReviewFeedback || 'Revision requested by Principal'
+        principalFeedback: feedback
       } : null);
     }
   };
 
   const filteredSuperviseLabRequests = useMemo(() => {
     return superviseLabRequests.filter((r: any) => {
+      // 1. Only show requisitions that have ALREADY been approved by the Lab Technician
+      const isApprovedByLabTech = r.status === 'Approved by Lab Tech' || r.status === 'Approved by Principal';
+      if (!isApprovedByLabTech) return false;
+
       if (labSearchQuery.trim()) {
         const q = labSearchQuery.toLowerCase().trim();
         const matchesSearch =
@@ -228,10 +279,10 @@ export const Teachers = () => {
         if ((r.gradeLevel || '').toLowerCase() !== labGradeFilter.toLowerCase()) return false;
       }
       if (labStatusFilter !== 'all') {
-        if (labStatusFilter === 'pending') {
-          if (r.status !== 'Submitted to Lab Tech' && r.status !== 'Approved by Lab Tech') return false;
-        } else if (r.status !== labStatusFilter) {
-          return false;
+        if (labStatusFilter === 'pending' || labStatusFilter === 'Approved by Lab Tech') {
+          if (r.status !== 'Approved by Lab Tech') return false;
+        } else if (labStatusFilter === 'Approved by Principal') {
+          if (r.status !== 'Approved by Principal') return false;
         }
       }
       return true;
@@ -1142,9 +1193,9 @@ export const Teachers = () => {
             >
               <FlaskConical size={16} />
               <span>{uiText(" 🧪 Lab Requisition ")}</span>
-              {superviseLabRequests.filter((r: any) => r.status === 'Submitted to Lab Tech' || r.status === 'Approved by Lab Tech').length > 0 && (
+              {superviseLabRequests.filter((r: any) => r.status === 'Approved by Lab Tech').length > 0 && (
                 <span className="bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 text-xs px-2 py-0.5 rounded-full font-bold">
-                  {superviseLabRequests.filter((r: any) => r.status === 'Submitted to Lab Tech' || r.status === 'Approved by Lab Tech').length}
+                  {superviseLabRequests.filter((r: any) => r.status === 'Approved by Lab Tech').length}
                 </span>
               )}
             </button>
@@ -2330,11 +2381,9 @@ export const Teachers = () => {
               <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl shrink-0 overflow-x-auto">
                 <Filter size={14} className="text-slate-400 ml-2 shrink-0" />
                 {[
-                  { key: 'all', label: uiText('All') },
-                  { key: 'pending', label: uiText('Pending Approval') },
-                  { key: 'Approved by Lab Tech', label: uiText('Approved by Lab Tech') },
+                  { key: 'all', label: uiText('All Approved') },
+                  { key: 'pending', label: uiText('Pending Principal Approval') },
                   { key: 'Approved by Principal', label: uiText('Approved by Principal') },
-                  { key: 'Revision Required', label: uiText('Revision Required') },
                 ].map(({ key, label }) => {
                   const isActive = labStatusFilter === key;
                   return (
@@ -2369,8 +2418,8 @@ export const Teachers = () => {
                 <div className="bg-amber-50 dark:bg-amber-900/20 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4">
                   <FlaskConical size={32} className="text-amber-500" />
                 </div>
-                <p className="font-bold text-slate-600 dark:text-slate-400">{uiText("No lab requisitions found")}</p>
-                <p className="text-xs text-slate-400 mt-1">{uiText("Lab requisition forms submitted by teachers will appear here for school admin supervision.")}</p>
+                <p className="font-bold text-slate-600 dark:text-slate-400">{uiText("No lab requisitions pending approval")}</p>
+                <p className="text-xs text-slate-400 mt-1">{uiText("Only lab requisitions approved by the Lab Technician will appear here for School Admin / Principal signature.")}</p>
               </div>
             ) : (
               <div className="divide-y divide-slate-100 dark:divide-slate-800">
