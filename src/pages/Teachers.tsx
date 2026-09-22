@@ -3175,6 +3175,21 @@ export const Teachers = () => {
                     />
                     <span>{uiText("Before-school Educator (extra pay configured by super-admin)")}</span>
                   </label>
+                  <label className="flex items-center gap-2 text-sm font-semibold text-slate-800 dark:text-slate-200 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={promotionForm.roles.includes('lab-technician')}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setPromotionForm(prev => {
+                          const nextRoles = checked ? [...prev.roles, 'lab-technician'] : prev.roles.filter(r => r !== 'lab-technician');
+                          return { ...prev, roles: nextRoles };
+                        });
+                      }}
+                      className="rounded border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500 w-4 h-4"
+                    />
+                    <span>{uiText("Lab Technician (reviews and approves lab resource requests)")}</span>
+                  </label>
                 </div>
               </div>
 

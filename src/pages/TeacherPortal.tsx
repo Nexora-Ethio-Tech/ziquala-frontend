@@ -1,12 +1,13 @@
 import { uiText } from "../localization";
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { BookOpen, Users, Calendar, ArrowRight, ArrowLeft, ClipboardList, FileText, Plus, X, CheckCircle2, XCircle, Loader2, Star, Save, Send, Search, ChevronLeft, ChevronRight, ChevronDown, AlertCircle, ShieldCheck, Eye } from 'lucide-react';
+import { BookOpen, Users, Calendar, ArrowRight, ArrowLeft, ClipboardList, FileText, Plus, X, CheckCircle2, XCircle, Loader2, Star, Save, Send, Search, ChevronLeft, ChevronRight, ChevronDown, AlertCircle, ShieldCheck, Eye, FlaskConical, Trash2, Printer } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useCallback } from 'react';
 import { useUser } from '../context/UserContext';
 import { useStore } from '../context/useStore';
 import { getTodayEthiopianDate, gregorianToEthiopian, formatEthiopianLabel } from '../utils/ethiopianCalendar';
+import { userService } from '../services/userService';
 import {
   getTeacherDashboard,
   getMyWeeklyPlans,
@@ -598,7 +599,130 @@ export const TeacherPortal = () => {
   const [deptHeads, setDeptHeads] = useState<any[]>([]);
 
   // Sub-tab selection for weekly plans
-  const [weeklyPlanSubTab, setWeeklyPlanSubTab] = useState<'my-plans' | 'dept-plans' | 'communication-book'>('my-plans');
+  const [weeklyPlanSubTab, setWeeklyPlanSubTab] = useState<'my-plans' | 'dept-plans' | 'annual-plans' | 'lab-requisition' | 'communication-book'>('my-plans');
+
+  // ─── Lab Requisition States ──────────────────────────────────────────────────
+  const [labRequests, setLabRequests] = useState<any[]>(() => {
+    try {
+      const stored = localStorage.getItem('lab_requisition_requests');
+      if (stored) return JSON.parse(stored);
+    } catch {}
+    return [];
+  });
+
+  useEffect(() => {
+    try { localStorage.setItem('lab_requisition_requests', JSON.stringify(labRequests)); } catch {}
+  }, [labRequests]);
+
+  const [isLabModalOpen, setIsLabModalOpen] = useState(false);
+  const [editingLabRequest, setEditingLabRequest] = useState<any | null>(null);
+  const [selectedLabForView, setSelectedLabForView] = useState<any | null>(null);
+  const [labReviewFeedback, setLabReviewFeedback] = useState('');
+
+  // ─── Branch Staff Fetching for Lab Requisition ───
+  const [branchLabTechs, setBranchLabTechs] = useState<any[]>([]);
+  const [branchPrincipals, setBranchPrincipals] = useState<any[]>([]);
+
+  const fetchBranchStaff = useCallback(async () => {
+    const userBranchId = (user as any)?.branch_id || (user as any)?.branchId || (user as any)?.staff_profile?.branch_id || (user as any)?.staffProfile?.branchId || '';
+
+    try {
+      let rawUsers: any[] = [];
+      try {
+        const res = await userService.getAllUsers({ branchId: userBranchId }).catch(() => null);
+        if (res && Array.isArray(res.data)) {
+          rawUsers = res.data;
+        } else {
+          const guestRes = await userService.getAllUsersGuest({ branchId: userBranchId }).catch(() => null);
+          if (guestRes && Array.isArray(guestRes.data)) {
+            rawUsers = guestRes.data;
+          }
+        }
+      } catch {}
+
+      let localUsers: any[] = [];
+      try {
+        const stored = localStorage.getItem('ziquala_staff') || localStorage.getItem('ziquala_users');
+        if (stored) localUsers = JSON.parse(stored);
+      } catch {}
+
+      const allUsersMap = new Map<string, any>();
+      [...rawUsers, ...localUsers].forEach((u: any) => {
+        const id = u.id || u.user_id || u.digital_id || u.email;
+        if (id && !allUsersMap.has(id)) allUsersMap.set(id, u);
+      });
+      const allUsers = Array.from(allUsersMap.values());
+
+      const branchFiltered = userBranchId
+        ? allUsers.filter((u: any) => {
+            const bId = u.branch_id || u.branchId || u.staff_profile?.branch_id || u.staffProfile?.branchId;
+            return !bId || String(bId) === String(userBranchId);
+          })
+        : allUsers;
+
+      const labTechs = branchFiltered.filter((u: any) => {
+        const r = String(u.role || u.user_role || '').toLowerCase();
+        const pRole = String(u.promoted_role || u.promotedRole || '').toLowerCase();
+        const pType = String(u.staff_profile?.promotion?.promotion_type || u.promotion?.promotion_type || u.promotionType || '').toLowerCase();
+        const pRoles = u.staff_profile?.promotion?.roles || u.promotion?.roles || [];
+        return r === 'lab-technician' || r === 'lab_technician' || r.includes('lab') ||
+          pRole === 'lab-technician' || pRole === 'lab_technician' ||
+          pType === 'lab-technician' || pType === 'lab_technician' ||
+          (Array.isArray(pRoles) && (pRoles.includes('lab-technician') || pRoles.includes('lab_technician')));
+      }).map((u: any) => ({
+        id: u.id || u.user_id || u.digital_id,
+        name: u.name || u.full_name || u.email,
+        role: 'Lab Technician'
+      }));
+
+      const principals = branchFiltered.filter((u: any) => {
+        const r = String(u.role || u.user_role || '').toLowerCase();
+        return r === 'school-admin' || r === 'school_admin' || r === 'vice-principal' || r === 'vice_principal' || r === 'principal' || r === 'academic-manager' || r === 'super-admin';
+      }).map((u: any) => ({
+        id: u.id || u.user_id || u.digital_id,
+        name: u.name || u.full_name || u.email,
+        role: u.role === 'school-admin' || u.role === 'school_admin' ? 'School Admin' : u.role === 'vice-principal' || u.role === 'vice_principal' ? 'Vice Principal' : 'Principal'
+      }));
+
+      setBranchLabTechs(labTechs);
+      setBranchPrincipals(principals);
+    } catch (err) {
+      console.error('Error fetching branch staff:', err);
+      setBranchLabTechs([]);
+      setBranchPrincipals([]);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    fetchBranchStaff();
+  }, [fetchBranchStaff]);
+
+  const emptyLabForm = {
+    academicYear: '2017 ዓ.ም',
+    gradeLevel: '',
+    subject: '',
+    teacherName: user?.name || '',
+    teacherId: (user as any)?.id || 't-user',
+    labTechName: branchLabTechs.length > 0 ? branchLabTechs[0].name : '',
+    labTechId: branchLabTechs.length > 0 ? branchLabTechs[0].id : '',
+    principalName: branchPrincipals.length > 0 ? branchPrincipals[0].name : '',
+    principalId: branchPrincipals.length > 0 ? branchPrincipals[0].id : '',
+    status: 'Submitted to Lab Tech',
+    items: [
+      {
+        id: 'item-1',
+        experimentTypeAndDate: '',
+        topic: '',
+        materialsUsed: '',
+        participationAndFollowUp: '',
+        result: '',
+        teacherSignature: user?.name || ''
+      }
+    ]
+  };
+
+  const [labForm, setLabForm] = useState(emptyLabForm);
+  // ─────────────────────────────────────────────────────────────────────────────
   // Plan detail expand overlay
   const [selectedPlanForView, setSelectedPlanForView] = useState<any | null>(null);
   const [isViewingOwnWeeklyPlan, setIsViewingOwnWeeklyPlan] = useState(false);
@@ -1436,6 +1560,14 @@ export const TeacherPortal = () => {
               >{uiText(" 📅 Annual Plans ")}</button>
               <button
                 type="button"
+                onClick={() => setWeeklyPlanSubTab('lab-requisition' as any)}
+                className={`pb-3 text-xs font-black uppercase tracking-wider border-b-2 transition-all ${(weeklyPlanSubTab as any) === 'lab-requisition'
+                    ? 'border-amber-600 text-amber-600'
+                    : 'border-transparent text-slate-400 hover:text-slate-600'
+                  }`}
+              >{uiText(" 🧪 Lab Requisition ")}</button>
+              <button
+                type="button"
                 onClick={() => setWeeklyPlanSubTab('communication-book')}
                 className={`pb-3 text-xs font-black uppercase tracking-wider border-b-2 transition-all ${weeklyPlanSubTab === 'communication-book'
                     ? 'border-emerald-600 text-emerald-600'
@@ -1538,6 +1670,128 @@ export const TeacherPortal = () => {
                           {plan.status === 'Approved' && (
                             <span className="flex items-center gap-1 text-xs text-emerald-600 font-black"><CheckCircle2 size={14} />{uiText(" Approved")}</span>
                           )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (weeklyPlanSubTab as any) === 'lab-requisition' ? (
+            /* ── Lab Requisition Sub-Tab ── */
+            <div className="animate-in fade-in duration-200 space-y-6">
+              {/* Header */}
+              <div className="bg-gradient-to-br from-amber-600 to-orange-700 rounded-[2rem] p-8 text-white shadow-2xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-10 opacity-10"><FlaskConical size={160} /></div>
+                <div className="relative z-10">
+                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-200 mb-2 block">{uiText("Laboratory Documentation")}</span>
+                  <h2 className="text-3xl font-black mb-1 tracking-tight">{uiText("የቤተ-ሙከራ መጠየቂያ ቅጽ / Lab Requisition")}</h2>
+                  <p className="text-amber-100 font-medium text-sm">{uiText("Fill out laboratory experiment requests, materials used, student participation, and outcomes for Lab Technician review.")}</p>
+                </div>
+              </div>
+
+              {/* Lab Requisitions List */}
+              <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-xl overflow-hidden">
+                <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between flex-wrap gap-4">
+                  <div>
+                    <h3 className="font-black text-slate-800 dark:text-white">{uiText("Submitted Lab Requisitions")}</h3>
+                    <p className="text-xs text-slate-500 mt-0.5">{labRequests.length} {uiText("requisition form(s)")}</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setEditingLabRequest(null);
+                      setLabForm({
+                        ...emptyLabForm,
+                        teacherName: user?.name || emptyLabForm.teacherName,
+                        labTechName: branchLabTechs.length > 0 ? branchLabTechs[0].name : '',
+                        labTechId: branchLabTechs.length > 0 ? branchLabTechs[0].id : '',
+                        principalName: branchPrincipals.length > 0 ? branchPrincipals[0].name : '',
+                        principalId: branchPrincipals.length > 0 ? branchPrincipals[0].id : '',
+                        items: [{
+                          id: 'item-' + Date.now(),
+                          experimentTypeAndDate: '',
+                          topic: '',
+                          materialsUsed: '',
+                          participationAndFollowUp: '',
+                          result: '',
+                          teacherSignature: user?.name || ''
+                        }]
+                      });
+                      setIsLabModalOpen(true);
+                    }}
+                    className="flex items-center gap-2 px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-lg shadow-amber-500/20"
+                  >
+                    <Plus size={16} />{uiText(" New Lab Request ")}
+                  </button>
+                </div>
+
+                {labRequests.length === 0 ? (
+                  <div className="p-12 text-center">
+                    <div className="bg-amber-50 dark:bg-amber-900/20 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"><FlaskConical size={28} className="text-amber-500" /></div>
+                    <p className="font-bold text-slate-500">{uiText("No lab requisitions submitted yet")}</p>
+                    <p className="text-xs text-slate-400 mt-1">{uiText("Create your first laboratory requisition form and submit it to the Lab Technician.")}</p>
+                  </div>
+                ) : (
+                  <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {labRequests.map((req: any) => (
+                      <div key={req.id} className="p-5 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all flex-wrap gap-4">
+                        <div className="flex-1 min-w-[280px]">
+                          <div className="flex items-center gap-3 flex-wrap">
+                            <p className="font-black text-slate-800 dark:text-white text-sm">{req.subject} — {req.gradeLevel}</p>
+                            <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase ${
+                              req.status === 'Approved by Principal' || req.status === 'Approved by Lab Tech' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+                              : req.status === 'Revision Required' ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
+                              : req.status === 'Draft' ? 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
+                              : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                            }`}>{uiText(req.status)}</span>
+                          </div>
+                          <p className="text-xs text-slate-500 mt-1">
+                            {uiText("Teacher: ")}{req.teacherName} · {uiText("Academic Year: ")}{req.academicYear} · {Array.isArray(req.items) ? req.items.length : 0} {uiText("experiments")}
+                          </p>
+                          {req.labTechFeedback && <p className="text-xs text-orange-600 mt-1 italic">{uiText("Feedback: \"")}{req.labTechFeedback}"</p>}
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setSelectedLabForView(req)}
+                            className="flex items-center gap-1.5 px-4 py-2 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-900/20 text-xs font-black rounded-xl transition-all"
+                          >
+                            <Eye size={14} />{uiText(" View / Print Form ")}
+                          </button>
+                          {(req.status === 'Draft' || req.status === 'Revision Required' || req.teacherId === (user as any)?.id) && (
+                            <button
+                              onClick={() => {
+                                setEditingLabRequest(req);
+                                setLabForm({
+                                  academicYear: req.academicYear || '2017 ዓ.ም',
+                                  gradeLevel: req.gradeLevel || 'Grade 7A',
+                                  subject: req.subject || 'Chemistry',
+                                  teacherName: req.teacherName || user?.name || '',
+                                  teacherId: req.teacherId || (user as any)?.id || 't-user',
+                                  labTechName: req.labTechName || (branchLabTechs.length > 0 ? branchLabTechs[0].name : ''),
+                                  labTechId: req.labTechId || (branchLabTechs.length > 0 ? branchLabTechs[0].id : ''),
+                                  principalName: req.principalName || (branchPrincipals.length > 0 ? branchPrincipals[0].name : ''),
+                                  principalId: req.principalId || (branchPrincipals.length > 0 ? branchPrincipals[0].id : ''),
+                                  status: req.status || 'Submitted to Lab Tech',
+                                  items: Array.isArray(req.items) && req.items.length > 0 ? req.items : emptyLabForm.items
+                                });
+                                setIsLabModalOpen(true);
+                              }}
+                              className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-black rounded-xl transition-all"
+                            >{uiText(" Edit ")}</button>
+                          )}
+                          <button
+                            onClick={() => {
+                              if (window.confirm('Are you sure you want to delete this lab requisition form?')) {
+                                setLabRequests(prev => prev.filter(r => r.id !== req.id));
+                                showToast('Lab requisition form deleted', 'success');
+                              }
+                            }}
+                            className="p-2 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-xl transition-all"
+                            title={uiText("Delete")}
+                          >
+                            <Trash2 size={16} />
+                          </button>
                         </div>
                       </div>
                     ))}
@@ -3953,6 +4207,523 @@ export const TeacherPortal = () => {
                 disabled={submitting}
                 className="flex items-center gap-2 px-8 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white font-black text-xs uppercase tracking-widest rounded-2xl transition-all shadow-lg shadow-emerald-500/20">
                 {submitting ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}{uiText(" Approve Plan ")}</button>}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Create / Edit Lab Requisition Modal ── */}
+      {isLabModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl border border-slate-100 dark:border-slate-800 w-full max-w-5xl max-h-[92vh] flex flex-col my-4">
+            {/* Modal Header */}
+            <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-gradient-to-r from-amber-600 to-orange-600 rounded-t-[2rem]">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-white/10 rounded-xl text-white">
+                  <FlaskConical size={24} />
+                </div>
+                <div>
+                  <h3 className="font-black text-white text-lg tracking-tight">
+                    {uiText(editingLabRequest ? "የቤተ-ሙከራ መጠየቂያ ቅጽ ማስተካከያ / Edit Lab Requisition" : "የቤተ-ሙከራ መጠየቂያ ቅጽ / New Lab Requisition Form")}
+                  </h3>
+                  <p className="text-xs text-amber-100 font-medium">{uiText("Fill out experiment details and materials used")}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => { setIsLabModalOpen(false); setEditingLabRequest(null); }}
+                className="p-2 hover:bg-white/10 rounded-xl text-white transition-all"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Modal Body - Paper Document Format */}
+            <div className="p-6 overflow-y-auto space-y-6 flex-1">
+              {/* Ethiopian Paper Form Top Header Box */}
+              <div className="p-6 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border-2 border-slate-200 dark:border-slate-700 space-y-4">
+                <div className="text-center pb-3 border-b border-slate-200 dark:border-slate-700">
+                  <h4 className="font-black text-slate-900 dark:text-white uppercase tracking-wider text-base">
+                    {uiText("የቤተ-ሙከራ መጠየቂያ ቅጽ (LABORATORY REQUISITION FORM)")}
+                  </h4>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 font-bold mt-1">
+                    ZIQUALA PRIMARY SCHOOL
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-xs font-bold">
+                  <div>
+                    <label className="block text-slate-500 dark:text-slate-400 text-[10px] uppercase font-black mb-1">{uiText("የትምህርት ዘመን (Academic Year)")}</label>
+                    <input
+                      type="text"
+                      value={labForm.academicYear}
+                      onChange={e => setLabForm({ ...labForm, academicYear: e.target.value })}
+                      className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-white font-semibold"
+                      placeholder="e.g. 2017 ዓ.ም"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-slate-500 dark:text-slate-400 text-[10px] uppercase font-black mb-1">{uiText("የክፍል ደረጃ (Grade Level)")}</label>
+                    <input
+                      type="text"
+                      value={labForm.gradeLevel}
+                      onChange={e => setLabForm({ ...labForm, gradeLevel: e.target.value })}
+                      className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-white font-semibold"
+                      placeholder="e.g. Grade 7A / 8B"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-slate-500 dark:text-slate-400 text-[10px] uppercase font-black mb-1">{uiText("የትምህርት ዓይነት (Subject)")}</label>
+                    <input
+                      type="text"
+                      value={labForm.subject}
+                      onChange={e => setLabForm({ ...labForm, subject: e.target.value })}
+                      className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-white font-semibold"
+                      placeholder="e.g. Chemistry / Physics / Biology"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-slate-500 dark:text-slate-400 text-[10px] uppercase font-black mb-1">{uiText("የመምህሩ ስም (Teacher's Name)")}</label>
+                    <input
+                      type="text"
+                      value={labForm.teacherName}
+                      onChange={e => setLabForm({ ...labForm, teacherName: e.target.value })}
+                      className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-white font-semibold"
+                      placeholder="Teacher's Full Name"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Experiments Data Table */}
+              <div>
+                <div className="flex justify-between items-center mb-3">
+                  <h4 className="font-black text-slate-800 dark:text-white text-sm">{uiText("የሙከራ ዝርዝሮች (Experiment Items)")}</h4>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLabForm({
+                        ...labForm,
+                        items: [
+                          ...labForm.items,
+                          {
+                            id: 'item-' + Date.now(),
+                            experimentTypeAndDate: '',
+                            topic: '',
+                            materialsUsed: '',
+                            participationAndFollowUp: '',
+                            result: '',
+                            teacherSignature: labForm.teacherName || user?.name || ''
+                          }
+                        ]
+                      });
+                    }}
+                    className="flex items-center gap-1.5 px-4 py-2 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-xl font-black text-xs hover:bg-amber-200 transition-all"
+                  >
+                    <Plus size={14} />{uiText(" አዲስ መስመር ጨምር (Add Row) ")}
+                  </button>
+                </div>
+
+                <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-700">
+                  <table className="w-full text-xs text-left min-w-[1000px]">
+                    <thead>
+                      <tr className="bg-slate-800 text-white font-black uppercase text-[10px] tracking-wider">
+                        <th className="p-3 text-center w-12 border-r border-slate-700">{uiText("ተ.ቁ")}</th>
+                        <th className="p-3 w-48 border-r border-slate-700">{uiText("የሙከራው ዓይነት / የተከናወነበት ቀን")}</th>
+                        <th className="p-3 w-48 border-r border-slate-700">{uiText("የትምህርቱ ይዘት / ርዕስ")}</th>
+                        <th className="p-3 w-56 border-r border-slate-700">{uiText("የተጠቀሙባቸው ግብአቶች")}</th>
+                        <th className="p-3 w-52 border-r border-slate-700">{uiText("የነበረው ተሳትፎ እና ክትትል")}</th>
+                        <th className="p-3 w-40 border-r border-slate-700">{uiText("ውጤት")}</th>
+                        <th className="p-3 w-36 border-r border-slate-700">{uiText("የመምህሩ ፊርማ")}</th>
+                        <th className="p-3 text-center w-12">—</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                      {labForm.items.map((item: any, idx: number) => (
+                        <tr key={item.id || idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                          <td className="p-2 text-center font-black text-slate-500 border-r border-slate-100 dark:border-slate-700">{idx + 1}</td>
+                          <td className="p-2 border-r border-slate-100 dark:border-slate-700">
+                            <input
+                              type="text"
+                              value={item.experimentTypeAndDate}
+                              onChange={e => {
+                                const newItems = [...labForm.items];
+                                newItems[idx].experimentTypeAndDate = e.target.value;
+                                setLabForm({ ...labForm, items: newItems });
+                              }}
+                              placeholder="e.g. Titration / 2017-01-15"
+                              className="w-full p-2 bg-transparent border border-slate-200 dark:border-slate-700 rounded-lg text-xs"
+                            />
+                          </td>
+                          <td className="p-2 border-r border-slate-100 dark:border-slate-700">
+                            <input
+                              type="text"
+                              value={item.topic}
+                              onChange={e => {
+                                const newItems = [...labForm.items];
+                                newItems[idx].topic = e.target.value;
+                                setLabForm({ ...labForm, items: newItems });
+                              }}
+                              placeholder="e.g. Neutralization"
+                              className="w-full p-2 bg-transparent border border-slate-200 dark:border-slate-700 rounded-lg text-xs"
+                            />
+                          </td>
+                          <td className="p-2 border-r border-slate-100 dark:border-slate-700">
+                            <textarea
+                              rows={2}
+                              value={item.materialsUsed}
+                              onChange={e => {
+                                const newItems = [...labForm.items];
+                                newItems[idx].materialsUsed = e.target.value;
+                                setLabForm({ ...labForm, items: newItems });
+                              }}
+                              placeholder="e.g. HCl, NaOH, Flask"
+                              className="w-full p-2 bg-transparent border border-slate-200 dark:border-slate-700 rounded-lg text-xs resize-none"
+                            />
+                          </td>
+                          <td className="p-2 border-r border-slate-100 dark:border-slate-700">
+                            <input
+                              type="text"
+                              value={item.participationAndFollowUp}
+                              onChange={e => {
+                                const newItems = [...labForm.items];
+                                newItems[idx].participationAndFollowUp = e.target.value;
+                                setLabForm({ ...labForm, items: newItems });
+                              }}
+                              placeholder="Participation summary"
+                              className="w-full p-2 bg-transparent border border-slate-200 dark:border-slate-700 rounded-lg text-xs"
+                            />
+                          </td>
+                          <td className="p-2 border-r border-slate-100 dark:border-slate-700">
+                            <input
+                              type="text"
+                              value={item.result}
+                              onChange={e => {
+                                const newItems = [...labForm.items];
+                                newItems[idx].result = e.target.value;
+                                setLabForm({ ...labForm, items: newItems });
+                              }}
+                              placeholder="Result / outcome"
+                              className="w-full p-2 bg-transparent border border-slate-200 dark:border-slate-700 rounded-lg text-xs"
+                            />
+                          </td>
+                          <td className="p-2 border-r border-slate-100 dark:border-slate-700">
+                            <input
+                              type="text"
+                              value={item.teacherSignature}
+                              onChange={e => {
+                                const newItems = [...labForm.items];
+                                newItems[idx].teacherSignature = e.target.value;
+                                setLabForm({ ...labForm, items: newItems });
+                              }}
+                              placeholder="Signature"
+                              className="w-full p-2 bg-transparent border border-slate-200 dark:border-slate-700 rounded-lg text-xs"
+                            />
+                          </td>
+                          <td className="p-2 text-center">
+                            {labForm.items.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setLabForm({
+                                    ...labForm,
+                                    items: labForm.items.filter((_, i) => i !== idx)
+                                  });
+                                }}
+                                className="p-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Bottom Signatures / Staff Selection Dropdowns */}
+              <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200 dark:border-slate-700 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                <div>
+                  <label className="font-black text-slate-700 dark:text-slate-300 uppercase text-[10px] block mb-1.5">
+                    {uiText("የቤተ-ሙከራ ተጠሪ ስም (LAB TECHNICIAN)")} <span className="text-amber-500">*</span>
+                  </label>
+                  <select
+                    value={labForm.labTechName}
+                    onChange={e => {
+                      const selectedTech = branchLabTechs.find(t => t.name === e.target.value);
+                      setLabForm({
+                        ...labForm,
+                        labTechName: e.target.value,
+                        labTechId: selectedTech?.id || ''
+                      });
+                    }}
+                    className="w-full px-3.5 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-amber-500 transition-all cursor-pointer"
+                  >
+                    <option value="">{uiText("-- Select Lab Technician --")}</option>
+                    {branchLabTechs.map((tech: any) => (
+                      <option key={tech.id} value={tech.name}>
+                        {tech.name} ({tech.role})
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-[10px] text-slate-400 mt-1">{uiText("Fetched from your school branch")}</p>
+                </div>
+
+                <div>
+                  <label className="font-black text-slate-700 dark:text-slate-300 uppercase text-[10px] block mb-1.5">
+                    {uiText("የር/መምህሩ ስም (PRINCIPAL)")} <span className="text-amber-500">*</span>
+                  </label>
+                  <select
+                    value={labForm.principalName}
+                    onChange={e => {
+                      const selectedAdmin = branchPrincipals.find(p => p.name === e.target.value);
+                      setLabForm({
+                        ...labForm,
+                        principalName: e.target.value,
+                        principalId: selectedAdmin?.id || ''
+                      });
+                    }}
+                    className="w-full px-3.5 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-amber-500 transition-all cursor-pointer"
+                  >
+                    <option value="">{uiText("-- Select Principal / School Admin --")}</option>
+                    {branchPrincipals.map((principal: any) => (
+                      <option key={principal.id} value={principal.name}>
+                        {principal.name} ({principal.role})
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-[10px] text-slate-400 mt-1">{uiText("Fetched from your school branch")}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-6 border-t border-slate-100 dark:border-slate-800 flex gap-3 justify-end flex-wrap">
+              <button
+                onClick={() => { setIsLabModalOpen(false); setEditingLabRequest(null); }}
+                className="px-6 py-3 border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
+              >
+                {uiText(" Cancel ")}
+              </button>
+              <button
+                onClick={() => {
+                  const reqObj = {
+                    id: editingLabRequest ? editingLabRequest.id : 'lab-req-' + Date.now(),
+                    ...labForm,
+                    created_at: editingLabRequest ? editingLabRequest.created_at : new Date().toISOString(),
+                    status: 'Draft'
+                  };
+                  if (editingLabRequest) {
+                    setLabRequests(prev => prev.map(r => r.id === editingLabRequest.id ? reqObj : r));
+                  } else {
+                    setLabRequests(prev => [reqObj, ...prev]);
+                  }
+                  showToast('Lab requisition saved as draft!', 'success');
+                  setIsLabModalOpen(false);
+                  setEditingLabRequest(null);
+                }}
+                className="flex items-center gap-2 px-6 py-3 bg-slate-600 hover:bg-slate-700 text-white font-black text-xs uppercase tracking-widest rounded-2xl transition-all"
+              >
+                <Save size={16} />{uiText(" Save Draft ")}
+              </button>
+              <button
+                onClick={() => {
+                  if (!labForm.subject || !labForm.gradeLevel) {
+                    showToast('Please enter subject and grade level', 'error');
+                    return;
+                  }
+                  const reqObj = {
+                    id: editingLabRequest ? editingLabRequest.id : 'lab-req-' + Date.now(),
+                    ...labForm,
+                    created_at: editingLabRequest ? editingLabRequest.created_at : new Date().toISOString(),
+                    status: 'Submitted to Lab Tech'
+                  };
+                  if (editingLabRequest) {
+                    setLabRequests(prev => prev.map(r => r.id === editingLabRequest.id ? reqObj : r));
+                  } else {
+                    setLabRequests(prev => [reqObj, ...prev]);
+                  }
+                  showToast('Lab requisition submitted to Lab Technician!', 'success');
+                  setIsLabModalOpen(false);
+                  setEditingLabRequest(null);
+                }}
+                className="flex items-center gap-2 px-8 py-3 bg-amber-600 hover:bg-amber-700 text-white font-black text-xs uppercase tracking-widest rounded-2xl transition-all shadow-lg shadow-amber-500/20"
+              >
+                <Send size={16} />{uiText(" Submit to Lab Technician ")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Printable / View Lab Requisition Modal ── */}
+      {selectedLabForView && (
+        <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-start justify-center p-4 overflow-y-auto">
+          <div className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl border border-slate-100 dark:border-slate-800 w-full max-w-5xl my-4">
+            {/* Header */}
+            <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-gradient-to-r from-amber-700 to-orange-800 rounded-t-[2rem]">
+              <div>
+                <h3 className="font-black text-white uppercase tracking-tight text-lg">{uiText("የቤተ-ሙከራ መጠየቂያ ቅጽ / Lab Requisition Form")}</h3>
+                <p className="text-xs text-amber-200 mt-0.5 font-bold">
+                  {selectedLabForView.teacherName} · {selectedLabForView.subject} · {selectedLabForView.gradeLevel}
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => window.print()}
+                  className="flex items-center gap-1.5 px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-xs font-black rounded-xl transition-all"
+                >
+                  <Printer size={14} />{uiText(" Print Form ")}
+                </button>
+                <button onClick={() => setSelectedLabForView(null)} className="p-2 hover:bg-white/10 rounded-xl text-white transition-all"><X size={20} /></button>
+              </div>
+            </div>
+
+            <div className="p-8 space-y-6 max-h-[75vh] overflow-y-auto print:p-0 print:max-h-none">
+              {/* Paper Document Layout matching image */}
+              <div className="border-2 border-slate-800 p-6 rounded-xl space-y-6 bg-white text-slate-900 dark:bg-slate-900 dark:text-white">
+                <div className="text-center pb-4 border-b-2 border-slate-800">
+                  <h2 className="text-xl font-black uppercase tracking-wider">{uiText("የቤተ-ሙከራ መጠየቂያ ቅጽ")}</h2>
+                  <p className="text-xs font-bold text-slate-600 dark:text-slate-300 mt-1">ZIQUALA PRIMARY SCHOOL LABORATORY REQUISITION</p>
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs font-bold border-b-2 border-slate-800 pb-4">
+                  <div>
+                    <span className="text-slate-500 uppercase block text-[10px]">{uiText("የትምህርት ዘመን (Academic Year)")}:</span>
+                    <span className="text-sm font-black">{selectedLabForView.academicYear}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500 uppercase block text-[10px]">{uiText("የክፍል ደረጃ (Grade Level)")}:</span>
+                    <span className="text-sm font-black">{selectedLabForView.gradeLevel}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500 uppercase block text-[10px]">{uiText("የትምህርት ዓይነት (Subject)")}:</span>
+                    <span className="text-sm font-black">{selectedLabForView.subject}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500 uppercase block text-[10px]">{uiText("የመምህሩ ስም (Teacher's Name)")}:</span>
+                    <span className="text-sm font-black">{selectedLabForView.teacherName}</span>
+                  </div>
+                </div>
+
+                {/* Table */}
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs text-left border-collapse border border-slate-800">
+                    <thead>
+                      <tr className="bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-black uppercase text-[10px]">
+                        <th className="border border-slate-800 p-2 text-center w-10">{uiText("ተ.ቁ")}</th>
+                        <th className="border border-slate-800 p-2">{uiText("የሙከራው ዓይነት / የተከናወነበት ቀን")}</th>
+                        <th className="border border-slate-800 p-2">{uiText("የትምህርቱ ይዘት / ርዕስ")}</th>
+                        <th className="border border-slate-800 p-2">{uiText("የተጠቀሙባቸው ግብአቶች")}</th>
+                        <th className="border border-slate-800 p-2">{uiText("የነበረው ተሳትፎ እና ክትትል")}</th>
+                        <th className="border border-slate-800 p-2">{uiText("ውጤት")}</th>
+                        <th className="border border-slate-800 p-2 text-center">{uiText("የመምህሩ ፊርማ")}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {Array.isArray(selectedLabForView.items) && selectedLabForView.items.map((item: any, idx: number) => (
+                        <tr key={idx} className="border-b border-slate-800">
+                          <td className="border border-slate-800 p-2 text-center font-bold">{idx + 1}</td>
+                          <td className="border border-slate-800 p-2 font-medium">{item.experimentTypeAndDate || '—'}</td>
+                          <td className="border border-slate-800 p-2 font-medium">{item.topic || '—'}</td>
+                          <td className="border border-slate-800 p-2 font-medium">{item.materialsUsed || '—'}</td>
+                          <td className="border border-slate-800 p-2 font-medium">{item.participationAndFollowUp || '—'}</td>
+                          <td className="border border-slate-800 p-2 font-medium">{item.result || '—'}</td>
+                          <td className="border border-slate-800 p-2 text-center font-serif italic font-bold">{item.teacherSignature || selectedLabForView.teacherName}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Bottom Signatures Section */}
+                <div className="pt-6 grid grid-cols-1 md:grid-cols-2 gap-8 text-xs font-bold border-t-2 border-slate-800 mt-6">
+                  <div className="border border-slate-800 p-4 rounded-lg space-y-2">
+                    <p className="uppercase text-[10px] text-slate-500">{uiText("የቤተ-መከራ ተጠሪ (Laboratory Technician)")}</p>
+                    <p className="text-sm font-black">{selectedLabForView.labTechName || uiText('Lab Technician')}</p>
+                    <div className="pt-3 border-t border-slate-300 dark:border-slate-700 flex justify-between items-center">
+                      <span>{uiText("ፊርማ (Signature)")}: <span className="font-serif italic text-amber-600">{selectedLabForView.labTechSignature || (selectedLabForView.status === 'Approved by Lab Tech' || selectedLabForView.status === 'Approved by Principal' ? uiText('✓ Signed') : uiText('Pending'))}</span></span>
+                      <span className={`px-2 py-0.5 rounded text-[9px] uppercase ${
+                        selectedLabForView.status === 'Approved by Lab Tech' || selectedLabForView.status === 'Approved by Principal'
+                          ? 'bg-emerald-100 text-emerald-800'
+                          : 'bg-amber-100 text-amber-800'
+                      }`}>{selectedLabForView.status === 'Approved by Lab Tech' || selectedLabForView.status === 'Approved by Principal' ? uiText('Approved') : uiText('Pending')}</span>
+                    </div>
+                  </div>
+
+                  <div className="border border-slate-800 p-4 rounded-lg space-y-2">
+                    <p className="uppercase text-[10px] text-slate-500">{uiText("የር/መምህሩ (Principal / Headmaster)")}</p>
+                    <p className="text-sm font-black">{selectedLabForView.principalName || uiText('School Principal')}</p>
+                    <div className="pt-3 border-t border-slate-300 dark:border-slate-700 flex justify-between items-center">
+                      <span>{uiText("ፊርማ (Signature)")}: <span className="font-serif italic text-emerald-600">{selectedLabForView.principalSignature || (selectedLabForView.status === 'Approved by Principal' ? uiText('✓ Signed') : uiText('Pending'))}</span></span>
+                      <span className={`px-2 py-0.5 rounded text-[9px] uppercase ${
+                        selectedLabForView.status === 'Approved by Principal'
+                          ? 'bg-emerald-100 text-emerald-800'
+                          : 'bg-amber-100 text-amber-800'
+                      }`}>{selectedLabForView.status === 'Approved by Principal' ? uiText('Approved') : uiText('Pending')}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Lab Technician / Admin Review Action Panel */}
+              {(selectedLabForView.status === 'Submitted to Lab Tech') && (
+                <div className="bg-amber-50 dark:bg-amber-900/20 rounded-2xl p-5 border border-amber-200 dark:border-amber-800 space-y-4">
+                  <h4 className="text-xs font-black uppercase tracking-widest text-amber-800 dark:text-amber-300">{uiText("🧪 Lab Technician Review & Action")}</h4>
+                  <div>
+                    <label className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">{uiText("Feedback / Notes (Optional)")}</label>
+                    <textarea
+                      rows={2}
+                      value={labReviewFeedback}
+                      onChange={e => setLabReviewFeedback(e.target.value)}
+                      placeholder={uiText("Enter feedback or notes for teacher...")}
+                      className="w-full mt-1.5 px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs outline-none text-slate-800 dark:text-white"
+                    />
+                  </div>
+                  <div className="flex gap-3 justify-end">
+                    <button
+                      onClick={() => {
+                        setLabRequests(prev => prev.map(r => r.id === selectedLabForView.id ? {
+                          ...r,
+                          status: 'Revision Required',
+                          labTechFeedback: labReviewFeedback || 'Revision requested by Lab Technician'
+                        } : r));
+                        showToast('Revision request sent to teacher.', 'success');
+                        setSelectedLabForView(null);
+                      }}
+                      className="flex items-center gap-1.5 px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-black text-xs uppercase rounded-xl transition-all"
+                    >
+                      <XCircle size={15} />{uiText(" Request Revision ")}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setLabRequests(prev => prev.map(r => r.id === selectedLabForView.id ? {
+                          ...r,
+                          status: 'Approved by Lab Tech',
+                          labTechSignature: user?.name || 'Lab Tech Manager',
+                          labTechFeedback: labReviewFeedback || 'Approved by Lab Tech'
+                        } : r));
+                        showToast('Lab requisition approved & forwarded to School Admin / Principal!', 'success');
+                        setSelectedLabForView(null);
+                      }}
+                      className="flex items-center gap-1.5 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs uppercase rounded-xl transition-all shadow-md shadow-emerald-500/20"
+                    >
+                      <CheckCircle2 size={15} />{uiText(" Approve & Forward to Principal ")}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="p-6 border-t border-slate-100 dark:border-slate-800 flex justify-end">
+              <button
+                onClick={() => setSelectedLabForView(null)}
+                className="px-6 py-3 border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
+              >
+                {uiText(" Close ")}
+              </button>
             </div>
           </div>
         </div>
