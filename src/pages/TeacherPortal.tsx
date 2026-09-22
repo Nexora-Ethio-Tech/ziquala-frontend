@@ -4674,8 +4674,8 @@ export const TeacherPortal = () => {
                 </div>
               </div>
 
-              {/* Bottom Signatures / Staff Selection Dropdowns */}
-              <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200 dark:border-slate-700 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+              {/* Bottom Signatures / Staff Selection Dropdown */}
+              <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200 dark:border-slate-700 text-xs">
                 <div>
                   <label className="font-black text-slate-700 dark:text-slate-300 uppercase text-[10px] block mb-1.5">
                     {uiText("የቤተ-ሙከራ ተጠሪ ስም (LAB TECHNICIAN)")} <span className="text-amber-500">*</span>
@@ -4696,32 +4696,6 @@ export const TeacherPortal = () => {
                     {branchLabTechs.map((tech: any) => (
                       <option key={tech.id} value={tech.name}>
                         {tech.name} ({tech.role})
-                      </option>
-                    ))}
-                  </select>
-                  <p className="text-[10px] text-slate-400 mt-1">{uiText("Fetched from your school branch")}</p>
-                </div>
-
-                <div>
-                  <label className="font-black text-slate-700 dark:text-slate-300 uppercase text-[10px] block mb-1.5">
-                    {uiText("የር/መምህሩ ስም (PRINCIPAL)")} <span className="text-amber-500">*</span>
-                  </label>
-                  <select
-                    value={labForm.principalName}
-                    onChange={e => {
-                      const selectedAdmin = branchPrincipals.find(p => p.name === e.target.value);
-                      setLabForm({
-                        ...labForm,
-                        principalName: e.target.value,
-                        principalId: selectedAdmin?.id || ''
-                      });
-                    }}
-                    className="w-full px-3.5 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-amber-500 transition-all cursor-pointer"
-                  >
-                    <option value="">{uiText("-- Select Principal / School Admin --")}</option>
-                    {branchPrincipals.map((principal: any) => (
-                      <option key={principal.id} value={principal.name}>
-                        {principal.name} ({principal.role})
                       </option>
                     ))}
                   </select>
