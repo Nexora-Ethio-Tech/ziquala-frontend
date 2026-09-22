@@ -4081,5 +4081,19 @@
   "Lab requisition submitted to Lab Technician!": "የቤተ-ሙከራ መጠየቂያው ለቤተ-ሙከራ ተጠሪ ተልኳል!",
   "Revision request sent to teacher.": "የማስተካከያ ጥያቄ ለይምህሩ ተልኳል::",
   "Lab requisition approved & forwarded to School Admin / Principal!": "የቤተ-ሙከራ መጠየቂያው ጸድቆ ለርዕሰ መምህር ተላልፏል!",
-  "የቤተ-ሙከራ መጠየቂያ ቅጽ": "የቤተ-ሙከራ መጠየቂያ ቅጽ"
+  "የቤተ-ሙከራ መጠየቂያ ቅጽ": "የቤተ-ሙከራ መጠየቂያ ቅጽ",
+  " 🧪 Lab Requisition ": " 🧪 የቤተ-ሙከራ መጠየቂያ ",
+  "School Administration · Laboratory Oversight": "ትምህርት ቤት አስተዳደር · የቤተ-ሙከራ ቁጥጥር",
+  "የቤተ-ሙከራ መጠየቂያ ቅጽ ቁጥጥር / Lab Requisition Supervision": "የቤተ-ሙከራ መጠየቂያ ቅጽ ቁጥጥር",
+  "Review, monitor, and sign laboratory experiment requisitions submitted across school branches.": "በትምህርት ቤቱ ቅርንጫፎች የቀረቡትን የቤተ-ሙከራ የሙከራ ጥያቄዎች ይገምግሙ፣ ይከታተሉ እና ይፈርሙ።",
+  "Search by teacher name, subject, grade...": "በመምህሩ ስም፣ በትምህርት ዓይነት፣ በክፍል ይፈልጉ...",
+  "Pending Approval": "ማጽደቂያ በመጠባበቅ ላይ",
+  "Lab Tech Signature:": "የቤተ-ሙከራ ተጠሪ ፊርማ፡",
+  "Principal Signature:": "የርዕሰ መምህሩ ፊርማ፡",
+  "Principal Notes: \"": "የርዕሰ መምህሩ ማስታወሻ፡ \"",
+  " Approve & Sign ": " አጽድቅ እና ፈርም ",
+  " Approve & Sign (Principal) ": " አጽድቅ እና ፈርም (ርዕሰ መምህር) ",
+  "🏫 School Admin & Principal Review Action": "🏫 የትምህርት ቤት አስተዳዳሪ እና ርዕሰ መምህር ግምገማ እርምጃ",
+  "No lab requisitions found": "ምንም የቤተ-ሙከራ መጠየቂያ አልተገኘም",
+  "Lab requisition forms submitted by teachers will appear here for school admin supervision.": "በመምህራን የቀረቡ የቤተ-ሙከራ መጠየቂያ ቅጾች በትምህርት ቤቱ አስተዳደር ቁጥጥር ስር እዚህ ይታያሉ።"
 }

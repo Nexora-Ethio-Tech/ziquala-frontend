@@ -362,5 +362,19 @@
   "Lab requisition submitted to Lab Technician!": "Lab requisition submitted to Lab Technician!",
   "Revision request sent to teacher.": "Revision request sent to teacher.",
   "Lab requisition approved & forwarded to School Admin / Principal!": "Lab requisition approved & forwarded to School Admin / Principal!",
-  "የቤተ-ሙከራ መጠየቂያ ቅጽ": "Lab Requisition Form"
+  "የቤተ-ሙከራ መጠየቂያ ቅጽ": "Lab Requisition Form",
+  " 🧪 Lab Requisition ": " 🧪 Lab Requisition ",
+  "School Administration · Laboratory Oversight": "School Administration · Laboratory Oversight",
+  "የቤተ-ሙከራ መጠየቂያ ቅጽ ቁጥጥር / Lab Requisition Supervision": "Lab Requisition Supervision",
+  "Review, monitor, and sign laboratory experiment requisitions submitted across school branches.": "Review, monitor, and sign laboratory experiment requisitions submitted across school branches.",
+  "Search by teacher name, subject, grade...": "Search by teacher name, subject, grade...",
+  "Pending Approval": "Pending Approval",
+  "Lab Tech Signature:": "Lab Tech Signature:",
+  "Principal Signature:": "Principal Signature:",
+  "Principal Notes: \"": "Principal Notes: \"",
+  " Approve & Sign ": " Approve & Sign ",
+  " Approve & Sign (Principal) ": " Approve & Sign (Principal) ",
+  "🏫 School Admin & Principal Review Action": "🏫 School Admin & Principal Review Action",
+  "No lab requisitions found": "No lab requisitions found",
+  "Lab requisition forms submitted by teachers will appear here for school admin supervision.": "Lab requisition forms submitted by teachers will appear here for school admin supervision."
 }

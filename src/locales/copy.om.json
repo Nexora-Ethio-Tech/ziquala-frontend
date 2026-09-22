@@ -4079,5 +4079,19 @@
   "Lab requisition submitted to Lab Technician!": "Gaaffiin laaboraatorii ogeessa laaboraatoriitiif ergameera!",
   "Revision request sent to teacher.": "Gaaffiin sirreeffamaa barsiisaaf ergameera.",
   "Lab requisition approved & forwarded to School Admin / Principal!": "Gaaffiin laaboraatorii mirkanaa'ee dura bu'aadhaaf darbeera!",
-  "የቤተ-ሙከራ መጠየቂያ ቅጽ": "Unka Gaaffii Laaboraatorii"
+  "የቤተ-ሙከራ መጠየቂያ ቅጽ": "Unka Gaaffii Laaboraatorii",
+  " 🧪 Lab Requisition ": " 🧪 Gaaffii Laaboraatorii ",
+  "School Administration · Laboratory Oversight": "Bulchiinsa Mana Barumsaa · Hordoffii Laaboraatorii",
+  "የቤተ-ሙከራ መጠየቂያ ቅጽ ቁጥጥር / Lab Requisition Supervision": "Hordoffii Unka Gaaffii Laaboraatorii",
+  "Review, monitor, and sign laboratory experiment requisitions submitted across school branches.": "Gaaffiiwwan yaalii laaboraatorii dameewwan mana barumsaa irraa dhiyaatan sakatta'aa, hordofaa fi mallatteessaa.",
+  "Search by teacher name, subject, grade...": "Maqaa barsiisaa, gosa barnootaa, kutaadhaan barbaadi...",
+  "Pending Approval": "Mirkaneessa Eeggata",
+  "Lab Tech Signature:": "Mallattoo Ogeessa Laab:",
+  "Principal Signature:": "Mallattoo Dura Bu'aa:",
+  "Principal Notes: \"": "Barreeffama Dura Bu'aa: \"",
+  " Approve & Sign ": " Mirkaneessi fi Mallatteessi ",
+  " Approve & Sign (Principal) ": " Mirkaneessi fi Mallatteessi (Dura Bu'aa) ",
+  "🏫 School Admin & Principal Review Action": "🏫 Tarkaanfii Gamaggamaa Bulchaa & Dura Bu'aa",
+  "No lab requisitions found": "Gaaffiin laaboraatorii hin argamne",
+  "Lab requisition forms submitted by teachers will appear here for school admin supervision.": "Unkaaleen gaaffii laaboraatorii barsiisotaan dhiyaatan hordoffii bulchiinsa mana barumsaatiif asirratti mul'atu."
 }
