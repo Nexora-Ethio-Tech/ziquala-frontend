@@ -118,68 +118,70 @@ export const TranscriptTemplate = ({ studentData }: TranscriptTemplateProps) => 
     <div className="transcript-page w-full max-w-[210mm] mx-auto p-4 sm:p-6 bg-white text-black font-serif shadow-2xl print:shadow-none print:p-0 print:m-0 print:w-full">
 
       {/* Title Header Banner */}
-      <div className="text-center mb-6">
-        <h1 className="text-base sm:text-xl font-black tracking-tight uppercase text-black font-serif border-b-2 border-black inline-block pb-1">{uiText("ZIQUALA ABO MONASTERY PRIMARY SCHOOL STUDENT TRANSCRIPT SHEET")}</h1>
+      <div className="text-center mb-4 sm:mb-5">
+        <h1 className="text-base sm:text-lg font-black tracking-wide uppercase text-black font-serif border-b-2 border-black inline-block pb-1 leading-tight text-center">
+          {uiText("ZIQUALA ABO MONASTERY PRIMARY SCHOOL")}
+        </h1>
       </div>
 
       {/* Student Registration Demographic Info Box */}
-      <div className="border border-black bg-white p-3 sm:p-4 text-xs font-serif font-bold text-black space-y-3 mb-6 print:bg-white">
-        {/* Row 1: Full Name | Sex | Age */}
-        <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
-          <div className="flex items-baseline flex-1 min-w-[240px]">
+      <div className="border border-black bg-white p-3 text-xs font-serif font-bold text-black space-y-2.5 mb-5 print:bg-white print:p-2.5">
+        {/* Row 1: Full Name (3-item row) */}
+        <div className="grid grid-cols-12 gap-x-3 gap-y-1.5 items-baseline">
+          <div className="col-span-6 flex items-baseline">
             <span className="whitespace-nowrap shrink-0">{uiText("Full Name:-")}</span>
-            <span className="flex-1 border-b border-black ml-1.5 px-2 font-mono font-normal min-h-[18px]">
-              {uiText(fullName || '__________________________')}
+            <span className="flex-1 border-b border-gray-300 ml-1 px-1 font-mono font-normal min-h-[16px] truncate">
+              {uiText(fullName || '')}
             </span>
           </div>
-          <div className="flex items-baseline shrink-0 min-w-[120px]">
+          <div className="col-span-3 flex items-baseline">
             <span className="whitespace-nowrap shrink-0">{uiText("Sex:-")}</span>
-            <span className="flex-1 border-b border-black ml-1.5 px-2 text-center font-mono font-normal min-h-[18px]">
-              {uiText(sex || '_____')}
+            <span className="flex-1 border-b border-gray-300 ml-1 px-1 text-center font-mono font-normal min-h-[16px]">
+              {uiText(sex || '')}
             </span>
           </div>
-          <div className="flex items-baseline shrink-0 min-w-[110px]">
+          <div className="col-span-3 flex items-baseline">
             <span className="whitespace-nowrap shrink-0">{uiText("Age:-")}</span>
-            <span className="flex-1 border-b border-black ml-1.5 px-2 text-center font-mono font-normal min-h-[18px]">
-              {uiText(displayAge || '_____')}
+            <span className="flex-1 border-b border-gray-300 ml-1 px-1 text-center font-mono font-normal min-h-[16px]">
+              {uiText(displayAge || '')}
             </span>
           </div>
         </div>
 
-        {/* Row 2: Birth date | Birth place | Region | Town */}
-        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
-          <div className="flex items-baseline flex-1 min-w-[190px]">
+        {/* Row 2: Birth date | Birth place | Tel.No. (3-item row) */}
+        <div className="grid grid-cols-12 gap-x-3 gap-y-1.5 items-baseline">
+          <div className="col-span-4 flex items-baseline">
             <span className="whitespace-nowrap shrink-0">{uiText("Birth date:-")}</span>
-            <span className="flex-1 border-b border-black ml-1.5 px-1 font-mono font-normal min-h-[18px]">
-              {uiText(birthDate || '___________')}
+            <span className="flex-1 border-b border-gray-300 ml-1 px-1 font-mono font-normal min-h-[16px]">
+              {uiText(birthDate || '')}
             </span>
           </div>
-          <div className="flex items-baseline flex-1 min-w-[160px]">
+          <div className="col-span-4 flex items-baseline">
             <span className="whitespace-nowrap shrink-0">{uiText("Birth place:-")}</span>
-            <span className="flex-1 border-b border-black ml-1.5 px-1 font-mono font-normal min-h-[18px]">
-              {uiText(birthPlace || '_______')}
+            <span className="flex-1 border-b border-gray-300 ml-1 px-1 font-mono font-normal min-h-[16px] truncate">
+              {uiText(birthPlace || '')}
             </span>
           </div>
-          <div className="flex items-baseline shrink-0 min-w-[120px]">
-            <span className="whitespace-nowrap shrink-0">{uiText("Region:-")}</span>
-            <span className="flex-1 border-b border-black ml-1.5 px-1 font-mono font-normal min-h-[18px]">
-              {uiText(region || '_______')}
-            </span>
-          </div>
-          <div className="flex items-baseline shrink-0 min-w-[110px]">
-            <span className="whitespace-nowrap shrink-0">{uiText("Town:-")}</span>
-            <span className="flex-1 border-b border-black ml-1.5 px-1 font-mono font-normal min-h-[18px]">
-              {uiText(town || '_______')}
+          <div className="col-span-4 flex items-baseline">
+            <span className="whitespace-nowrap shrink-0">{uiText("Tel.No.:-")}</span>
+            <span className="flex-1 border-b border-gray-300 ml-1 px-1 font-mono font-normal min-h-[16px] truncate">
+              {uiText(telNo || '')}
             </span>
           </div>
         </div>
 
-        {/* Row 3: Tel.No. */}
-        <div className="flex flex-wrap items-baseline gap-x-6 gap-y-2">
-          <div className="flex items-baseline flex-1 min-w-[240px]">
-            <span className="whitespace-nowrap shrink-0">{uiText("Tel.No.:-")}</span>
-            <span className="flex-1 border-b border-black ml-1.5 px-1 font-mono font-normal min-h-[18px]">
-              {uiText(telNo || '___________________')}
+        {/* Row 3: Region | Town */}
+        <div className="grid grid-cols-12 gap-x-3 gap-y-1.5 items-baseline">
+          <div className="col-span-6 flex items-baseline">
+            <span className="whitespace-nowrap shrink-0">{uiText("Region:-")}</span>
+            <span className="flex-1 border-b border-gray-300 ml-1 px-1 font-mono font-normal min-h-[16px]">
+              {uiText(region || 'Oromia')}
+            </span>
+          </div>
+          <div className="col-span-6 flex items-baseline">
+            <span className="whitespace-nowrap shrink-0">{uiText("Town:-")}</span>
+            <span className="flex-1 border-b border-gray-300 ml-1 px-1 font-mono font-normal min-h-[16px]">
+              {uiText(town || 'Bishoftu')}
             </span>
           </div>
         </div>

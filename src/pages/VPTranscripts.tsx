@@ -299,30 +299,42 @@ export const VPTranscripts = () => {
 
   useEffect(() => {
     const styleId = 'transcript-print-style';
-    if (typeof document !== 'undefined' && !document.getElementById(styleId)) {
-      const style = document.createElement('style');
+    let style = document.getElementById(styleId) as HTMLStyleElement;
+    if (!style) {
+      style = document.createElement('style');
       style.id = styleId;
-      style.innerHTML = `@page { size: A4; margin: 8mm; }
-        @media print {
-          body, html { margin: 0 !important; padding: 0 !important; }
-          body * { visibility: hidden !important; }
-          .transcript-print, .transcript-print * { visibility: visible !important; }
-          .transcript-print { position: absolute !important; left: 0 !important; top: 0 !important; width: 210mm !important; height: 297mm !important; margin: 0 !important; padding: 0 !important; overflow: hidden !important; }
-          .transcript-print img { max-width: 100% !important; height: auto !important; }
-          .transcript-print table, .transcript-page { page-break-inside: avoid !important; }
-          .transcript-print table th, .transcript-print table td { padding: 0.35rem !important; font-size: 9px !important; }
-          .transcript-print h1 { font-size: 20px !important; }
-          .transcript-print h2 { font-size: 14px !important; }
-          .transcript-print p, .transcript-print span, .transcript-print td, .transcript-print th { font-size: 10px !important; line-height: 1.2 !important; }
-          .transcript-print .grid { gap: 0.5rem !important; }
-          .transcript-print .border-2 { border-width: 1px !important; }
-          .transcript-print .p-6 { padding: 0.75rem !important; }
-          .transcript-print .p-4 { padding: 0.5rem !important; }
-          .transcript-print .p-3 { padding: 0.35rem !important; }
-          .transcript-print .p-2 { padding: 0.25rem !important; }
-        }`;
       document.head.appendChild(style);
     }
+    style.innerHTML = `@page { size: A4 portrait; margin: 10mm; }
+      @media print {
+        body, html { margin: 0 !important; padding: 0 !important; background: white !important; color: black !important; }
+        body * { visibility: hidden !important; }
+        .transcript-print, .transcript-print * { visibility: visible !important; }
+        .transcript-print {
+          position: absolute !important;
+          left: 0 !important;
+          top: 0 !important;
+          width: 100% !important;
+          max-width: 100% !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          box-shadow: none !important;
+          background: white !important;
+          overflow: visible !important;
+        }
+        .transcript-page {
+          width: 100% !important;
+          max-width: 100% !important;
+          padding: 0 !important;
+          margin: 0 !important;
+          box-shadow: none !important;
+        }
+        .transcript-print table { width: 100% !important; max-width: 100% !important; table-layout: fixed !important; page-break-inside: avoid !important; }
+        .transcript-print table th, .transcript-print table td { padding: 3px 4px !important; font-size: 10px !important; word-wrap: break-word !important; }
+        .transcript-print h1 { font-size: 16px !important; line-height: 1.2 !important; }
+        .transcript-print p, .transcript-print span, .transcript-print td, .transcript-print th { font-size: 10px !important; line-height: 1.2 !important; }
+        .transcript-print .grid { gap: 0.25rem !important; }
+      }`;
   }, []);
 
   return (
