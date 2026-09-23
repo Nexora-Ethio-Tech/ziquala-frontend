@@ -292,13 +292,16 @@ export const VPGradeManagement = () => {
 
   const getExportPayload = () => {
     const headers = ['Student Name', ...courses.map(c => `${c.name}${c.teacher_name ? ` (${c.teacher_name})` : ''}`), 'Total', 'Average', 'Rank'];
-    const rows = studentGrades.map((student) => [
-      student.name,
-      ...courses.map((course) => student.grades[course.id]?.score ?? ''),
-      student.total !== undefined && student.total !== null ? student.total.toFixed(2) : '',
-      student.average !== undefined && student.average !== null ? `${student.average.toFixed(2)}%` : '',
-      student.rank ?? ''
-    ]);
+    const rows = studentGrades.map((student) => {
+      const complete = isStudentGradeComplete(student);
+      return [
+        student.name,
+        ...courses.map((course) => student.grades[course.id]?.score ?? '-'),
+        complete && typeof student.total === 'number' && !isNaN(student.total) ? student.total.toFixed(2) : '-',
+        complete && typeof student.average === 'number' && !isNaN(student.average) ? `${student.average.toFixed(2)}%` : '-',
+        complete && student.rank ? student.rank : '-'
+      ];
+    });
 
     return { headers, rows };
   };

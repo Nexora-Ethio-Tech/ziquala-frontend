@@ -2737,7 +2737,7 @@
   "Loading Communication Book Oversight...": "Loading Kitaaba Qunnamtii To'annoo...",
   "Verification roster of parents who received communication books for this week": "Roster mirkaneessaa warra kitaabota qunnamtii torban kanaaf argatan",
   "Retrieving student communication log statuses...": "Haala galmee qunnamtii barattootaa deebisuu...",
-  "&mdash;": "— .",
+  "&mdash;": "-",
   "No students found in this section.": "Kutaa kana keessatti barattoonni hin argamne.",
   "Failed to fetch teacher grade submissions": "Galmee qabxii barsiisaa fiduu hin dandeenye",
   "Unlock denied: only submissions from the active semester and within {{value0}} days can be unlocked.": "Unlock denied: kan dhiyaatan semestera sochiirra jiruu fi guyyoota {{value0}} keessatti qofatu banamuu danda'a.",
