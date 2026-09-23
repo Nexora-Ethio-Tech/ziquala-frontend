@@ -291,7 +291,7 @@ export const VPGradeManagement = () => {
   }, [grades, handleSectionSelect]);
 
   const getExportPayload = () => {
-    const headers = ['Student Name', ...courses.map(c => `${c.name}${c.teacher_name ? ` (${c.teacher_name})` : ''}`), 'Total', 'Average', 'Rank'];
+    const headers = ['Student Name', ...courses.map(c => c.name), 'Total', 'Average', 'Rank'];
     const rows = studentGrades.map((student) => {
       const complete = isStudentGradeComplete(student);
       return [
