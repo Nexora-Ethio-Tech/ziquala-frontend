@@ -355,7 +355,7 @@ export const deleteTeacher = async (userId: string) => {
 export const promoteTeacher = async (
   userId: string,
   data: {
-    promotionType?: 'home-teacher' | 'before-school-educator' | 'head-of-department' | 'lab-technician';
+    promotionType?: 'home-teacher' | 'before-school-educator' | 'head-of-department' | 'lab-technician' | 'librarian';
     roles?: string[];
     headOfDepartment?: {
       grades?: string[];

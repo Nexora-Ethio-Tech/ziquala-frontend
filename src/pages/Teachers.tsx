@@ -3679,6 +3679,21 @@ export const Teachers = () => {
                     />
                     <span>{uiText("Lab Technician (reviews and approves lab resource requests)")}</span>
                   </label>
+                  <label className="flex items-center gap-2 text-sm font-semibold text-slate-800 dark:text-slate-200 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={promotionForm.roles.includes('librarian')}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setPromotionForm(prev => {
+                          const nextRoles = checked ? [...prev.roles, 'librarian'] : prev.roles.filter(r => r !== 'librarian');
+                          return { ...prev, roles: nextRoles };
+                        });
+                      }}
+                      className="rounded border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500 w-4 h-4"
+                    />
+                    <span>{uiText("Librarian (manages school library resources and book circulation)")}</span>
+                  </label>
                 </div>
               </div>
 
