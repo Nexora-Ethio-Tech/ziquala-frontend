@@ -120,6 +120,7 @@ export const StorekeeperPortal = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string } | null>(null);
+  const [issueDeleteConfirm, setIssueDeleteConfirm] = useState<AssetIssue | null>(null);
 
   // Issue Item Modal State
   const [issueModalOpen, setIssueModalOpen] = useState(false);
@@ -332,6 +333,19 @@ export const StorekeeperPortal = () => {
     }
   };
 
+  const handleDeleteIssue = async () => {
+    if (!issueDeleteConfirm) return;
+    try {
+      const response = await api.delete(`/storekeeper/issues/${issueDeleteConfirm.id}`);
+      showToast(uiText(response.data?.message || 'Issue record removed'));
+      fetchAllData();
+    } catch (e: any) {
+      showToast(uiText(e?.response?.data?.error || 'Failed to remove issue record'), 'error');
+    } finally {
+      setIssueDeleteConfirm(null);
+    }
+  };
+
   const handleEditIssue = (issue: AssetIssue) => {
     setEditingIssue(issue);
     setIssueEditForm({
@@ -401,6 +415,29 @@ export const StorekeeperPortal = () => {
           </div>
         </div>
       )}
+
+      {/* Issue Delete Confirmation Modal */}
+      {issueDeleteConfirm && (() => {
+        const returnsStock = ['Issued', 'Consumed', 'Overdue'].includes(issueDeleteConfirm.status);
+        return (
+          <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-3 sm:p-4" onClick={() => setIssueDeleteConfirm(null)}>
+            <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 max-w-sm w-full shadow-2xl border border-slate-200 dark:border-slate-800" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-rose-100 rounded-xl"><Trash2 size={20} className="text-rose-600" /></div>
+                <h3 className="font-black text-slate-800 dark:text-white">{uiText('Remove Issue Record?')}</h3>
+              </div>
+              <p className="text-sm text-slate-500 mb-3">{uiText('Are you sure you want to remove the issue for ')}<strong>{uiText(issueDeleteConfirm.asset_name)}</strong>{uiText('?')}</p>
+              <p className={`text-xs font-bold rounded-lg p-3 mb-6 ${returnsStock ? 'bg-amber-50 text-amber-800 dark:bg-amber-500/10 dark:text-amber-300' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'}`}>
+                {uiText(returnsStock ? 'This issue is still active. Its quantity will be restored to stock before the record is removed.' : 'This issue is already closed, so stock will not be changed.')}
+              </p>
+              <div className="flex gap-3">
+                <button onClick={() => setIssueDeleteConfirm(null)} className="flex-1 px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold text-slate-500">{uiText('Cancel')}</button>
+                <button onClick={handleDeleteIssue} className="flex-1 px-4 py-2 bg-rose-600 text-white rounded-lg text-sm font-bold hover:bg-rose-700">{uiText('Remove')}</button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Edit Issue Modal */}
       {editingIssue && (() => {
@@ -1184,6 +1221,11 @@ export const StorekeeperPortal = () => {
                                 className="px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-xs font-bold transition-colors flex items-center gap-1"
                               >
                                 <Pencil size={13} />{uiText(' Edit')}</button>
+                              <button
+                                onClick={() => setIssueDeleteConfirm(iss)}
+                                className="px-3 py-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg text-xs font-bold transition-colors flex items-center gap-1"
+                              >
+                                <Trash2 size={13} />{uiText(' Remove')}</button>
                               {iss.status === 'Issued' && (
                                 <button
                                   onClick={() => handleReturnIssue(iss.id)}
