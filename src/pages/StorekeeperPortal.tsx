@@ -133,7 +133,10 @@ export const StorekeeperPortal = () => {
     notes: ''
   });
   const [issueCategoryFilter, setIssueCategoryFilter] = useState('');
+  const [issueModalSearch, setIssueModalSearch] = useState('');
   const [issueLogCategoryFilter, setIssueLogCategoryFilter] = useState('All');
+  const [issueLogSearchQuery, setIssueLogSearchQuery] = useState('');
+  const [issueLogStatusFilter, setIssueLogStatusFilter] = useState('All');
   const [issuing, setIssuing] = useState(false);
   const [editingIssue, setEditingIssue] = useState<AssetIssue | null>(null);
   const [issueEditForm, setIssueEditForm] = useState({
@@ -178,10 +181,31 @@ export const StorekeeperPortal = () => {
   // ─── Category List ────────────────────────────────────────────────────────
   const categoriesList = ['All', ...Array.from(new Set([...STORE_ASSET_CATEGORIES, ...assets.map(a => a.category || 'General')]))];
   const issueCategories = categoriesList.filter(category => category !== 'All');
-  const issueableAssets = assets.filter(asset => (asset.category || 'General') === issueCategoryFilter);
-  const filteredIssues = issues.filter(issue =>
-    issueLogCategoryFilter === 'All' || (issue.asset_category || 'General') === issueLogCategoryFilter
-  );
+
+  const issueableAssets = assets.filter(asset => {
+    const matchesCat = !issueCategoryFilter || issueCategoryFilter === 'All' || (asset.category || 'General') === issueCategoryFilter;
+    const q = issueModalSearch.trim().toLowerCase();
+    const matchesSearch = !q ||
+      asset.name.toLowerCase().includes(q) ||
+      (asset.category || '').toLowerCase().includes(q) ||
+      (asset.serial_number || '').toLowerCase().includes(q) ||
+      (asset.location || '').toLowerCase().includes(q);
+    return matchesCat && matchesSearch;
+  });
+
+  const filteredIssues = issues.filter(issue => {
+    const matchesCat = issueLogCategoryFilter === 'All' || (issue.asset_category || 'General') === issueLogCategoryFilter;
+    const matchesStatus = issueLogStatusFilter === 'All' || issue.status === issueLogStatusFilter;
+    const q = issueLogSearchQuery.trim().toLowerCase();
+    const matchesSearch = !q ||
+      (issue.issued_to_name || '').toLowerCase().includes(q) ||
+      (issue.issued_to_role || '').toLowerCase().includes(q) ||
+      (issue.asset_name || '').toLowerCase().includes(q) ||
+      (issue.purpose || '').toLowerCase().includes(q) ||
+      (issue.status || '').toLowerCase().includes(q) ||
+      (issue.notes || '').toLowerCase().includes(q);
+    return matchesCat && matchesStatus && matchesSearch;
+  });
 
   const filteredAssets = assets.filter(a => {
     const isConsumable = a.is_consumable || a.item_type === 'Consumable' || a.category === 'Stationery & Supplies';
@@ -478,42 +502,72 @@ export const StorekeeperPortal = () => {
 
               <form onSubmit={handleCreateIssue} className="space-y-4">
                 <div className="space-y-1">
-                  <label className="text-xs font-black text-slate-500 uppercase tracking-wide">{uiText("Select Category First *")}</label>
-                  <select
-                    value={issueCategoryFilter}
-                    onChange={e => {
-                      setIssueCategoryFilter(e.target.value);
-                      setIssueForm(form => ({ ...form, asset_id: '' }));
-                    }}
-                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"
-                    required
-                  >
-                    <option value="">{uiText("-- Choose Category --")}</option>
-                    {issueCategories.map(category => (
-                      <option key={category} value={category}>{uiText(category)}</option>
-                    ))}
-                  </select>
+                  <label className="text-xs font-black text-slate-500 uppercase tracking-wide">{uiText("Search Stock Item to Lend")}</label>
+                  <div className="relative">
+                    <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type="text"
+                      placeholder={uiText("Type item name, category, or S/N to filter stock...")}
+                      value={issueModalSearch}
+                      onChange={e => setIssueModalSearch(e.target.value)}
+                      className="w-full pl-9 pr-8 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                    {issueModalSearch && (
+                      <button
+                        type="button"
+                        onClick={() => setIssueModalSearch('')}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                      >
+                        <X size={14} />
+                      </button>
+                    )}
+                  </div>
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-xs font-black text-slate-500 uppercase tracking-wide">{uiText("Select Item from Stock *")}</label>
-                  <select
-                    value={issueForm.asset_id}
-                    onChange={e => setIssueForm({ ...issueForm, asset_id: e.target.value })}
-                    disabled={!issueCategoryFilter}
-                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60 disabled:cursor-not-allowed"
-                    required
-                  >
-                    <option value="">{uiText(issueCategoryFilter ? '-- Choose Item from Register --' : '-- Choose a Category First --')}</option>
-                    {issueableAssets.map(a => {
-                      const isCons = a.is_consumable || a.item_type === 'Consumable' || a.category === 'Stationery & Supplies';
-                      return (
-                        <option key={a.id} value={a.id} disabled={a.amount <= 0}>
-                          {uiText(a.name)} [{uiText(isCons ? 'Consumable' : 'Returnable')}]{uiText(" (Stock: ")}{a.amount}{uiText(") ")}{uiText(a.amount <= 0 ? '— Out of Stock' : '')}
-                        </option>
-                      );
-                    })}
-                  </select>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-xs font-black text-slate-500 uppercase tracking-wide">{uiText("Category (Optional)")}</label>
+                    <select
+                      value={issueCategoryFilter}
+                      onChange={e => {
+                        setIssueCategoryFilter(e.target.value);
+                        setIssueForm(form => ({ ...form, asset_id: '' }));
+                      }}
+                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+                      <option value="">{uiText("All Categories")}</option>
+                      {issueCategories.map(category => (
+                        <option key={category} value={category}>{uiText(category)}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-black text-slate-500 uppercase tracking-wide">{uiText("Select Item from Stock *")}</label>
+                    <select
+                      value={issueForm.asset_id}
+                      onChange={e => {
+                        const selectedId = e.target.value;
+                        const selectedObj = assets.find(a => a.id === selectedId);
+                        setIssueForm({ ...issueForm, asset_id: selectedId });
+                        if (selectedObj && selectedObj.category) {
+                          setIssueCategoryFilter(selectedObj.category);
+                        }
+                      }}
+                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+                      required
+                    >
+                      <option value="">{uiText(issueableAssets.length > 0 ? '-- Choose Item from Register --' : 'No matching items found')}</option>
+                      {issueableAssets.map(a => {
+                        const isCons = a.is_consumable || a.item_type === 'Consumable' || a.category === 'Stationery & Supplies';
+                        return (
+                          <option key={a.id} value={a.id} disabled={a.amount <= 0}>
+                            {uiText(a.name)} ({uiText(a.category || 'General')}) [{uiText(isCons ? 'Consumable' : 'Returnable')}]{uiText(" (Stock: ")}{a.amount}{uiText(") ")}{uiText(a.amount <= 0 ? '— Out of Stock' : '')}
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </div>
                 </div>
 
                 {selectedAssetForIssue && (
@@ -943,16 +997,48 @@ export const StorekeeperPortal = () => {
           </div>
 
           {issues.length > 0 && (
-            <div className="flex justify-end">
-              <select
-                value={issueLogCategoryFilter}
-                onChange={e => setIssueLogCategoryFilter(e.target.value)}
-                className="px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-indigo-500"
-              >
-                {categoriesList.map(category => (
-                  <option key={category} value={category}>{uiText(category === 'All' ? 'All Categories' : category)}</option>
-                ))}
-              </select>
+            <div className="flex flex-col md:flex-row gap-3 items-center justify-between bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
+              <div className="relative flex-1 w-full">
+                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder={uiText("Search borrowed items by person, item name, role, status...")}
+                  value={issueLogSearchQuery}
+                  onChange={e => setIssueLogSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-8 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+                {issueLogSearchQuery && (
+                  <button
+                    onClick={() => setIssueLogSearchQuery('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                <select
+                  value={issueLogStatusFilter}
+                  onChange={e => setIssueLogStatusFilter(e.target.value)}
+                  className="px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+                  <option value="All">{uiText("All Statuses")}</option>
+                  <option value="Issued">{uiText("On Loan (Issued)")}</option>
+                  <option value="Returned">{uiText("Returned")}</option>
+                  <option value="Consumed">{uiText("Consumed")}</option>
+                </select>
+
+                <select
+                  value={issueLogCategoryFilter}
+                  onChange={e => setIssueLogCategoryFilter(e.target.value)}
+                  className="px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+                  {categoriesList.map(category => (
+                    <option key={category} value={category}>{uiText(category === 'All' ? 'All Categories' : category)}</option>
+                  ))}
+                </select>
+              </div>
             </div>
           )}
 
@@ -960,12 +1046,20 @@ export const StorekeeperPortal = () => {
             <div className="text-center py-16 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800">
               <ArrowRightLeft size={44} className="mx-auto mb-3 text-slate-300" />
               <p className="font-bold text-slate-400">{uiText("No active or past property issues recorded")}</p>
-              <button onClick={() => { setIssueCategoryFilter(''); setIssueForm({ asset_id: '', issued_to_name: '', issued_to_role: 'Teacher', purpose: '', quantity: 1, expected_return: '', notes: '' }); setIssueModalOpen(true); }} className="mt-3 text-sm text-indigo-600 font-bold hover:underline">{uiText("+ Issue property to staff")}</button>
+              <button onClick={() => { setIssueCategoryFilter(''); setIssueModalSearch(''); setIssueForm({ asset_id: '', issued_to_name: '', issued_to_role: 'Teacher', purpose: '', quantity: 1, expected_return: '', notes: '' }); setIssueModalOpen(true); }} className="mt-3 text-sm text-indigo-600 font-bold hover:underline">{uiText("+ Issue property to staff")}</button>
             </div>
           ) : filteredIssues.length === 0 ? (
             <div className="text-center py-16 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800">
-              <Tag size={44} className="mx-auto mb-3 text-slate-300" />
-              <p className="font-bold text-slate-400">{uiText("No issue records in this category")}</p>
+              <Search size={44} className="mx-auto mb-3 text-slate-300" />
+              <p className="font-bold text-slate-400">{uiText("No matching issue records found")}</p>
+              {(issueLogSearchQuery || issueLogCategoryFilter !== 'All' || issueLogStatusFilter !== 'All') && (
+                <button
+                  onClick={() => { setIssueLogSearchQuery(''); setIssueLogCategoryFilter('All'); setIssueLogStatusFilter('All'); }}
+                  className="mt-3 text-sm text-indigo-600 font-bold hover:underline"
+                >
+                  {uiText("Clear search & filters")}
+                </button>
+              )}
             </div>
           ) : (
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 overflow-hidden shadow-sm">
