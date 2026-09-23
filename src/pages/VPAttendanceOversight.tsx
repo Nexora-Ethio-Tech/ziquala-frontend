@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Users, MessageSquare, Send, Loader, CheckCircle, AlertCircle, Phone, Trash2, Calendar } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import api from '../services/api';
-import { getTodayEthiopianDate, formatEthiopianLabel, ethiopianToGregorianIso } from '../utils/ethiopianCalendar';
+import { getTodayEthiopianDate, formatEthiopianLabel } from '../utils/ethiopianCalendar';
 import { EthiopianDatePicker } from '../components/EthiopianDatePicker';
 
 interface AbsentStudent {
@@ -208,9 +208,8 @@ export const VPAttendanceOversight = () => {
     setSelectAll(false);
     setNotifiedStudents(new Set());
     try {
-      const gregDate = ethiopianToGregorianIso(selectedDate);
       const response = await api.get('/vice-principal/attendance/absences-today', {
-        params: { date: selectedDate, gregDate },
+        params: { date: selectedDate },
         headers: {
           'Cache-Control': 'no-cache',
           Pragma: 'no-cache'
