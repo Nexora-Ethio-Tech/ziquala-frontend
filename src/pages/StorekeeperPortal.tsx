@@ -140,6 +140,7 @@ export const StorekeeperPortal = () => {
   const [issuing, setIssuing] = useState(false);
   const [editingIssue, setEditingIssue] = useState<AssetIssue | null>(null);
   const [issueEditForm, setIssueEditForm] = useState({
+    asset_id: '',
     issued_to_name: '',
     issued_to_role: 'Teacher',
     purpose: '',
@@ -334,6 +335,7 @@ export const StorekeeperPortal = () => {
   const handleEditIssue = (issue: AssetIssue) => {
     setEditingIssue(issue);
     setIssueEditForm({
+      asset_id: issue.asset_id,
       issued_to_name: issue.issued_to_name,
       issued_to_role: issue.issued_to_role || 'Teacher',
       purpose: issue.purpose || '',
@@ -419,17 +421,20 @@ export const StorekeeperPortal = () => {
               </div>
 
               <form onSubmit={handleUpdateIssue} className="space-y-4">
-                <div className="rounded-2xl border border-indigo-100 dark:border-indigo-500/20 bg-indigo-50/70 dark:bg-indigo-500/10 p-4">
-                  <div className="flex items-center gap-2 mb-3 text-indigo-800 dark:text-indigo-300">
-                    <ClipboardList size={16} />
-                    <span className="text-xs font-black uppercase tracking-wider">{uiText('Original Issue Summary')}</span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
-                    <div><p className="text-[10px] font-black uppercase text-slate-400">{uiText('Category')}</p><p className="font-bold text-slate-800 dark:text-white">{uiText(editingIssue.asset_category || 'General')}</p></div>
-                    <div><p className="text-[10px] font-black uppercase text-slate-400">{uiText('Item')}</p><p className="font-bold text-slate-800 dark:text-white">{uiText(editingIssue.asset_name)}</p></div>
-                    <div><p className="text-[10px] font-black uppercase text-slate-400">{uiText('Item Type')}</p><p className="font-bold text-slate-800 dark:text-white">{uiText(isConsumable ? 'Consumable' : 'Returnable')}</p></div>
-                    <div><p className="text-[10px] font-black uppercase text-slate-400">{uiText('Issued Date')}</p><p className="font-bold text-slate-800 dark:text-white">{uiText(new Date(editingIssue.issued_at).toLocaleDateString(localeTag()))}</p></div>
-                  </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-black text-slate-500 uppercase tracking-wide">{uiText('Registered Item (Asset) *')}</label>
+                  <select
+                    value={issueEditForm.asset_id}
+                    onChange={e => setIssueEditForm({ ...issueEditForm, asset_id: e.target.value })}
+                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 font-bold"
+                    required
+                  >
+                    {assets.map(a => (
+                      <option key={a.id} value={a.id}>
+                        {uiText(a.name)} ({uiText(a.category || 'General')}) — Stock: {a.amount}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
