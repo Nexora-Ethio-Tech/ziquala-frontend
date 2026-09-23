@@ -87,7 +87,7 @@ interface VPGradeSubmission {
 }
 
 export const VPGradeManagement = () => {
-  const { gradeSubmissionOpen, setGradeSubmissionOpen } = useUser();
+  const { gradeSubmissionOpen, setGradeSubmissionOpen, user } = useUser();
   const [grades, setGrades] = useState<VpGradeGroup[]>([]);
   const [selectedGrade, setSelectedGrade] = useState<string | null>(null);
   const [selectedGradeGroup, setSelectedGradeGroup] = useState<VpGradeGroup | null>(null);
@@ -298,7 +298,7 @@ export const VPGradeManagement = () => {
         student.name,
         ...courses.map((course) => student.grades[course.id]?.score ?? '-'),
         complete && typeof student.total === 'number' && !isNaN(student.total) ? student.total.toFixed(2) : '-',
-        complete && typeof student.average === 'number' && !isNaN(student.average) ? `${student.average.toFixed(2)}%` : '-',
+        complete && typeof student.average === 'number' && !isNaN(student.average) ? student.average.toFixed(2) : '-',
         complete && student.rank ? student.rank : '-'
       ];
     });
@@ -312,18 +312,43 @@ export const VPGradeManagement = () => {
     if (!selectedSection || studentGrades.length === 0) return;
 
     const { headers, rows } = getExportPayload();
+    const colCount = headers.length;
+    const gradeName = selectedGrade || '';
+    const sectionName = selectedSection.section_name || '';
+    const ecYear = gregorianToECYear(selectedYear);
+    const semesterLabel = selectedSemester === 'First Semester' ? '1st Semester' : '2nd Semester';
+
+    const titleBlock = `
+      <tr>
+        <td colspan="${colCount}" style="text-align:center;font-size:16px;font-weight:bold;padding:14px 8px 2px;border:none;letter-spacing:0.5px;">
+          ZIQUALA ABO MONASTERY PRIMARY SCHOOL STUDENT TRANSCRIPT SHEET
+        </td>
+      </tr>
+      <tr>
+        <td colspan="${colCount}" style="text-align:center;font-size:14px;font-weight:bold;padding:4px 8px 2px;border:none;">
+          ${gradeName} &mdash; Section ${sectionName}
+        </td>
+      </tr>
+      <tr>
+        <td colspan="${colCount}" style="text-align:center;font-size:13px;padding:2px 8px 12px;border:none;">
+          ${ecYear} E.C. &nbsp;|&nbsp; ${semesterLabel}
+        </td>
+      </tr>
+      <tr><td colspan="${colCount}" style="padding:4px;border:none;"></td></tr>
+    `;
+
     const tableRows = [
-      `<tr>${headers.map((header) => `<th style="border:1px solid #d1d5db;padding:8px;text-align:left;">${header}</th>`).join('')}</tr>`,
-      ...rows.map((row) => `<tr>${row.map((cell) => `<td style="border:1px solid #d1d5db;padding:8px;">${String(cell)}</td>`).join('')}</tr>`)
+      `<tr>${headers.map((header) => `<th style="background:#1e3a5f;color:#ffffff;border:1px solid #d1d5db;padding:8px;text-align:left;font-size:13px;">${header}</th>`).join('')}</tr>`,
+      ...rows.map((row, i) => `<tr>${row.map((cell) => `<td style="background:${i % 2 === 0 ? '#f9fafb' : '#ffffff'};border:1px solid #d1d5db;padding:8px;font-size:13px;">${String(cell)}</td>`).join('')}</tr>`)
     ].join('');
 
-    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body><table>${tableRows}</table></body></html>`;
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>@page{margin:1cm}body{font-family:Arial,sans-serif;}</style></head><body><table width="100%" style="border-collapse:collapse;">${titleBlock}${tableRows}</table></body></html>`;
     const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
     const url = URL.createObjectURL(blob);
 
     const element = document.createElement('a');
     element.href = url;
-    element.download = `${selectedGrade}-${selectedSection.section_name}-grades.xls`;
+    element.download = `${gradeName}-Section-${sectionName}-grades.xls`;
     element.style.display = 'none';
     document.body.appendChild(element);
     element.click();
@@ -1065,7 +1090,7 @@ export const VPGradeManagement = () => {
                       </td>
                       <td className="px-4 py-4 text-center font-semibold text-slate-800 dark:text-white">
                         {isStudentGradeComplete(student) && typeof student.average === 'number' && !isNaN(student.average)
-                          ? `${student.average.toFixed(2)}%`
+                          ? student.average.toFixed(2)
                           : '-'}
                       </td>
                       <td className="px-4 py-4 text-center">
