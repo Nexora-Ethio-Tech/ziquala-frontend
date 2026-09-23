@@ -71,6 +71,21 @@ const CONDITION_COLORS = {
   Damaged: 'bg-rose-100 text-rose-700 border-rose-200 dark:bg-rose-500/20 dark:text-rose-400',
 };
 
+const STORE_ASSET_CATEGORIES = [
+  'General',
+  'Furniture & Fixtures',
+  'Electronics & IT',
+  'Stationery & Supplies',
+  'Laboratory Equipment',
+  'Sports & PE',
+  'Building & Infrastructure',
+  'Books',
+  'Detergents',
+  'Kitchen Utensils',
+  'Plumbing Fixtures & Parts',
+];
+
+
 // ─── Component ────────────────────────────────────────────────────────────────
 export const StorekeeperPortal = () => {
   const { user } = useUser();
@@ -161,7 +176,7 @@ export const StorekeeperPortal = () => {
   };
 
   // ─── Category List ────────────────────────────────────────────────────────
-  const categoriesList = ['All', ...Array.from(new Set(assets.map(a => a.category || 'General')))];
+  const categoriesList = ['All', ...Array.from(new Set([...STORE_ASSET_CATEGORIES, ...assets.map(a => a.category || 'General')]))];
   const issueCategories = categoriesList.filter(category => category !== 'All');
   const issueableAssets = assets.filter(asset => (asset.category || 'General') === issueCategoryFilter);
   const filteredIssues = issues.filter(issue =>
@@ -1148,17 +1163,9 @@ export const StorekeeperPortal = () => {
                     onChange={e => setForm({ ...form, category: e.target.value })}
                     className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"
                   >
-                    <option value="General">{uiText("General")}</option>
-                    <option value="Furniture & Fixtures">{uiText("Furniture & Fixtures")}</option>
-                    <option value="Electronics & IT">{uiText("Electronics & IT")}</option>
-                    <option value="Stationery & Supplies">{uiText("Stationery & Supplies")}</option>
-                    <option value="Laboratory Equipment">{uiText("Laboratory Equipment")}</option>
-                    <option value="Sports & PE">{uiText("Sports & PE")}</option>
-                    <option value="Building & Infrastructure">{uiText("Building & Infrastructure")}</option>
-                    <option value="Books">{uiText("Books")}</option>
-                    <option value="Detergents">{uiText("Detergents")}</option>
-                    <option value="Kitchen Utensils">{uiText("Kitchen Utensils")}</option>
-                    <option value="Plumbing Fixtures & Parts">{uiText("Plumbing Fixtures & Parts")}</option>
+                    {STORE_ASSET_CATEGORIES.map(cat => (
+                      <option key={cat} value={cat}>{uiText(cat)}</option>
+                    ))}
                   </select>
                 </div>
               </div>
