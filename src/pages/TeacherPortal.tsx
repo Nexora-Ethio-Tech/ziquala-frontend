@@ -1,7 +1,7 @@
 import { uiText } from "../localization";
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { BookOpen, Users, Calendar, ArrowRight, ArrowLeft, ClipboardList, FileText, Plus, X, CheckCircle2, XCircle, Loader2, Star, Save, Send, Search, ChevronLeft, ChevronRight, ChevronDown, AlertCircle, ShieldCheck, Eye, FlaskConical, Trash2, Printer } from 'lucide-react';
+import { BookOpen, Users, Calendar, ArrowRight, ArrowLeft, ClipboardList, FileText, Plus, X, CheckCircle2, XCircle, Loader2, Star, Save, Send, Search, ChevronLeft, ChevronRight, ChevronDown, AlertCircle, ShieldCheck, Eye, FlaskConical, Trash2, Printer, BookOpenCheck } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useUser } from '../context/UserContext';
@@ -621,6 +621,18 @@ export const TeacherPortal = () => {
     if (Array.isArray(pRoles) && pRoles.some((pr: string) => String(pr).toLowerCase().includes('lab'))) return true;
     return false;
   }, [user, dashboard]);
+
+  const isLibrarian = useMemo(() => {
+    if (!user) return false;
+    const r = String(user.role || '').toLowerCase();
+    const pType = String((user as any).staffProfile?.promotion?.promotionType || (user as any).staff_profile?.promotion?.promotion_type || '').toLowerCase();
+    const pRoles = (user as any).staffProfile?.promotion?.roles || (user as any).staff_profile?.promotion?.roles || [];
+
+    if (r === 'librarian') return true;
+    if (pType === 'librarian') return true;
+    if (Array.isArray(pRoles) && pRoles.includes('librarian')) return true;
+    return false;
+  }, [user]);
 
   const [labRequests, setLabRequests] = useState<any[]>(() => {
     try {
@@ -1769,6 +1781,17 @@ export const TeacherPortal = () => {
                 <div className="flex items-center gap-2 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-3.5 py-1.5 rounded-xl border border-purple-200 dark:border-purple-800 text-xs font-bold shadow-sm">
                   <ShieldCheck size={14} className="text-purple-600 dark:text-purple-400" />{uiText(" Department Head ")}
                 </div>
+              )}
+              {isLibrarian && (
+                <button
+                  type="button"
+                  onClick={() => navigate('/dashboard/librarian')}
+                  className="flex items-center gap-2 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/40 dark:hover:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 px-3.5 py-1.5 rounded-xl border border-indigo-200 dark:border-indigo-800 text-xs font-bold shadow-sm transition-all cursor-pointer"
+                  title={uiText("Switch to Librarian Portal")}
+                >
+                  <BookOpenCheck size={14} className="text-indigo-600 dark:text-indigo-400" />
+                  <span>{uiText("Librarian Portal")} →</span>
+                </button>
               )}
             </div>
           </div>

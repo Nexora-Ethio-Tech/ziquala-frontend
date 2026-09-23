@@ -127,9 +127,17 @@ const ProtectedRoute = ({
   }
 
   const normalizedRole = normalizeRouteRole(role) as UserRole;
-  if (allowedRoles && !allowedRoles.includes(normalizedRole)) {
-    // Kick them back to their own dashboard instead of the generic root
-    return <Navigate to={getDashboardRoute(normalizedRole)} replace />;
+  const isTeacherLibrarian = normalizedRole === 'teacher' && (
+    (user as any)?.staffProfile?.promotion?.roles?.includes('librarian') ||
+    (user as any)?.staffProfile?.promotion?.promotionType === 'librarian'
+  );
+
+  if (allowedRoles) {
+    const isAllowed = allowedRoles.includes(normalizedRole) || (isTeacherLibrarian && allowedRoles.includes('librarian'));
+    if (!isAllowed) {
+      // Kick them back to their own dashboard instead of the generic root
+      return <Navigate to={getDashboardRoute(normalizedRole)} replace />;
+    }
   }
 
   return children;

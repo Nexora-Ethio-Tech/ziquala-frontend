@@ -1,8 +1,10 @@
 import { uiError, uiText } from "../localization";
 import { useTranslation } from 'react-i18next';
 
-import { Book, Search, Plus, CheckCircle, Clock, RefreshCw, X } from 'lucide-react';
+import { Book, Search, Plus, CheckCircle, Clock, RefreshCw, X, BookOpenCheck, ArrowRight } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useUser } from '../context/UserContext';
 import { formatEthiopianLabel } from '../utils/ethiopianCalendar';
 import { API_HOST_URL } from '../config/api';
 
@@ -45,6 +47,14 @@ interface LoanType {
 
 export const Library = () => {
   const { t } = useTranslation();
+  const { user } = useUser();
+  const navigate = useNavigate();
+
+  const isTeacherLibrarian = user?.role === 'teacher' && (
+    (user as any)?.staffProfile?.promotion?.roles?.includes('librarian') ||
+    (user as any)?.staffProfile?.promotion?.promotionType === 'librarian'
+  );
+
   const [activeTab, setActiveTab] = useState<'catalog' | 'loans'>('catalog');
   const [books, setBooks] = useState<BookType[]>([]);
   const [availableBooks, setAvailableBooks] = useState<AvailableBook[]>([]);
@@ -232,6 +242,27 @@ export const Library = () => {
 
   return (
     <div className="space-y-6 pb-24">
+      {isTeacherLibrarian && (
+        <div className="bg-gradient-to-r from-indigo-700 via-purple-700 to-amber-700 text-white p-4 rounded-2xl shadow-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-white/20 backdrop-blur-md rounded-xl shrink-0">
+              <BookOpenCheck size={20} />
+            </div>
+            <div>
+              <h3 className="font-bold text-sm leading-tight">{uiText("Teacher & Librarian Responsibility")}</h3>
+              <p className="text-xs text-indigo-100 font-medium">{uiText("You are logged in as a teacher with Librarian access. Switch back to Teacher Portal anytime.")}</p>
+            </div>
+          </div>
+          <button
+            onClick={() => navigate('/dashboard/teacher')}
+            className="px-4 py-2 bg-white text-indigo-800 hover:bg-indigo-50 font-bold text-xs rounded-xl transition-all shadow-md shrink-0 flex items-center gap-1.5 cursor-pointer"
+          >
+            <span>{uiText("Switch to Teacher Portal")}</span>
+            <ArrowRight size={14} />
+          </button>
+        </div>
+      )}
+
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">{t("libraryPage.libraryManagement", "Library Management")}</h2>

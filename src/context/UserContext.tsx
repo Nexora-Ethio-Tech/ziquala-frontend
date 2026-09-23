@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 
 export type UserRole = 'super-admin' | 'academic-manager' | 'school-admin' | 'vice-principal' | 'teacher' | 'student' | 'parent' | 'librarian' | 'storekeeper';
@@ -10,6 +9,10 @@ export interface User {
   email: string;
   role: SessionRole;
   digitalId?: string;
+  branchId?: string;
+  branchName?: string;
+  status?: string;
+  staffProfile?: any;
 }
 
 interface Branch {
@@ -314,6 +317,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             branchId: rawUser.branch_id || rawUser.branchId,
             branchName: rawUser.branch_name || rawUser.branchName || 'My Branch',
             status: rawUser.status,
+            staffProfile: rawUser.staff_profile || rawUser.staffProfile,
           };
           console.log('[VerifyToken] Setting user with role:', user.role);
           setUser(user);
@@ -410,6 +414,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
           branchId: rawUser.branch_id || rawUser.branchId,
           branchName: rawUser.branch_name || rawUser.branchName || 'My Branch',
           status: rawUser.status,
+          staffProfile: rawUser.staff_profile || rawUser.staffProfile,
         };
 
         // Store tokens BEFORE updating user state

@@ -54,7 +54,7 @@ const dashboardRoutes: Record<UserRole, string> = {
 };
 
 export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
-  const { role, logout, schoolName } = useUser();
+  const { user, role, logout, schoolName } = useUser();
   const { isExamLockedDown, selectedBranchId } = useStore();
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -126,16 +126,35 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
           { icon: BookOpen, label: t('nav.communicationBook', 'Communication Book'), path: '/vp-communication' },
           { icon: LibraryBig, label: uiText('eLearning'), path: '/elearning-library' },
         ];
-      case 'teacher':
-        return [
+      case 'teacher': {
+        const isPromotedLibrarian = user?.role === 'teacher' && (
+          (user as any)?.staffProfile?.promotion?.roles?.includes('librarian') ||
+          (user as any)?.staffProfile?.promotion?.promotionType === 'librarian'
+        );
+        const nav: NavItem[] = [
           { icon: LayoutDashboard, label: t('nav.teacherPortal', 'Teacher Portal'), path: dashboardRoutes.teacher },
+        ];
+
+        if (isPromotedLibrarian) {
+          nav.push({ icon: LibraryBig, label: t('nav.librarianPortal', 'Librarian Portal'), path: '/dashboard/librarian' });
+        }
+
+        nav.push(
           { icon: BookOpen, label: t('nav.weeklyPlans', 'Weekly Plans'), path: '/dashboard/teacher?tab=plans' },
           { icon: CalendarCheck, label: t('nav.attendance', 'Attendance'), path: '/attendance' },
           { icon: BookOpen, label: t('nav.mySchedule', 'My Schedule'), path: '/schedule' },
           { icon: ClipboardCheck, label: t('nav.gradeEntry', 'Grade Entry'), path: '/grades' },
           { icon: ClipboardList, label: t('nav.exams', 'Exams'), path: '/exams' },
-          { icon: LibraryBig, label: uiText('eLearning'), path: '/elearning-library' },
-        ];
+        );
+
+        if (isPromotedLibrarian) {
+          nav.push({ icon: LibraryBig, label: t('nav.libraryManagement', 'Library Management'), path: '/library' });
+        }
+
+        nav.push({ icon: LibraryBig, label: uiText('eLearning'), path: '/elearning-library' });
+
+        return nav;
+      }
       case 'student':
         return [
           { icon: LayoutDashboard, label: t('nav.myDashboard', 'My Dashboard'), path: dashboardRoutes.student },
