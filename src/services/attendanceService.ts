@@ -83,6 +83,16 @@ const attendanceService = {
     return response.data.data;
   },
 
+  getStudentAttendanceRoster: async (grade: string, date: string): Promise<any[]> => {
+    const response = await api.get('/school-admin/attendance/roster', { params: { grade, date } });
+    return response.data.data;
+  },
+
+  saveStudentAttendance: async (date: string, attendanceRecords: Array<{ studentId: string; status: string }>): Promise<any> => {
+    const response = await api.post('/school-admin/attendance', { date, attendanceRecords });
+    return response.data.data;
+  },
+
   // Get student attendance history (30-day average and stats)
   getStudentAttendanceHistory: async (studentId: string, days?: number): Promise<any> => {
     const response = await api.get(`/school-admin/students/${studentId}/attendance-history`, {

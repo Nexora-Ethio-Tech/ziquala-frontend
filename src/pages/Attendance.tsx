@@ -6,7 +6,6 @@ import { useUser } from '../context/UserContext';
 import { useNavigate } from 'react-router-dom';
 import { Breadcrumbs } from '../components/Breadcrumbs';
 import attendanceService from '../services/attendanceService';
-import studentService from '../services/studentService';
 import { getTodayEthiopianDate, parseEthiopianDateString, formatEthiopianLabel } from '../utils/ethiopianCalendar';
 import { EthiopianDatePicker } from '../components/EthiopianDatePicker';
 import { getAttendanceTimes, saveAttendanceTimes, AttendanceTimeWindows } from '../services/schoolAdminService';
@@ -167,12 +166,17 @@ export const Attendance = () => {
     const fetchStudents = async () => {
       setLoading(true);
       try {
-        const data = await studentService.getAllStudents({ grade: selectedGrade });
+        if (!selectedGrade) {
+          setStudents([]);
+          setAttendance({});
+          return;
+        }
+        const data = await attendanceService.getStudentAttendanceRoster(selectedGrade, selectedDate);
         setStudents(data || []);
         // Initialize attendance state
         const initialAttendance: Record<string, 'present' | 'absent'> = {};
         data?.forEach((s: any) => {
-          initialAttendance[s.id] = 'present';
+          initialAttendance[s.id] = s.status === 'absent' ? 'absent' : 'present';
         });
         setAttendance(initialAttendance);
 
@@ -199,7 +203,7 @@ export const Attendance = () => {
       }
     };
     fetchStudents();
-  }, [selectedGrade, attendanceMode, isAdmin]);
+  }, [selectedGrade, selectedDate, attendanceMode, isAdmin]);
 
   // Fetch staff attendance from backend (biometric & manually logged ZKTeco devices)
   useEffect(() => {
@@ -1004,10 +1008,7 @@ export const Attendance = () => {
                     studentId,
                     status
                   }));
-                  await api.post('/teacher/attendance', {
-                    date: selectedDate,
-                    attendanceRecords: records
-                  });
+                  await attendanceService.saveStudentAttendance(selectedDate, records);
                   alert(uiText("Attendance saved successfully!"));
                 } catch (error: any) {
                   alert(uiError('Failed to save attendance: ' + (error?.response?.data?.error?.message || error.message || 'Unknown error')));
