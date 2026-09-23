@@ -1056,10 +1056,10 @@ export const VPGradeManagement = () => {
                         </td>
                       ))}
                       <td className="px-4 py-4 text-center font-semibold text-slate-800 dark:text-white">
-                        {uiText(student.total ? student.total.toFixed(2) : '-')}
+                        {uiText(typeof student.total === 'number' && !isNaN(student.total) && student.total > 0 ? student.total.toFixed(2) : '-')}
                       </td>
                       <td className="px-4 py-4 text-center font-semibold text-slate-800 dark:text-white">
-                        {uiText(student.average ? `${student.average.toFixed(2)}%` : '-')}
+                        {uiText(typeof student.average === 'number' && !isNaN(student.average) && student.average > 0 ? `${student.average.toFixed(2)}%` : '-')}
                       </td>
                       <td className="px-4 py-4 text-center">
                         {student.rank ? (
