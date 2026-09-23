@@ -151,7 +151,12 @@ export const Teachers = () => {
   const [superviseLabRequests, setSuperviseLabRequests] = useState<any[]>(() => {
     try {
       const stored = localStorage.getItem('lab_requisition_requests');
-      if (stored) return JSON.parse(stored);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          return parsed.filter((r: any) => r.status === 'Approved by Lab Tech' || r.status === 'Approved by Principal');
+        }
+      }
     } catch {}
     return [];
   });
@@ -160,24 +165,26 @@ export const Teachers = () => {
     try {
       const data = await getBranchLabRequisitions().catch(() => null);
       if (Array.isArray(data) && data.length > 0) {
-        const mapped = data.map((r: any) => ({
-          id: r.id,
-          academicYear: r.academic_year || r.academicYear,
-          gradeLevel: r.grade_level || r.gradeLevel,
-          subject: r.subject,
-          teacherName: r.teacher_name || r.teacherName,
-          labTechId: r.lab_tech_id || r.labTechId,
-          labTechName: r.lab_tech_name || r.labTechName,
-          labTechSignature: r.lab_tech_signature || r.labTechSignature,
-          labTechFeedback: r.lab_tech_feedback || r.labTechFeedback,
-          principalId: r.principal_id || r.principalId,
-          principalName: r.principal_name || r.principalName,
-          principalSignature: r.principal_signature || r.principalSignature,
-          principalFeedback: r.principal_feedback || r.principalFeedback,
-          items: typeof r.items === 'string' ? JSON.parse(r.items) : (r.items || []),
-          status: r.status,
-          created_at: r.created_at || r.createdAt
-        }));
+        const mapped = data
+          .filter((r: any) => r.status === 'Approved by Lab Tech' || r.status === 'Approved by Principal')
+          .map((r: any) => ({
+            id: r.id,
+            academicYear: r.academic_year || r.academicYear,
+            gradeLevel: r.grade_level || r.gradeLevel,
+            subject: r.subject,
+            teacherName: r.teacher_name || r.teacherName,
+            labTechId: r.lab_tech_id || r.labTechId,
+            labTechName: r.lab_tech_name || r.labTechName,
+            labTechSignature: r.lab_tech_signature || r.labTechSignature,
+            labTechFeedback: r.lab_tech_feedback || r.labTechFeedback,
+            principalId: r.principal_id || r.principalId,
+            principalName: r.principal_name || r.principalName,
+            principalSignature: r.principal_signature || r.principalSignature,
+            principalFeedback: r.principal_feedback || r.principalFeedback,
+            items: typeof r.items === 'string' ? JSON.parse(r.items) : (r.items || []),
+            status: r.status,
+            created_at: r.created_at || r.createdAt
+          }));
         setSuperviseLabRequests(mapped);
       }
     } catch {}
@@ -1192,7 +1199,7 @@ export const Teachers = () => {
               }`}
             >
               <FlaskConical size={16} />
-              <span>{uiText(" 🧪 Lab Requisition ")}</span>
+              <span>{uiText(" 🧪 Lab Requisitions Supervision ")}</span>
               {superviseLabRequests.filter((r: any) => r.status === 'Approved by Lab Tech').length > 0 && (
                 <span className="bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 text-xs px-2 py-0.5 rounded-full font-bold">
                   {superviseLabRequests.filter((r: any) => r.status === 'Approved by Lab Tech').length}
@@ -2381,7 +2388,7 @@ export const Teachers = () => {
               <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl shrink-0 overflow-x-auto">
                 <Filter size={14} className="text-slate-400 ml-2 shrink-0" />
                 {[
-                  { key: 'all', label: uiText('All Approved') },
+                  { key: 'all', label: uiText('All Approved by Tech') },
                   { key: 'pending', label: uiText('Pending Principal Approval') },
                   { key: 'Approved by Principal', label: uiText('Approved by Principal') },
                 ].map(({ key, label }) => {
