@@ -1044,30 +1044,34 @@ export const VPGradeManagement = () => {
                           {student.grades[course.id] ? (
                             <div className="flex items-center justify-center gap-1">
                               <span className="font-semibold text-slate-800 dark:text-white">
-                                {uiText(student.grades[course.id].score)}
+                                {student.grades[course.id].score}
                               </span>
-                              {uiText(student.grades[course.id].score && (
+                              {student.grades[course.id].score !== undefined && (
                                 <CheckCircle2 className="text-emerald-500" size={14} />
-                              ))}
+                              )}
                             </div>
                           ) : (
-                            <span className="text-slate-400 dark:text-slate-500 text-sm">{uiText("-")}</span>
+                            <span className="text-slate-400 dark:text-slate-500 text-sm font-bold">-</span>
                           )}
                         </td>
                       ))}
                       <td className="px-4 py-4 text-center font-semibold text-slate-800 dark:text-white">
-                        {uiText(typeof student.total === 'number' && !isNaN(student.total) && student.total > 0 ? student.total.toFixed(2) : '-')}
+                        {isStudentGradeComplete(student) && typeof student.total === 'number' && !isNaN(student.total)
+                          ? student.total.toFixed(2)
+                          : '-'}
                       </td>
                       <td className="px-4 py-4 text-center font-semibold text-slate-800 dark:text-white">
-                        {uiText(typeof student.average === 'number' && !isNaN(student.average) && student.average > 0 ? `${student.average.toFixed(2)}%` : '-')}
+                        {isStudentGradeComplete(student) && typeof student.average === 'number' && !isNaN(student.average)
+                          ? `${student.average.toFixed(2)}%`
+                          : '-'}
                       </td>
                       <td className="px-4 py-4 text-center">
-                        {student.rank ? (
+                        {isStudentGradeComplete(student) && student.rank ? (
                           <span className="px-3 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-full text-sm font-bold">
                             {student.rank}
                           </span>
                         ) : (
-                          <span className="text-slate-400 dark:text-slate-500 text-sm">{uiText("-")}</span>
+                          <span className="text-slate-400 dark:text-slate-500 text-sm font-bold">-</span>
                         )}
                       </td>
                     </tr>
