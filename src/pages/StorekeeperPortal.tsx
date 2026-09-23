@@ -381,8 +381,8 @@ export const StorekeeperPortal = () => {
 
       {/* Delete Confirmation Modal */}
       {deleteConfirm && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => setDeleteConfirm(null)}>
-          <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 max-w-sm w-full shadow-2xl border border-slate-200 dark:border-slate-800" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto" onClick={() => setDeleteConfirm(null)}>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 max-w-sm w-full shadow-2xl border border-slate-200 dark:border-slate-800 max-h-[90vh] overflow-y-auto my-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 bg-rose-100 rounded-xl"><Trash2 size={20} className="text-rose-600" /></div>
               <h3 className="font-black text-slate-800 dark:text-white">{uiText("Remove Asset?")}</h3>
@@ -401,8 +401,8 @@ export const StorekeeperPortal = () => {
         const isConsumable = editingIssue.status === 'Consumed' || editingIssue.is_consumable || editingIssue.item_type === 'Consumable' || editingIssue.asset_category === 'Stationery & Supplies';
 
         return (
-          <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => setEditingIssue(null)}>
-            <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-slate-200 dark:border-slate-800" onClick={e => e.stopPropagation()}>
+          <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto" onClick={() => setEditingIssue(null)}>
+            <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 max-w-lg w-full shadow-2xl border border-slate-200 dark:border-slate-800 max-h-[90vh] overflow-y-auto my-auto" onClick={e => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-5">
                 <div className="flex items-center gap-3">
                   <div className="p-2.5 bg-blue-100 dark:bg-blue-500/10 rounded-2xl"><Pencil size={20} className="text-blue-600 dark:text-blue-400" /></div>
@@ -430,7 +430,7 @@ export const StorekeeperPortal = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1">
                     <label className="text-xs font-black text-slate-500 uppercase tracking-wide">{uiText('Issued To (Person/Dept) *')}</label>
                     <input type="text" required value={issueEditForm.issued_to_name} onChange={e => setIssueEditForm({ ...issueEditForm, issued_to_name: e.target.value })} className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
@@ -485,8 +485,8 @@ export const StorekeeperPortal = () => {
         const isSelectedConsumable = selectedAssetForIssue?.is_consumable || selectedAssetForIssue?.item_type === 'Consumable' || selectedAssetForIssue?.category === 'Stationery & Supplies';
 
         return (
-          <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => setIssueModalOpen(false)}>
-            <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-slate-200 dark:border-slate-800" onClick={e => e.stopPropagation()}>
+          <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto" onClick={() => setIssueModalOpen(false)}>
+            <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 max-w-lg w-full shadow-2xl border border-slate-200 dark:border-slate-800 max-h-[90vh] overflow-y-auto my-auto" onClick={e => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-5">
                 <div className="flex items-center gap-3">
                   <div className="p-2.5 bg-indigo-100 dark:bg-indigo-500/10 rounded-2xl">
@@ -586,7 +586,7 @@ export const StorekeeperPortal = () => {
                   </div>
                 )}
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1">
                     <label className="text-xs font-black text-slate-500 uppercase tracking-wide">{uiText("Issued To (Person/Dept) *")}</label>
                     <input
@@ -615,7 +615,7 @@ export const StorekeeperPortal = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1">
                     <label className="text-xs font-black text-slate-500 uppercase tracking-wide">{uiText("Quantity *")}</label>
                     <input
