@@ -171,7 +171,8 @@ export const Attendance = () => {
           setAttendance({});
           return;
         }
-        const data = await attendanceService.getStudentAttendanceRoster(selectedGrade, selectedDate);
+        const [grade, section = ''] = selectedGrade.split('|||');
+        const data = await attendanceService.getStudentAttendanceRoster(grade, section, selectedDate);
         setStudents(data || []);
         // Initialize attendance state
         const initialAttendance: Record<string, 'present' | 'absent'> = {};
@@ -381,7 +382,8 @@ export const Attendance = () => {
             // Format grade display: "Grade 10" or "Grade 10 - Section A"
             let gradeDisplay = gradeText;
             if (item.section && item.section.trim()) {
-              gradeDisplay = `${gradeText} - ${item.section}`;
+              const sectionLabel = /^section\s/i.test(item.section) ? item.section : `Section ${item.section}`;
+              gradeDisplay = `${gradeText} - ${sectionLabel}`;
             }
 
             // Extract just the number for the badge (e.g., "10" from "Grade 10 - Section A")
@@ -390,6 +392,8 @@ export const Attendance = () => {
             return {
               id: item.id,
               grade: gradeDisplay,
+              gradeValue: item.grade,
+              sectionValue: item.section || '',
               badgeNumber: badgeNumber,
               enrollment: parseInt(item.total_students, 10),
               present: parseInt(item.present || 0, 10),
@@ -1035,7 +1039,7 @@ export const Attendance = () => {
                 >
                   <option value="">{uiText("-- ")}{t("attendance.selectGradeOption", "Select Grade")}{uiText(" --")}</option>
                   {gradeStats.map((grade, idx) => (
-                    <option key={grade.id ? `grade-opt-${grade.id}-${idx}` : `grade-opt-${idx}`} value={grade.grade}>{uiText(grade.grade)}</option>
+                    <option key={grade.id ? `grade-opt-${grade.id}-${idx}` : `grade-opt-${idx}`} value={`${grade.gradeValue}|||${grade.sectionValue}`}>{uiText(grade.grade)}</option>
                   ))}
                 </select>
                 <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />

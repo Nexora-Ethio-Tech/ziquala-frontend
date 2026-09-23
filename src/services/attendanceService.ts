@@ -83,8 +83,8 @@ const attendanceService = {
     return response.data.data;
   },
 
-  getStudentAttendanceRoster: async (grade: string, date: string): Promise<any[]> => {
-    const response = await api.get('/school-admin/attendance/roster', { params: { grade, date } });
+  getStudentAttendanceRoster: async (grade: string, section: string, date: string): Promise<any[]> => {
+    const response = await api.get('/school-admin/attendance/roster', { params: { grade, section, date } });
     return response.data.data;
   },
 
