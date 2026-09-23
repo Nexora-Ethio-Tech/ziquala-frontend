@@ -639,21 +639,58 @@ export const TeacherPortal = () => {
   const [selectedLabForView, setSelectedLabForView] = useState<any | null>(null);
   const [labReviewFeedback, setLabReviewFeedback] = useState('');
   const [labReviewFilter, setLabReviewFilter] = useState<'ALL' | 'Pending Review' | 'Approved by Tech' | 'Revision Required'>('ALL');
+  const [labReviewSearchQuery, setLabReviewSearchQuery] = useState('');
+  const [labReviewGradeFilter, setLabReviewGradeFilter] = useState('all');
+  const [labReviewSubjectFilter, setLabReviewSubjectFilter] = useState('all');
+
+  const availableLabReviewGrades = useMemo(() => {
+    const grades = new Set<string>();
+    labRequests.forEach(r => {
+      if (r.gradeLevel) grades.add(r.gradeLevel);
+    });
+    return Array.from(grades).sort();
+  }, [labRequests]);
+
+  const availableLabReviewSubjects = useMemo(() => {
+    const subjects = new Set<string>();
+    labRequests.forEach(r => {
+      if (r.subject) subjects.add(r.subject);
+    });
+    return Array.from(subjects).sort();
+  }, [labRequests]);
 
   const filteredLabReviewRequests = useMemo(() => {
     return labRequests.filter((req: any) => {
-      if (labReviewFilter === 'Pending Review') {
-        return req.status === 'Submitted to Lab Tech';
+      if (labReviewFilter === 'Pending Review' && req.status !== 'Submitted to Lab Tech') {
+        return false;
       }
-      if (labReviewFilter === 'Approved by Tech') {
-        return req.status === 'Approved by Lab Tech' || req.status === 'Approved by Principal';
+      if (labReviewFilter === 'Approved by Tech' && req.status !== 'Approved by Lab Tech' && req.status !== 'Approved by Principal') {
+        return false;
       }
-      if (labReviewFilter === 'Revision Required') {
-        return req.status === 'Revision Required';
+      if (labReviewFilter === 'Revision Required' && req.status !== 'Revision Required') {
+        return false;
       }
+
+      if (labReviewSearchQuery.trim()) {
+        const q = labReviewSearchQuery.toLowerCase().trim();
+        const matchesSearch =
+          (req.teacherName || '').toLowerCase().includes(q) ||
+          (req.subject || '').toLowerCase().includes(q) ||
+          (req.gradeLevel || '').toLowerCase().includes(q);
+        if (!matchesSearch) return false;
+      }
+
+      if (labReviewGradeFilter !== 'all') {
+        if ((req.gradeLevel || '').toLowerCase() !== labReviewGradeFilter.toLowerCase()) return false;
+      }
+
+      if (labReviewSubjectFilter !== 'all') {
+        if ((req.subject || '').toLowerCase() !== labReviewSubjectFilter.toLowerCase()) return false;
+      }
+
       return true;
     });
-  }, [labRequests, labReviewFilter]);
+  }, [labRequests, labReviewFilter, labReviewSearchQuery, labReviewGradeFilter, labReviewSubjectFilter]);
 
   // ─── Branch Staff & Lab Requisition Fetching ───
   const [branchLabTechs, setBranchLabTechs] = useState<any[]>([]);
@@ -1965,7 +2002,7 @@ export const TeacherPortal = () => {
                 </div>
               </div>
 
-              {/* Summary Stats Cards (Interactive Filters) */}
+              {/* Summary Stats Cards (Interactive Quick Filters) */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <button
                   type="button"
@@ -2043,6 +2080,128 @@ export const TeacherPortal = () => {
                 </button>
               </div>
 
+              {/* Search & Multi-criteria Filters */}
+              <div className="bg-white dark:bg-slate-900 rounded-[2rem] p-5 sm:p-6 border border-slate-100 dark:border-slate-800 shadow-xl space-y-4">
+                {/* Status Filter Tabs */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-1.5 bg-slate-100 dark:bg-slate-800/80 rounded-2xl">
+                  {[
+                    { key: 'ALL', label: `${uiText('All')} (${labRequests.length})` },
+                    { key: 'Pending Review', label: `${uiText('Pending')} (${labRequests.filter(r => r.status === 'Submitted to Lab Tech').length})` },
+                    { key: 'Approved by Tech', label: `${uiText('Approved')} (${labRequests.filter(r => r.status === 'Approved by Lab Tech' || r.status === 'Approved by Principal').length})` },
+                    { key: 'Revision Required', label: `${uiText('Revision')} (${labRequests.filter(r => r.status === 'Revision Required').length})` },
+                  ].map(({ key, label }) => {
+                    const isActive = labReviewFilter === key;
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => setLabReviewFilter(key as any)}
+                        className={`px-3 py-2 rounded-xl text-xs font-black transition-all text-center ${
+                          isActive
+                            ? 'bg-amber-600 text-white shadow-md'
+                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-700/50'
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Search Input & Select Dropdowns */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                  {/* Search */}
+                  <div className="relative sm:col-span-2 md:col-span-1">
+                    <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                    <input
+                      type="text"
+                      placeholder={uiText("Search teacher, subject, grade...")}
+                      value={labReviewSearchQuery}
+                      onChange={(e) => setLabReviewSearchQuery(e.target.value)}
+                      className="w-full pl-10 pr-8 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs font-bold outline-none focus:ring-2 focus:ring-amber-500 transition-all text-slate-900 dark:text-white"
+                    />
+                    {labReviewSearchQuery && (
+                      <button
+                        type="button"
+                        onClick={() => setLabReviewSearchQuery('')}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                      >
+                        <X size={14} />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Grade Filter */}
+                  <select
+                    value={labReviewGradeFilter}
+                    onChange={(e) => setLabReviewGradeFilter(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs font-bold outline-none focus:ring-2 focus:ring-amber-500 transition-all text-slate-800 dark:text-slate-200 cursor-pointer shadow-xs"
+                  >
+                    <option value="all">{uiText("All Grade Levels")}</option>
+                    {availableLabReviewGrades.map(g => (
+                      <option key={g} value={g}>{uiText(g)}</option>
+                    ))}
+                  </select>
+
+                  {/* Subject Filter */}
+                  <select
+                    value={labReviewSubjectFilter}
+                    onChange={(e) => setLabReviewSubjectFilter(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs font-bold outline-none focus:ring-2 focus:ring-amber-500 transition-all text-slate-800 dark:text-slate-200 cursor-pointer shadow-xs"
+                  >
+                    <option value="all">{uiText("All Subjects")}</option>
+                    {availableLabReviewSubjects.map(s => (
+                      <option key={s} value={s}>{uiText(s)}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Active Filters Bar / Reset Button */}
+                {(labReviewSearchQuery || labReviewGradeFilter !== 'all' || labReviewSubjectFilter !== 'all' || labReviewFilter !== 'ALL') && (
+                  <div className="flex items-center justify-between gap-2 pt-3 border-t border-slate-100 dark:border-slate-800 flex-wrap">
+                    <div className="flex items-center gap-2 flex-wrap min-w-0">
+                      <span className="text-xs font-bold text-slate-400 shrink-0">{uiText("Active Filters:")}</span>
+                      {labReviewFilter !== 'ALL' && (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 rounded-full text-xs font-bold">
+                          {uiText(labReviewFilter)}
+                          <button type="button" onClick={() => setLabReviewFilter('ALL')}><X size={12} /></button>
+                        </span>
+                      )}
+                      {labReviewGradeFilter !== 'all' && (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 rounded-full text-xs font-bold">
+                          {uiText(labReviewGradeFilter)}
+                          <button type="button" onClick={() => setLabReviewGradeFilter('all')}><X size={12} /></button>
+                        </span>
+                      )}
+                      {labReviewSubjectFilter !== 'all' && (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 rounded-full text-xs font-bold">
+                          {uiText(labReviewSubjectFilter)}
+                          <button type="button" onClick={() => setLabReviewSubjectFilter('all')}><X size={12} /></button>
+                        </span>
+                      )}
+                      {labReviewSearchQuery && (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300 rounded-full text-xs font-bold truncate max-w-[200px]">
+                          "{labReviewSearchQuery}"
+                          <button type="button" onClick={() => setLabReviewSearchQuery('')}><X size={12} /></button>
+                        </span>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setLabReviewSearchQuery('');
+                        setLabReviewGradeFilter('all');
+                        setLabReviewSubjectFilter('all');
+                        setLabReviewFilter('ALL');
+                      }}
+                      className="text-xs font-bold text-rose-500 hover:text-rose-600 hover:underline shrink-0"
+                    >
+                      {uiText("Reset All Filters")}
+                    </button>
+                  </div>
+                )}
+              </div>
+
               {/* Requisitions List for Lab Tech */}
               <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-xl overflow-hidden">
                 <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between flex-wrap gap-4">
@@ -2050,52 +2209,9 @@ export const TeacherPortal = () => {
                     <h3 className="font-black text-slate-800 dark:text-white">{uiText("Branch Laboratory Requisitions")}</h3>
                     <p className="text-xs text-slate-500 mt-0.5">{uiText("Inspect and sign experiment requests from teachers in your branch")}</p>
                   </div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <button
-                      type="button"
-                      onClick={() => setLabReviewFilter('ALL')}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all ${
-                        labReviewFilter === 'ALL'
-                          ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-sm'
-                          : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 hover:bg-slate-200'
-                      }`}
-                    >
-                      {uiText("All")} ({labRequests.length})
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setLabReviewFilter('Pending Review')}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all ${
-                        labReviewFilter === 'Pending Review'
-                          ? 'bg-amber-600 text-white shadow-sm'
-                          : 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 hover:bg-amber-100'
-                      }`}
-                    >
-                      {uiText("Pending")} ({labRequests.filter(r => r.status === 'Submitted to Lab Tech').length})
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setLabReviewFilter('Approved by Tech')}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all ${
-                        labReviewFilter === 'Approved by Tech'
-                          ? 'bg-emerald-600 text-white shadow-sm'
-                          : 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 hover:bg-emerald-100'
-                      }`}
-                    >
-                      {uiText("Approved")} ({labRequests.filter(r => r.status === 'Approved by Lab Tech' || r.status === 'Approved by Principal').length})
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setLabReviewFilter('Revision Required')}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all ${
-                        labReviewFilter === 'Revision Required'
-                          ? 'bg-orange-600 text-white shadow-sm'
-                          : 'bg-orange-50 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300 hover:bg-orange-100'
-                      }`}
-                    >
-                      {uiText("Revision")} ({labRequests.filter(r => r.status === 'Revision Required').length})
-                    </button>
-                  </div>
+                  <span className="text-xs font-bold text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-3 py-1 rounded-full">
+                    {filteredLabReviewRequests.length} {uiText("requisition form(s)")}
+                  </span>
                 </div>
 
                 {filteredLabReviewRequests.length === 0 ? (
