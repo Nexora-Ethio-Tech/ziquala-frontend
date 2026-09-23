@@ -10,6 +10,8 @@ export interface StudentProfileInfo {
   birthPlace?: string;
   region?: string;
   town?: string;
+  houseNo?: string;
+  house_no?: string;
   telNo?: string;
   phoneNo?: string;
   poBox?: string;
@@ -57,10 +59,40 @@ export const TranscriptTemplate = ({ studentData }: TranscriptTemplateProps) => 
   const age = student.age || '';
   const birthDate = student.birthDate || '';
   const birthPlace = student.birthPlace || '';
-  const region = student.region || '';
-  const town = student.town || '';
+  const region = student.region || 'Oromia';
+  const town = student.town || 'Bishoftu';
   const telNo = student.telNo || student.phoneNo || '';
-  const poBox = student.poBox || '';
+
+  // Calculate age dynamically from birthDate if age is not explicitly set
+  const calculatedAge = React.useMemo(() => {
+    if (age && String(age).trim() !== '' && String(age).trim() !== '_____') {
+      return String(age);
+    }
+    if (!birthDate) return '';
+    const nums = String(birthDate).match(/\d+/g);
+    if (!nums || nums.length === 0) return '';
+    let year = 0;
+    for (const n of nums) {
+      if (n.length === 4) {
+        year = parseInt(n, 10);
+        break;
+      }
+    }
+    if (year > 1900 && year <= 2030) {
+      const currentGreg = new Date().getFullYear();
+      let estAge = currentGreg - year;
+      if (year >= 2000 && year <= 2025 && currentGreg > 2020) {
+        const currentECYear = currentGreg - 8;
+        if (year <= currentECYear) {
+          estAge = currentECYear - year;
+        }
+      }
+      return estAge > 0 ? String(estAge) : '';
+    }
+    return '';
+  }, [age, birthDate]);
+
+  const displayAge = calculatedAge || age || '';
 
   const year1Label = studentData.year1Label || studentData.academicYear || '_______';
   const year1Class = studentData.year1Class || 'Grade 7';
@@ -83,77 +115,71 @@ export const TranscriptTemplate = ({ studentData }: TranscriptTemplateProps) => 
   ];
 
   return (
-    <div className="transcript-page w-full max-w-[210mm] mx-auto p-6 bg-white text-black font-serif shadow-2xl print:shadow-none print:p-0 print:m-0 print:w-full">
+    <div className="transcript-page w-full max-w-[210mm] mx-auto p-4 sm:p-6 bg-white text-black font-serif shadow-2xl print:shadow-none print:p-0 print:m-0 print:w-full">
 
       {/* Title Header Banner */}
       <div className="text-center mb-6">
-        <h1 className="text-lg sm:text-xl font-black tracking-tight uppercase text-black font-serif border-b-2 border-black inline-block pb-1">{uiText("ZIQUALA ABO MONASTERY PRIMARY SCHOOL STUDENT TRANSCRIPT SHEET")}</h1>
+        <h1 className="text-base sm:text-xl font-black tracking-tight uppercase text-black font-serif border-b-2 border-black inline-block pb-1">{uiText("ZIQUALA ABO MONASTERY PRIMARY SCHOOL STUDENT TRANSCRIPT SHEET")}</h1>
       </div>
 
       {/* Student Registration Demographic Info Box */}
-      <div className="border border-black bg-gray-200 p-4 text-xs font-serif font-bold text-black space-y-3 mb-6">
-        {/* Row 1: Full Name, Sex, Age */}
-        <div className="grid grid-cols-12 gap-2 items-baseline">
-          <div className="col-span-6 flex items-baseline">
-            <span className="whitespace-nowrap">{uiText("Full Name:-")}</span>
+      <div className="border border-black bg-white p-3 sm:p-4 text-xs font-serif font-bold text-black space-y-3 mb-6 print:bg-white">
+        {/* Row 1: Full Name | Sex | Age */}
+        <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
+          <div className="flex items-baseline flex-1 min-w-[240px]">
+            <span className="whitespace-nowrap shrink-0">{uiText("Full Name:-")}</span>
             <span className="flex-1 border-b border-black ml-1.5 px-2 font-mono font-normal min-h-[18px]">
               {uiText(fullName || '__________________________')}
             </span>
           </div>
-          <div className="col-span-3 flex items-baseline">
-            <span className="whitespace-nowrap">{uiText("Sex:-")}</span>
-            <span className="flex-1 border-b border-black ml-1.5 text-center font-mono font-normal min-h-[18px]">
+          <div className="flex items-baseline shrink-0 min-w-[120px]">
+            <span className="whitespace-nowrap shrink-0">{uiText("Sex:-")}</span>
+            <span className="flex-1 border-b border-black ml-1.5 px-2 text-center font-mono font-normal min-h-[18px]">
               {uiText(sex || '_____')}
             </span>
           </div>
-          <div className="col-span-3 flex items-baseline">
-            <span className="whitespace-nowrap">{uiText("Age:-")}</span>
-            <span className="flex-1 border-b border-black ml-1.5 text-center font-mono font-normal min-h-[18px]">
-              {uiText(age || '_____')}
+          <div className="flex items-baseline shrink-0 min-w-[110px]">
+            <span className="whitespace-nowrap shrink-0">{uiText("Age:-")}</span>
+            <span className="flex-1 border-b border-black ml-1.5 px-2 text-center font-mono font-normal min-h-[18px]">
+              {uiText(displayAge || '_____')}
             </span>
           </div>
         </div>
 
-        {/* Row 2: Birth date, Birth place, Region, Town */}
-        <div className="grid grid-cols-12 gap-2 items-baseline">
-          <div className="col-span-4 flex items-baseline">
-            <span className="whitespace-nowrap">{uiText("Birth date:-")}</span>
+        {/* Row 2: Birth date | Birth place | Region | Town */}
+        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
+          <div className="flex items-baseline flex-1 min-w-[190px]">
+            <span className="whitespace-nowrap shrink-0">{uiText("Birth date:-")}</span>
             <span className="flex-1 border-b border-black ml-1.5 px-1 font-mono font-normal min-h-[18px]">
               {uiText(birthDate || '___________')}
             </span>
           </div>
-          <div className="col-span-3 flex items-baseline">
-            <span className="whitespace-nowrap">{uiText("Birth place:-")}</span>
+          <div className="flex items-baseline flex-1 min-w-[160px]">
+            <span className="whitespace-nowrap shrink-0">{uiText("Birth place:-")}</span>
             <span className="flex-1 border-b border-black ml-1.5 px-1 font-mono font-normal min-h-[18px]">
               {uiText(birthPlace || '_______')}
             </span>
           </div>
-          <div className="col-span-3 flex items-baseline">
-            <span className="whitespace-nowrap">{uiText("Region:-")}</span>
+          <div className="flex items-baseline shrink-0 min-w-[120px]">
+            <span className="whitespace-nowrap shrink-0">{uiText("Region:-")}</span>
             <span className="flex-1 border-b border-black ml-1.5 px-1 font-mono font-normal min-h-[18px]">
               {uiText(region || '_______')}
             </span>
           </div>
-          <div className="col-span-2 flex items-baseline">
-            <span className="whitespace-nowrap">{uiText("Town:-")}</span>
+          <div className="flex items-baseline shrink-0 min-w-[110px]">
+            <span className="whitespace-nowrap shrink-0">{uiText("Town:-")}</span>
             <span className="flex-1 border-b border-black ml-1.5 px-1 font-mono font-normal min-h-[18px]">
               {uiText(town || '_______')}
             </span>
           </div>
         </div>
 
-        {/* Row 3: Tel.No., Po.Box */}
-        <div className="grid grid-cols-12 gap-2 items-baseline">
-          <div className="col-span-6 flex items-baseline">
-            <span className="whitespace-nowrap">{uiText("Tel.No.:-")}</span>
+        {/* Row 3: Tel.No. */}
+        <div className="flex flex-wrap items-baseline gap-x-6 gap-y-2">
+          <div className="flex items-baseline flex-1 min-w-[240px]">
+            <span className="whitespace-nowrap shrink-0">{uiText("Tel.No.:-")}</span>
             <span className="flex-1 border-b border-black ml-1.5 px-1 font-mono font-normal min-h-[18px]">
               {uiText(telNo || '___________________')}
-            </span>
-          </div>
-          <div className="col-span-6 flex items-baseline">
-            <span className="whitespace-nowrap">{uiText("Po.Box:-")}</span>
-            <span className="flex-1 border-b border-black ml-1.5 px-1 font-mono font-normal min-h-[18px]">
-              {uiText(poBox || '_____________')}
             </span>
           </div>
         </div>

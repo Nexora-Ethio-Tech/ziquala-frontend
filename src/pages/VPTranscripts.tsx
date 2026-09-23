@@ -226,11 +226,11 @@ export const VPTranscripts = () => {
   const templateData = useMemo<TranscriptTemplateData | null>(() => {
     if (transcript) {
       const s: any = transcript.student || {};
-      const currentGradeStr = s.grade || 'Grade 8';
+      const currentGradeStr = s.grade || selectedGrade || 'Grade 8';
       const gradeNum = parseInt(currentGradeStr.replace(/\D/g, ''), 10) || 8;
-      const prevGradeNum = gradeNum > 1 ? gradeNum - 1 : 7;
+      const prevGradeNum = gradeNum > 1 ? gradeNum - 1 : 1;
 
-      const year1Class = `Grade ${prevGradeNum}`;
+      const year1Class = gradeNum > 1 ? `Grade ${prevGradeNum}` : 'Grade 1';
       const year2Class = `Grade ${gradeNum}`;
 
       const rawCourses = transcript.courses || [];
@@ -262,8 +262,9 @@ export const VPTranscripts = () => {
           age: s.age || '',
           birthDate: s.birthDate || '',
           birthPlace: s.birthPlace || '',
-          region: s.region || '',
-          town: s.town || '',
+          region: s.region || 'Oromia',
+          town: s.town || 'Bishoftu',
+          houseNo: s.houseNo || s.house_no || '',
           telNo: s.phoneNo || '',
           poBox: s.poBox || ''
         },
@@ -286,7 +287,7 @@ export const VPTranscripts = () => {
     }
 
     return null;
-  }, [lookupLabel, transcript, selectedYear]);
+  }, [lookupLabel, transcript, selectedYear, selectedGrade]);
 
   const printTranscript = () => {
     // `transcript-print` class and print CSS ensure only the transcript is visible when printing
@@ -336,6 +337,22 @@ export const VPTranscripts = () => {
 
         <div className="flex flex-wrap gap-2">
           <button
+            onClick={() => {
+              if (activeStudentId) {
+                const activeName = transcript?.student?.name || transcript?.studentName || lookupLabel;
+                openTranscript(activeStudentId, activeName);
+              } else if (sectionStudents.length > 0) {
+                const first = sectionStudents[0];
+                openTranscript(first.digitalId || first.id, first.name);
+              }
+            }}
+            disabled={loading || searching}
+            className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-blue-700 disabled:opacity-40 shadow-sm"
+          >
+            {loading ? <Loader2 size={16} className="animate-spin" /> : <FileText size={16} />}
+            {t('vp.generateTranscript', 'Generate Transcript')}
+          </button>
+          <button
             onClick={printTranscript}
             disabled={!templateData}
             className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-sm font-bold text-white transition hover:bg-slate-800 disabled:opacity-40"
@@ -350,6 +367,7 @@ export const VPTranscripts = () => {
               setLookupLabel('Blank Template');
               setSearchQuery('');
               setError(null);
+              setActiveStudentId(null);
             }}
             className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
           >
@@ -396,21 +414,42 @@ export const VPTranscripts = () => {
             {searchResults.length > 0 && (
               <div className="mt-4 space-y-2">
                 <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-400">{t("vp.searchResults", "Search Results")}</p>
-                {searchResults.map((student) => (
-                  <button
-                    key={student.id}
-                    onClick={() => openTranscript(student.digitalId || student.id, student.name)}
-                    className="flex w-full items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3 text-left transition hover:border-blue-300 hover:bg-blue-50 dark:border-slate-700 dark:bg-slate-800/60 dark:hover:border-blue-700 dark:hover:bg-blue-900/20"
-                  >
-                    <div>
-                      <p className="font-bold text-slate-800 dark:text-slate-100">{student.name}</p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
-                        {uiText(student.digitalId || student.id)}{uiText(" · ")}{uiText(student.grade)}{uiText(" · ")}{uiText(student.section)}
-                      </p>
+                {searchResults.map((student) => {
+                  const isSelected = activeStudentId === (student.digitalId || student.id) || activeStudentId === student.id;
+                  return (
+                    <div
+                      key={student.id}
+                      onClick={() => openTranscript(student.digitalId || student.id, student.name)}
+                      className={`flex w-full items-center justify-between gap-3 rounded-2xl border px-3 py-3 text-left cursor-pointer transition ${
+                        isSelected
+                          ? 'border-blue-500 bg-blue-50 dark:border-blue-500 dark:bg-blue-900/30 ring-2 ring-blue-500/20'
+                          : 'border-slate-200 bg-slate-50 hover:border-blue-300 hover:bg-blue-50/50 dark:border-slate-700 dark:bg-slate-800/60'
+                      }`}
+                    >
+                      <div>
+                        <p className="font-bold text-slate-800 dark:text-slate-100">{student.name}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                          {uiText(student.digitalId || student.id)}{uiText(" · ")}{uiText(student.grade)}{uiText(" · ")}{uiText(student.section)}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openTranscript(student.digitalId || student.id, student.name);
+                        }}
+                        className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition-all ${
+                          isSelected
+                            ? 'bg-blue-600 text-white shadow-sm'
+                            : 'bg-white text-slate-700 border border-slate-200 hover:bg-blue-600 hover:text-white dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700'
+                        }`}
+                      >
+                        <FileText size={13} />
+                        {t('vp.generate', 'Generate')}
+                      </button>
                     </div>
-                    <ChevronRight size={16} className="text-slate-400" />
-                  </button>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -559,20 +598,41 @@ export const VPTranscripts = () => {
                 {t("vp.noStudentsFoundSection", "No students found for this section.")}
               </div>
             ) : (
-              <div className="max-h-[320px] space-y-2 overflow-y-auto pr-1">
-                {sectionStudents.map((student) => (
-                  <button
-                    key={student.id}
-                    onClick={() => openTranscript(student.digitalId || student.id, student.name)}
-                    className="flex w-full items-center justify-between rounded-2xl border border-slate-200 bg-white px-3 py-3 text-left transition hover:border-emerald-300 hover:bg-emerald-50 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-emerald-700 dark:hover:bg-emerald-900/20"
-                  >
-                    <div>
-                      <p className="font-bold text-slate-800 dark:text-slate-100">{student.name}</p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">{uiText(student.digitalId || student.id)}</p>
+              <div className="max-h-[360px] space-y-2 overflow-y-auto pr-1">
+                {sectionStudents.map((student) => {
+                  const isSelected = activeStudentId === (student.digitalId || student.id) || activeStudentId === student.id;
+                  return (
+                    <div
+                      key={student.id}
+                      onClick={() => openTranscript(student.digitalId || student.id, student.name)}
+                      className={`flex w-full items-center justify-between rounded-2xl border px-3 py-3 text-left cursor-pointer transition ${
+                        isSelected
+                          ? 'border-emerald-500 bg-emerald-50 dark:border-emerald-500 dark:bg-emerald-900/30 ring-2 ring-emerald-500/20'
+                          : 'border-slate-200 bg-white hover:border-emerald-300 hover:bg-emerald-50/50 dark:border-slate-700 dark:bg-slate-900'
+                      }`}
+                    >
+                      <div className="min-w-0 flex-1 pr-2">
+                        <p className="font-bold text-slate-800 dark:text-slate-100 truncate">{student.name}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{uiText(student.digitalId || student.id)}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openTranscript(student.digitalId || student.id, student.name);
+                        }}
+                        className={`inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition-all ${
+                          isSelected
+                            ? 'bg-emerald-600 text-white shadow-sm'
+                            : 'bg-slate-100 text-slate-700 hover:bg-emerald-600 hover:text-white dark:bg-slate-800 dark:text-slate-200'
+                        }`}
+                      >
+                        <FileText size={13} />
+                        {t('vp.generate', 'Generate')}
+                      </button>
                     </div>
-                    <ChevronRight size={16} className="text-slate-400" />
-                  </button>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -592,8 +652,28 @@ export const VPTranscripts = () => {
               {t("vp.transcriptPrompt", "Search for a student or select one from the grade hierarchy to load a transcript.")}
             </div>
           ) : (
-            <div ref={transcriptRef} className="transcript-print overflow-x-auto rounded-[2rem] border border-slate-200 bg-slate-100 p-4 shadow-inner dark:border-slate-800 dark:bg-slate-950 print:border-0 print:bg-white print:p-0 print:shadow-none">
-              <TranscriptTemplate studentData={templateData} />
+            <div className="space-y-3">
+              <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900 px-4">
+                <div className="flex items-center gap-2">
+                  <div className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                    {uiText(templateData.student?.fullName || templateData.name)}
+                  </span>
+                  <span className="rounded-lg bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
+                    {uiText(templateData.year2Class)}
+                  </span>
+                </div>
+                <button
+                  onClick={printTranscript}
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-slate-800"
+                >
+                  <Printer size={14} />
+                  {t('vp.printTranscript', 'Print Transcript')}
+                </button>
+              </div>
+              <div ref={transcriptRef} className="transcript-print overflow-x-auto rounded-[2rem] border border-slate-200 bg-slate-100 p-4 shadow-inner dark:border-slate-800 dark:bg-slate-950 print:border-0 print:bg-white print:p-0 print:shadow-none">
+                <TranscriptTemplate studentData={templateData} />
+              </div>
             </div>
           )}
         </div>
