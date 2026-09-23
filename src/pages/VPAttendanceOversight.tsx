@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Users, MessageSquare, Send, Loader, CheckCircle, AlertCircle, Phone, Trash2, Calendar } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import api from '../services/api';
-import { getTodayEthiopianDate, formatEthiopianLabel } from '../utils/ethiopianCalendar';
+import { getTodayEthiopianDate } from '../utils/ethiopianCalendar';
 import { EthiopianDatePicker } from '../components/EthiopianDatePicker';
 
 interface AbsentStudent {
@@ -390,7 +390,7 @@ export const VPAttendanceOversight = () => {
                 />
               </div>
               <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 px-3 py-2 rounded-xl border border-indigo-100 dark:border-indigo-900/30">
-                {formatEthiopianLabel(selectedDate)}
+                {uiText(formatEthiopianDateString(selectedDate))}
               </span>
             </div>
           </div>
