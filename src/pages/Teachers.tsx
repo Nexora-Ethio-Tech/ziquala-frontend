@@ -196,9 +196,26 @@ export const Teachers = () => {
 
   const [labSearchQuery, setLabSearchQuery] = useState('');
   const [labGradeFilter, setLabGradeFilter] = useState('all');
+  const [labSubjectFilter, setLabSubjectFilter] = useState('all');
   const [labStatusFilter, setLabStatusFilter] = useState('all');
   const [selectedLabForView, setSelectedLabForView] = useState<any | null>(null);
   const [adminReviewFeedback, setAdminReviewFeedback] = useState('');
+
+  const availableLabGrades = useMemo(() => {
+    const grades = new Set<string>();
+    superviseLabRequests.forEach(r => {
+      if (r.gradeLevel) grades.add(r.gradeLevel);
+    });
+    return Array.from(grades).sort();
+  }, [superviseLabRequests]);
+
+  const availableLabSubjects = useMemo(() => {
+    const subjects = new Set<string>();
+    superviseLabRequests.forEach(r => {
+      if (r.subject) subjects.add(r.subject);
+    });
+    return Array.from(subjects).sort();
+  }, [superviseLabRequests]);
 
   const handleApproveAsPrincipal = async (labId: string) => {
     const feedback = adminReviewFeedback || 'Approved by Principal';
@@ -285,6 +302,9 @@ export const Teachers = () => {
       if (labGradeFilter !== 'all') {
         if ((r.gradeLevel || '').toLowerCase() !== labGradeFilter.toLowerCase()) return false;
       }
+      if (labSubjectFilter !== 'all') {
+        if ((r.subject || '').toLowerCase() !== labSubjectFilter.toLowerCase()) return false;
+      }
       if (labStatusFilter !== 'all') {
         if (labStatusFilter === 'pending' || labStatusFilter === 'Approved by Lab Tech') {
           if (r.status !== 'Approved by Lab Tech') return false;
@@ -294,7 +314,7 @@ export const Teachers = () => {
       }
       return true;
     });
-  }, [superviseLabRequests, labSearchQuery, labGradeFilter, labStatusFilter]);
+  }, [superviseLabRequests, labSearchQuery, labGradeFilter, labSubjectFilter, labStatusFilter]);
 
   const filteredTeachers = useMemo(() => {
     return teachers.filter((teacher) => {
@@ -2367,48 +2387,203 @@ export const Teachers = () => {
             </div>
           </div>
 
-          {/* Search & Filters */}
-          <div className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 border border-slate-100 dark:border-slate-800 shadow-xl space-y-4">
-            <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+          {/* Summary Stats Cards (Interactive Quick Filters) */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <button
+              type="button"
+              onClick={() => setLabStatusFilter('all')}
+              className={`p-5 rounded-2xl flex items-center justify-between transition-all text-left border ${
+                labStatusFilter === 'all'
+                  ? 'bg-amber-100 dark:bg-amber-900/40 border-amber-500 shadow-md ring-2 ring-amber-500/50 scale-[1.02]'
+                  : 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800 hover:border-amber-400 hover:shadow-md'
+              }`}
+            >
+              <div>
+                <p className="text-xs font-black text-amber-800 dark:text-amber-300 uppercase tracking-wider">{uiText("All Tech-Approved")}</p>
+                <p className="text-2xl font-black text-amber-900 dark:text-amber-100 mt-1">
+                  {superviseLabRequests.filter(r => r.status === 'Approved by Lab Tech' || r.status === 'Approved by Principal').length}
+                </p>
+                {labStatusFilter === 'all' && (
+                  <span className="inline-block mt-1 text-[10px] font-extrabold text-amber-700 dark:text-amber-300 bg-amber-200 dark:bg-amber-800/60 px-2 py-0.5 rounded-full">
+                    {uiText("Active Filter")}
+                  </span>
+                )}
+              </div>
+              <div className={`p-3 rounded-xl ${labStatusFilter === 'all' ? 'bg-amber-500 text-white' : 'bg-amber-500/20 text-amber-600'}`}>
+                <FlaskConical size={24} />
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setLabStatusFilter('pending')}
+              className={`p-5 rounded-2xl flex items-center justify-between transition-all text-left border ${
+                labStatusFilter === 'pending'
+                  ? 'bg-orange-100 dark:bg-orange-900/40 border-orange-500 shadow-md ring-2 ring-orange-500/50 scale-[1.02]'
+                  : 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800 hover:border-orange-400 hover:shadow-md'
+              }`}
+            >
+              <div>
+                <p className="text-xs font-black text-orange-800 dark:text-orange-300 uppercase tracking-wider">{uiText("Pending Principal Approval")}</p>
+                <p className="text-2xl font-black text-orange-900 dark:text-orange-100 mt-1">
+                  {superviseLabRequests.filter(r => r.status === 'Approved by Lab Tech').length}
+                </p>
+                {labStatusFilter === 'pending' && (
+                  <span className="inline-block mt-1 text-[10px] font-extrabold text-orange-700 dark:text-orange-300 bg-orange-200 dark:bg-orange-800/60 px-2 py-0.5 rounded-full">
+                    {uiText("Active Filter")}
+                  </span>
+                )}
+              </div>
+              <div className={`p-3 rounded-xl ${labStatusFilter === 'pending' ? 'bg-orange-500 text-white' : 'bg-orange-500/20 text-orange-600'}`}>
+                <Clock size={24} />
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setLabStatusFilter('Approved by Principal')}
+              className={`p-5 rounded-2xl flex items-center justify-between transition-all text-left border ${
+                labStatusFilter === 'Approved by Principal'
+                  ? 'bg-emerald-100 dark:bg-emerald-900/40 border-emerald-500 shadow-md ring-2 ring-emerald-500/50 scale-[1.02]'
+                  : 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 hover:border-emerald-400 hover:shadow-md'
+              }`}
+            >
+              <div>
+                <p className="text-xs font-black text-emerald-800 dark:text-emerald-300 uppercase tracking-wider">{uiText("Approved by Principal")}</p>
+                <p className="text-2xl font-black text-emerald-900 dark:text-emerald-100 mt-1">
+                  {superviseLabRequests.filter(r => r.status === 'Approved by Principal').length}
+                </p>
+                {labStatusFilter === 'Approved by Principal' && (
+                  <span className="inline-block mt-1 text-[10px] font-extrabold text-emerald-700 dark:text-emerald-300 bg-emerald-200 dark:bg-emerald-800/60 px-2 py-0.5 rounded-full">
+                    {uiText("Active Filter")}
+                  </span>
+                )}
+              </div>
+              <div className={`p-3 rounded-xl ${labStatusFilter === 'Approved by Principal' ? 'bg-emerald-500 text-white' : 'bg-emerald-500/20 text-emerald-600'}`}>
+                <CheckCircle2 size={24} />
+              </div>
+            </button>
+          </div>
+
+          {/* Search & Multi-criteria Filters */}
+          <div className="bg-white dark:bg-slate-900 rounded-[2rem] p-5 sm:p-6 border border-slate-100 dark:border-slate-800 shadow-xl space-y-4">
+            {/* Status Filter Tabs */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 p-1.5 bg-slate-100 dark:bg-slate-800/80 rounded-2xl">
+              {[
+                { key: 'all', label: uiText('All Approved by Tech') },
+                { key: 'pending', label: uiText('Pending Principal Approval') },
+                { key: 'Approved by Principal', label: uiText('Approved by Principal') },
+              ].map(({ key, label }) => {
+                const isActive = labStatusFilter === key;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setLabStatusFilter(key)}
+                    className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all text-center ${
+                      isActive
+                        ? 'bg-amber-600 text-white shadow-md'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-700/50'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Search Input & Select Dropdowns */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
               {/* Search */}
-              <div className="flex flex-col sm:flex-row items-center gap-3 flex-1">
-                <div className="relative flex-1 w-full">
-                  <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
-                    type="text"
-                    placeholder={uiText("Search by teacher name, subject, grade...")}
-                    value={labSearchQuery}
-                    onChange={(e) => setLabSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-medium outline-none focus:ring-2 focus:ring-amber-500 transition-all text-slate-900 dark:text-white"
-                  />
-                </div>
+              <div className="relative sm:col-span-2 md:col-span-1">
+                <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder={uiText("Search teacher, subject, grade...")}
+                  value={labSearchQuery}
+                  onChange={(e) => setLabSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-8 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs font-bold outline-none focus:ring-2 focus:ring-amber-500 transition-all text-slate-900 dark:text-white"
+                />
+                {labSearchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setLabSearchQuery('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                  >
+                    <X size={14} />
+                  </button>
+                )}
               </div>
 
-              {/* Status Filter Tabs */}
-              <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl shrink-0 overflow-x-auto">
-                <Filter size={14} className="text-slate-400 ml-2 shrink-0" />
-                {[
-                  { key: 'all', label: uiText('All Approved by Tech') },
-                  { key: 'pending', label: uiText('Pending Principal Approval') },
-                  { key: 'Approved by Principal', label: uiText('Approved by Principal') },
-                ].map(({ key, label }) => {
-                  const isActive = labStatusFilter === key;
-                  return (
-                    <button
-                      key={key}
-                      onClick={() => setLabStatusFilter(key)}
-                      className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all whitespace-nowrap ${
-                        isActive
-                          ? 'bg-amber-600 text-white shadow-md'
-                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                      }`}
-                    >
-                      {label}
-                    </button>
-                  );
-                })}
-              </div>
+              {/* Grade Filter */}
+              <select
+                value={labGradeFilter}
+                onChange={(e) => setLabGradeFilter(e.target.value)}
+                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs font-bold outline-none focus:ring-2 focus:ring-amber-500 transition-all text-slate-800 dark:text-slate-200 cursor-pointer shadow-xs"
+              >
+                <option value="all">{uiText("All Grade Levels")}</option>
+                {availableLabGrades.map(g => (
+                  <option key={g} value={g}>{uiText(g)}</option>
+                ))}
+              </select>
+
+              {/* Subject Filter */}
+              <select
+                value={labSubjectFilter}
+                onChange={(e) => setLabSubjectFilter(e.target.value)}
+                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs font-bold outline-none focus:ring-2 focus:ring-amber-500 transition-all text-slate-800 dark:text-slate-200 cursor-pointer shadow-xs"
+              >
+                <option value="all">{uiText("All Subjects")}</option>
+                {availableLabSubjects.map(s => (
+                  <option key={s} value={s}>{uiText(s)}</option>
+                ))}
+              </select>
             </div>
+
+            {/* Active Filters Bar / Reset Button */}
+            {(labSearchQuery || labGradeFilter !== 'all' || labSubjectFilter !== 'all' || labStatusFilter !== 'all') && (
+              <div className="flex items-center justify-between gap-2 pt-3 border-t border-slate-100 dark:border-slate-800 flex-wrap">
+                <div className="flex items-center gap-2 flex-wrap min-w-0">
+                  <span className="text-xs font-bold text-slate-400 shrink-0">{uiText("Active Filters:")}</span>
+                  {labStatusFilter !== 'all' && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 rounded-full text-xs font-bold">
+                      {labStatusFilter === 'pending' ? uiText('Pending Principal Approval') : uiText('Approved by Principal')}
+                      <button type="button" onClick={() => setLabStatusFilter('all')}><X size={12} /></button>
+                    </span>
+                  )}
+                  {labGradeFilter !== 'all' && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 rounded-full text-xs font-bold">
+                      {uiText(labGradeFilter)}
+                      <button type="button" onClick={() => setLabGradeFilter('all')}><X size={12} /></button>
+                    </span>
+                  )}
+                  {labSubjectFilter !== 'all' && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 rounded-full text-xs font-bold">
+                      {uiText(labSubjectFilter)}
+                      <button type="button" onClick={() => setLabSubjectFilter('all')}><X size={12} /></button>
+                    </span>
+                  )}
+                  {labSearchQuery && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300 rounded-full text-xs font-bold truncate max-w-[200px]">
+                      "{labSearchQuery}"
+                      <button type="button" onClick={() => setLabSearchQuery('')}><X size={12} /></button>
+                    </span>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLabSearchQuery('');
+                    setLabGradeFilter('all');
+                    setLabSubjectFilter('all');
+                    setLabStatusFilter('all');
+                  }}
+                  className="text-xs font-bold text-rose-500 hover:text-rose-600 hover:underline shrink-0"
+                >
+                  {uiText("Reset All Filters")}
+                </button>
+              </div>
+            )}
           </div>
 
           {/* List of Requisitions */}
