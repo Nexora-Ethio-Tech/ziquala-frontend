@@ -143,6 +143,8 @@ export const StorekeeperPortal = () => {
     issued_to_name: '',
     issued_to_role: 'Teacher',
     purpose: '',
+    quantity: 1,
+    status: 'Issued' as 'Issued' | 'Returned' | 'Overdue' | 'Lost' | 'Consumed',
     expected_return: '',
     notes: ''
   });
@@ -335,6 +337,8 @@ export const StorekeeperPortal = () => {
       issued_to_name: issue.issued_to_name,
       issued_to_role: issue.issued_to_role || 'Teacher',
       purpose: issue.purpose || '',
+      quantity: issue.quantity || 1,
+      status: issue.status || 'Issued',
       expected_return: issue.expected_return ? issue.expected_return.split('T')[0] : '',
       notes: issue.notes || ''
     });
@@ -408,7 +412,7 @@ export const StorekeeperPortal = () => {
                   <div className="p-2.5 bg-blue-100 dark:bg-blue-500/10 rounded-2xl"><Pencil size={20} className="text-blue-600 dark:text-blue-400" /></div>
                   <div>
                     <h3 className="font-black text-lg text-slate-900 dark:text-white">{uiText('Edit Issue Record')}</h3>
-                    <p className="text-xs text-slate-500">{uiText(editingIssue.asset_name)} · {uiText('Quantity remains unchanged to protect stock balance.')}</p>
+                    <p className="text-xs text-slate-500">{uiText(editingIssue.asset_name)} · {uiText('Update borrower details, quantity, status, or dates.')}</p>
                   </div>
                 </div>
                 <button onClick={() => setEditingIssue(null)} className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg"><X size={18} /></button>
@@ -418,15 +422,13 @@ export const StorekeeperPortal = () => {
                 <div className="rounded-2xl border border-indigo-100 dark:border-indigo-500/20 bg-indigo-50/70 dark:bg-indigo-500/10 p-4">
                   <div className="flex items-center gap-2 mb-3 text-indigo-800 dark:text-indigo-300">
                     <ClipboardList size={16} />
-                    <span className="text-xs font-black uppercase tracking-wider">{uiText('Original Issue Details')}</span>
+                    <span className="text-xs font-black uppercase tracking-wider">{uiText('Original Issue Summary')}</span>
                   </div>
                   <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
                     <div><p className="text-[10px] font-black uppercase text-slate-400">{uiText('Category')}</p><p className="font-bold text-slate-800 dark:text-white">{uiText(editingIssue.asset_category || 'General')}</p></div>
                     <div><p className="text-[10px] font-black uppercase text-slate-400">{uiText('Item')}</p><p className="font-bold text-slate-800 dark:text-white">{uiText(editingIssue.asset_name)}</p></div>
-                    <div><p className="text-[10px] font-black uppercase text-slate-400">{uiText('Quantity')}</p><p className="font-bold text-slate-800 dark:text-white">{editingIssue.quantity}</p></div>
                     <div><p className="text-[10px] font-black uppercase text-slate-400">{uiText('Item Type')}</p><p className="font-bold text-slate-800 dark:text-white">{uiText(isConsumable ? 'Consumable' : 'Returnable')}</p></div>
                     <div><p className="text-[10px] font-black uppercase text-slate-400">{uiText('Issued Date')}</p><p className="font-bold text-slate-800 dark:text-white">{uiText(new Date(editingIssue.issued_at).toLocaleDateString(localeTag()))}</p></div>
-                    <div><p className="text-[10px] font-black uppercase text-slate-400">{uiText('Status')}</p><p className="font-bold text-slate-800 dark:text-white">{uiText(editingIssue.status === 'Consumed' ? 'Consumed / Issued' : editingIssue.status)}</p></div>
                   </div>
                 </div>
 
@@ -444,6 +446,32 @@ export const StorekeeperPortal = () => {
                       <option value="Maintenance">{uiText('Maintenance')}</option>
                       <option value="Lab Tech">{uiText('Lab Tech')}</option>
                       <option value="Other">{uiText('Other')}</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-xs font-black text-slate-500 uppercase tracking-wide">{uiText('Quantity *')}</label>
+                    <input
+                      type="number"
+                      min={1}
+                      required
+                      value={issueEditForm.quantity}
+                      onChange={e => setIssueEditForm({ ...issueEditForm, quantity: parseInt(e.target.value) || 1 })}
+                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 font-bold"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-black text-slate-500 uppercase tracking-wide">{uiText('Status *')}</label>
+                    <select
+                      value={issueEditForm.status}
+                      onChange={e => setIssueEditForm({ ...issueEditForm, status: e.target.value as any })}
+                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 font-bold"
+                    >
+                      <option value="Issued">{uiText('Issued (On Loan)')}</option>
+                      <option value="Returned">{uiText('Returned to Stock')}</option>
+                      <option value="Consumed">{uiText('Consumed Item')}</option>
                     </select>
                   </div>
                 </div>
