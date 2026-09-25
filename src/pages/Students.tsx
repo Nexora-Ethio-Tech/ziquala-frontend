@@ -464,6 +464,7 @@ export const Students = () => {
         status: s.status,
         parentUserId: s.parent_user_id || s.parentUserId || null,
         parentName: s.parent_name || s.parentName || null,
+        parentPhone: s.parent_phone || s.parentPhone || null,
       }));
 
       setStudents(transformed);
@@ -557,32 +558,51 @@ export const Students = () => {
     const isBusy = resettingPassword || resettingParentPassword;
     if (isBusy) return;
 
-    if (resetTargets.student) {
-      setResettingPassword(true);
-      try {
-        const result = await resetUserPIN(selectedStudent!.userId);
-        const pin = result?.newPIN;
-        if (pin) { setGeneratedPassword(pin); showToast(uiText("Student password reset: {{value0}}", { value0: pin }), 'success'); }
-        else showToast(uiText('Student password reset succeeded'), 'success');
-      } catch (err: any) {
-        showToast(uiText(err.response?.data?.error?.message || 'Failed to reset student password'), 'error');
-      } finally {
-        setResettingPassword(false);
-      }
-    }
+    const target: 'student' | 'parent' | 'both' =
+      resetTargets.student && resetTargets.parent
+        ? 'both'
+        : resetTargets.student
+          ? 'student'
+          : 'parent';
 
-    if (resetTargets.parent && selectedStudent?.parentUserId) {
-      setResettingParentPassword(true);
-      try {
-        const result = await resetUserPIN(selectedStudent.parentUserId);
-        const pin = result?.newPIN;
-        if (pin) { setGeneratedParentPassword(pin); showToast(uiText("Parent password reset: {{value0}}", { value0: pin }), 'success'); }
-        else showToast(uiText('Parent password reset succeeded'), 'success');
-      } catch (err: any) {
-        showToast(uiText(err.response?.data?.error?.message || 'Failed to reset parent password'), 'error');
-      } finally {
-        setResettingParentPassword(false);
+    setResettingPassword(true);
+    setResettingParentPassword(true);
+
+    try {
+      const studentIdentifier = selectedStudent.userId || selectedStudent.id;
+      const result = await studentService.resetStudentPassword(studentIdentifier, {
+        target,
+        parentPhone: editFormData.parentPhone
+      });
+
+      if (result.studentPIN) {
+        setGeneratedPassword(result.studentPIN);
       }
+      if (result.parentPIN) {
+        setGeneratedParentPassword(result.parentPIN);
+      }
+
+      if (result.studentPIN && result.parentPIN) {
+        showToast(uiText("Both Student and Parent passwords reset successfully!"), 'success');
+      } else if (result.studentPIN) {
+        showToast(uiText("Student password reset: {{value0}}", { value0: result.studentPIN }), 'success');
+      } else if (result.parentPIN) {
+        showToast(uiText("Parent password reset: {{value0}}", { value0: result.parentPIN }), 'success');
+      }
+
+      if (result.parentName) {
+        setSelectedStudent((prev: any) => ({
+          ...prev,
+          parentName: result.parentName
+        }));
+      }
+
+      fetchStudents();
+    } catch (err: any) {
+      showToast(uiText(err.response?.data?.error?.message || err.message || 'Failed to reset password'), 'error');
+    } finally {
+      setResettingPassword(false);
+      setResettingParentPassword(false);
     }
   };
 
@@ -1192,9 +1212,9 @@ export const Students = () => {
       {/* Add Modal */}
       {/* Edit Modal */}
       {uiText(showEditModal && selectedStudent && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 w-full max-w-md">
-            <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 w-full max-w-md flex flex-col max-h-[92vh]">
+            <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center shrink-0">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-blue-100 text-blue-600 rounded-lg"><Edit2 size={20} /></div>
                 <h3 className="font-bold text-slate-800 dark:text-slate-100">{uiText("Edit Student")}</h3>
@@ -1207,7 +1227,7 @@ export const Students = () => {
                 aria-label={uiText("Close edit student modal")}
               ><X size={20} /></button>
             </div>
-            <form onSubmit={handleEdit} className="p-6 space-y-4">
+            <form onSubmit={handleEdit} className="p-5 space-y-4 overflow-y-auto">
               <div>
                 <label htmlFor="edit-full-name" className="text-xs font-bold text-slate-500 uppercase">{uiText("Full Name")}</label>
                 <input
@@ -1220,28 +1240,46 @@ export const Students = () => {
               </div>
               <div className="flex flex-col gap-3">
                 <label className="text-xs font-bold text-slate-500 uppercase">{uiText("Password Reset")}</label>
-                {/* Checkbox selection */}
-                <div className="flex gap-3">
-                  <label className="flex items-center gap-2 cursor-pointer select-none flex-1 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-blue-400 transition-colors" style={{ background: resetTargets.student ? 'rgba(59,130,246,0.08)' : undefined }}>
+                {/* Checkbox selection — always show both */}
+                <div className="grid grid-cols-2 gap-3">
+                  {/* Student checkbox */}
+                  <label
+                    className="flex items-center gap-2 cursor-pointer select-none px-3 py-2 rounded-lg border transition-colors"
+                    style={{
+                      borderColor: resetTargets.student ? '#3b82f6' : undefined,
+                      background: resetTargets.student ? 'rgba(59,130,246,0.08)' : undefined
+                    }}
+                  >
                     <input
                       type="checkbox"
-                      className="accent-blue-600 w-4 h-4"
+                      className="accent-blue-600 w-4 h-4 shrink-0"
                       checked={resetTargets.student}
                       onChange={(e) => setResetTargets(t => ({ ...t, student: e.target.checked }))}
                     />
-                    <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">{uiText("Student")}</span>
+                    <div className="min-w-0">
+                      <span className="text-sm font-semibold text-slate-700 dark:text-slate-200 block">{uiText("Student")}</span>
+                    </div>
                   </label>
-                  {selectedStudent?.parentUserId && (
-                    <label className="flex items-center gap-2 cursor-pointer select-none flex-1 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-purple-400 transition-colors" style={{ background: resetTargets.parent ? 'rgba(147,51,234,0.08)' : undefined }}>
-                      <input
-                        type="checkbox"
-                        className="accent-purple-600 w-4 h-4"
-                        checked={resetTargets.parent}
-                        onChange={(e) => setResetTargets(t => ({ ...t, parent: e.target.checked }))}
-                      />
-                      <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">{uiText("Parent")}</span>
-                    </label>
-                  )}
+                  {/* Parent checkbox — always enabled */}
+                  <label
+                    className="flex items-center gap-2 cursor-pointer select-none px-3 py-2 rounded-lg border transition-colors"
+                    style={{
+                      borderColor: resetTargets.parent ? '#9333ea' : undefined,
+                      background: resetTargets.parent ? 'rgba(147,51,234,0.08)' : undefined
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      className="accent-purple-600 w-4 h-4 shrink-0"
+                      checked={resetTargets.parent}
+                      onChange={(e) => setResetTargets(t => ({ ...t, parent: e.target.checked }))}
+                    />
+                    <div className="min-w-0">
+                      <span className="text-sm font-semibold text-slate-700 dark:text-slate-200 block truncate">
+                        {selectedStudent?.parentName ? uiText(`Parent (${selectedStudent.parentName})`) : uiText("Parent")}
+                      </span>
+                    </div>
+                  </label>
                 </div>
                 {/* Single reset button */}
                 <button

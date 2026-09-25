@@ -106,6 +106,14 @@ const studentService = {
     const response = await api.post('/school-admin/students/bulk-grade', { studentIds, grade, section });
     return response.data;
   },
+
+  resetStudentPassword: async (
+    studentId: string,
+    options: { target: 'student' | 'parent' | 'both'; parentPhone?: string }
+  ): Promise<{ studentPIN?: string; parentPIN?: string; parentName?: string; temporaryPassword?: string }> => {
+    const response = await api.post(`/school-admin/students/${studentId}/reset-password`, options);
+    return response.data.data;
+  },
 };
 
 export default studentService;
