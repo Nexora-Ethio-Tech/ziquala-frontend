@@ -1261,12 +1261,13 @@ export const Dashboard = () => {
 
               // Map UI audience selection to role arrays
               const audienceRoleMap: Record<string, string[]> = {
-                all: ['super-admin', 'academic-manager', 'school-admin', 'vice-principal', 'teacher', 'student', 'parent', 'librarian'],
+                all: ['super-admin', 'academic-manager', 'school-admin', 'vice-principal', 'teacher', 'student', 'parent', 'librarian', 'storekeeper'],
                 teacher: ['teacher', 'school-admin', 'super-admin'],
                 academic: ['academic-manager', 'school-admin', 'vice-principal', 'super-admin'],
                 'parent-student': ['parent', 'student', 'school-admin', 'super-admin'],
                 parent: ['parent', 'school-admin', 'super-admin'],
                 student: ['student', 'school-admin', 'super-admin'],
+                storekeeper: ['storekeeper', 'school-admin', 'super-admin'],
               };
               const audienceRoles = audienceRoleMap[selectedAudience] || audienceRoleMap.all;
 
@@ -1350,6 +1351,7 @@ export const Dashboard = () => {
                     { value: 'parent', label: `👨‍👩‍👦 ${t('modals.audienceParentsOnly','Parents Only')}`, desc: t('modals.audienceParentsOnlyDesc','Only parent accounts see this notice') },
                     { value: 'student', label: `🎓 ${t('modals.audienceStudentsOnly','Students Only')}`, desc: t('modals.audienceStudentsOnlyDesc','Only student accounts see this notice') },
                     { value: 'teacher', label: `👨‍🏫 ${t('modals.audienceTeachers','Teachers Only')}`, desc: t('modals.audienceTeachersDesc','Only teachers see this') },
+                    { value: 'storekeeper', label: `📦 ${t('modals.audienceStorekeeper','Storekeeper Only')}`, desc: t('modals.audienceStorekeeperDesc','Only storekeeper accounts see this notice') },
                     { value: 'academic', label: `📚 ${t('modals.audienceAcademic','Academic Leadership')}`, desc: t('modals.audienceAcademicDesc','Super Admin, Vice Principal, Academic Manager & School Admin') },
                   ].map(opt => (
                     <button

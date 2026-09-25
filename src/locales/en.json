@@ -749,6 +749,8 @@
     "audienceAllDesc": "Everyone receives this notice",
     "audienceTeachers": "Teachers Only",
     "audienceTeachersDesc": "Only teachers see this",
+    "audienceStorekeeper": "Storekeeper Only",
+    "audienceStorekeeperDesc": "Only storekeeper accounts see this notice",
     "audienceAcademic": "Academic Leadership",
     "audienceAcademicDesc": "Super Admin, Vice Principal, Academic Manager & School Admin",
     "audienceParents": "Parents & Students",

@@ -754,6 +754,8 @@
     "audienceAllDesc": "ሁሉም ይህን ማስታወቂያ ይቀበላሉ",
     "audienceTeachers": "መምህራን ብቻ",
     "audienceTeachersDesc": "መምህራን ብቻ ያዩታል",
+    "audienceStorekeeper": "የመጋዘን ኃላፊ ብቻ",
+    "audienceStorekeeperDesc": "የመጋዘን ኃላፊዎች ብቻ ያዩታል",
     "audienceAcademic": "የአካዳሚክ መሪዎች",
     "audienceAcademicDesc": "ሱፐር አድሚን፣ ምክትል ርእሰ መምህር፣ አካዳሚክ ማኔጀር እና የትምህርት ቤት አድሚን",
     "audienceParents": "ወላጆችና ተማሪዎች",
