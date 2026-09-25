@@ -226,7 +226,7 @@ export const useStore = create<AppState>()(persist((set, get) => ({
       {
         ...notice,
         id: crypto.randomUUID(),
-        time: 'Just now',
+        time: new Date().toISOString(),
       },
       ...state.notices
     ]

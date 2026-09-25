@@ -594,7 +594,11 @@ export const ParentPortal = () => {
                                 }`}>
                                 {uiText(notice.priority)}{uiText(" Priority")}</span>
                             </div>
-                            <span className="text-xs text-slate-400 font-bold">{uiText("📅 ")}{uiText(formatEthiopianLabel(notice.timestamp))}{uiText(" at ")}{uiText(new Date(notice.timestamp).toLocaleTimeString(localeTag(), { hour: '2-digit', minute: '2-digit' }))}
+                            <span className="text-xs text-slate-400 font-bold">
+                              {uiText("📅 ")}{uiText(formatEthiopianLabel(notice.timestamp))}
+                              {!isNaN(new Date(notice.timestamp).getTime()) ? (
+                                uiText(" at ") + uiText(new Date(notice.timestamp).toLocaleTimeString(localeTag(), { hour: '2-digit', minute: '2-digit' }))
+                              ) : null}
                             </span>
                           </div>
                           <h4 className="text-lg font-black text-white mb-2 group-hover:text-blue-400 transition-colors">

@@ -161,22 +161,35 @@ export function gregorianToEthiopian(date: Date | string): { year: number; month
     if (date.includes('T') || date.endsWith('Z')) {
       // ISO datetime: shift to EAT before reading date parts
       const parsed = new Date(date);
-      if (isNaN(parsed.getTime())) return { year: 2018, month: 1, day: 1 };
-      const eat = new Date(parsed.getTime() + EAT_OFFSET_MS);
-      year = eat.getUTCFullYear();
-      month = eat.getUTCMonth() + 1;
-      day = eat.getUTCDate();
+      if (isNaN(parsed.getTime())) {
+        const now = new Date();
+        year = now.getFullYear(); month = now.getMonth() + 1; day = now.getDate();
+      } else {
+        const eat = new Date(parsed.getTime() + EAT_OFFSET_MS);
+        year = eat.getUTCFullYear();
+        month = eat.getUTCMonth() + 1;
+        day = eat.getUTCDate();
+      }
     } else {
       // Plain YYYY-MM-DD: parse as local date to avoid UTC shift
       const parts = date.split('-').map(Number);
-      if (parts.length !== 3 || parts.some(isNaN)) return { year: 2018, month: 1, day: 1 };
-      year = parts[0]; month = parts[1]; day = parts[2];
+      if (parts.length !== 3 || parts.some(isNaN)) {
+        const parsed = new Date(date);
+        if (!isNaN(parsed.getTime())) {
+          year = parsed.getFullYear(); month = parsed.getMonth() + 1; day = parsed.getDate();
+        } else {
+          const now = new Date();
+          year = now.getFullYear(); month = now.getMonth() + 1; day = now.getDate();
+        }
+      } else {
+        year = parts[0]; month = parts[1]; day = parts[2];
+      }
     }
   } else {
-    if (isNaN(date.getTime())) return { year: 2018, month: 1, day: 1 };
-    year = date.getFullYear();
-    month = date.getMonth() + 1;
-    day = date.getDate();
+    const d = (date instanceof Date && !isNaN(date.getTime())) ? date : new Date();
+    year = d.getFullYear();
+    month = d.getMonth() + 1;
+    day = d.getDate();
   }
 
   const a = Math.floor((14 - month) / 12);
@@ -243,10 +256,18 @@ const ETHIOPIAN_MONTHS_LABELS = [
 export function formatEthiopianLabel(dateInput: string | Date | null): string {
   if (!dateInput) return '';
   try {
+    if (typeof dateInput === 'string') {
+      const parsed = new Date(dateInput);
+      if (isNaN(parsed.getTime())) {
+        return dateInput;
+      }
+    } else if (dateInput instanceof Date && isNaN(dateInput.getTime())) {
+      return '';
+    }
     const { year, month, day } = gregorianToEthiopian(dateInput);
     return `${day} ${uiText(ETHIOPIAN_MONTHS_LABELS[month - 1])} ${year} ${uiText("E.C.")}`;
   } catch {
-    return '';
+    return typeof dateInput === 'string' ? dateInput : '';
   }
 }
 

@@ -108,7 +108,7 @@ export const useSSE = () => {
             title: payload.title,
             content: payload.content,
             priority: payload.priority || 'Normal',
-            time: payload.createdAt || new Date().toISOString(),
+            time: payload.created_at || payload.createdAt || payload.timestamp || new Date().toISOString(),
             category: (payload.category as any) || 'Academic',
             audience: audienceArr,
           };
