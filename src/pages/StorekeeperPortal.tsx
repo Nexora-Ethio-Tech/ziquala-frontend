@@ -1,11 +1,13 @@
 import { uiError, uiText, localeTag } from "../localization";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Package, BarChart3, Plus, Search, Pencil, Trash2, X, CheckCircle,
   AlertCircle, Box, TrendingUp, ClipboardList, Archive, RefreshCw,
-  Building2, UserCheck, RotateCcw, ArrowRightLeft, Layers, MapPin, Tag, ShieldAlert, User
+  Building2, UserCheck, RotateCcw, ArrowRightLeft, Layers, MapPin, Tag, ShieldAlert, User, Megaphone
 } from 'lucide-react';
 import { useUser } from '../context/UserContext';
+import { useStore } from '../context/useStore';
+import { formatEthiopianLabel } from '../utils/ethiopianCalendar';
 import api from '../services/api';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -199,6 +201,44 @@ export const StorekeeperPortal = () => {
   });
   const [updatingIssue, setUpdatingIssue] = useState(false);
 
+  const storeNotices = useStore((state) => state.notices);
+  const [notices, setNotices] = useState<any[]>([]);
+
+  const mergedNotices = useMemo(() => {
+    const map = new Map<string, any>();
+    (notices || []).forEach((a: any) => {
+      const id = String(a.id);
+      map.set(id, {
+        id,
+        title: a.title,
+        content: a.content,
+        priority: a.priority || 'Normal',
+        category: a.category || 'Notice',
+        timestamp: a.timestamp || a.created_at || new Date().toISOString(),
+        posted_by_name: a.posted_by_name || 'School Administration',
+      });
+    });
+    (storeNotices || [])
+      .filter((n) => !n.audience || n.audience.length === 0 || n.audience.includes('storekeeper') || n.audience.includes('all'))
+      .forEach((n) => {
+        const id = String(n.id);
+        if (!map.has(id)) {
+          const rawTime = n.time || (n as any).timestamp || (n as any).created_at;
+          const validTimestamp = rawTime && !isNaN(new Date(rawTime).getTime()) ? rawTime : new Date().toISOString();
+          map.set(id, {
+            id,
+            title: n.title,
+            content: n.content,
+            priority: n.priority || 'Normal',
+            category: n.category || 'Notice',
+            timestamp: validTimestamp,
+            posted_by_name: 'School Administration',
+          });
+        }
+      });
+    return Array.from(map.values());
+  }, [notices, storeNotices]);
+
   // ─── Data Fetching ────────────────────────────────────────────────────────
   const fetchAllData = async () => {
     try {
@@ -206,15 +246,17 @@ export const StorekeeperPortal = () => {
       setError(null);
       const bParam = branchId ? `?branchId=${branchId}` : '';
 
-      const [assetsRes, issuesRes, statsRes] = await Promise.all([
+      const [assetsRes, issuesRes, statsRes, noticesRes] = await Promise.all([
         api.get(`/storekeeper/assets${bParam}`),
         api.get(`/storekeeper/issues${bParam}`),
-        api.get(`/storekeeper/stats${bParam}`)
+        api.get(`/storekeeper/stats${bParam}`),
+        api.get(`/storekeeper/notices${bParam}`).catch(() => ({ data: [] }))
       ]);
 
       setAssets(Array.isArray(assetsRes.data) ? assetsRes.data : []);
       setIssues(Array.isArray(issuesRes.data) ? issuesRes.data : []);
       setStats(statsRes.data || null);
+      setNotices(Array.isArray(noticesRes.data) ? noticesRes.data : []);
     } catch (e: any) {
       setError(uiError(e?.response?.data?.error?.message || e?.message || 'Failed to load storekeeper data'));
     } finally {
@@ -1039,6 +1081,40 @@ export const StorekeeperPortal = () => {
                 <div className="text-center py-8 text-slate-400 text-sm">{uiText("No category data")}</div>
               )}
             </div>
+          </div>
+
+          {/* School Notice Board */}
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Megaphone size={18} className="text-indigo-600 dark:text-indigo-400" />
+                <h2 className="text-base font-black text-slate-900 dark:text-white">{uiText("School Notice Board")}</h2>
+              </div>
+              <span className="text-xs font-bold text-slate-400">{mergedNotices.length} {uiText("Notices")}</span>
+            </div>
+
+            {mergedNotices.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {mergedNotices.map((notice) => (
+                  <div key={notice.id} className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800 space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                        notice.priority === 'High' ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-400' : 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-400'
+                      }`}>
+                        {uiText(notice.priority)} {uiText("Priority")}
+                      </span>
+                      <span className="text-[10px] font-bold text-slate-400">
+                        📅 {uiText(formatEthiopianLabel(notice.timestamp))}
+                      </span>
+                    </div>
+                    <h4 className="font-bold text-slate-800 dark:text-white text-sm">{notice.title}</h4>
+                    <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">{notice.content}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-6 text-slate-400 text-xs italic">{uiText("No announcements for storekeeper at this time.")}</div>
+            )}
           </div>
         </div>
       )}

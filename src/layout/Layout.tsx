@@ -8,11 +8,14 @@ import { ShootingStars } from '../components/Effects';
 import { useUser } from '../context/UserContext';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useSSE } from '../hooks/useSSE';
 
 export const Layout = () => {
   const location = useLocation();
   const { role, user, schoolName } = useUser();
   const { t, i18n } = useTranslation();
+  // Connect to SSE stream for real-time notice updates (school notices, driver alerts)
+  useSSE();
 
   const displaySchoolName = i18n.language === 'am' ? schoolName.amharic : i18n.language === 'om' ? schoolName.oromic : schoolName.english;
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
