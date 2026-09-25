@@ -11,6 +11,8 @@ import { Suspense, lazy, type ReactNode } from 'react';
 import ScrollToTop from './components/ScrollToTop';
 import { Chatbot } from './components/Chatbot';
 
+import { ErrorBoundary } from './components/ErrorBoundary';
+
 const StaffCategoryPlaceholder = () => {
   const { t } = useTranslation();
   return (
@@ -195,7 +197,7 @@ function App() {
               <Route path="dashboard/parent" element={<ProtectedRoute allowedRoles={['parent']}><ParentPortal /></ProtectedRoute>} />
               <Route path="dashboard/vice-principal" element={<ProtectedRoute allowedRoles={['vice-principal']}><VicePrincipalDashboard /></ProtectedRoute>} />
               <Route path="dashboard/librarian" element={<ProtectedRoute allowedRoles={['librarian']}><Library /></ProtectedRoute>} />
-              <Route path="dashboard/storekeeper" element={<ProtectedRoute allowedRoles={['storekeeper']}><StorekeeperPortal /></ProtectedRoute>} />
+              <Route path="dashboard/storekeeper" element={<ProtectedRoute allowedRoles={['storekeeper']}><ErrorBoundary><StorekeeperPortal /></ErrorBoundary></ProtectedRoute>} />
 
               {/* Role specific routes */}
               <Route path="branches" element={

@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import {
   Package, BarChart3, Plus, Search, Pencil, Trash2, X, CheckCircle,
   AlertCircle, Box, TrendingUp, ClipboardList, Archive, RefreshCw,
-  Building2, UserCheck, RotateCcw, ArrowRightLeft, Layers, MapPin, Tag, ShieldAlert
+  Building2, UserCheck, RotateCcw, ArrowRightLeft, Layers, MapPin, Tag, ShieldAlert, User
 } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import api from '../services/api';
@@ -43,6 +43,16 @@ interface AssetIssue {
   returned_at?: string;
   status: 'Issued' | 'Returned' | 'Overdue' | 'Lost' | 'Consumed';
   notes?: string;
+}
+
+export interface IssueItemRow {
+  id: string;
+  asset_id: string;
+  quantity: number;
+  expected_return: string;
+  notes: string;
+  categoryFilter?: string;
+  searchQuery?: string;
 }
 
 interface Stats {
@@ -122,23 +132,60 @@ export const StorekeeperPortal = () => {
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string } | null>(null);
   const [issueDeleteConfirm, setIssueDeleteConfirm] = useState<AssetIssue | null>(null);
 
-  // Issue Item Modal State
+  // Issue Item Modal State (Multi-Item Transaction)
+
   const [issueModalOpen, setIssueModalOpen] = useState(false);
-  const [issueForm, setIssueForm] = useState({
-    asset_id: '',
+  const [issueRecipient, setIssueRecipient] = useState({
     issued_to_name: '',
     issued_to_role: 'Teacher',
-    purpose: '',
+    purpose: ''
+  });
+
+  const createNewIssueItemRow = (asset_id = '', categoryFilter = ''): IssueItemRow => ({
+    id: 'item-' + Math.random().toString(36).substring(2, 9),
+    asset_id,
     quantity: 1,
     expected_return: '',
-    notes: ''
+    notes: '',
+    categoryFilter,
+    searchQuery: ''
   });
-  const [issueCategoryFilter, setIssueCategoryFilter] = useState('');
-  const [issueModalSearch, setIssueModalSearch] = useState('');
+
+  const [issueItems, setIssueItems] = useState<IssueItemRow[]>([createNewIssueItemRow()]);
   const [issueLogCategoryFilter, setIssueLogCategoryFilter] = useState('All');
   const [issueLogSearchQuery, setIssueLogSearchQuery] = useState('');
   const [issueLogStatusFilter, setIssueLogStatusFilter] = useState('All');
   const [issuing, setIssuing] = useState(false);
+
+  const handleOpenIssueModal = (preselectedAssetId?: string) => {
+    const selectedObj = preselectedAssetId ? assets.find(a => a.id === preselectedAssetId) : null;
+    setIssueRecipient({
+      issued_to_name: '',
+      issued_to_role: 'Teacher',
+      purpose: ''
+    });
+    setIssueItems([
+      createNewIssueItemRow(
+        preselectedAssetId || '',
+        selectedObj?.category || ''
+      )
+    ]);
+    setIssueModalOpen(true);
+  };
+
+  const addIssueItemRow = () => {
+    setIssueItems(prev => [...prev, createNewIssueItemRow()]);
+  };
+
+  const removeIssueItemRow = (id: string) => {
+    if (issueItems.length > 1) {
+      setIssueItems(prev => prev.filter(item => item.id !== id));
+    }
+  };
+
+  const updateIssueItemRow = (id: string, updates: Partial<IssueItemRow>) => {
+    setIssueItems(prev => prev.map(item => item.id === id ? { ...item, ...updates } : item));
+  };
   const [editingIssue, setEditingIssue] = useState<AssetIssue | null>(null);
   const [issueEditForm, setIssueEditForm] = useState({
     asset_id: '',
@@ -177,25 +224,21 @@ export const StorekeeperPortal = () => {
 
   useEffect(() => { fetchAllData(); }, [branchId]);
 
-  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
-    setToast({ show: true, message, type });
+  const showToast = (message: any, type: 'success' | 'error' = 'success') => {
+    let strMsg = 'Notification';
+    if (typeof message === 'string') {
+      strMsg = message;
+    } else if (message && typeof message === 'object') {
+      strMsg = message.message || message.error || JSON.stringify(message);
+    } else if (message) {
+      strMsg = String(message);
+    }
+    setToast({ show: true, message: strMsg, type });
     setTimeout(() => setToast(t => ({ ...t, show: false })), 4000);
   };
 
   // ─── Category List ────────────────────────────────────────────────────────
-  const categoriesList = ['All', ...Array.from(new Set([...STORE_ASSET_CATEGORIES, ...assets.map(a => a.category || 'General')]))];
-  const issueCategories = categoriesList.filter(category => category !== 'All');
-
-  const issueableAssets = assets.filter(asset => {
-    const matchesCat = !issueCategoryFilter || issueCategoryFilter === 'All' || (asset.category || 'General') === issueCategoryFilter;
-    const q = issueModalSearch.trim().toLowerCase();
-    const matchesSearch = !q ||
-      asset.name.toLowerCase().includes(q) ||
-      (asset.category || '').toLowerCase().includes(q) ||
-      (asset.serial_number || '').toLowerCase().includes(q) ||
-      (asset.location || '').toLowerCase().includes(q);
-    return matchesCat && matchesSearch;
-  });
+  const categoriesList = ['All', ...Array.from(new Set([...STORE_ASSET_CATEGORIES, ...(assets || []).filter(Boolean).map(a => a.category || 'General')]))];
 
   const filteredIssues = issues.filter(issue => {
     const matchesCat = issueLogCategoryFilter === 'All' || (issue.asset_category || 'General') === issueLogCategoryFilter;
@@ -293,28 +336,78 @@ export const StorekeeperPortal = () => {
     }
   };
 
-  // ─── Issue Submit ──────────────────────────────────────────────────────────
+  // ─── Issue Submit (Multi-Item Transaction) ─────────────────────────────────
   const handleCreateIssue = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!issueRecipient.issued_to_name || !issueRecipient.issued_to_name.trim()) {
+      showToast(uiText("Please enter recipient name (Issued To)"), 'error');
+      return;
+    }
+
+    if (!issueItems || issueItems.length === 0) {
+      showToast(uiText("Please add at least one item to issue"), 'error');
+      return;
+    }
+
+    // Validate item rows
+    for (let idx = 0; idx < issueItems.length; idx++) {
+      const item = issueItems[idx];
+      if (!item.asset_id) {
+        showToast(uiText(`Please select an asset for Item #${idx + 1}`), 'error');
+        return;
+      }
+      const assetObj = assets.find(a => a.id === item.asset_id);
+      if (!assetObj) {
+        showToast(uiText(`Selected asset for Item #${idx + 1} not found`), 'error');
+        return;
+      }
+      if (item.quantity <= 0) {
+        showToast(uiText(`Quantity for "${assetObj.name}" must be at least 1`), 'error');
+        return;
+      }
+      if (item.quantity > assetObj.amount) {
+        showToast(uiText(`Requested quantity for "${assetObj.name}" (${item.quantity}) exceeds stock (${assetObj.amount})`), 'error');
+        return;
+      }
+    }
+
+    // Check duplicate assets in same transaction
+    const seenAssetIds = new Set<string>();
+    for (let idx = 0; idx < issueItems.length; idx++) {
+      const id = issueItems[idx].asset_id;
+      if (seenAssetIds.has(id)) {
+        const dupAsset = assets.find(a => a.id === id);
+        showToast(uiText(`Asset "${dupAsset?.name || 'Item'}" is selected multiple times. Please combine quantity into a single row.`), 'error');
+        return;
+      }
+      seenAssetIds.add(id);
+    }
+
     setIssuing(true);
     try {
-      const selectedAsset = assets.find(a => a.id === issueForm.asset_id);
-      const isConsumable = selectedAsset?.is_consumable || selectedAsset?.item_type === 'Consumable' || selectedAsset?.category === 'Stationery & Supplies';
-
       const payload = {
-        ...issueForm,
-        item_type: isConsumable ? 'Consumable' : 'Returnable',
-        is_consumable: isConsumable,
-        status: isConsumable ? 'Consumed' : 'Issued',
-        expected_return: isConsumable ? null : issueForm.expected_return,
-        branch_id: branchId
+        issued_to_name: issueRecipient.issued_to_name.trim(),
+        issued_to_role: issueRecipient.issued_to_role,
+        purpose: issueRecipient.purpose,
+        branch_id: branchId,
+        items: issueItems.map(item => {
+          const selectedAsset = assets.find(a => a.id === item.asset_id);
+          const isConsumable = selectedAsset?.is_consumable || selectedAsset?.item_type === 'Consumable' || selectedAsset?.category === 'Stationery & Supplies';
+          return {
+            asset_id: item.asset_id,
+            quantity: item.quantity,
+            expected_return: isConsumable ? null : item.expected_return || null,
+            notes: item.notes || null,
+            status: isConsumable ? 'Consumed' : 'Issued'
+          };
+        })
       };
 
-      await api.post('/storekeeper/issues', payload);
-      showToast(uiText(isConsumable ? "Consumable item issued & deducted from stock" : "Returnable asset issued successfully"));
+      const response = await api.post('/storekeeper/issues', payload);
+      const count = issueItems.length;
+      showToast(uiText(response.data?.message || `Successfully issued ${count} item(s) in a single transaction`));
       setIssueModalOpen(false);
-      setIssueCategoryFilter('');
-      setIssueForm({ asset_id: '', issued_to_name: '', issued_to_role: 'Teacher', purpose: '', quantity: 1, expected_return: '', notes: '' });
       fetchAllData();
     } catch (e: any) {
       showToast(uiText(e?.response?.data?.error || 'Failed to issue property'), 'error');
@@ -364,10 +457,16 @@ export const StorekeeperPortal = () => {
     e.preventDefault();
     if (!editingIssue) return;
 
+    if (!issueEditForm.issued_to_name || !issueEditForm.issued_to_name.trim()) {
+      showToast(uiText('Borrower name (Issued To) is required'), 'error');
+      return;
+    }
+
     setUpdatingIssue(true);
     try {
       await api.patch(`/storekeeper/issues/${editingIssue.id}`, {
         ...issueEditForm,
+        issued_to_name: issueEditForm.issued_to_name.trim(),
         expected_return: issueEditForm.expected_return || null
       });
       showToast(uiText('Issue record updated successfully'));
@@ -549,131 +648,48 @@ export const StorekeeperPortal = () => {
         );
       })()}
 
-      {/* Issue Asset Modal */}
-      {issueModalOpen && (() => {
-        const selectedAssetForIssue = assets.find(a => a.id === issueForm.asset_id);
-        const isSelectedConsumable = selectedAssetForIssue?.is_consumable || selectedAssetForIssue?.item_type === 'Consumable' || selectedAssetForIssue?.category === 'Stationery & Supplies';
-
-        return (
-          <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto" onClick={() => setIssueModalOpen(false)}>
-            <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 max-w-lg w-full shadow-2xl border border-slate-200 dark:border-slate-800 max-h-[90vh] overflow-y-auto my-auto" onClick={e => e.stopPropagation()}>
-              <div className="flex items-center justify-between mb-5">
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 bg-indigo-100 dark:bg-indigo-500/10 rounded-2xl">
-                    <ArrowRightLeft size={20} className="text-indigo-600 dark:text-indigo-400" />
-                  </div>
-                  <div>
-                    <h3 className="font-black text-lg text-slate-900 dark:text-white">{uiText("Checkout / Issue Item")}</h3>
-                    <p className="text-xs text-slate-500">{uiText("Assign returnable property or issue non-returnable consumables to staff")}</p>
-                  </div>
+      {/* Issue Asset Modal (Multi-Item Transaction) */}
+      {issueModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto" onClick={() => setIssueModalOpen(false)}>
+          <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 max-w-3xl w-full shadow-2xl border border-slate-200 dark:border-slate-800 max-h-[90vh] overflow-y-auto my-auto space-y-5" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-indigo-100 dark:bg-indigo-500/10 rounded-2xl">
+                  <ArrowRightLeft size={22} className="text-indigo-600 dark:text-indigo-400" />
                 </div>
-                <button onClick={() => setIssueModalOpen(false)} className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg"><X size={18} /></button>
+                <div>
+                  <h3 className="font-black text-lg text-slate-900 dark:text-white">{uiText("Checkout / Issue Items")}</h3>
+                  <p className="text-xs text-slate-500">{uiText("Select and issue multiple items to staff or department in a single transaction")}</p>
+                </div>
               </div>
+              <button onClick={() => setIssueModalOpen(false)} className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg"><X size={18} /></button>
+            </div>
 
-              <form onSubmit={handleCreateIssue} className="space-y-4">
-                <div className="space-y-1">
-                  <label className="text-xs font-black text-slate-500 uppercase tracking-wide">{uiText("Search Stock Item to Lend")}</label>
-                  <div className="relative">
-                    <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                    <input
-                      type="text"
-                      placeholder={uiText("Type item name, category, or S/N to filter stock...")}
-                      value={issueModalSearch}
-                      onChange={e => setIssueModalSearch(e.target.value)}
-                      className="w-full pl-9 pr-8 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"
-                    />
-                    {issueModalSearch && (
-                      <button
-                        type="button"
-                        onClick={() => setIssueModalSearch('')}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                      >
-                        <X size={14} />
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label className="text-xs font-black text-slate-500 uppercase tracking-wide">{uiText("Category (Optional)")}</label>
-                    <select
-                      value={issueCategoryFilter}
-                      onChange={e => {
-                        setIssueCategoryFilter(e.target.value);
-                        setIssueForm(form => ({ ...form, asset_id: '' }));
-                      }}
-                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"
-                    >
-                      <option value="">{uiText("All Categories")}</option>
-                      {issueCategories.map(category => (
-                        <option key={category} value={category}>{uiText(category)}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-xs font-black text-slate-500 uppercase tracking-wide">{uiText("Select Item from Stock *")}</label>
-                    <select
-                      value={issueForm.asset_id}
-                      onChange={e => {
-                        const selectedId = e.target.value;
-                        const selectedObj = assets.find(a => a.id === selectedId);
-                        setIssueForm({ ...issueForm, asset_id: selectedId });
-                        if (selectedObj && selectedObj.category) {
-                          setIssueCategoryFilter(selectedObj.category);
-                        }
-                      }}
-                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"
-                      required
-                    >
-                      <option value="">{uiText(issueableAssets.length > 0 ? '-- Choose Item from Register --' : 'No matching items found')}</option>
-                      {issueableAssets.map(a => {
-                        const isCons = a.is_consumable || a.item_type === 'Consumable' || a.category === 'Stationery & Supplies';
-                        return (
-                          <option key={a.id} value={a.id} disabled={a.amount <= 0}>
-                            {uiText(a.name)} ({uiText(a.category || 'General')}) [{uiText(isCons ? 'Consumable' : 'Returnable')}]{uiText(" (Stock: ")}{a.amount}{uiText(") ")}{uiText(a.amount <= 0 ? '— Out of Stock' : '')}
-                          </option>
-                        );
-                      })}
-                    </select>
-                  </div>
-                </div>
-
-                {selectedAssetForIssue && (
-                  <div className={`p-3 rounded-xl border flex items-center gap-2.5 text-xs font-medium ${
-                    isSelectedConsumable
-                      ? 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800/50 text-amber-800 dark:text-amber-300'
-                      : 'bg-indigo-50 dark:bg-indigo-950/30 border-indigo-200 dark:border-indigo-800/50 text-indigo-800 dark:text-indigo-300'
-                  }`}>
-                    {isSelectedConsumable ? <Package size={16} className="text-amber-600 shrink-0" /> : <RotateCcw size={16} className="text-indigo-600 shrink-0" />}
-                    <span>
-                      {uiText(isSelectedConsumable
-                        ? "Non-Returnable Consumable Item (e.g. Chalk, Pens, Paper). Quantity issued will be permanently consumed from stock."
-                        : "Returnable Property (e.g. Projector, Laptop, Furniture). Expected return date is required."
-                      )}
-                    </span>
-                  </div>
-                )}
-
+            <form onSubmit={handleCreateIssue} className="space-y-6">
+              {/* Recipient & Transaction Details */}
+              <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 space-y-3">
+                <h4 className="text-xs font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-wider flex items-center gap-2">
+                  <User size={14} />
+                  {uiText("1. Recipient & Transaction Details")}
+                </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1">
                     <label className="text-xs font-black text-slate-500 uppercase tracking-wide">{uiText("Issued To (Person/Dept) *")}</label>
                     <input
                       type="text"
-                      value={issueForm.issued_to_name}
-                      onChange={e => setIssueForm({ ...issueForm, issued_to_name: e.target.value })}
+                      value={issueRecipient.issued_to_name}
+                      onChange={e => setIssueRecipient({ ...issueRecipient, issued_to_name: e.target.value })}
                       placeholder={uiText("e.g. Teacher Abebe, Main Office...")}
-                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 font-bold"
                       required
                     />
                   </div>
                   <div className="space-y-1">
                     <label className="text-xs font-black text-slate-500 uppercase tracking-wide">{uiText("Role / Department")}</label>
                     <select
-                      value={issueForm.issued_to_role}
-                      onChange={e => setIssueForm({ ...issueForm, issued_to_role: e.target.value })}
-                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+                      value={issueRecipient.issued_to_role}
+                      onChange={e => setIssueRecipient({ ...issueRecipient, issued_to_role: e.target.value })}
+                      className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 font-bold"
                     >
                       <option value="Teacher">{uiText("Teacher")}</option>
                       <option value="Department Head">{uiText("Department Head")}</option>
@@ -684,70 +700,217 @@ export const StorekeeperPortal = () => {
                     </select>
                   </div>
                 </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label className="text-xs font-black text-slate-500 uppercase tracking-wide">{uiText("Quantity *")}</label>
-                    <input
-                      type="number"
-                      min={1}
-                      value={issueForm.quantity}
-                      onChange={e => setIssueForm({ ...issueForm, quantity: parseInt(e.target.value) || 1 })}
-                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-xs font-black text-slate-500 uppercase tracking-wide">{uiText("Expected Return Date")}</label>
-                    {isSelectedConsumable ? (
-                      <input
-                        type="text"
-                        disabled
-                        value={uiText("N/A — Consumed upon issue")}
-                        className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-400 cursor-not-allowed"
-                      />
-                    ) : (
-                      <input
-                        type="date"
-                        value={issueForm.expected_return}
-                        onChange={e => setIssueForm({ ...issueForm, expected_return: e.target.value })}
-                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"
-                      />
-                    )}
-                  </div>
-                </div>
-
                 <div className="space-y-1">
-                  <label className="text-xs font-black text-slate-500 uppercase tracking-wide">{uiText("Purpose / Notes")}</label>
+                  <label className="text-xs font-black text-slate-500 uppercase tracking-wide">{uiText("Purpose / Transaction Notes")}</label>
                   <textarea
                     rows={2}
-                    value={issueForm.purpose}
-                    onChange={e => setIssueForm({ ...issueForm, purpose: e.target.value })}
-                    placeholder={uiText("e.g. For Grade 10 Science Lab exam, Chalk for classrooms...")}
-                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+                    value={issueRecipient.purpose}
+                    onChange={e => setIssueRecipient({ ...issueRecipient, purpose: e.target.value })}
+                    placeholder={uiText("e.g. Science lab tools, chalk & paper for 2nd Term...")}
+                    className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
+              </div>
 
-                <div className="flex gap-3 pt-2">
+              {/* Items Selection Section */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-wider flex items-center gap-2">
+                    <Package size={14} />
+                    {uiText(`2. Select Items to Issue (${issueItems.length} Item${issueItems.length > 1 ? 's' : ''})`)}
+                  </h4>
+                  <span className="text-[11px] font-bold text-slate-400">
+                    {uiText("Add all requested items to issue together")}
+                  </span>
+                </div>
+
+                <div className="space-y-4">
+                  {(issueItems || []).map((itemRow, index) => {
+                    const selectedAsset = (assets || []).find(a => a && a.id === itemRow.asset_id);
+                    const isConsumable = Boolean(selectedAsset?.is_consumable || selectedAsset?.item_type === 'Consumable' || selectedAsset?.category === 'Stationery & Supplies');
+                    const rowCategory = itemRow.categoryFilter || '';
+
+                    const availableAssetsForSelect = (assets || []).filter(a => {
+                      return a && (!rowCategory || (a.category || 'General') === rowCategory);
+                    });
+
+                    return (
+                      <div
+                        key={itemRow.id}
+                        className="p-4 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/40 space-y-3 relative transition-all"
+                      >
+                        <div className="flex items-center justify-between pb-2 border-b border-slate-200/60 dark:border-slate-700/60">
+                          <div className="flex items-center gap-2">
+                            <span className="px-2.5 py-0.5 bg-indigo-600 text-white rounded-full text-xs font-black">
+                              #{index + 1}
+                            </span>
+                            <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                              {selectedAsset ? (typeof selectedAsset.name === 'string' ? selectedAsset.name : String(selectedAsset.name || 'Selected Item')) : uiText("Select Item")}
+                            </span>
+                          </div>
+
+                          {issueItems.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => removeIssueItemRow(itemRow.id)}
+                              className="p-1 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg flex items-center gap-1 text-xs font-bold transition-colors"
+                              title={uiText("Remove this item")}
+                            >
+                              <Trash2 size={14} />
+                              <span>{uiText("Remove")}</span>
+                            </button>
+                          )}
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div className="space-y-1">
+                            <label className="text-[11px] font-black text-slate-400 uppercase">{uiText("Category Filter")}</label>
+                            <select
+                              value={itemRow.categoryFilter || ''}
+                              onChange={e => updateIssueItemRow(itemRow.id, { categoryFilter: e.target.value, asset_id: '' })}
+                              className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500"
+                            >
+                              <option value="">{uiText("All Categories")}</option>
+                              {categoriesList.filter(c => c !== 'All').map(cat => (
+                                <option key={cat} value={cat}>{uiText(cat)}</option>
+                              ))}
+                            </select>
+                          </div>
+
+                          <div className="space-y-1">
+                            <label className="text-[11px] font-black text-slate-400 uppercase">{uiText("Select Asset from Stock *")}</label>
+                            <select
+                              value={itemRow.asset_id}
+                              onChange={e => {
+                                const newAssetId = e.target.value;
+                                const chosenObj = (assets || []).find(a => a && a.id === newAssetId);
+                                updateIssueItemRow(itemRow.id, {
+                                  asset_id: newAssetId,
+                                  categoryFilter: chosenObj?.category || itemRow.categoryFilter || ''
+                                });
+                              }}
+                              className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500"
+                              required
+                            >
+                              <option value="">{uiText('-- Choose Asset --')}</option>
+                              {availableAssetsForSelect.map(a => {
+                                if (!a || !a.id) return null;
+                                const isCons = Boolean(a.is_consumable || a.item_type === 'Consumable' || a.category === 'Stationery & Supplies');
+                                const isSelectedInOtherRow = (issueItems || []).some(r => r && r.id !== itemRow.id && r.asset_id === a.id);
+                                const assetStock = Number(a.amount) || 0;
+                                const displayName = typeof a.name === 'string' ? a.name : String(a.name || 'Item');
+                                return (
+                                  <option key={a.id} value={a.id} disabled={assetStock <= 0 || isSelectedInOtherRow}>
+                                    {displayName} [{isCons ? 'Consumable' : 'Returnable'}] (Stock: {assetStock}) {assetStock <= 0 ? '— Out of Stock' : ''} {isSelectedInOtherRow ? '— (Already added)' : ''}
+                                  </option>
+                                );
+                              })}
+                            </select>
+                          </div>
+                        </div>
+
+                        {selectedAsset && (
+                          <div className={`p-2.5 rounded-xl border flex items-center justify-between text-xs font-medium ${
+                            isConsumable
+                              ? 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800/50 text-amber-800 dark:text-amber-300'
+                              : 'bg-indigo-50 dark:bg-indigo-950/30 border-indigo-200 dark:border-indigo-800/50 text-indigo-800 dark:text-indigo-300'
+                          }`}>
+                            <div className="flex items-center gap-2">
+                              {isConsumable ? <Package size={15} className="text-amber-600 shrink-0" /> : <RotateCcw size={15} className="text-indigo-600 shrink-0" />}
+                              <span>
+                                {uiText(isConsumable ? "Consumable (Non-Returnable) — will be consumed from stock" : "Returnable Property — return date required")}
+                              </span>
+                            </div>
+                            <span className="font-black px-2 py-0.5 bg-white/70 dark:bg-black/30 rounded-md">
+                              {uiText("Available: ")}{selectedAsset.amount}
+                            </span>
+                          </div>
+                        )}
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div className="space-y-1">
+                            <label className="text-[11px] font-black text-slate-400 uppercase">{uiText("Quantity *")}</label>
+                            <input
+                              type="number"
+                              min={1}
+                              max={selectedAsset ? selectedAsset.amount : undefined}
+                              value={itemRow.quantity}
+                              onChange={e => updateIssueItemRow(itemRow.id, { quantity: Math.max(1, parseInt(e.target.value) || 1) })}
+                              className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500"
+                              required
+                            />
+                            {selectedAsset && itemRow.quantity > selectedAsset.amount && (
+                              <p className="text-[11px] font-bold text-rose-500 mt-1">{uiText("Exceeds available stock level!")}</p>
+                            )}
+                          </div>
+
+                          <div className="space-y-1">
+                            <label className="text-[11px] font-black text-slate-400 uppercase">{uiText("Expected Return Date")}</label>
+                            {isConsumable ? (
+                              <input
+                                type="text"
+                                disabled
+                                value={uiText("N/A — Consumed upon issue")}
+                                className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-400 cursor-not-allowed"
+                              />
+                            ) : (
+                              <input
+                                type="date"
+                                value={itemRow.expected_return}
+                                onChange={e => updateIssueItemRow(itemRow.id, { expected_return: e.target.value })}
+                                className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500"
+                              />
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={addIssueItemRow}
+                  className="w-full py-2.5 px-4 border-2 border-dashed border-indigo-300 dark:border-indigo-800 hover:border-indigo-500 text-indigo-600 dark:text-indigo-400 rounded-2xl text-xs font-black flex items-center justify-center gap-2 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/30 transition-colors"
+                >
+                  <Plus size={16} />
+                  {uiText("+ Add Another Item to Transaction")}
+                </button>
+              </div>
+
+              {/* Modal Footer Actions */}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+                <div className="text-xs font-bold text-slate-500">
+                  {uiText("Transaction Total: ")}
+                  <span className="font-black text-indigo-600 dark:text-indigo-400">
+                    {issueItems.length} {uiText(issueItems.length === 1 ? 'Item' : 'Items')}
+                  </span>
+                  {" ("}
+                  {issueItems.reduce((acc, curr) => acc + (curr.quantity || 1), 0)} {uiText("units total)")}
+                </div>
+
+                <div className="flex items-center gap-3 w-full sm:w-auto">
                   <button
                     type="button"
                     onClick={() => setIssueModalOpen(false)}
-                    className="flex-1 px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800"
-                  >{uiText("Cancel")}</button>
+                    className="flex-1 sm:flex-none px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800"
+                  >
+                    {uiText("Cancel")}
+                  </button>
                   <button
                     type="submit"
                     disabled={issuing}
-                    className="flex-1 px-4 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-bold hover:bg-indigo-700 disabled:opacity-50 flex items-center justify-center gap-2"
+                    className="flex-1 sm:flex-none px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20"
                   >
                     {issuing ? <RefreshCw size={15} className="animate-spin" /> : <ArrowRightLeft size={15} />}
-                    {uiText(isSelectedConsumable ? "Confirm Consumable Issue" : "Confirm Issue")}
+                    {uiText(`Issue Transaction (${issueItems.length} ${issueItems.length === 1 ? 'Item' : 'Items'})`)}
                   </button>
                 </div>
-              </form>
-            </div>
+              </div>
+            </form>
           </div>
-        );
-      })()}
+        </div>
+      )}
 
       {/* Header Banner */}
       <div className="bg-gradient-to-r from-indigo-600 via-indigo-700 to-violet-800 rounded-3xl p-8 text-white shadow-xl shadow-indigo-500/20">
@@ -765,7 +928,7 @@ export const StorekeeperPortal = () => {
           </div>
           <div className="flex gap-3">
             <button
-              onClick={() => { setIssueCategoryFilter(''); setIssueForm({ asset_id: '', issued_to_name: '', issued_to_role: 'Teacher', purpose: '', quantity: 1, expected_return: '', notes: '' }); setIssueModalOpen(true); }}
+              onClick={() => handleOpenIssueModal()}
               className="flex items-center gap-2 px-5 py-3 bg-white text-indigo-900 rounded-2xl font-black text-sm hover:bg-indigo-50 shadow-lg transition-all"
             >
               <ArrowRightLeft size={18} />{uiText("Issue Asset")}</button>
@@ -1021,11 +1184,7 @@ export const StorekeeperPortal = () => {
                           <td className="px-5 py-4">
                             <div className="flex items-center justify-center gap-1">
                               <button
-                                onClick={() => {
-                                  setIssueCategoryFilter(asset.category || 'General');
-                                  setIssueForm(f => ({ ...f, asset_id: asset.id }));
-                                  setIssueModalOpen(true);
-                                }}
+                                onClick={() => handleOpenIssueModal(asset.id)}
                                 className="p-2 text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 rounded-lg"
                                 title={uiText("Issue to Staff")}
                               >
@@ -1068,7 +1227,7 @@ export const StorekeeperPortal = () => {
               <p className="text-xs text-slate-500">{uiText("Track property assigned to teachers, staff, and departments")}</p>
             </div>
             <button
-              onClick={() => { setIssueCategoryFilter(''); setIssueForm({ asset_id: '', issued_to_name: '', issued_to_role: 'Teacher', purpose: '', quantity: 1, expected_return: '', notes: '' }); setIssueModalOpen(true); }}
+              onClick={() => handleOpenIssueModal()}
               className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-bold hover:bg-indigo-700"
             >
               <ArrowRightLeft size={16} />{uiText(" New Checkout")}</button>
@@ -1124,7 +1283,7 @@ export const StorekeeperPortal = () => {
             <div className="text-center py-16 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800">
               <ArrowRightLeft size={44} className="mx-auto mb-3 text-slate-300" />
               <p className="font-bold text-slate-400">{uiText("No active or past property issues recorded")}</p>
-              <button onClick={() => { setIssueCategoryFilter(''); setIssueModalSearch(''); setIssueForm({ asset_id: '', issued_to_name: '', issued_to_role: 'Teacher', purpose: '', quantity: 1, expected_return: '', notes: '' }); setIssueModalOpen(true); }} className="mt-3 text-sm text-indigo-600 font-bold hover:underline">{uiText("+ Issue property to staff")}</button>
+              <button onClick={() => handleOpenIssueModal()} className="mt-3 text-sm text-indigo-600 font-bold hover:underline">{uiText("+ Issue property to staff")}</button>
             </div>
           ) : filteredIssues.length === 0 ? (
             <div className="text-center py-16 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800">
