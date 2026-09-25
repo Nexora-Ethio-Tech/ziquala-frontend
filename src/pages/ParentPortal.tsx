@@ -100,13 +100,15 @@ export const ParentPortal = () => {
       .forEach((n) => {
         const id = String(n.id);
         if (!map.has(id)) {
+          const rawTime = n.time || (n as any).timestamp || (n as any).created_at;
+          const validTimestamp = rawTime && !isNaN(new Date(rawTime).getTime()) ? rawTime : new Date().toISOString();
           map.set(id, {
             id,
             title: n.title,
             content: n.content,
             priority: (n.priority as any) || 'Normal',
             category: n.category || 'General',
-            timestamp: n.time || new Date().toISOString(),
+            timestamp: validTimestamp,
             created_by_name: 'School Administration'
           });
         }

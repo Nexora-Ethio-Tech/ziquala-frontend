@@ -101,7 +101,7 @@ export const StudentPortal = () => {
         content: a.content,
         priority: a.priority || 'Normal',
         category: a.category || 'Notice',
-        timestamp: a.timestamp || a.created_at || new Date().toISOString(),
+        timestamp: a.timestamp || a.created_at || a.time || new Date().toISOString(),
         source: 'School Admin'
       });
     });
@@ -110,13 +110,15 @@ export const StudentPortal = () => {
       .forEach((n) => {
         const id = String(n.id);
         if (!map.has(id)) {
+          const rawTime = n.time || (n as any).timestamp || (n as any).created_at;
+          const validTimestamp = rawTime && !isNaN(new Date(rawTime).getTime()) ? rawTime : new Date().toISOString();
           map.set(id, {
             id,
             title: n.title,
             content: n.content,
             priority: n.priority || 'Normal',
             category: n.category || 'Notice',
-            timestamp: n.time || new Date().toISOString(),
+            timestamp: validTimestamp,
             source: 'School Admin'
           });
         }
