@@ -87,6 +87,7 @@ export const Students = () => {
   const [generatedPassword, setGeneratedPassword] = useState<string | null>(null);
   const [resettingParentPassword, setResettingParentPassword] = useState(false);
   const [generatedParentPassword, setGeneratedParentPassword] = useState<string | null>(null);
+  const [resetTargets, setResetTargets] = useState<{ student: boolean; parent: boolean }>({ student: false, parent: false });
 
   // Bulk section & status management state
   const [selectedStudentIds, setSelectedStudentIds] = useState<Set<string>>(new Set());
@@ -548,6 +549,43 @@ export const Students = () => {
     }
   };
 
+  const handleResetSelected = async () => {
+    if (!resetTargets.student && !resetTargets.parent) {
+      showToast(uiText('Please select at least one account to reset'), 'error');
+      return;
+    }
+    const isBusy = resettingPassword || resettingParentPassword;
+    if (isBusy) return;
+
+    if (resetTargets.student) {
+      setResettingPassword(true);
+      try {
+        const result = await resetUserPIN(selectedStudent!.userId);
+        const pin = result?.newPIN;
+        if (pin) { setGeneratedPassword(pin); showToast(uiText("Student password reset: {{value0}}", { value0: pin }), 'success'); }
+        else showToast(uiText('Student password reset succeeded'), 'success');
+      } catch (err: any) {
+        showToast(uiText(err.response?.data?.error?.message || 'Failed to reset student password'), 'error');
+      } finally {
+        setResettingPassword(false);
+      }
+    }
+
+    if (resetTargets.parent && selectedStudent?.parentUserId) {
+      setResettingParentPassword(true);
+      try {
+        const result = await resetUserPIN(selectedStudent.parentUserId);
+        const pin = result?.newPIN;
+        if (pin) { setGeneratedParentPassword(pin); showToast(uiText("Parent password reset: {{value0}}", { value0: pin }), 'success'); }
+        else showToast(uiText('Parent password reset succeeded'), 'success');
+      } catch (err: any) {
+        showToast(uiText(err.response?.data?.error?.message || 'Failed to reset parent password'), 'error');
+      } finally {
+        setResettingParentPassword(false);
+      }
+    }
+  };
+
   const handleDelete = async () => {
     if (!confirmDelete.student) return;
     try {
@@ -583,6 +621,7 @@ export const Students = () => {
     });
     setGeneratedPassword(null);
     setGeneratedParentPassword(null);
+    setResetTargets({ student: false, parent: false });
     setShowEditModal(true);
   };
 
@@ -1180,50 +1219,63 @@ export const Students = () => {
                 />
               </div>
               <div className="flex flex-col gap-3">
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <label className="text-xs font-bold text-slate-500 uppercase">{uiText("Password Reset")}</label>
-                    <p className="text-sm text-slate-500">{uiText("Generate a new 4-digit password for this student.")}</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleResetPassword}
-                    disabled={resettingPassword}
-                    className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-bold disabled:opacity-50"
-                  >
-                    {uiText(resettingPassword ? 'Generating...' : 'Reset Password')}
-                  </button>
-                </div>
-                {uiText(generatedPassword && (
-                  <p className="text-sm text-slate-700 dark:text-slate-300">{uiText("New password: ")}<span className="font-mono text-base text-slate-900 dark:text-white">{uiText(generatedPassword)}</span>
-                  </p>
-                ))}
-              </div>
-              {selectedStudent?.parentUserId && (
-                <div className="flex flex-col gap-3 border-t border-slate-100 dark:border-slate-800 pt-4">
-                  <div className="flex items-center justify-between gap-4">
-                    <div>
-                      <label className="text-xs font-bold text-slate-500 uppercase">{uiText("Parent Password Reset")}</label>
-                      <p className="text-sm text-slate-500">
-                        {selectedStudent.parentName
-                          ? uiText("Reset password for {{value0}}'s parent account.", { value0: selectedStudent.parentName })
-                          : uiText("Generate a new 4-digit password for the linked parent account.")}
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={handleResetParentPassword}
-                      disabled={resettingParentPassword}
-                      className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-bold disabled:opacity-50 whitespace-nowrap"
-                    >
-                      {uiText(resettingParentPassword ? 'Generating...' : 'Reset Parent')}
-                    </button>
-                  </div>
-                  {generatedParentPassword && (
-                    <p className="text-sm text-slate-700 dark:text-slate-300">{uiText("Parent new password: ")}<span className="font-mono text-base text-slate-900 dark:text-white">{uiText(generatedParentPassword)}</span></p>
+                <label className="text-xs font-bold text-slate-500 uppercase">{uiText("Password Reset")}</label>
+                {/* Checkbox selection */}
+                <div className="flex gap-3">
+                  <label className="flex items-center gap-2 cursor-pointer select-none flex-1 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-blue-400 transition-colors" style={{ background: resetTargets.student ? 'rgba(59,130,246,0.08)' : undefined }}>
+                    <input
+                      type="checkbox"
+                      className="accent-blue-600 w-4 h-4"
+                      checked={resetTargets.student}
+                      onChange={(e) => setResetTargets(t => ({ ...t, student: e.target.checked }))}
+                    />
+                    <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">{uiText("Student")}</span>
+                  </label>
+                  {selectedStudent?.parentUserId && (
+                    <label className="flex items-center gap-2 cursor-pointer select-none flex-1 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-purple-400 transition-colors" style={{ background: resetTargets.parent ? 'rgba(147,51,234,0.08)' : undefined }}>
+                      <input
+                        type="checkbox"
+                        className="accent-purple-600 w-4 h-4"
+                        checked={resetTargets.parent}
+                        onChange={(e) => setResetTargets(t => ({ ...t, parent: e.target.checked }))}
+                      />
+                      <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">{uiText("Parent")}</span>
+                    </label>
                   )}
                 </div>
-              )}
+                {/* Single reset button */}
+                <button
+                  type="button"
+                  onClick={handleResetSelected}
+                  disabled={resettingPassword || resettingParentPassword || (!resetTargets.student && !resetTargets.parent)}
+                  className="w-full px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-bold disabled:opacity-40 transition-colors"
+                >
+                  {(resettingPassword || resettingParentPassword)
+                    ? uiText('Generating...')
+                    : resetTargets.student && resetTargets.parent
+                      ? uiText('Reset Both Passwords')
+                      : resetTargets.parent
+                        ? uiText('Reset Parent Password')
+                        : resetTargets.student
+                          ? uiText('Reset Student Password')
+                          : uiText('Select an account above')}
+                </button>
+                {/* Generated password display */}
+                {(generatedPassword || generatedParentPassword) && (
+                  <div className="flex flex-col gap-1 p-3 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
+                    {generatedPassword && (
+                      <p className="text-sm text-slate-700 dark:text-slate-300">
+                        {uiText("Student: ")}<span className="font-mono text-base font-bold text-slate-900 dark:text-white">{uiText(generatedPassword)}</span>
+                      </p>
+                    )}
+                    {generatedParentPassword && (
+                      <p className="text-sm text-slate-700 dark:text-slate-300">
+                        {uiText("Parent: ")}<span className="font-mono text-base font-bold text-slate-900 dark:text-white">{uiText(generatedParentPassword)}</span>
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
               <div>
                 <label htmlFor="edit-grade" className="text-xs font-bold text-slate-500 uppercase">{uiText("Grade")}</label>
                 <select
