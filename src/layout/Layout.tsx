@@ -12,7 +12,7 @@ import { useSSE } from '../hooks/useSSE';
 
 export const Layout = () => {
   const location = useLocation();
-  const { role, user, schoolName } = useUser();
+  const { role, user, schoolName, activeVPMode } = useUser();
   const { t, i18n } = useTranslation();
   // Connect to SSE stream for real-time notice updates (school notices, driver alerts)
   useSSE();
@@ -51,7 +51,7 @@ export const Layout = () => {
       }
     }
 
-    if (role === 'teacher') {
+    if (role === 'teacher' || (role === 'vice-principal' && activeVPMode === 'teacher')) {
       switch (path) {
         case '/': return 'Teacher Portal';
         case '/attendance': return 'Student Attendance';

@@ -3,7 +3,7 @@ import { uiText } from "../localization";
 
 import {
   Bell, Search, User, LogOut, Moon, Sun, Menu,
-  Calendar as CalendarIcon, X, ChevronDown, Lock, BookOpen,
+  Calendar as CalendarIcon, X, ChevronDown, Lock, BookOpen, Briefcase,
 } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import { useStore } from '../context/useStore';
@@ -26,7 +26,7 @@ interface HeaderProps {
 
 
 export const Header = ({ title, onMenuClick }: HeaderProps) => {
-  const { user, logout, selectedBranch, role } = useUser();
+  const { user, logout, selectedBranch, role, isVPTeacher, activeVPMode, setActiveVPMode } = useUser();
   const { isExamLockedDown } = useStore();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
@@ -133,7 +133,7 @@ export const Header = ({ title, onMenuClick }: HeaderProps) => {
                 </p>
                 <div className="flex items-center justify-end gap-1">
                   <p className="text-[10px] md:text-xs font-bold text-school-primary uppercase tracking-widest whitespace-nowrap">
-                    {isTeacherLibrarian ? uiText('Teacher & Librarian') : t(`roles.${role || ''}`, (role || '').replace(/-/g, ' '))}
+                    {isTeacherLibrarian ? uiText('Teacher & Librarian') : isVPTeacher ? uiText(activeVPMode === 'teacher' ? 'VP · Teacher Mode' : 'Vice Principal · VP Mode') : t(`roles.${role || ''}`, (role || '').replace(/-/g, ' '))}
                   </p>
                   <ChevronDown
                     size={12}
@@ -159,7 +159,7 @@ export const Header = ({ title, onMenuClick }: HeaderProps) => {
                     <p className="text-xs font-black text-slate-700 dark:text-slate-200">{user?.name}</p>
                     <p className="text-[10px] text-slate-400 mt-0.5 truncate">{user?.email}</p>
                     <span className="inline-block mt-1.5 px-2 py-0.5 bg-school-primary/10 text-school-primary rounded-full text-[10px] font-bold uppercase tracking-wide whitespace-nowrap">
-                      {isTeacherLibrarian ? uiText('Teacher & Librarian') : t(`roles.${role || ''}`, (role || '').replace(/-/g, ' '))}
+                      {isTeacherLibrarian ? uiText('Teacher & Librarian') : isVPTeacher ? uiText(activeVPMode === 'teacher' ? 'VP · Teacher Mode' : 'Vice Principal · VP Mode') : t(`roles.${role || ''}`, (role || '').replace(/-/g, ' '))}
                     </span>
                   </div>
 
@@ -179,7 +179,28 @@ export const Header = ({ title, onMenuClick }: HeaderProps) => {
                   </div>
 
                   <div className="p-2 border-t border-slate-100 dark:border-slate-800 space-y-1">
-                    {isTeacherLibrarian && (
+                    {/* VP ↔ Teacher mode switcher */}
+                  {isVPTeacher && (
+                    <button
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        const newMode = activeVPMode === 'vp' ? 'teacher' : 'vp';
+                        setActiveVPMode(newMode);
+                        if (newMode === 'teacher') {
+                          navigate('/dashboard/teacher');
+                        } else {
+                          navigate('/dashboard/vice-principal');
+                        }
+                      }}
+                      className="w-full px-3 py-2.5 flex items-center gap-3 rounded-xl text-sm font-bold text-violet-600 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-950/40 transition-all border border-violet-100 dark:border-violet-900/50 my-1 text-left"
+                    >
+                      <span className="w-7 h-7 rounded-lg bg-violet-100 dark:bg-violet-900/40 flex items-center justify-center shrink-0">
+                        {activeVPMode === 'vp' ? <Briefcase size={15} /> : <BookOpen size={15} />}
+                      </span>
+                      {activeVPMode === 'vp' ? uiText('Switch to Teacher Portal') : uiText('Switch to VP Portal')}
+                    </button>
+                  )}
+                  {isTeacherLibrarian && (
                       <button
                         onClick={() => {
                           setIsMenuOpen(false);

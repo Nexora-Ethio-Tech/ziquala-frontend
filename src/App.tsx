@@ -147,7 +147,7 @@ const ProtectedRoute = ({
 
 function App() {
   useTranslation();
-  const { user, role, loading } = useUser();
+  const { user, role, loading, activeVPMode } = useUser();
 
   // ─── Block ALL rendering until token verification completes ────────────────
   // Without this, ProtectedRoute would see user=null briefly and redirect to /login
@@ -192,7 +192,7 @@ function App() {
               <Route path="dashboard/super-admin" element={<ProtectedRoute allowedRoles={['super-admin']}><Dashboard /></ProtectedRoute>} />
               <Route path="dashboard/academic-manager" element={<ProtectedRoute allowedRoles={['academic-manager']}><Dashboard /></ProtectedRoute>} />
               <Route path="dashboard/school-admin" element={<ProtectedRoute allowedRoles={['school-admin']}><Dashboard /></ProtectedRoute>} />
-              <Route path="dashboard/teacher" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherPortal /></ProtectedRoute>} />
+              <Route path="dashboard/teacher" element={<ProtectedRoute allowedRoles={['teacher', 'vice-principal']}><TeacherPortal /></ProtectedRoute>} />
               <Route path="dashboard/student" element={<ProtectedRoute allowedRoles={['student']}><StudentPortal /></ProtectedRoute>} />
               <Route path="dashboard/parent" element={<ProtectedRoute allowedRoles={['parent']}><ParentPortal /></ProtectedRoute>} />
               <Route path="dashboard/vice-principal" element={<ProtectedRoute allowedRoles={['vice-principal']}><VicePrincipalDashboard /></ProtectedRoute>} />
@@ -259,19 +259,19 @@ function App() {
               } />
 
               <Route path="teacher-classes" element={
-                <ProtectedRoute allowedRoles={['teacher']}>
+                <ProtectedRoute allowedRoles={['teacher', 'vice-principal']}>
                   <TeacherClasses />
                 </ProtectedRoute>
               } />
 
               <Route path="teacher-grades" element={
-                <ProtectedRoute allowedRoles={['teacher']}>
+                <ProtectedRoute allowedRoles={['teacher', 'vice-principal']}>
                   <TeacherGrades />
                 </ProtectedRoute>
               } />
 
               <Route path="teacher-student-grades/:studentId" element={
-                <ProtectedRoute allowedRoles={['teacher']}>
+                <ProtectedRoute allowedRoles={['teacher', 'vice-principal']}>
                   <TeacherStudentGrades />
                 </ProtectedRoute>
               } />
@@ -291,24 +291,6 @@ function App() {
               <Route path="vp-grade-locks" element={
                 <ProtectedRoute allowedRoles={['vice-principal', 'super-admin', 'academic-manager']}>
                   <Navigate to="/vp-grade-management" replace />
-                </ProtectedRoute>
-              } />
-
-              <Route path="teacher-classes" element={
-                <ProtectedRoute allowedRoles={['teacher']}>
-                  <TeacherClasses />
-                </ProtectedRoute>
-              } />
-
-              <Route path="teacher-grades" element={
-                <ProtectedRoute allowedRoles={['teacher']}>
-                  <TeacherGrades />
-                </ProtectedRoute>
-              } />
-
-              <Route path="teacher-student-grades/:studentId" element={
-                <ProtectedRoute allowedRoles={['teacher']}>
-                  <TeacherStudentGrades />
                 </ProtectedRoute>
               } />
 
@@ -344,7 +326,7 @@ function App() {
 
               <Route path="attendance" element={
                 <ProtectedRoute allowedRoles={['school-admin', 'super-admin', 'vice-principal', 'academic-manager', 'teacher', 'student']}>
-                  {role === 'teacher' ? <TeacherAttendance /> :
+                  {role === 'teacher' || (role === 'vice-principal' && activeVPMode === 'teacher') ? <TeacherAttendance /> :
                     role === 'student' ? <AcademicHistory /> :
                       <Attendance />}
                 </ProtectedRoute>
@@ -387,14 +369,14 @@ function App() {
               } />
 
               <Route path="schedule" element={
-                <ProtectedRoute allowedRoles={['teacher']}>
+                <ProtectedRoute allowedRoles={['teacher', 'vice-principal']}>
                   <TeacherSchedule />
                 </ProtectedRoute>
               } />
 
               <Route path="grades" element={
                 <ProtectedRoute allowedRoles={['teacher', 'vice-principal', 'school-admin', 'academic-manager']}>
-                  {normalizeRouteRole(role) === 'vice-principal' ? <VPGradeManagement /> : <GradeEntry />}
+                  {normalizeRouteRole(role) === 'vice-principal' && activeVPMode !== 'teacher' ? <VPGradeManagement /> : <GradeEntry />}
                 </ProtectedRoute>
               } />
 

@@ -54,7 +54,7 @@ const dashboardRoutes: Record<UserRole, string> = {
 };
 
 export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
-  const { user, role, logout, schoolName } = useUser();
+  const { user, role, logout, schoolName, activeVPMode } = useUser();
   const { isExamLockedDown, selectedBranchId } = useStore();
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -118,6 +118,17 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
           { icon: Settings, label: t('nav.settings', 'Settings'), path: '/settings' },
         ];
       case 'vice-principal':
+        if (activeVPMode === 'teacher') {
+          return [
+            { icon: LayoutDashboard, label: t('nav.teacherPortal', 'Teacher Portal'), path: dashboardRoutes.teacher },
+            { icon: BookOpen, label: t('nav.weeklyPlans', 'Weekly Plans'), path: '/dashboard/teacher?tab=plans' },
+            { icon: CalendarCheck, label: t('nav.attendance', 'Attendance'), path: '/attendance' },
+            { icon: BookOpen, label: t('nav.mySchedule', 'My Schedule'), path: '/schedule' },
+            { icon: ClipboardCheck, label: t('nav.gradeEntry', 'Grade Entry'), path: '/grades' },
+            { icon: ClipboardList, label: t('nav.exams', 'Exams'), path: '/exams' },
+            { icon: LibraryBig, label: uiText('eLearning'), path: '/elearning-library' },
+          ];
+        }
         return [
           { icon: LayoutDashboard, label: t('nav.dashboard', 'Dashboard'), path: dashboardRoutes['vice-principal'] },
           { icon: CalendarCheck, label: t('nav.attendanceOversight', 'Attendance Oversight'), path: '/vp-attendance' },

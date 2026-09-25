@@ -69,6 +69,10 @@ interface UserContextType {
   logout: () => void;
   switchRole: (role: UserRole) => Promise<string | null>;
   loading: boolean;
+  // VP dual-role support
+  isVPTeacher: boolean;
+  activeVPMode: 'vp' | 'teacher';
+  setActiveVPMode: (mode: 'vp' | 'teacher') => void;
 }
 
 
@@ -97,6 +101,14 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true); // Block rendering until verified
   const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
   const [branches, setBranches] = useState<Branch[]>([]); // Populated from API only
+  // VP dual-role: persisted mode preference
+  const [activeVPMode, setActiveVPModeState] = useState<'vp' | 'teacher'>(() => {
+    return (localStorage.getItem('ziquala_vp_mode') as 'vp' | 'teacher') || 'vp';
+  });
+  const setActiveVPMode = (mode: 'vp' | 'teacher') => {
+    setActiveVPModeState(mode);
+    localStorage.setItem('ziquala_vp_mode', mode);
+  };
   const [gradesLocked, setGradesLocked] = useState(false);
   const [registrationOpen, setRegistrationOpen] = useState(() => {
     return localStorage.getItem('ziquala_registration_open') !== 'false';
@@ -374,6 +386,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   }, [gradeSubmissionOpen]);
 
   const role = user?.role || null;
+  // A VP is considered a dual-role teacher (can always switch)
+  const isVPTeacher = role === 'vice-principal';
 
 
   const login = async (credentials: { digitalIdOrEmail: string; password?: string; otp?: string }): Promise<{ success: boolean; redirect?: string; error?: string }> => {
@@ -488,7 +502,10 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       login,
       logout,
       switchRole,
-      loading
+      loading,
+      isVPTeacher,
+      activeVPMode,
+      setActiveVPMode,
     }}>
       {children}
     </UserContext.Provider>
