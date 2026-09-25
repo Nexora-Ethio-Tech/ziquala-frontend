@@ -12,7 +12,7 @@ import { useSSE } from '../hooks/useSSE';
 
 export const Layout = () => {
   const location = useLocation();
-  const { role, user, schoolName, activeVPMode } = useUser();
+  const { role, user, schoolName, activeVPMode, isVPTeacher } = useUser();
   const { t, i18n } = useTranslation();
   // Connect to SSE stream for real-time notice updates (school notices, driver alerts)
   useSSE();
@@ -51,12 +51,24 @@ export const Layout = () => {
       }
     }
 
-    if (role === 'teacher' || (role === 'vice-principal' && activeVPMode === 'teacher')) {
+    if ((role === 'teacher' && (!isVPTeacher || activeVPMode === 'teacher')) || (role === 'vice-principal' && isVPTeacher && activeVPMode === 'teacher')) {
       switch (path) {
         case '/': return 'Teacher Portal';
         case '/attendance': return 'Student Attendance';
         case '/schedule': return 'My Teaching Schedule';
         default: return 'Teacher Workstation';
+      }
+    }
+
+    if ((role === 'vice-principal' && (!isVPTeacher || activeVPMode === 'vp')) || (role === 'teacher' && isVPTeacher && activeVPMode === 'vp')) {
+      switch (path) {
+        case '/':
+        case '/dashboard/vice-principal': return 'Vice Principal Portal';
+        case '/vp-attendance': return 'Attendance Oversight';
+        case '/vp-grade-management': return 'Grade Management';
+        case '/vp-transcripts': return 'Transcripts & Archive';
+        case '/vp-communication': return 'Communication Book';
+        default: return 'Vice Principal Workstation';
       }
     }
 

@@ -3694,6 +3694,36 @@ export const Teachers = () => {
                     />
                     <span>{uiText("Librarian (manages school library resources and book circulation)")}</span>
                   </label>
+                  <label className="flex items-center gap-2 text-sm font-semibold text-slate-800 dark:text-slate-200 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={promotionForm.roles.includes('vice-principal')}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setPromotionForm(prev => {
+                          const nextRoles = checked ? [...prev.roles, 'vice-principal'] : prev.roles.filter(r => r !== 'vice-principal');
+                          return { ...prev, roles: nextRoles };
+                        });
+                      }}
+                      className="rounded border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500 w-4 h-4"
+                    />
+                    <span>{uiText("Vice Principal (school leadership, grade oversight & transcripts)")}</span>
+                  </label>
+                  <label className="flex items-center gap-2 text-sm font-semibold text-slate-800 dark:text-slate-200 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={promotionForm.roles.includes('teacher')}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setPromotionForm(prev => {
+                          const nextRoles = checked ? [...prev.roles, 'teacher'] : prev.roles.filter(r => r !== 'teacher');
+                          return { ...prev, roles: nextRoles };
+                        });
+                      }}
+                      className="rounded border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500 w-4 h-4"
+                    />
+                    <span>{uiText("Teacher (classroom teaching, lesson plans & exams)")}</span>
+                  </label>
                 </div>
               </div>
 

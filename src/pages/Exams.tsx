@@ -80,7 +80,7 @@ const StudentExamCard = ({ exam, onStart }: { exam: PublishedExam; onStart: () =
 const Exams = () => {
   const { t } = useTranslation();
 
-  const { role, user, activeVPMode } = useUser();
+  const { role, user, activeVPMode, isVPTeacher } = useUser();
   const navigate = useNavigate();
   const { examControls, ensureExamControl, examinerTeacherIds } = useStore();
   const [exams, setExams] = useState<Exam[]>([]);
@@ -98,7 +98,7 @@ const Exams = () => {
 
   // School Admin and Teacher views
   const isSchoolAdmin = role === 'school-admin';
-  const isTeacher = role === 'teacher' || (role === 'vice-principal' && activeVPMode === 'teacher');
+  const isTeacher = (role === 'teacher' && (!isVPTeacher || activeVPMode === 'teacher')) || (role === 'vice-principal' && isVPTeacher && activeVPMode === 'teacher');
   const isStudent = role === 'student';
   const activeTeacherId = 'T1';
 

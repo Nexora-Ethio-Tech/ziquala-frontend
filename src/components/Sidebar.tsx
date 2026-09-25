@@ -54,7 +54,7 @@ const dashboardRoutes: Record<UserRole, string> = {
 };
 
 export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
-  const { user, role, logout, schoolName, activeVPMode } = useUser();
+  const { user, role, logout, schoolName, activeVPMode, isVPTeacher } = useUser();
   const { isExamLockedDown, selectedBranchId } = useStore();
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -118,7 +118,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
           { icon: Settings, label: t('nav.settings', 'Settings'), path: '/settings' },
         ];
       case 'vice-principal':
-        if (activeVPMode === 'teacher') {
+        if (isVPTeacher && activeVPMode === 'teacher') {
           return [
             { icon: LayoutDashboard, label: t('nav.teacherPortal', 'Teacher Portal'), path: dashboardRoutes.teacher },
             { icon: BookOpen, label: t('nav.weeklyPlans', 'Weekly Plans'), path: '/dashboard/teacher?tab=plans' },
@@ -142,6 +142,18 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
           (user as any)?.staffProfile?.promotion?.roles?.includes('librarian') ||
           (user as any)?.staffProfile?.promotion?.promotionType === 'librarian'
         );
+
+        if (isVPTeacher && activeVPMode === 'vp') {
+          return [
+            { icon: LayoutDashboard, label: t('nav.dashboard', 'Dashboard'), path: dashboardRoutes['vice-principal'] },
+            { icon: CalendarCheck, label: t('nav.attendanceOversight', 'Attendance Oversight'), path: '/vp-attendance' },
+            { icon: ClipboardList, label: t('nav.gradeManagement', 'Grade Management'), path: '/vp-grade-management' },
+            { icon: FileText, label: t('nav.transcripts', 'Transcripts'), path: '/vp-transcripts' },
+            { icon: BookOpen, label: t('nav.communicationBook', 'Communication Book'), path: '/vp-communication' },
+            { icon: LibraryBig, label: uiText('eLearning'), path: '/elearning-library' },
+          ];
+        }
+
         const nav: NavItem[] = [
           { icon: LayoutDashboard, label: t('nav.teacherPortal', 'Teacher Portal'), path: dashboardRoutes.teacher },
         ];

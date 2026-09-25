@@ -386,8 +386,23 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   }, [gradeSubmissionOpen]);
 
   const role = user?.role || null;
-  // A VP is considered a dual-role teacher (can always switch)
-  const isVPTeacher = role === 'vice-principal';
+  const rawStaffProfile = (user as any)?.staffProfile || (user as any)?.staff_profile;
+  const staffProfile = typeof rawStaffProfile === 'string' ? (() => {
+    try { return JSON.parse(rawStaffProfile); } catch { return null; }
+  })() : rawStaffProfile;
+
+  const promoRolesRaw: any[] = staffProfile?.promotion?.roles || [];
+  const promoRoles = promoRolesRaw.map((r: any) => typeof r === 'string' ? r.toLowerCase().replace(/_/g, '-') : '');
+  const promoTypeRaw = staffProfile?.promotion?.promotionType || '';
+  const promoType = typeof promoTypeRaw === 'string' ? promoTypeRaw.toLowerCase().replace(/_/g, '-') : '';
+
+  // Dual role is ONLY active if the user was explicitly promoted:
+  // 1. Vice Principal promoted as Teacher
+  // 2. Teacher promoted as Vice Principal
+  const isVPTeacher = Boolean(
+    (role === 'vice-principal' && (promoRoles.includes('teacher') || promoType === 'teacher')) ||
+    (role === 'teacher' && (promoRoles.includes('vice-principal') || promoType === 'vice-principal'))
+  );
 
 
   const login = async (credentials: { digitalIdOrEmail: string; password?: string; otp?: string }): Promise<{ success: boolean; redirect?: string; error?: string }> => {
