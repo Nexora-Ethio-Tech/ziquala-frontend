@@ -2,7 +2,8 @@ import { uiError, uiText } from "../localization";
 
 import { BookOpen, Award, Clock, Star, Trophy, Loader2, Megaphone, Bell, User, MapPin, CheckCircle2, Lock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { useStore } from '../context/useStore';
 import { formatEthiopianLabel } from '../utils/ethiopianCalendar';
 import {
   getStudentDashboard,
@@ -87,6 +88,41 @@ export const StudentPortal = () => {
   const weeklySchedule = dashboard?.weeklySchedule ?? [];
   const schoolAnnouncements = dashboard?.schoolAnnouncements ?? [];
   const logisticsAnnouncements = dashboard?.logisticsAnnouncements ?? [];
+
+  const storeNotices = useStore((state) => state.notices);
+
+  const mergedSchoolAnnouncements = useMemo(() => {
+    const map = new Map<string, any>();
+    schoolAnnouncements.forEach((a: any) => {
+      const id = String(a.id);
+      map.set(id, {
+        id,
+        title: a.title,
+        content: a.content,
+        priority: a.priority || 'Normal',
+        category: a.category || 'Notice',
+        timestamp: a.timestamp || a.created_at || new Date().toISOString(),
+        source: 'School Admin'
+      });
+    });
+    (storeNotices || [])
+      .filter((n) => !n.audience || n.audience.length === 0 || n.audience.includes('student') || n.audience.includes('all') || n.audience.includes('parent-student'))
+      .forEach((n) => {
+        const id = String(n.id);
+        if (!map.has(id)) {
+          map.set(id, {
+            id,
+            title: n.title,
+            content: n.content,
+            priority: n.priority || 'Normal',
+            category: n.category || 'Notice',
+            timestamp: n.time || new Date().toISOString(),
+            source: 'School Admin'
+          });
+        }
+      });
+    return Array.from(map.values());
+  }, [schoolAnnouncements, storeNotices]);
 
   const getScheduleForDay = (day: string, schedule: WeeklyScheduleEntry[]) =>
     schedule.filter((s) => s.day === day).sort((a, b) => a.timeSlot.localeCompare(b.timeSlot));
@@ -325,18 +361,18 @@ export const StudentPortal = () => {
             </div>
           </div>
 
-          {(schoolAnnouncements.length > 0 || logisticsAnnouncements.length > 0) && (
-            <div className="space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-950/95 border border-slate-800 p-6 rounded-3xl shadow-xl shadow-slate-900/20 text-white">
-                <div>
-                  <h3 className="text-lg font-bold">{uiText("Announcements and Notices")}</h3>
-                  <p className="text-sm text-slate-300 mt-1">{uiText("Latest updates from your assigned driver and the School Admin.")}</p>
-                </div>
-                <div className="text-sm text-slate-400">{schoolAnnouncements.length + logisticsAnnouncements.length}{uiText(" notices")}</div>
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-950/95 border border-slate-800 p-6 rounded-3xl shadow-xl shadow-slate-900/20 text-white">
+              <div>
+                <h3 className="text-lg font-bold">{uiText("Announcements and Notices")}</h3>
+                <p className="text-sm text-slate-300 mt-1">{uiText("Latest official updates from School Administration and your transport team.")}</p>
               </div>
+              <div className="text-sm text-slate-400">{mergedSchoolAnnouncements.length + logisticsAnnouncements.length}{uiText(" notices")}</div>
+            </div>
 
+            {mergedSchoolAnnouncements.length > 0 || logisticsAnnouncements.length > 0 ? (
               <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                {[...schoolAnnouncements.map((notice) => ({ ...notice, source: 'School Admin' })),
+                {[...mergedSchoolAnnouncements.map((notice) => ({ ...notice, source: 'School Admin' })),
                 ...logisticsAnnouncements.map((notice) => ({ ...notice, source: 'Driver' }))].map((notice) => (
                   <div key={notice.id} className="bg-slate-950/95 border border-slate-800 p-6 rounded-3xl shadow-xl shadow-slate-900/30 text-white">
                     <div className="flex items-start justify-between gap-3 mb-4">
@@ -360,8 +396,14 @@ export const StudentPortal = () => {
                   </div>
                 ))}
               </div>
-            </div>
-          )}
+            ) : (
+              <div className="bg-slate-950/95 border border-slate-800 p-8 rounded-3xl text-center space-y-2">
+                <Megaphone className="mx-auto text-slate-700 animate-pulse" size={32} />
+                <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">{uiText("No active announcements at this time")}</p>
+                <p className="text-xs text-slate-500">{uiText("Official school announcements and notices will appear here.")}</p>
+              </div>
+            )}
+          </div>
         </>
       )}
     </div>

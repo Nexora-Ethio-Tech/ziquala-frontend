@@ -97,7 +97,7 @@ export const useSSE = () => {
             : payload.audience === 'teacher'
             ? ['teacher', 'school-admin', 'academic-manager', 'vice-principal', 'super-admin']
             : payload.audience === 'academic'
-            ? ['academic-manager', 'school-admin', 'vice-principal', 'teacher', 'super-admin']
+            ? ['academic-manager', 'school-admin', 'vice-principal', 'super-admin']
             : payload.audience === 'parent-student'
             ? ['parent', 'student', 'school-admin', 'academic-manager', 'vice-principal', 'super-admin']
             : typeof payload.audience === 'string'

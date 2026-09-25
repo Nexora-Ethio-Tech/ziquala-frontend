@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useStore } from '../context/useStore';
 import { commFields, ratingLabels } from '../data/mockData';
 import {
   getParentDashboard,
@@ -85,6 +86,33 @@ export const ParentPortal = () => {
   const [schoolAnnouncementsData, setSchoolAnnouncementsData] = useState<ParentAnnouncement[]>([]);
   const [announcementsLoading, setAnnouncementsLoading] = useState(false);
   const [noticeFilter, setNoticeFilter] = useState<'all' | 'school' | 'driver'>('all');
+
+  const storeNotices = useStore((state) => state.notices);
+
+  const mergedSchoolAnnouncements = useMemo(() => {
+    const map = new Map<string, ParentAnnouncement>();
+    (schoolAnnouncementsData || []).forEach((a) => {
+      const id = String(a.id);
+      map.set(id, a);
+    });
+    (storeNotices || [])
+      .filter((n) => !n.audience || n.audience.length === 0 || n.audience.includes('parent') || n.audience.includes('all') || n.audience.includes('parent-student'))
+      .forEach((n) => {
+        const id = String(n.id);
+        if (!map.has(id)) {
+          map.set(id, {
+            id,
+            title: n.title,
+            content: n.content,
+            priority: (n.priority as any) || 'Normal',
+            category: n.category || 'General',
+            timestamp: n.time || new Date().toISOString(),
+            created_by_name: 'School Administration'
+          });
+        }
+      });
+    return Array.from(map.values());
+  }, [schoolAnnouncementsData, storeNotices]);
 
   // Financial Summary State
   const [financialData, setFinancialData] = useState<FinancialSummary[]>([]);
@@ -518,7 +546,7 @@ export const ParentPortal = () => {
                     ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
                     : 'text-slate-400 hover:text-white'
                     }`}
-                >{uiText("All (")}{schoolAnnouncementsData.length + driverUpdates.length}{uiText(")")}</button>
+                >{uiText("All (")}{mergedSchoolAnnouncements.length + driverUpdates.length}{uiText(")")}</button>
                 <button
                   type="button"
                   onClick={() => setNoticeFilter('school')}
@@ -526,7 +554,7 @@ export const ParentPortal = () => {
                     ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
                     : 'text-slate-400 hover:text-white'
                     }`}
-                >{uiText("School Admin (")}{schoolAnnouncementsData.length}{uiText(")")}</button>
+                >{uiText("School Admin (")}{mergedSchoolAnnouncements.length}{uiText(")")}</button>
                 <button
                   type="button"
                   onClick={() => setNoticeFilter('driver')}
@@ -546,13 +574,13 @@ export const ParentPortal = () => {
             ) : (
               <div className="space-y-6">
                 {/* School Announcements List */}
-                {noticeFilter !== 'driver' && schoolAnnouncementsData.length > 0 && (
+                {noticeFilter !== 'driver' && mergedSchoolAnnouncements.length > 0 && (
                   <div className="space-y-4">
                     {noticeFilter === 'all' && (
                       <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">{uiText("School Board Announcements")}</h4>
                     )}
                     <div className="grid grid-cols-1 gap-4">
-                      {schoolAnnouncementsData.map((notice) => (
+                      {mergedSchoolAnnouncements.map((notice) => (
                         <div
                           key={notice.id}
                           className="group relative bg-slate-800/40 p-6 rounded-2xl border border-slate-800 hover:border-blue-500/30 transition-all duration-300"
@@ -575,12 +603,12 @@ export const ParentPortal = () => {
                           <p className="text-sm text-slate-300 leading-relaxed font-medium">
                             {notice.content}
                           </p>
-                          {uiText(notice.created_by_name && (
+                          {notice.created_by_name && (
                             <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-xs font-bold text-slate-400 uppercase tracking-widest">
                               <span>{uiText("Posted by: ")}{uiText(notice.created_by_name)}</span>
                               <span className="text-[10px] bg-blue-950/40 text-blue-400 px-2 py-0.5 rounded-md">{uiText("Verified Admin")}</span>
                             </div>
-                          ))}
+                          )}
                         </div>
                       ))}
                     </div>
@@ -588,8 +616,8 @@ export const ParentPortal = () => {
                 )}
 
                 {/* Empty State */}
-                {((noticeFilter === 'all' && schoolAnnouncementsData.length === 0 && driverUpdates.length === 0) ||
-                  (noticeFilter === 'school' && schoolAnnouncementsData.length === 0) ||
+                {((noticeFilter === 'all' && mergedSchoolAnnouncements.length === 0 && driverUpdates.length === 0) ||
+                  (noticeFilter === 'school' && mergedSchoolAnnouncements.length === 0) ||
                   (noticeFilter === 'driver' && driverUpdates.length === 0)) && (
                     <div className="text-center py-16 bg-slate-800/20 rounded-2xl border border-dashed border-slate-800 p-8 space-y-3">
                       <Megaphone className="mx-auto text-slate-700 animate-pulse" size={36} />

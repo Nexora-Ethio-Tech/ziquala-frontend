@@ -328,7 +328,7 @@ export const TeacherPortal = () => {
       });
     });
     storeNotices
-      .filter((n) => !n.audience || n.audience.length === 0 || n.audience.includes('teacher') || n.audience.includes('all') || n.audience.includes('academic'))
+      .filter((n) => !n.audience || n.audience.length === 0 || n.audience.includes('teacher') || n.audience.includes('all'))
       .forEach((n) => {
         const id = String(n.id);
         if (!map.has(id)) {
