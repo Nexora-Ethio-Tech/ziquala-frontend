@@ -85,6 +85,8 @@ export const Students = () => {
   const [editFormData, setEditFormData] = useState<any>({});
   const [resettingPassword, setResettingPassword] = useState(false);
   const [generatedPassword, setGeneratedPassword] = useState<string | null>(null);
+  const [resettingParentPassword, setResettingParentPassword] = useState(false);
+  const [generatedParentPassword, setGeneratedParentPassword] = useState<string | null>(null);
 
   // Bulk section & status management state
   const [selectedStudentIds, setSelectedStudentIds] = useState<Set<string>>(new Set());
@@ -459,6 +461,8 @@ export const Students = () => {
         className: s.class_name || s.className,
         section: s.class_section || s.section,
         status: s.status,
+        parentUserId: s.parent_user_id || s.parentUserId || null,
+        parentName: s.parent_name || s.parentName || null,
       }));
 
       setStudents(transformed);
@@ -525,6 +529,25 @@ export const Students = () => {
     }
   };
 
+  const handleResetParentPassword = async () => {
+    if (!selectedStudent?.parentUserId) return;
+    setResettingParentPassword(true);
+    try {
+      const result = await resetUserPIN(selectedStudent.parentUserId);
+      const newPIN = result?.newPIN;
+      if (newPIN) {
+        setGeneratedParentPassword(newPIN);
+        showToast(uiText("New parent password generated: {{value0}}", { value0: newPIN }), 'success');
+      } else {
+        showToast(uiText("Parent password reset succeeded"), 'success');
+      }
+    } catch (err: any) {
+      showToast(uiText(err.response?.data?.error?.message || 'Failed to reset parent password'), 'error');
+    } finally {
+      setResettingParentPassword(false);
+    }
+  };
+
   const handleDelete = async () => {
     if (!confirmDelete.student) return;
     try {
@@ -559,6 +582,7 @@ export const Students = () => {
       parentPhone: student.parentPhone || '+251'
     });
     setGeneratedPassword(null);
+    setGeneratedParentPassword(null);
     setShowEditModal(true);
   };
 
@@ -1175,6 +1199,31 @@ export const Students = () => {
                   </p>
                 ))}
               </div>
+              {selectedStudent?.parentUserId && (
+                <div className="flex flex-col gap-3 border-t border-slate-100 dark:border-slate-800 pt-4">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <label className="text-xs font-bold text-slate-500 uppercase">{uiText("Parent Password Reset")}</label>
+                      <p className="text-sm text-slate-500">
+                        {selectedStudent.parentName
+                          ? uiText("Reset password for {{value0}}'s parent account.", { value0: selectedStudent.parentName })
+                          : uiText("Generate a new 4-digit password for the linked parent account.")}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleResetParentPassword}
+                      disabled={resettingParentPassword}
+                      className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-bold disabled:opacity-50 whitespace-nowrap"
+                    >
+                      {uiText(resettingParentPassword ? 'Generating...' : 'Reset Parent')}
+                    </button>
+                  </div>
+                  {generatedParentPassword && (
+                    <p className="text-sm text-slate-700 dark:text-slate-300">{uiText("Parent new password: ")}<span className="font-mono text-base text-slate-900 dark:text-white">{uiText(generatedParentPassword)}</span></p>
+                  )}
+                </div>
+              )}
               <div>
                 <label htmlFor="edit-grade" className="text-xs font-bold text-slate-500 uppercase">{uiText("Grade")}</label>
                 <select
