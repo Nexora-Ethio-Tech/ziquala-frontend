@@ -3,7 +3,7 @@ import { uiText } from "../localization";
 
 import {
   Bell, Search, User, LogOut, Moon, Sun, Menu,
-  Calendar as CalendarIcon, X, ChevronDown, Lock, BookOpen, Briefcase,
+  Calendar as CalendarIcon, X, ChevronDown, Lock, BookOpen, Briefcase, LibraryBig
 } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import { useStore } from '../context/useStore';
@@ -26,7 +26,18 @@ interface HeaderProps {
 
 
 export const Header = ({ title, onMenuClick }: HeaderProps) => {
-  const { user, logout, selectedBranch, role, isVPTeacher, activeVPMode, setActiveVPMode } = useUser();
+  const {
+    user,
+    logout,
+    selectedBranch,
+    role,
+    isVPTeacher,
+    activeVPMode,
+    setActiveVPMode,
+    isTeacherLibrarian,
+    activeLibrarianMode,
+    setActiveLibrarianMode
+  } = useUser();
   const { isExamLockedDown } = useStore();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
@@ -43,13 +54,6 @@ export const Header = ({ title, onMenuClick }: HeaderProps) => {
     setIsMenuOpen(false);
     navigate('/change-password');
   };
-
-
-
-  const isTeacherLibrarian = user?.role === 'teacher' && (
-    (user as any)?.staffProfile?.promotion?.roles?.includes('librarian') ||
-    (user as any)?.staffProfile?.promotion?.promotionType === 'librarian'
-  );
 
   return (
     <>
@@ -133,7 +137,11 @@ export const Header = ({ title, onMenuClick }: HeaderProps) => {
                 </p>
                 <div className="flex items-center justify-end gap-1">
                   <p className="text-[10px] md:text-xs font-bold text-school-primary uppercase tracking-widest whitespace-nowrap">
-                    {isTeacherLibrarian ? uiText('Teacher & Librarian') : isVPTeacher ? uiText(activeVPMode === 'teacher' ? 'VP · Teacher Mode' : 'Vice Principal · VP Mode') : t(`roles.${role || ''}`, (role || '').replace(/-/g, ' '))}
+                    {isTeacherLibrarian
+                      ? uiText(activeLibrarianMode === 'teacher' ? 'Teacher' : 'Librarian')
+                      : isVPTeacher
+                        ? uiText(activeVPMode === 'teacher' ? 'Teacher' : 'Vice Principal')
+                        : t(`roles.${role || ''}`, (role || '').replace(/-/g, ' '))}
                   </p>
                   <ChevronDown
                     size={12}
@@ -159,7 +167,11 @@ export const Header = ({ title, onMenuClick }: HeaderProps) => {
                     <p className="text-xs font-black text-slate-700 dark:text-slate-200">{user?.name}</p>
                     <p className="text-[10px] text-slate-400 mt-0.5 truncate">{user?.email}</p>
                     <span className="inline-block mt-1.5 px-2 py-0.5 bg-school-primary/10 text-school-primary rounded-full text-[10px] font-bold uppercase tracking-wide whitespace-nowrap">
-                      {isTeacherLibrarian ? uiText('Teacher & Librarian') : isVPTeacher ? uiText(activeVPMode === 'teacher' ? 'VP · Teacher Mode' : 'Vice Principal · VP Mode') : t(`roles.${role || ''}`, (role || '').replace(/-/g, ' '))}
+                      {isTeacherLibrarian
+                        ? uiText(activeLibrarianMode === 'teacher' ? 'Teacher' : 'Librarian')
+                        : isVPTeacher
+                          ? uiText(activeVPMode === 'teacher' ? 'Teacher' : 'Vice Principal')
+                          : t(`roles.${role || ''}`, (role || '').replace(/-/g, ' '))}
                     </span>
                   </div>
 
@@ -204,7 +216,9 @@ export const Header = ({ title, onMenuClick }: HeaderProps) => {
                       <button
                         onClick={() => {
                           setIsMenuOpen(false);
-                          if (window.location.pathname.includes('librarian') || window.location.pathname === '/library') {
+                          const newMode = activeLibrarianMode === 'librarian' ? 'teacher' : 'librarian';
+                          setActiveLibrarianMode(newMode);
+                          if (newMode === 'teacher') {
                             navigate('/dashboard/teacher');
                           } else {
                             navigate('/dashboard/librarian');
@@ -213,9 +227,9 @@ export const Header = ({ title, onMenuClick }: HeaderProps) => {
                         className="w-full px-3 py-2.5 flex items-center gap-3 rounded-xl text-sm font-bold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 transition-all border border-indigo-100 dark:border-indigo-900/50 my-1 text-left"
                       >
                         <span className="w-7 h-7 rounded-lg bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center shrink-0">
-                          <BookOpen size={15} />
+                          {activeLibrarianMode === 'librarian' ? <BookOpen size={15} /> : <LibraryBig size={15} />}
                         </span>
-                        {window.location.pathname.includes('librarian') || window.location.pathname === '/library'
+                        {activeLibrarianMode === 'librarian'
                           ? uiText("Switch to Teacher Portal")
                           : uiText("Switch to Librarian Portal")
                         }

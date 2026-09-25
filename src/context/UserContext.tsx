@@ -73,6 +73,10 @@ interface UserContextType {
   isVPTeacher: boolean;
   activeVPMode: 'vp' | 'teacher';
   setActiveVPMode: (mode: 'vp' | 'teacher') => void;
+  // Librarian dual-role support
+  isTeacherLibrarian: boolean;
+  activeLibrarianMode: 'librarian' | 'teacher';
+  setActiveLibrarianMode: (mode: 'librarian' | 'teacher') => void;
 }
 
 
@@ -102,12 +106,36 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
   const [branches, setBranches] = useState<Branch[]>([]); // Populated from API only
   // VP dual-role: persisted mode preference
+  // If no saved preference, fall back to the user's actual primary role from localStorage.
   const [activeVPMode, setActiveVPModeState] = useState<'vp' | 'teacher'>(() => {
-    return (localStorage.getItem('ziquala_vp_mode') as 'vp' | 'teacher') || 'vp';
+    const saved = localStorage.getItem('ziquala_vp_mode') as 'vp' | 'teacher' | null;
+    if (saved) return saved;
+    try {
+      const savedUser = JSON.parse(localStorage.getItem('ziquala_user') || '{}');
+      const primaryRole = (savedUser?.role || '').toLowerCase();
+      if (primaryRole === 'teacher') return 'teacher';
+    } catch { /* ignore */ }
+    return 'vp';
   });
   const setActiveVPMode = (mode: 'vp' | 'teacher') => {
     setActiveVPModeState(mode);
     localStorage.setItem('ziquala_vp_mode', mode);
+  };
+  // Librarian dual-role: persisted mode preference
+  // If no saved preference, fall back to the user's actual primary role from localStorage.
+  const [activeLibrarianMode, setActiveLibrarianModeState] = useState<'librarian' | 'teacher'>(() => {
+    const saved = localStorage.getItem('ziquala_librarian_mode') as 'librarian' | 'teacher' | null;
+    if (saved) return saved;
+    try {
+      const savedUser = JSON.parse(localStorage.getItem('ziquala_user') || '{}');
+      const primaryRole = (savedUser?.role || '').toLowerCase();
+      if (primaryRole === 'teacher') return 'teacher';
+    } catch { /* ignore */ }
+    return 'librarian';
+  });
+  const setActiveLibrarianMode = (mode: 'librarian' | 'teacher') => {
+    setActiveLibrarianModeState(mode);
+    localStorage.setItem('ziquala_librarian_mode', mode);
   };
   const [gradesLocked, setGradesLocked] = useState(false);
   const [registrationOpen, setRegistrationOpen] = useState(() => {
@@ -357,6 +385,28 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     verifyToken();
   }, []);
 
+  // ─── Sync dual-role defaults when user is freshly verified ───────────────
+  // Ensures the correct mode is active and persisted to localStorage on first login
+  // (lazy initializer may have run before user data was available).
+  useEffect(() => {
+    if (!user) return;
+    const primaryRole = (user.role || '').toLowerCase();
+
+    // VP/Teacher dual role — only apply if user has never set a preference
+    if (!localStorage.getItem('ziquala_vp_mode')) {
+      const defaultVPMode: 'vp' | 'teacher' = primaryRole === 'teacher' ? 'teacher' : 'vp';
+      setActiveVPModeState(defaultVPMode);
+      localStorage.setItem('ziquala_vp_mode', defaultVPMode); // persist so next reload is instant
+    }
+
+    // Librarian/Teacher dual role — only apply if user has never set a preference
+    if (!localStorage.getItem('ziquala_librarian_mode')) {
+      const defaultLibMode: 'librarian' | 'teacher' = primaryRole === 'teacher' ? 'teacher' : 'librarian';
+      setActiveLibrarianModeState(defaultLibMode);
+      localStorage.setItem('ziquala_librarian_mode', defaultLibMode); // persist so next reload is instant
+    }
+  }, [user?.id]); // run once per user session (keyed on user id)
+
   // Persist user to localStorage when it changes (for display only, never trusted)
   useEffect(() => {
     if (user) {
@@ -397,11 +447,16 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const promoType = typeof promoTypeRaw === 'string' ? promoTypeRaw.toLowerCase().replace(/_/g, '-') : '';
 
   // Dual role is ONLY active if the user was explicitly promoted:
-  // 1. Vice Principal promoted as Teacher
-  // 2. Teacher promoted as Vice Principal
+  // 1. Vice Principal promoted as Teacher / Teacher promoted as Vice Principal
   const isVPTeacher = Boolean(
     (role === 'vice-principal' && (promoRoles.includes('teacher') || promoType === 'teacher')) ||
     (role === 'teacher' && (promoRoles.includes('vice-principal') || promoType === 'vice-principal'))
+  );
+
+  // 2. Librarian promoted as Teacher / Teacher promoted as Librarian
+  const isTeacherLibrarian = Boolean(
+    (role === 'teacher' && (promoRoles.includes('librarian') || promoType === 'librarian')) ||
+    (role === 'librarian' && (promoRoles.includes('teacher') || promoType === 'teacher'))
   );
 
 
@@ -521,6 +576,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       isVPTeacher,
       activeVPMode,
       setActiveVPMode,
+      isTeacherLibrarian,
+      activeLibrarianMode,
+      setActiveLibrarianMode,
     }}>
       {children}
     </UserContext.Provider>

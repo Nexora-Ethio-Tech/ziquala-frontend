@@ -54,7 +54,7 @@ const dashboardRoutes: Record<UserRole, string> = {
 };
 
 export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
-  const { user, role, logout, schoolName, activeVPMode, isVPTeacher } = useUser();
+  const { user, role, logout, schoolName, activeVPMode, isVPTeacher, isTeacherLibrarian, activeLibrarianMode } = useUser();
   const { isExamLockedDown, selectedBranchId } = useStore();
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -138,11 +138,6 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
           { icon: LibraryBig, label: uiText('eLearning'), path: '/elearning-library' },
         ];
       case 'teacher': {
-        const isPromotedLibrarian = user?.role === 'teacher' && (
-          (user as any)?.staffProfile?.promotion?.roles?.includes('librarian') ||
-          (user as any)?.staffProfile?.promotion?.promotionType === 'librarian'
-        );
-
         if (isVPTeacher && activeVPMode === 'vp') {
           return [
             { icon: LayoutDashboard, label: t('nav.dashboard', 'Dashboard'), path: dashboardRoutes['vice-principal'] },
@@ -154,29 +149,23 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
           ];
         }
 
-        const nav: NavItem[] = [
-          { icon: LayoutDashboard, label: t('nav.teacherPortal', 'Teacher Portal'), path: dashboardRoutes.teacher },
-        ];
-
-        if (isPromotedLibrarian) {
-          nav.push({ icon: LibraryBig, label: t('nav.librarianPortal', 'Librarian Portal'), path: '/dashboard/librarian' });
+        if (isTeacherLibrarian && activeLibrarianMode === 'librarian') {
+          return [
+            { icon: LayoutDashboard, label: t('nav.librarianPortal', 'Librarian Portal'), path: dashboardRoutes.librarian },
+            { icon: LibraryBig, label: t('nav.library', 'Library'), path: '/library' },
+            { icon: LibraryBig, label: uiText('eLearning'), path: '/elearning-library' },
+          ];
         }
 
-        nav.push(
+        return [
+          { icon: LayoutDashboard, label: t('nav.teacherPortal', 'Teacher Portal'), path: dashboardRoutes.teacher },
           { icon: BookOpen, label: t('nav.weeklyPlans', 'Weekly Plans'), path: '/dashboard/teacher?tab=plans' },
           { icon: CalendarCheck, label: t('nav.attendance', 'Attendance'), path: '/attendance' },
           { icon: BookOpen, label: t('nav.mySchedule', 'My Schedule'), path: '/schedule' },
           { icon: ClipboardCheck, label: t('nav.gradeEntry', 'Grade Entry'), path: '/grades' },
           { icon: ClipboardList, label: t('nav.exams', 'Exams'), path: '/exams' },
-        );
-
-        if (isPromotedLibrarian) {
-          nav.push({ icon: LibraryBig, label: t('nav.libraryManagement', 'Library Management'), path: '/library' });
-        }
-
-        nav.push({ icon: LibraryBig, label: uiText('eLearning'), path: '/elearning-library' });
-
-        return nav;
+          { icon: LibraryBig, label: uiText('eLearning'), path: '/elearning-library' },
+        ];
       }
       case 'student':
         return [
@@ -195,10 +184,21 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
           { icon: LibraryBig, label: uiText('eLearning'), path: '/elearning-library' },
         ];
       case 'librarian':
+        if (isTeacherLibrarian && activeLibrarianMode === 'teacher') {
+          return [
+            { icon: LayoutDashboard, label: t('nav.teacherPortal', 'Teacher Portal'), path: dashboardRoutes.teacher },
+            { icon: BookOpen, label: t('nav.weeklyPlans', 'Weekly Plans'), path: '/dashboard/teacher?tab=plans' },
+            { icon: CalendarCheck, label: t('nav.attendance', 'Attendance'), path: '/attendance' },
+            { icon: BookOpen, label: t('nav.mySchedule', 'My Schedule'), path: '/schedule' },
+            { icon: ClipboardCheck, label: t('nav.gradeEntry', 'Grade Entry'), path: '/grades' },
+            { icon: ClipboardList, label: t('nav.exams', 'Exams'), path: '/exams' },
+            { icon: LibraryBig, label: uiText('eLearning'), path: '/elearning-library' },
+          ];
+        }
         return [
           { icon: LayoutDashboard, label: t('nav.librarianPortal', 'Librarian Portal'), path: dashboardRoutes.librarian },
           { icon: LibraryBig, label: t('nav.library', 'Library'), path: '/library' },
-          { icon: BookOpen, label: uiText('eLearning'), path: '/elearning-library' },
+          { icon: LibraryBig, label: uiText('eLearning'), path: '/elearning-library' },
         ];
       case 'storekeeper':
         return [

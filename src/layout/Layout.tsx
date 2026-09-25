@@ -12,7 +12,7 @@ import { useSSE } from '../hooks/useSSE';
 
 export const Layout = () => {
   const location = useLocation();
-  const { role, user, schoolName, activeVPMode, isVPTeacher } = useUser();
+  const { role, user, schoolName, activeVPMode, isVPTeacher, isTeacherLibrarian, activeLibrarianMode } = useUser();
   const { t, i18n } = useTranslation();
   // Connect to SSE stream for real-time notice updates (school notices, driver alerts)
   useSSE();
@@ -51,7 +51,9 @@ export const Layout = () => {
       }
     }
 
-    if ((role === 'teacher' && (!isVPTeacher || activeVPMode === 'teacher')) || (role === 'vice-principal' && isVPTeacher && activeVPMode === 'teacher')) {
+    if ((role === 'teacher' && (!isVPTeacher || activeVPMode === 'teacher') && (!isTeacherLibrarian || activeLibrarianMode === 'teacher')) ||
+        (role === 'vice-principal' && isVPTeacher && activeVPMode === 'teacher') ||
+        (role === 'librarian' && isTeacherLibrarian && activeLibrarianMode === 'teacher')) {
       switch (path) {
         case '/': return 'Teacher Portal';
         case '/attendance': return 'Student Attendance';
@@ -69,6 +71,15 @@ export const Layout = () => {
         case '/vp-transcripts': return 'Transcripts & Archive';
         case '/vp-communication': return 'Communication Book';
         default: return 'Vice Principal Workstation';
+      }
+    }
+
+    if ((role === 'librarian' && (!isTeacherLibrarian || activeLibrarianMode === 'librarian')) || (role === 'teacher' && isTeacherLibrarian && activeLibrarianMode === 'librarian')) {
+      switch (path) {
+        case '/':
+        case '/dashboard/librarian': return 'Librarian Portal';
+        case '/library': return 'Library Management';
+        default: return 'Library Workstation';
       }
     }
 

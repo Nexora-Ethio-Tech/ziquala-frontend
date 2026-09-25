@@ -121,7 +121,7 @@ const ProtectedRoute = ({
   children: ReactNode;
   allowedRoles?: UserRole[]
 }) => {
-  const { user, role, isVPTeacher } = useUser();
+  const { user, role, isVPTeacher, isTeacherLibrarian } = useUser();
   const location = useLocation();
 
   if (!user) {
@@ -129,14 +129,10 @@ const ProtectedRoute = ({
   }
 
   const normalizedRole = normalizeRouteRole(role) as UserRole;
-  const isTeacherLibrarian = normalizedRole === 'teacher' && (
-    (user as any)?.staffProfile?.promotion?.roles?.includes('librarian') ||
-    (user as any)?.staffProfile?.promotion?.promotionType === 'librarian'
-  );
 
   if (allowedRoles) {
     const isAllowed = allowedRoles.includes(normalizedRole) || 
-      (isTeacherLibrarian && allowedRoles.includes('librarian')) ||
+      (isTeacherLibrarian && (allowedRoles.includes('librarian') || allowedRoles.includes('teacher'))) ||
       (isVPTeacher && (allowedRoles.includes('vice-principal') || allowedRoles.includes('teacher')));
     if (!isAllowed) {
       // Kick them back to their own dashboard instead of the generic root
@@ -198,7 +194,7 @@ function App() {
               <Route path="dashboard/student" element={<ProtectedRoute allowedRoles={['student']}><StudentPortal /></ProtectedRoute>} />
               <Route path="dashboard/parent" element={<ProtectedRoute allowedRoles={['parent']}><ParentPortal /></ProtectedRoute>} />
               <Route path="dashboard/vice-principal" element={<ProtectedRoute allowedRoles={['vice-principal', 'teacher']}><VicePrincipalDashboard /></ProtectedRoute>} />
-              <Route path="dashboard/librarian" element={<ProtectedRoute allowedRoles={['librarian']}><Library /></ProtectedRoute>} />
+              <Route path="dashboard/librarian" element={<ProtectedRoute allowedRoles={['librarian', 'teacher']}><Library /></ProtectedRoute>} />
               <Route path="dashboard/storekeeper" element={<ProtectedRoute allowedRoles={['storekeeper']}><ErrorBoundary><StorekeeperPortal /></ErrorBoundary></ProtectedRoute>} />
 
               {/* Role specific routes */}
@@ -347,7 +343,7 @@ function App() {
               } />
 
               <Route path="library" element={
-                <ProtectedRoute allowedRoles={['librarian', 'super-admin']}>
+                <ProtectedRoute allowedRoles={['librarian', 'teacher', 'super-admin']}>
                   <Library />
                 </ProtectedRoute>
               } />
