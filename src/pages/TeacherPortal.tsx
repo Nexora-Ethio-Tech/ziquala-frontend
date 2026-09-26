@@ -1353,12 +1353,12 @@ export const TeacherPortal = () => {
 
         const defaultDeptHeadId = finalHods.length > 0 ? (finalHods[0].teacher_id || finalHods[0].id) : '';
 
-        setPlanForm(prev => ({
-          ...prev,
-          courseId: singleCourse.id,
-          subject: singleCourse.name,
-          deptHeadId: defaultDeptHeadId
-        }));
+        if (defaultDeptHeadId) {
+          setPlanForm(prev => ({
+            ...prev,
+            deptHeadId: prev.deptHeadId || defaultDeptHeadId
+          }));
+        }
       }
     }
   }, [isPlanModalOpen, editingPlan, myCourses, deptHeads, loadLocalDraft]);
@@ -1366,8 +1366,8 @@ export const TeacherPortal = () => {
   // Save plan as draft (status = Draft) or submit (status = Pending)
   const handleSavePlan = async (targetStatus: 'Draft' | 'Pending') => {
     if (targetStatus === 'Pending') {
-      if (!planForm.courseId) {
-        showToast('Please select a Course / Subject before submitting.', 'error');
+      if (!planForm.courseId && !planForm.subject) {
+        showToast('Please select or type a Course / Subject before submitting.', 'error');
         return;
       }
       if (!planForm.deptHeadId) {
@@ -3209,23 +3209,32 @@ export const TeacherPortal = () => {
                   </div>
                   <div>
                     <label className="text-[10px] font-black uppercase text-slate-400 block mb-1">{uiText("Subject / Course")}</label>
-                    <select
-                      value={planForm.courseId || ''}
-                      onChange={e => {
-                        const selectedCourseId = e.target.value;
-                        const selectedCourse = myCourses.find((c: any) => c.id === selectedCourseId);
-                        const cleanName = capitalizeWords(cleanSubjectName(selectedCourse?.name || ''));
-                        const matchingHods = filterDeptHeadsForCourse(selectedCourseId);
-                        let newDeptHeadId = matchingHods.length > 0 ? (matchingHods[0].teacher_id || matchingHods[0].id) : '';
-                        setPlanForm({ ...planForm, courseId: selectedCourseId, subject: cleanName, deptHeadId: newDeptHeadId });
-                      }}
-                      className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="">{uiText("Select Course / Subject")}</option>
-                      {myCourses.map((c: any) => (
-                        <option key={c.id} value={c.id}>{capitalizeWords(cleanSubjectName(c.name))}</option>
-                      ))}
-                    </select>
+                    <div className="space-y-1.5">
+                      <select
+                        value={planForm.courseId || ''}
+                        onChange={e => {
+                          const selectedCourseId = e.target.value;
+                          const selectedCourse = myCourses.find((c: any) => c.id === selectedCourseId);
+                          const cleanName = selectedCourse ? capitalizeWords(cleanSubjectName(selectedCourse?.name || '')) : '';
+                          const matchingHods = filterDeptHeadsForCourse(selectedCourseId);
+                          let newDeptHeadId = matchingHods.length > 0 ? (matchingHods[0].teacher_id || matchingHods[0].id) : planForm.deptHeadId;
+                          setPlanForm({ ...planForm, courseId: selectedCourseId, subject: cleanName || planForm.subject, deptHeadId: newDeptHeadId });
+                        }}
+                        className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">{uiText("Select Course / Subject")}</option>
+                        {myCourses.map((c: any) => (
+                          <option key={c.id} value={c.id}>{capitalizeWords(cleanSubjectName(c.name))}</option>
+                        ))}
+                      </select>
+                      <input
+                        type="text"
+                        placeholder={uiText("Or type custom subject / course…")}
+                        value={planForm.subject || ''}
+                        onChange={e => setPlanForm({ ...planForm, subject: e.target.value })}
+                        className="w-full px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 placeholder:font-normal"
+                      />
+                    </div>
                   </div>
                   <div>
                     <label className="text-[10px] font-black uppercase text-slate-400 block mb-1">{uiText("Chapter / Unit")}</label>
@@ -4312,10 +4321,8 @@ export const TeacherPortal = () => {
                       <option value="">{uiText("Select course…")}</option>
                       {myCourses.map((c: any) => <option key={c.id} value={c.id}>{capitalizeWords(cleanSubjectName(c.name))}</option>)}
                     </select>
-                    {!annualForm.courseId && (
-                      <input placeholder={uiText("Or type subject…")} value={annualForm.subject} onChange={e => setAnnualForm(f => ({ ...f, subject: e.target.value }))}
-                        className="w-full mt-1 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-violet-500" />
-                    )}
+                    <input placeholder={uiText("Or type subject…")} value={annualForm.subject || ''} onChange={e => setAnnualForm(f => ({ ...f, subject: e.target.value }))}
+                      className="w-full mt-1 px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold outline-none focus:ring-2 focus:ring-violet-500" />
                   </div>
                   <div>
                     <label className="text-[10px] font-black uppercase text-violet-600 dark:text-violet-400">{uiText("Department Head Reviewer")}</label>
