@@ -70,6 +70,15 @@ export const capitalizeWords = (str: string): string => {
     .join(' ');
 };
 
+export const formatEnglishCapitalization = (str: string): string => {
+  if (!str) return str;
+  let result = str.replace(/^([\s\-\*•\d\.\)\(\]]*)([a-z])/u, (m, prefix, char) => prefix + char.toUpperCase());
+  result = result.replace(/([.!?]\s+[\s\-\*•\d\.\)\(\]]*)([a-z])/gu, (m, prefix, char) => prefix + char.toUpperCase());
+  result = result.replace(/(\n[\s\-\*•\d\.\)\(\]]*)([a-z])/gu, (m, prefix, char) => prefix + char.toUpperCase());
+  result = result.replace(/(^|[\s\(\[\{])i(?=['’'](?:m|ll|d|ve)\b|[\s.,!?;:\)\}\]]|$)/gu, '$1I');
+  return result;
+};
+
 const matchGrade = (hodGrades: any[], courseGrade: any): boolean => {
   if (!hodGrades || !Array.isArray(hodGrades)) return false;
   if (!courseGrade) return true;
@@ -3366,7 +3375,7 @@ export const TeacherPortal = () => {
                     };
 
                     const updateDayAct = (field: string, val: string) => {
-                      const formattedVal = field === 'timeDuration' ? val : capitalizeWords(val);
+                      const formattedVal = field === 'timeDuration' ? val : formatEnglishCapitalization(val);
                       const newArr: any[] = [...planForm.dailyActivities];
                       const current: any = dayActIndex >= 0 ? { ...newArr[dayActIndex] } : { day: activePlanDay };
                       current[field] = formattedVal;
@@ -3572,7 +3581,7 @@ export const TeacherPortal = () => {
                         };
 
                         const updateDayAct = (field: string, val: string) => {
-                          const formattedVal = field === 'timeDuration' ? val : capitalizeWords(val);
+                          const formattedVal = field === 'timeDuration' ? val : formatEnglishCapitalization(val);
                           const newArr: any[] = [...planForm.dailyActivities];
                           const current: any = dayActIndex >= 0 ? { ...newArr[dayActIndex] } : { day: dayName };
                           current[field] = formattedVal;
