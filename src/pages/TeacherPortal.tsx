@@ -747,17 +747,15 @@ export const TeacherPortal = () => {
 
     try {
       let rawUsers: any[] = [];
-      try {
-        const res = await userService.getAllUsers({ branchId: userBranchId }).catch(() => null);
-        if (res && Array.isArray(res.data)) {
-          rawUsers = res.data;
-        } else {
-          const guestRes = await userService.getAllUsersGuest({ branchId: userBranchId }).catch(() => null);
-          if (guestRes && Array.isArray(guestRes.data)) {
-            rawUsers = guestRes.data;
+      const userRole = (user as any)?.role;
+      if (userRole === 'school-admin' || userRole === 'super-admin' || userRole === 'academic-manager') {
+        try {
+          const res = await userService.getAllUsers({ branchId: userBranchId }).catch(() => null);
+          if (res && Array.isArray(res.data)) {
+            rawUsers = res.data;
           }
-        }
-      } catch {}
+        } catch {}
+      }
 
       let localUsers: any[] = [];
       try {
@@ -1454,8 +1452,34 @@ export const TeacherPortal = () => {
 
   const openEditModal = (plan: any) => {
     setEditingPlan(plan);
+    let parsedActivities = defaultDailyActivities();
+    if (Array.isArray(plan.daily_activities) && plan.daily_activities.length > 0) {
+      parsedActivities = plan.daily_activities;
+    } else if (Array.isArray(plan.dailyActivities) && plan.dailyActivities.length > 0) {
+      parsedActivities = plan.dailyActivities;
+    } else if (typeof plan.daily_activities === 'string') {
+      try {
+        const parsed = JSON.parse(plan.daily_activities);
+        if (Array.isArray(parsed) && parsed.length > 0) parsedActivities = parsed;
+      } catch {}
+    } else if (typeof plan.dailyActivities === 'string') {
+      try {
+        const parsed = JSON.parse(plan.dailyActivities);
+        if (Array.isArray(parsed) && parsed.length > 0) parsedActivities = parsed;
+      } catch {}
+    }
+
+    const targetDate = plan.date ? new Date(plan.date).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10);
     const filled: any = {
-      date: plan.date ? new Date(plan.date).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10),
+      teacherName: plan.teacher_name || plan.teacherName || (user as any)?.name || '',
+      subject: plan.subject || '',
+      chapterUnit: plan.chapter_unit || plan.chapterUnit || '',
+      topicTitle: plan.topic_title || plan.topicTitle || '',
+      gradeSection: plan.grade_section || plan.gradeSection || '',
+      dateFrom: plan.date_from || plan.dateFrom || targetDate,
+      dateTo: plan.date_to || plan.dateTo || targetDate,
+      periodsPerWeek: plan.periods_per_week || plan.periodsPerWeek || '4',
+      date: targetDate,
       content: plan.content || '',
       objectives: plan.objectives || '',
       teacherActivity: plan.teacher_activity || plan.teacherActivity || '',
@@ -1467,9 +1491,9 @@ export const TeacherPortal = () => {
       remark: plan.remark || '',
       status: plan.status || 'Draft',
       courseId: plan.course_id || plan.courseId || '',
-      subject: plan.subject || '',
       deptHeadId: plan.dept_head_id || plan.deptHeadId || '',
-      weekNumber: plan.week_number || plan.weekNumber || 1
+      weekNumber: plan.week_number || plan.weekNumber || 1,
+      dailyActivities: parsedActivities
     };
     setPlanForm(filled);
     setIsPlanModalOpen(true);
@@ -3363,8 +3387,9 @@ export const TeacherPortal = () => {
 
                   {/* Single Day Form */}
                   {(() => {
-                    const dayActIndex = planForm.dailyActivities.findIndex((a: any) => a.day === activePlanDay);
-                    const rawAct: any = planForm.dailyActivities[dayActIndex] || {};
+                    const dailyActivitiesList = Array.isArray(planForm?.dailyActivities) ? planForm.dailyActivities : defaultDailyActivities();
+                    const dayActIndex = dailyActivitiesList.findIndex((a: any) => a?.day === activePlanDay);
+                    const rawAct: any = dailyActivitiesList[dayActIndex] || {};
                     const act = {
                       day: activePlanDay,
                       content: rawAct.content || '',
@@ -3385,7 +3410,7 @@ export const TeacherPortal = () => {
 
                     const updateDayAct = (field: string, val: string) => {
                       const formattedVal = field === 'timeDuration' ? val : formatEnglishCapitalization(val);
-                      const newArr: any[] = [...planForm.dailyActivities];
+                      const newArr: any[] = [...dailyActivitiesList];
                       const current: any = dayActIndex >= 0 ? { ...newArr[dayActIndex] } : { day: activePlanDay };
                       current[field] = formattedVal;
                       // keep legacy fields populated for backwards compatibility
@@ -3569,8 +3594,9 @@ export const TeacherPortal = () => {
                     </thead>
                     <tbody className="divide-y divide-slate-300 dark:divide-slate-700">
                       {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].map((dayName, dayIdx) => {
-                        const dayActIndex = planForm.dailyActivities.findIndex((a: any) => a.day === dayName);
-                        const rawAct: any = planForm.dailyActivities[dayActIndex] || {};
+                        const dailyActivitiesGrid = Array.isArray(planForm?.dailyActivities) ? planForm.dailyActivities : defaultDailyActivities();
+                        const dayActIndex = dailyActivitiesGrid.findIndex((a: any) => a?.day === dayName);
+                        const rawAct: any = dailyActivitiesGrid[dayActIndex] || {};
                         const act = {
                           day: dayName,
                           content: rawAct.content || '',
@@ -3591,7 +3617,7 @@ export const TeacherPortal = () => {
 
                         const updateDayAct = (field: string, val: string) => {
                           const formattedVal = field === 'timeDuration' ? val : formatEnglishCapitalization(val);
-                          const newArr: any[] = [...planForm.dailyActivities];
+                          const newArr: any[] = [...dailyActivitiesGrid];
                           const current: any = dayActIndex >= 0 ? { ...newArr[dayActIndex] } : { day: dayName };
                           current[field] = formattedVal;
                           if (field === 'teacherBefore') current.teacherIntro = formattedVal;
