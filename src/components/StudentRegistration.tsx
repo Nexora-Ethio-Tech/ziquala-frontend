@@ -69,6 +69,24 @@ const displayValue = (value?: string | null) => {
   return trimmed.length > 0 ? trimmed : '—';
 };
 
+const normalizeStatus = (status?: string | null): AppStatus => {
+  if (!status) return 'pending';
+  const s = status.toLowerCase().trim().replace(/_/g, '-');
+  if (s === 'approved' || s === 'registered' || s === 'payment-confirmed' || s === 'enrolled') {
+    return 'payment-confirmed' as AppStatus;
+  }
+  if (s === 'awaiting-payment' || s === 'payment-pending') {
+    return 'awaiting-payment' as AppStatus;
+  }
+  if (s === 'exam-pending') {
+    return 'exam-pending' as AppStatus;
+  }
+  if (s === 'declined' || s === 'rejected') {
+    return 'declined' as AppStatus;
+  }
+  return 'pending' as AppStatus;
+};
+
 const mapApiApplicationToPendingApp = (app: any): PendingApp => ({
   id: app.id,
   name: app.name || app.applicant_name || app.student_name || app.full_name || 'Unknown',
@@ -83,7 +101,7 @@ const mapApiApplicationToPendingApp = (app: any): PendingApp => ({
   previousSchool: app.previous_school || '',
   lastGrade: app.grade || app.grade_applying || 'N/A',
   date: app.created_at ? formatEthiopianDateOnly(new Date(app.created_at)) : '',
-  status: app.status as AppStatus,
+  status: normalizeStatus(app.status),
   bloodGroup: app.blood_group || '',
   allergies: app.allergies || '',
   chronicConditions: app.chronic_conditions || '',
@@ -240,6 +258,8 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [ethiopianDob, setEthiopianDob] = useState('');
   const [pendingApps, setPendingApps] = useState<PendingApp[]>(initialPendingApplications);
+  const [loadingApps, setLoadingApps] = useState<boolean>(false);
+  const [appsError, setAppsError] = useState<string | null>(null);
   const [viewingTranscript, setViewingTranscript] = useState<any>(null);
   const [transcriptUrl, setTranscriptUrl] = useState<string | null>(null);
   const [transcriptLoading, setTranscriptLoading] = useState<boolean>(false);
@@ -340,22 +360,29 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
     }
   }, [user, selectedBranch, branches, branchesList]);
 
+  const fetchApps = async () => {
+    if (!isAdminView) return;
+    setLoadingApps(true);
+    setAppsError(null);
+    try {
+      const res = await getPendingApplications();
+      const applications = Array.isArray(res) ? res : (res || []);
+      if (Array.isArray(applications)) {
+        const mapped = applications.map(mapApiApplicationToPendingApp);
+        setPendingApps(mapped);
+      } else {
+        console.warn('Unexpected pending applications response:', res);
+      }
+    } catch (err: any) {
+      console.error('Failed to fetch pending applications:', err);
+      setAppsError(err?.response?.data?.error?.message || err?.response?.data?.message || err?.message || 'Failed to fetch pending applications');
+    } finally {
+      setLoadingApps(false);
+    }
+  };
+
   useEffect(() => {
     if (isAdminView) {
-      const fetchApps = async () => {
-        try {
-          const res = await getPendingApplications();
-          const applications = Array.isArray(res) ? res : (res || []);
-          if (Array.isArray(applications)) {
-            const mapped = applications.map(mapApiApplicationToPendingApp);
-            setPendingApps(mapped);
-          } else {
-            console.warn('Unexpected pending applications response:', res);
-          }
-        } catch (err) {
-          console.error('Failed to fetch pending applications:', err);
-        }
-      };
       fetchApps();
     }
   }, [isAdminView]);
@@ -853,18 +880,19 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
   };
 
   const filteredPipelineApps = pendingApps.filter(app => {
-    if (pipelineFilter === 'pending') return app.status === 'pending';
-    if (pipelineFilter === 'exam-pending') return app.status === 'exam-pending';
-    if (pipelineFilter === 'awaiting-enrollment') return app.status === 'awaiting-payment';
-    if (pipelineFilter === 'completed') return ['declined', 'registered', 'payment-confirmed'].includes(app.status);
+    const s = normalizeStatus(app.status);
+    if (pipelineFilter === 'pending') return s === 'pending';
+    if (pipelineFilter === 'exam-pending') return s === 'exam-pending';
+    if (pipelineFilter === 'awaiting-enrollment') return s === 'awaiting-payment';
+    if (pipelineFilter === 'completed') return ['declined', 'registered', 'payment-confirmed'].includes(s);
     return false;
   });
 
   const pipelineCounts = {
-    pending: pendingApps.filter(a => a.status === 'pending').length,
-    'exam-pending': pendingApps.filter(a => a.status === 'exam-pending').length,
-    'awaiting-enrollment': pendingApps.filter(a => a.status === 'awaiting-payment').length,
-    completed: pendingApps.filter(a => ['declined', 'registered', 'payment-confirmed'].includes(a.status)).length,
+    pending: pendingApps.filter(a => normalizeStatus(a.status) === 'pending').length,
+    'exam-pending': pendingApps.filter(a => normalizeStatus(a.status) === 'exam-pending').length,
+    'awaiting-enrollment': pendingApps.filter(a => normalizeStatus(a.status) === 'awaiting-payment').length,
+    completed: pendingApps.filter(a => ['declined', 'registered', 'payment-confirmed'].includes(normalizeStatus(a.status))).length,
   };
 
   return (
@@ -941,35 +969,73 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
               </div>
             )}
 
-
-
-            {/* Pipeline Filter Tabs */}
-            <div className="flex flex-wrap gap-3">
-              {([
-                { key: 'pending' as PipelineFilter, label: 'Pending', color: 'blue' },
-                { key: 'exam-pending' as PipelineFilter, label: 'Pass After Exam', color: 'amber' },
-                { key: 'awaiting-enrollment' as PipelineFilter, label: 'Awaiting Enrollment', color: 'purple' },
-                { key: 'completed' as PipelineFilter, label: 'Completed', color: 'slate' },
-              ]).map(tab => (
-                <button
-                  key={tab.key}
-                  onClick={() => setPipelineFilter(tab.key)}
-                  className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-3 ${pipelineFilter === tab.key
-                    ? `bg-${tab.color}-600 text-white shadow-lg shadow-${tab.color}-500/20`
-                    : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-800 hover:border-slate-300'
-                    }`}
-                >
-                  {uiText(tab.label)}
-                  <span className={`px-2 py-0.5 rounded-lg text-[10px] font-black ${pipelineFilter === tab.key ? 'bg-white/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'
-                    }`}>
-                    {pipelineCounts[tab.key]}
-                  </span>
-                </button>
-              ))}
+            {/* Pipeline Filter Tabs & Action Bar */}
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex flex-wrap gap-3">
+                {([
+                  { key: 'pending' as PipelineFilter, label: 'Pending', color: 'blue' },
+                  { key: 'exam-pending' as PipelineFilter, label: 'Pass After Exam', color: 'amber' },
+                  { key: 'awaiting-enrollment' as PipelineFilter, label: 'Awaiting Enrollment', color: 'purple' },
+                  { key: 'completed' as PipelineFilter, label: 'Completed', color: 'slate' },
+                ]).map(tab => (
+                  <button
+                    key={tab.key}
+                    onClick={() => setPipelineFilter(tab.key)}
+                    className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-3 ${pipelineFilter === tab.key
+                      ? `bg-${tab.color}-600 text-white shadow-lg shadow-${tab.color}-500/20`
+                      : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-800 hover:border-slate-300'
+                      }`}
+                  >
+                    {uiText(tab.label)}
+                    <span className={`px-2 py-0.5 rounded-lg text-[10px] font-black ${pipelineFilter === tab.key ? 'bg-white/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'
+                      }`}>
+                      {pipelineCounts[tab.key]}
+                    </span>
+                  </button>
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={fetchApps}
+                disabled={loadingApps}
+                className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border border-slate-200 dark:border-slate-700"
+                title={uiText("Refresh Applications")}
+              >
+                <RefreshCw size={14} className={loadingApps ? 'animate-spin' : ''} />
+                {uiText(loadingApps ? 'Loading...' : 'Refresh')}
+              </button>
             </div>
 
-            {/* Application Cards */}
-            <div className="grid grid-cols-1 gap-6">
+            {/* Error state */}
+            {appsError && (
+              <div className="bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-2xl p-4 text-center">
+                <p className="text-sm font-bold text-rose-800 dark:text-rose-200">{uiError(appsError)}</p>
+                <button
+                  type="button"
+                  onClick={fetchApps}
+                  className="mt-2 px-4 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition-colors"
+                >
+                  {uiText("Try Again")}
+                </button>
+              </div>
+            )}
+
+            {/* Application Cards / Empty / Loading State */}
+            {loadingApps ? (
+              <div className="flex flex-col items-center justify-center py-16 bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-100 dark:border-slate-800">
+                <div className="w-10 h-10 border-4 border-blue-600/30 border-t-blue-600 rounded-full animate-spin mb-3" />
+                <p className="text-sm font-bold text-slate-500">{uiText("Loading student applications...")}</p>
+              </div>
+            ) : filteredPipelineApps.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 px-4 bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 text-center">
+                <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 text-slate-400 rounded-full flex items-center justify-center mb-4">
+                  <UserPlus size={32} />
+                </div>
+                <h4 className="font-bold text-slate-800 dark:text-slate-200 text-base">{uiText("No Applications Found")}</h4>
+                <p className="text-xs text-slate-500 mt-1 max-w-sm">{uiText("There are currently no student applications in this status.")}</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-6">
               {filteredPipelineApps.map(app => (
                 <div key={app.id} className="bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 p-8 hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-500 space-y-6 group">
                   <div
@@ -1135,13 +1201,8 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                   )}
                 </div>
               ))}
-              {filteredPipelineApps.length === 0 && (
-                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-12 text-center space-y-3">
-                  <CheckCircle size={48} className="mx-auto text-slate-200" />
-                  <p className="text-slate-500 font-medium">{uiText("No applications in this category.")}</p>
-                </div>
-              )}
             </div>
+            )}
           </div>
         ) : !registrationOpen ? (
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-12 text-center space-y-4">
