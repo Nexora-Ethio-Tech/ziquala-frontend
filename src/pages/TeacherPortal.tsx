@@ -13,6 +13,7 @@ import {
   getMyWeeklyPlans,
   submitWeeklyPlan,
   updateWeeklyPlan,
+  deleteWeeklyPlan,
   getMyClasses,
   getClassStudents,
   getDepartmentHeads,
@@ -1472,6 +1473,31 @@ export const TeacherPortal = () => {
     }
   };
 
+  const handleDeletePlan = async (planId: string) => {
+    if (!planId) return;
+    if (!window.confirm(uiText('Are you sure you want to delete this draft weekly plan? This action cannot be undone.'))) {
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      if (!String(planId).startsWith('sim-')) {
+        await deleteWeeklyPlan(planId);
+      }
+      showToast('Draft plan deleted successfully!', 'success');
+      clearLocalDraft();
+      setIsPlanModalOpen(false);
+      setEditingPlan(null);
+      setPlanForm(emptyPlan);
+      setPlans(prev => prev.filter(p => p.id !== planId));
+      setDeptPlans(prev => prev.filter(p => p.id !== planId));
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to delete draft plan', 'error');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const openEditModal = (plan: any) => {
     setEditingPlan(plan);
     const parsedActivities = getParsedDailyActivities(plan) || defaultDailyActivities();
@@ -2825,6 +2851,16 @@ export const TeacherPortal = () => {
                           )}
                           {(plan.status === 'Draft' || plan.status === 'Revision Required') && (
                             <button
+                              onClick={() => handleDeletePlan(plan.id)}
+                              className="px-2.5 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 rounded-xl text-xs font-bold transition-colors flex items-center gap-1 border border-red-200 dark:border-red-900/30"
+                              title={uiText("Delete Draft")}
+                            >
+                              <Trash2 size={14} />
+                              {uiText(" Delete ")}
+                            </button>
+                          )}
+                          {(plan.status === 'Draft' || plan.status === 'Revision Required') && (
+                            <button
                               onClick={async () => {
                                 if (!plan.id || String(plan.id).startsWith('sim-')) {
                                   showToast('Please open and re-save the plan as a Draft first before submitting.', 'error');
@@ -3782,7 +3818,18 @@ export const TeacherPortal = () => {
 
             </div>
 
-            <div className="p-6 border-t border-slate-100 dark:border-slate-800 flex gap-3 justify-end bg-slate-50 dark:bg-slate-800/80 rounded-b-[2rem]">
+            <div className="p-6 border-t border-slate-100 dark:border-slate-800 flex gap-3 justify-end items-center bg-slate-50 dark:bg-slate-800/80 rounded-b-[2rem]">
+              {editingPlan && (editingPlan.status === 'Draft' || editingPlan.status === 'Revision Required') && (
+                <button
+                  type="button"
+                  onClick={() => handleDeletePlan(editingPlan.id)}
+                  disabled={submitting}
+                  className="mr-auto px-5 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 font-bold text-xs uppercase rounded-xl transition-all flex items-center gap-1.5 border border-red-200 dark:border-red-900/40"
+                >
+                  {submitting ? <Loader2 className="animate-spin" size={14} /> : <Trash2 size={14} />}
+                  {uiText(" Delete Draft ")}
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => { setIsPlanModalOpen(false); setEditingPlan(null); }}

@@ -167,6 +167,10 @@ export const updateWeeklyPlan = async (planId: string, data: {
 };
 
 // ─── Communication Logs ───────────────────────────────────────────────────────
+export const deleteWeeklyPlan = async (planId: string) => {
+  const response = await api.delete(`/teacher/weekly-plans/${planId}`);
+  return response.data;
+};
 export const submitCommunicationLog = async (data: {
   studentId: string;
   weekEnding: string;
