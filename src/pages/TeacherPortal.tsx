@@ -1474,33 +1474,18 @@ export const TeacherPortal = () => {
 
   const openEditModal = (plan: any) => {
     setEditingPlan(plan);
-    let parsedActivities = defaultDailyActivities();
-    if (Array.isArray(plan.daily_activities) && plan.daily_activities.length > 0) {
-      parsedActivities = plan.daily_activities;
-    } else if (Array.isArray(plan.dailyActivities) && plan.dailyActivities.length > 0) {
-      parsedActivities = plan.dailyActivities;
-    } else if (typeof plan.daily_activities === 'string') {
-      try {
-        const parsed = JSON.parse(plan.daily_activities);
-        if (Array.isArray(parsed) && parsed.length > 0) parsedActivities = parsed;
-      } catch {}
-    } else if (typeof plan.dailyActivities === 'string') {
-      try {
-        const parsed = JSON.parse(plan.dailyActivities);
-        if (Array.isArray(parsed) && parsed.length > 0) parsedActivities = parsed;
-      } catch {}
-    }
+    const parsedActivities = getParsedDailyActivities(plan) || defaultDailyActivities();
 
     const targetDate = plan.date ? new Date(plan.date).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10);
     const filled: any = {
       teacherName: plan.teacher_name || plan.teacherName || (user as any)?.name || '',
       subject: plan.subject || '',
-      chapterUnit: plan.chapter_unit || plan.chapterUnit || '',
-      topicTitle: plan.topic_title || plan.topicTitle || '',
-      gradeSection: plan.grade_section || plan.gradeSection || '',
+      chapterUnit: plan.chapter_unit || plan.chapterUnit || plan.chapter || plan.unit || '',
+      topicTitle: plan.topic_title || plan.topicTitle || plan.topic || '',
+      gradeSection: plan.grade_section || plan.gradeSection || plan.grade || plan.class_name || '',
       dateFrom: plan.date_from || plan.dateFrom || targetDate,
       dateTo: plan.date_to || plan.dateTo || targetDate,
-      periodsPerWeek: plan.periods_per_week || plan.periodsPerWeek || '4',
+      periodsPerWeek: plan.periods_per_week || plan.periodsPerWeek || plan.periods_week || '4',
       date: targetDate,
       content: plan.content || '',
       objectives: plan.objectives || '',
@@ -4042,7 +4027,7 @@ export const TeacherPortal = () => {
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="font-extrabold uppercase text-slate-700 dark:text-slate-300 w-32 shrink-0">{uiText("Chapter")}:</span>
-                      <span className="font-bold border-b border-dashed border-slate-400 dark:border-slate-600 flex-1 px-1 py-0.5 text-slate-900 dark:text-slate-100">{selectedPlanForView.chapter_unit || selectedPlanForView.chapterUnit || uiText('—')}</span>
+                      <span className="font-bold border-b border-dashed border-slate-400 dark:border-slate-600 flex-1 px-1 py-0.5 text-slate-900 dark:text-slate-100">{selectedPlanForView.chapter_unit || selectedPlanForView.chapterUnit || selectedPlanForView.chapter || selectedPlanForView.unit || uiText('—')}</span>
                     </div>
                   </div>
 
@@ -4050,11 +4035,11 @@ export const TeacherPortal = () => {
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
                       <span className="font-extrabold uppercase text-slate-700 dark:text-slate-300 w-32 shrink-0">{uiText("Grade & Section")}:</span>
-                      <span className="font-bold border-b border-dashed border-slate-400 dark:border-slate-600 flex-1 px-1 py-0.5 text-slate-900 dark:text-slate-100">{selectedPlanForView.grade_section || selectedPlanForView.gradeSection || uiText('—')}</span>
+                      <span className="font-bold border-b border-dashed border-slate-400 dark:border-slate-600 flex-1 px-1 py-0.5 text-slate-900 dark:text-slate-100">{selectedPlanForView.grade_section || selectedPlanForView.gradeSection || selectedPlanForView.grade || selectedPlanForView.class_name || uiText('—')}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="font-extrabold uppercase text-slate-700 dark:text-slate-300 w-32 shrink-0">{uiText("No of Period")}:</span>
-                      <span className="font-bold border-b border-dashed border-slate-400 dark:border-slate-600 flex-1 px-1 py-0.5 text-slate-900 dark:text-slate-100">{selectedPlanForView.periods_per_week || selectedPlanForView.periodsPerWeek || uiText('—')}</span>
+                      <span className="font-bold border-b border-dashed border-slate-400 dark:border-slate-600 flex-1 px-1 py-0.5 text-slate-900 dark:text-slate-100">{selectedPlanForView.periods_per_week || selectedPlanForView.periodsPerWeek || selectedPlanForView.periods_week || uiText('—')}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="font-extrabold uppercase text-slate-700 dark:text-slate-300 w-32 shrink-0">{uiText("Date")}:</span>
@@ -4062,7 +4047,7 @@ export const TeacherPortal = () => {
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="font-extrabold uppercase text-slate-700 dark:text-slate-300 w-32 shrink-0">{uiText("Topic")}:</span>
-                      <span className="font-bold border-b border-dashed border-slate-400 dark:border-slate-600 flex-1 px-1 py-0.5 text-slate-900 dark:text-slate-100">{selectedPlanForView.topic_title || selectedPlanForView.topicTitle || uiText('—')}</span>
+                      <span className="font-bold border-b border-dashed border-slate-400 dark:border-slate-600 flex-1 px-1 py-0.5 text-slate-900 dark:text-slate-100">{selectedPlanForView.topic_title || selectedPlanForView.topicTitle || selectedPlanForView.topic || uiText('—')}</span>
                     </div>
                   </div>
                 </div>
