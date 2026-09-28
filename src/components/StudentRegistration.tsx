@@ -631,15 +631,9 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
       if (medications?.trim()) submitData.append('medications', medications.trim());
       submitData.append('branchName', branchName || '');
 
-      // Add file if uploaded
+      // Add file if uploaded (optional)
       const fileInput = e.currentTarget.querySelector('input[type="file"]') as HTMLInputElement;
       const fileList = fileInput?.files;
-      // Transcript is required
-      if (!fileList || !fileList[0]) {
-        setFileError('Transcript is required');
-        setRegistrationStep(3);
-        return;
-      }
       if (fileList?.[0]) {
         const file = fileList[0];
         // Validate file on client side again before sending
@@ -1543,7 +1537,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                 </div>
 
                 <div className="space-y-3">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase block">{uiText("Last Transcript (Max 2MB)")}</label>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase block">{uiText("Last Transcript (Optional, Max 2MB)")}</label>
                   <div className={`relative border-2 border-dashed rounded-2xl p-8 transition-all flex flex-col items-center justify-center gap-2 group cursor-pointer ${fileError ? 'border-rose-300 bg-rose-50 dark:bg-rose-900/10' : 'border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-600'
                     }`}>
                     <input
@@ -1560,7 +1554,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                     </div>
                     <div className="text-center">
                       <p className="text-sm font-bold text-slate-700 dark:text-slate-200">
-                        {uiText(fileName || 'Click to upload transcript')}
+                        {uiText(fileName || 'Click to upload transcript (Optional)')}
                       </p>
                       <p className="text-xs text-slate-400 mt-1">{uiText("Accepted formats: PDF, PNG, JPG (Max 2MB)")}</p>
                     </div>
