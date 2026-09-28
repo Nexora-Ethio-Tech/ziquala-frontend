@@ -338,6 +338,11 @@ export const updateAnnualPlan = async (planId: string, data: any) => {
   return response.data.data;
 };
 
+export const deleteAnnualPlan = async (planId: string) => {
+  const response = await api.delete(`/teacher/annual-plans/${planId}`);
+  return response.data;
+};
+
 export const getDeptAnnualPlans = async (status?: string) => {
   const params = status ? `?status=${status}` : '';
   const response = await api.get(`/teacher/dept-annual-plans${params}`);

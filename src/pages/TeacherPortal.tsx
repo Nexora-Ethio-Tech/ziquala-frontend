@@ -26,6 +26,7 @@ import {
   submitAnnualPlan,
   getMyAnnualPlans,
   updateAnnualPlan,
+  deleteAnnualPlan,
   getDeptAnnualPlans,
   reviewDeptAnnualPlan,
   getLabTechnicians,
@@ -1498,6 +1499,30 @@ export const TeacherPortal = () => {
     }
   };
 
+  const handleDeleteAnnualPlan = async (planId: string) => {
+    if (!planId) return;
+    if (!window.confirm(uiText('Are you sure you want to delete this draft annual plan? This action cannot be undone.'))) {
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      if (!String(planId).startsWith('sim-')) {
+        await deleteAnnualPlan(planId);
+      }
+      showToast('Draft annual plan deleted successfully!', 'success');
+      setIsAnnualModalOpen(false);
+      setEditingAnnualPlan(null);
+      setAnnualForm(emptyAnnualForm);
+      setAnnualPlans(prev => prev.filter(p => p.id !== planId));
+      setDeptAnnualPlans(prev => prev.filter(p => p.id !== planId));
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to delete annual plan', 'error');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const openEditModal = (plan: any) => {
     setEditingPlan(plan);
     const parsedActivities = getParsedDailyActivities(plan) || defaultDailyActivities();
@@ -1946,6 +1971,16 @@ export const TeacherPortal = () => {
                               }}
                               className="px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white text-xs font-black rounded-xl transition-all"
                             >{uiText(" Edit & Submit ")}</button>
+                          )}
+                          {(plan.status === 'Draft' || plan.status === 'Revision Required') && (
+                            <button
+                              onClick={() => handleDeleteAnnualPlan(plan.id)}
+                              className="px-3 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 rounded-xl text-xs font-bold transition-colors flex items-center gap-1 border border-red-200 dark:border-red-900/30"
+                              title={uiText("Delete Draft")}
+                            >
+                              <Trash2 size={14} />
+                              {uiText(" Delete ")}
+                            </button>
                           )}
                           {plan.status === 'Approved' && (
                             <span className="flex items-center gap-1 text-xs text-emerald-600 font-black"><CheckCircle2 size={14} />{uiText(" Approved")}</span>
@@ -4546,7 +4581,18 @@ export const TeacherPortal = () => {
             </div>
 
             {/* Modal Footer */}
-            <div className="p-6 border-t border-slate-100 dark:border-slate-800 flex gap-3 justify-end">
+            <div className="p-6 border-t border-slate-100 dark:border-slate-800 flex gap-3 justify-end items-center">
+              {editingAnnualPlan && (editingAnnualPlan.status === 'Draft' || editingAnnualPlan.status === 'Revision Required') && (
+                <button
+                  type="button"
+                  onClick={() => handleDeleteAnnualPlan(editingAnnualPlan.id)}
+                  disabled={submitting}
+                  className="mr-auto px-5 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 font-black text-xs uppercase tracking-widest rounded-2xl transition-all flex items-center gap-1.5 border border-red-200 dark:border-red-900/40"
+                >
+                  {submitting ? <Loader2 className="animate-spin" size={16} /> : <Trash2 size={16} />}
+                  {uiText(" Delete Draft ")}
+                </button>
+              )}
               <button
                 onClick={() => { setIsAnnualModalOpen(false); setEditingAnnualPlan(null); }}
                 className="px-6 py-3 border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
