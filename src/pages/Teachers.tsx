@@ -377,6 +377,28 @@ export const Teachers = () => {
       `Teachers_List_${new Date().toISOString().split('T')[0]}`
     );
   };
+  const getParsedDailyActivities = (plan: any) => {
+    if (!plan) return null;
+    let raw = plan.daily_activities ?? plan.dailyActivities;
+    if (!raw && plan.full_plan_json) {
+      try {
+        const parsedFull = typeof plan.full_plan_json === 'string' ? JSON.parse(plan.full_plan_json) : plan.full_plan_json;
+        raw = parsedFull?.dailyActivities || parsedFull?.daily_activities;
+      } catch (e) {}
+    }
+    if (typeof raw === 'string') {
+      try {
+        raw = JSON.parse(raw);
+      } catch (e) {
+        raw = null;
+      }
+    }
+    if (Array.isArray(raw) && raw.length > 0) {
+      return raw;
+    }
+    return null;
+  };
+
   const [annualPlans, setAnnualPlans] = useState<any[]>([]);
   const [weeklyPlans, setWeeklyPlans] = useState<any[]>([]);
   const [plansLoading, setPlansLoading] = useState(false);
@@ -2938,8 +2960,9 @@ export const Teachers = () => {
                     const periodsWeek = selectedWeeklyPlan.periods_per_week || selectedWeeklyPlan.periodsPerWeek || selectedWeeklyPlan.periods_week || '—';
                     const status = selectedWeeklyPlan.status || 'Pending';
 
-                    const dailyList = (Array.isArray(selectedWeeklyPlan.daily_activities || selectedWeeklyPlan.dailyActivities) && (selectedWeeklyPlan.daily_activities || selectedWeeklyPlan.dailyActivities).length > 0)
-                      ? (selectedWeeklyPlan.daily_activities || selectedWeeklyPlan.dailyActivities)
+                    const parsedActs = getParsedDailyActivities(selectedWeeklyPlan);
+                    const dailyList = parsedActs
+                      ? parsedActs
                       : ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].map(day => ({
                           day,
                           content: selectedWeeklyPlan.content || selectedWeeklyPlan.topic || '—',
@@ -3095,9 +3118,7 @@ export const Teachers = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-300 dark:divide-slate-700">
-                      {(Array.isArray(selectedWeeklyPlan.daily_activities || selectedWeeklyPlan.dailyActivities) && (selectedWeeklyPlan.daily_activities || selectedWeeklyPlan.dailyActivities).length > 0
-                        ? (selectedWeeklyPlan.daily_activities || selectedWeeklyPlan.dailyActivities)
-                        : ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].map(day => ({
+                      {(getParsedDailyActivities(selectedWeeklyPlan) || ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].map(day => ({
                             day,
                             content: selectedWeeklyPlan.content || selectedWeeklyPlan.topic || '—',
                             competence: selectedWeeklyPlan.objectives || '—',

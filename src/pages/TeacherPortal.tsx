@@ -578,6 +578,28 @@ export const TeacherPortal = () => {
     }
   };
 
+  const getParsedDailyActivities = (plan: any) => {
+    if (!plan) return null;
+    let raw = plan.daily_activities ?? plan.dailyActivities;
+    if (!raw && plan.full_plan_json) {
+      try {
+        const parsedFull = typeof plan.full_plan_json === 'string' ? JSON.parse(plan.full_plan_json) : plan.full_plan_json;
+        raw = parsedFull?.dailyActivities || parsedFull?.daily_activities;
+      } catch (e) {}
+    }
+    if (typeof raw === 'string') {
+      try {
+        raw = JSON.parse(raw);
+      } catch (e) {
+        raw = null;
+      }
+    }
+    if (Array.isArray(raw) && raw.length > 0) {
+      return raw;
+    }
+    return null;
+  };
+
   const defaultDailyActivities = () => [
     { day: 'Monday', content: '', competence: '', timeDuration: '45 mins', teacherBefore: '', teacherDuring: '', teacherGeneralization: '', teacherEvaluation: '', studentBefore: '', studentDuring: '', studentGeneralization: '', studentEvaluation: '', teachingAid: '', evaluation: '', remark: '', teacherIntro: '', teacherPresentation: '', teacherSummary: '', teacherAssessment: '', studentActivity: '', teachingMethod: '', evaluationRemark: '' },
     { day: 'Tuesday', content: '', competence: '', timeDuration: '45 mins', teacherBefore: '', teacherDuring: '', teacherGeneralization: '', teacherEvaluation: '', studentBefore: '', studentDuring: '', studentGeneralization: '', studentEvaluation: '', teachingAid: '', evaluation: '', remark: '', teacherIntro: '', teacherPresentation: '', teacherSummary: '', teacherAssessment: '', studentActivity: '', teachingMethod: '', evaluationRemark: '' },
@@ -4064,9 +4086,7 @@ export const TeacherPortal = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-300 dark:divide-slate-700">
-                      {(Array.isArray(selectedPlanForView.daily_activities || selectedPlanForView.dailyActivities)
-                        ? (selectedPlanForView.daily_activities || selectedPlanForView.dailyActivities)
-                        : ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].map(day => ({
+                      {(getParsedDailyActivities(selectedPlanForView) || ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].map(day => ({
                             day,
                             content: selectedPlanForView.content || '—',
                             competence: selectedPlanForView.objectives || '—',
