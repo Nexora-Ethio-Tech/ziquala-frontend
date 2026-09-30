@@ -1598,9 +1598,9 @@ export const StorekeeperPortal = () => {
                   <label className="text-xs font-black text-slate-500 uppercase tracking-wide">{uiText("Quantity *")}</label>
                   <input
                     type="number"
-                    min={1}
+                    min={0}
                     value={form.amount}
-                    onChange={e => setForm({ ...form, amount: parseInt(e.target.value) || 1 })}
+                    onChange={e => setForm({ ...form, amount: e.target.value === '' ? 0 : Math.max(0, parseInt(e.target.value) || 0) })}
                     className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"
                     required
                   />
