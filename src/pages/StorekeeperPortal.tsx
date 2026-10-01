@@ -239,6 +239,9 @@ export const StorekeeperPortal = () => {
     return Array.from(map.values());
   }, [notices, storeNotices]);
 
+  const [recipientsList, setRecipientsList] = useState<{ name: string; role: string }[]>([]);
+  const [showRecipientDropdown, setShowRecipientDropdown] = useState(false);
+
   // ─── Data Fetching ────────────────────────────────────────────────────────
   const fetchAllData = async () => {
     try {
@@ -246,17 +249,19 @@ export const StorekeeperPortal = () => {
       setError(null);
       const bParam = branchId ? `?branchId=${branchId}` : '';
 
-      const [assetsRes, issuesRes, statsRes, noticesRes] = await Promise.all([
+      const [assetsRes, issuesRes, statsRes, noticesRes, recipientsRes] = await Promise.all([
         api.get(`/storekeeper/assets${bParam}`),
         api.get(`/storekeeper/issues${bParam}`),
         api.get(`/storekeeper/stats${bParam}`),
-        api.get(`/storekeeper/notices${bParam}`).catch(() => ({ data: [] }))
+        api.get(`/storekeeper/notices${bParam}`).catch(() => ({ data: [] })),
+        api.get(`/storekeeper/recipients${bParam}`).catch(() => ({ data: [] }))
       ]);
 
       setAssets(Array.isArray(assetsRes.data) ? assetsRes.data : []);
       setIssues(Array.isArray(issuesRes.data) ? issuesRes.data : []);
       setStats(statsRes.data || null);
       setNotices(Array.isArray(noticesRes.data) ? noticesRes.data : []);
+      setRecipientsList(Array.isArray(recipientsRes.data) ? recipientsRes.data : []);
     } catch (e: any) {
       setError(uiError(e?.response?.data?.error?.message || e?.message || 'Failed to load storekeeper data'));
     } finally {
@@ -715,16 +720,58 @@ export const StorekeeperPortal = () => {
                   {uiText("1. Recipient & Transaction Details")}
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-1">
+                  <div className="space-y-1 relative">
                     <label className="text-xs font-black text-slate-500 uppercase tracking-wide">{uiText("Issued To (Person/Dept) *")}</label>
-                    <input
-                      type="text"
-                      value={issueRecipient.issued_to_name}
-                      onChange={e => setIssueRecipient({ ...issueRecipient, issued_to_name: e.target.value })}
-                      placeholder={uiText("e.g. Teacher Abebe, Main Office...")}
-                      className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 font-bold"
-                      required
-                    />
+                    <div className="relative">
+                      <Search size={15} className="absolute left-3.5 top-3.5 text-slate-400 pointer-events-none" />
+                      <input
+                        type="text"
+                        value={issueRecipient.issued_to_name}
+                        onChange={e => {
+                          setIssueRecipient({ ...issueRecipient, issued_to_name: e.target.value });
+                          setShowRecipientDropdown(true);
+                        }}
+                        onFocus={() => setShowRecipientDropdown(true)}
+                        onBlur={() => setTimeout(() => setShowRecipientDropdown(false), 200)}
+                        placeholder={uiText("Search staff, teacher, or type recipient name...")}
+                        className="w-full pl-9 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 font-bold"
+                        required
+                      />
+                    </div>
+                    {showRecipientDropdown && (
+                      <div className="absolute left-0 right-0 top-full mt-1 z-30 max-h-48 overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl space-y-0.5 p-1">
+                        {(() => {
+                          const q = (issueRecipient.issued_to_name || '').trim().toLowerCase();
+                          const matches = (recipientsList || []).filter(r => !q || r.name.toLowerCase().includes(q));
+                          if (matches.length === 0) {
+                            return (
+                              <div className="px-3 py-2 text-xs text-slate-400 font-medium">
+                                {uiText("Press enter or keep typing custom recipient name...")}
+                              </div>
+                            );
+                          }
+                          return matches.map((r, idx) => (
+                            <button
+                              key={idx}
+                              type="button"
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={() => {
+                                setIssueRecipient({
+                                  ...issueRecipient,
+                                  issued_to_name: r.name,
+                                  issued_to_role: r.role || issueRecipient.issued_to_role
+                                });
+                                setShowRecipientDropdown(false);
+                              }}
+                              className="w-full text-left px-3 py-2 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 rounded-lg flex items-center justify-between transition-colors"
+                            >
+                              <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{r.name}</span>
+                              <span className="text-[10px] font-black px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-500 rounded-md uppercase">{r.role}</span>
+                            </button>
+                          ));
+                        })()}
+                      </div>
+                    )}
                   </div>
                   <div className="space-y-1">
                     <label className="text-xs font-black text-slate-500 uppercase tracking-wide">{uiText("Role / Department")}</label>
@@ -773,7 +820,15 @@ export const StorekeeperPortal = () => {
                     const rowCategory = itemRow.categoryFilter || '';
 
                     const availableAssetsForSelect = (assets || []).filter(a => {
-                      return a && (!rowCategory || (a.category || 'General') === rowCategory);
+                      if (!a) return false;
+                      const matchesCat = !rowCategory || (a.category || 'General') === rowCategory;
+                      const q = (itemRow.searchQuery || '').trim().toLowerCase();
+                      const matchesQuery = !q ||
+                        (a.name || '').toLowerCase().includes(q) ||
+                        (a.category || '').toLowerCase().includes(q) ||
+                        (a.serial_number || '').toLowerCase().includes(q) ||
+                        (a.location || '').toLowerCase().includes(q);
+                      return matchesCat && matchesQuery;
                     });
 
                     return (
@@ -804,21 +859,51 @@ export const StorekeeperPortal = () => {
                           )}
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <div className="space-y-1">
-                            <label className="text-[11px] font-black text-slate-400 uppercase">{uiText("Category Filter")}</label>
-                            <select
-                              value={itemRow.categoryFilter || ''}
-                              onChange={e => updateIssueItemRow(itemRow.id, { categoryFilter: e.target.value, asset_id: '' })}
-                              className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500"
-                            >
-                              <option value="">{uiText("All Categories")}</option>
-                              {categoriesList.filter(c => c !== 'All').map(cat => (
-                                <option key={cat} value={cat}>{uiText(cat)}</option>
-                              ))}
-                            </select>
+                        {/* Search & Selection Controls */}
+                        <div className="space-y-3">
+                          {/* Top row: Search input & Category filter */}
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div className="space-y-1">
+                              <label className="text-[11px] font-black text-slate-400 uppercase">{uiText("Category Filter")}</label>
+                              <select
+                                value={itemRow.categoryFilter || ''}
+                                onChange={e => updateIssueItemRow(itemRow.id, { categoryFilter: e.target.value, asset_id: '' })}
+                                className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500"
+                              >
+                                <option value="">{uiText("All Categories")}</option>
+                                {categoriesList.filter(c => c !== 'All').map(cat => (
+                                  <option key={cat} value={cat}>{uiText(cat)}</option>
+                                ))}
+                              </select>
+                            </div>
+
+                            <div className="space-y-1 relative">
+                              <div className="flex items-center justify-between">
+                                <label className="text-[11px] font-black text-slate-400 uppercase">{uiText("Search Stock Item")}</label>
+                                {itemRow.searchQuery && (
+                                  <button
+                                    type="button"
+                                    onClick={() => updateIssueItemRow(itemRow.id, { searchQuery: '' })}
+                                    className="text-[10px] text-indigo-600 dark:text-indigo-400 hover:underline font-bold"
+                                  >
+                                    {uiText("Clear")}
+                                  </button>
+                                )}
+                              </div>
+                              <div className="relative">
+                                <Search size={14} className="absolute left-3 top-2.5 text-slate-400 pointer-events-none" />
+                                <input
+                                  type="text"
+                                  value={itemRow.searchQuery || ''}
+                                  onChange={e => updateIssueItemRow(itemRow.id, { searchQuery: e.target.value })}
+                                  placeholder={uiText("Type item name to filter stock...")}
+                                  className="w-full pl-8 pr-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500"
+                                />
+                              </div>
+                            </div>
                           </div>
 
+                          {/* Asset Choice Dropdown */}
                           <div className="space-y-1">
                             <label className="text-[11px] font-black text-slate-400 uppercase">{uiText("Select Asset from Stock *")}</label>
                             <select
@@ -831,7 +916,7 @@ export const StorekeeperPortal = () => {
                                   categoryFilter: chosenObj?.category || itemRow.categoryFilter || ''
                                 });
                               }}
-                              className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500"
+                              className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500 font-bold"
                               required
                             >
                               <option value="">{uiText('-- Choose Asset --')}</option>
@@ -849,6 +934,63 @@ export const StorekeeperPortal = () => {
                               })}
                             </select>
                           </div>
+
+                          {/* Search Results Cards (when typing in search box) */}
+                          {itemRow.searchQuery && itemRow.searchQuery.trim().length > 0 && (
+                            <div className="space-y-1 bg-white dark:bg-slate-900 p-2 rounded-xl border border-indigo-200 dark:border-indigo-800/60 max-h-40 overflow-y-auto">
+                              <div className="text-[10px] font-black uppercase text-indigo-600 dark:text-indigo-400 px-1">
+                                {uiText("Search Matches: ")}{availableAssetsForSelect.length} {uiText("items found")}
+                              </div>
+                              {availableAssetsForSelect.length === 0 ? (
+                                <div className="text-xs text-slate-400 px-2 py-1 font-medium">
+                                  {uiText("No inventory items found matching search query.")}
+                                </div>
+                              ) : (
+                                availableAssetsForSelect.slice(0, 10).map(a => {
+                                  if (!a || !a.id) return null;
+                                  const isCons = Boolean(a.is_consumable || a.item_type === 'Consumable' || a.category === 'Stationery & Supplies');
+                                  const isSelectedInOtherRow = (issueItems || []).some(r => r && r.id !== itemRow.id && r.asset_id === a.id);
+                                  const assetStock = Number(a.amount) || 0;
+                                  const isCurrentSelected = itemRow.asset_id === a.id;
+                                  return (
+                                    <button
+                                      key={a.id}
+                                      type="button"
+                                      disabled={assetStock <= 0 || isSelectedInOtherRow}
+                                      onClick={() => {
+                                        updateIssueItemRow(itemRow.id, {
+                                          asset_id: a.id,
+                                          categoryFilter: a.category || itemRow.categoryFilter || ''
+                                        });
+                                      }}
+                                      className={`w-full text-left p-2 rounded-lg text-xs flex items-center justify-between transition-colors ${
+                                        isCurrentSelected
+                                          ? 'bg-indigo-600 text-white font-bold'
+                                          : assetStock <= 0 || isSelectedInOtherRow
+                                          ? 'opacity-40 cursor-not-allowed bg-slate-50 dark:bg-slate-800'
+                                          : 'hover:bg-indigo-50 dark:hover:bg-indigo-950/40 text-slate-800 dark:text-slate-200 font-medium'
+                                      }`}
+                                    >
+                                      <div className="flex items-center gap-2">
+                                        <Package size={14} className={isCurrentSelected ? 'text-white' : 'text-indigo-500'} />
+                                        <span>{a.name}</span>
+                                        <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold ${
+                                          isCons
+                                            ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300'
+                                            : 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300'
+                                        }`}>
+                                          {isCons ? 'Consumable' : 'Returnable'}
+                                        </span>
+                                      </div>
+                                      <span className="font-bold">
+                                        {uiText("Stock: ")}{assetStock} {assetStock <= 0 ? '(Out of Stock)' : ''}
+                                      </span>
+                                    </button>
+                                  );
+                                })
+                              )}
+                            </div>
+                          )}
                         </div>
 
                         {selectedAsset && (
@@ -863,9 +1005,18 @@ export const StorekeeperPortal = () => {
                                 {uiText(isConsumable ? "Consumable (Non-Returnable) — will be consumed from stock" : "Returnable Property — return date required")}
                               </span>
                             </div>
-                            <span className="font-black px-2 py-0.5 bg-white/70 dark:bg-black/30 rounded-md">
-                              {uiText("Available: ")}{selectedAsset.amount}
-                            </span>
+                            <div className="flex items-center gap-2">
+                              <span className="font-black px-2 py-0.5 bg-white/70 dark:bg-black/30 rounded-md">
+                                {uiText("Available: ")}{selectedAsset.amount}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => updateIssueItemRow(itemRow.id, { asset_id: '', searchQuery: '' })}
+                                className="text-[10px] font-bold text-indigo-600 dark:text-indigo-300 hover:underline"
+                              >
+                                {uiText("Change")}
+                              </button>
+                            </div>
                           </div>
                         )}
 
