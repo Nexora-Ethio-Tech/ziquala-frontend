@@ -290,6 +290,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
   const [showApprovalModal, setShowApprovalModal] = useState(false);
   const [appForApproval, setAppForApproval] = useState<PendingApp | null>(null);
   const [approvalForm, setApprovalForm] = useState({ parentDigitalId: '', reference: '' });
+  const [matchedParentNotice, setMatchedParentNotice] = useState<{ name: string; digital_id: string } | null>(null);
   const [approving, setApproving] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [copiedLabel, setCopiedLabel] = useState<string | null>(null);
@@ -806,10 +807,25 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
 
 
 
-  const handleOpenApprovalModal = (app: PendingApp) => {
+  const handleOpenApprovalModal = async (app: PendingApp) => {
     setAppForApproval(app);
     setApprovalForm({ parentDigitalId: '', reference: '' });
+    setMatchedParentNotice(null);
     setShowApprovalModal(true);
+
+    const phone = app.parentPhone || (app as any).parent_phone || (app as any).fatherPhone || (app as any).father_phone || (app as any).motherPhone || (app as any).mother_phone || (app as any).applicantPhone || app.email;
+    if (phone) {
+      try {
+        const res = await api.get('/school-admin/parents/search', { params: { q: phone } });
+        if (res.data?.success && res.data?.data?.length > 0) {
+          const match = res.data.data[0];
+          setApprovalForm(prev => ({ ...prev, parentDigitalId: match.digital_id }));
+          setMatchedParentNotice({ name: match.name, digital_id: match.digital_id });
+        }
+      } catch (err) {
+        // ignore
+      }
+    }
   };
 
   const handleConfirmApproval = async () => {
@@ -2078,6 +2094,15 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                 <p className="text-sm font-semibold text-slate-600 dark:text-slate-400 mb-2">{uiText("Student: ")}<span className="font-bold text-slate-900 dark:text-white">{appForApproval.name}</span>
                 </p>
               </div>
+
+              {matchedParentNotice && (
+                <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/50 rounded-xl p-3 text-xs text-emerald-800 dark:text-emerald-300 flex items-center gap-2">
+                  <Check size={16} className="text-emerald-600 shrink-0" />
+                  <span>
+                    {uiText("Found matching Parent: ")}<strong>{matchedParentNotice.name}</strong> ({matchedParentNotice.digital_id}). {uiText("Pre-filled automatically.")}
+                  </span>
+                </div>
+              )}
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">{uiText("Parent ID (optional)")}</label>

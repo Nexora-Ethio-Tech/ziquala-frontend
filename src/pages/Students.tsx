@@ -1,8 +1,9 @@
 import { uiError, uiText } from "../localization";
 import { useTranslation } from 'react-i18next';
-import { Search, Download, UserPlus, X, Edit2, Trash2, Users, ArrowLeft, CheckCircle2, XCircle, Check, Loader2, GraduationCap, FileText, RefreshCw, UserCog } from 'lucide-react';
+import { Search, Download, UserPlus, X, Edit2, Trash2, Users, ArrowLeft, CheckCircle2, XCircle, Check, Loader2, GraduationCap, FileText, RefreshCw, UserCog, Link, Link2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import api from '../services/api';
 import studentService, { type UpdateStudentData } from '../services/studentService';
 import classService from '../services/classService';
 import { getBranchUsers, updateUser, resetUserPIN, assignStudentToClass, removeStudentFromClass, approveTeacher, revokeTeacher } from '../services/schoolAdminService';
@@ -107,6 +108,69 @@ export const Students = () => {
   const [bulkStatusUpdating, setBulkStatusUpdating] = useState(false);
 
   const [showBulkShiftGradeModal, setShowBulkShiftGradeModal] = useState(false);
+
+  // Parent linking state
+  const [showLinkParentModal, setShowLinkParentModal] = useState(false);
+  const [studentToLink, setStudentToLink] = useState<any>(null);
+  const [parentSearchTerm, setParentSearchTerm] = useState('');
+  const [parentSearchResults, setParentSearchResults] = useState<any[]>([]);
+  const [searchingParents, setSearchingParents] = useState(false);
+  const [linkingParent, setLinkingParent] = useState(false);
+  const [autoLinkingSiblings, setAutoLinkingSiblings] = useState(false);
+
+  const handleSearchParents = async (term: string) => {
+    setParentSearchTerm(term);
+    if (!term || term.trim().length < 2) {
+      setParentSearchResults([]);
+      return;
+    }
+    try {
+      setSearchingParents(true);
+      const res = await api.get('/school-admin/parents/search', { params: { q: term } });
+      if (res.data?.success) {
+        setParentSearchResults(res.data.data || []);
+      }
+    } catch (err) {
+      // ignore
+    } finally {
+      setSearchingParents(false);
+    }
+  };
+
+  const handleLinkStudentToParent = async (parentDigitalIdOrId: string) => {
+    if (!studentToLink) return;
+    try {
+      setLinkingParent(true);
+      const res = await api.post(`/school-admin/students/${studentToLink.id || studentToLink.user_id}/link-parent`, {
+        parentId: parentDigitalIdOrId
+      });
+      if (res.data?.success) {
+        showToast(uiText(res.data.message || 'Student linked to parent successfully!'), 'success');
+        setShowLinkParentModal(false);
+        setStudentToLink(null);
+        fetchStudents();
+      }
+    } catch (err: any) {
+      showToast(uiText(err.response?.data?.message || err.message || 'Failed to link parent'), 'error');
+    } finally {
+      setLinkingParent(false);
+    }
+  };
+
+  const handleAutoLinkSiblings = async () => {
+    try {
+      setAutoLinkingSiblings(true);
+      const res = await api.post('/school-admin/parents/auto-link-siblings');
+      if (res.data?.success) {
+        showToast(uiText(res.data.message || `Successfully linked ${res.data.linkedCount} students to parent accounts!`), 'success');
+        fetchStudents();
+      }
+    } catch (err: any) {
+      showToast(uiText(err.response?.data?.message || err.message || 'Auto-link failed'), 'error');
+    } finally {
+      setAutoLinkingSiblings(false);
+    }
+  };
   const [bulkShiftTargetGrade, setBulkShiftTargetGrade] = useState('');
   const [bulkShiftTargetSection, setBulkShiftTargetSection] = useState('');
   const [bulkShiftUpdating, setBulkShiftUpdating] = useState(false);
@@ -742,6 +806,16 @@ export const Students = () => {
                 <UserPlus size={18} />
                 {t('students.addStudent')}
               </button>
+              <button
+                type="button"
+                onClick={handleAutoLinkSiblings}
+                disabled={autoLinkingSiblings}
+                className="bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/40 dark:hover:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/50 px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-bold transition-all disabled:opacity-50"
+                title={uiText("Auto-detect and link all unlinked siblings to their parent accounts by matching phone numbers")}
+              >
+                {autoLinkingSiblings ? <Loader2 size={18} className="animate-spin" /> : <Link2 size={18} />}
+                {uiText("Auto-Link Siblings")}
+              </button>
             </>
           )}
           <button
@@ -1015,6 +1089,22 @@ export const Students = () => {
                                 aria-label={uiText("Assign section")}
                               >
                                 <GraduationCap size={16} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setStudentToLink(student);
+                                  setParentSearchTerm('');
+                                  setParentSearchResults([]);
+                                  setShowLinkParentModal(true);
+                                  const term = student.parentPhone || student.parent_phone || student.parentName || student.parent_name;
+                                  if (term) handleSearchParents(term);
+                                }}
+                                className="p-2 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 text-indigo-600 rounded-lg transition-colors"
+                                title={uiText("Link Parent / Sibling")}
+                                aria-label={uiText("Link parent / sibling")}
+                              >
+                                <Link size={16} />
                               </button>
                               <div className="relative inline-block">
                                 <button
@@ -1742,6 +1832,98 @@ export const Students = () => {
                     {uiText("Shift Grade")}
                   </>
                 )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Link Student to Parent Account Modal */}
+      {showLinkParentModal && studentToLink && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 dark:border-slate-800 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 mb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-xl">
+                  <Link size={20} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">{uiText("Link Student to Parent Account")}</h3>
+                  <p className="text-xs text-slate-500">{uiText("Student: ")}<span className="font-bold text-slate-800 dark:text-slate-200">{studentToLink.name}</span> ({uiText(formatGradeDisplay(studentToLink.grade))})</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => { setShowLinkParentModal(false); setStudentToLink(null); }}
+                className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1.5 uppercase tracking-wider">
+                  {uiText("Search Parent (by Name, Phone, or Parent ID)")}
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={parentSearchTerm}
+                    onChange={(e) => handleSearchParents(e.target.value)}
+                    placeholder={uiText("Type Parent Name, Phone, or PAR-XXXX...")}
+                    className="w-full pl-10 pr-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                  <Search size={16} className="absolute left-3.5 top-3 text-slate-400" />
+                </div>
+              </div>
+
+              <div className="space-y-2 max-h-60 overflow-y-auto">
+                {searchingParents ? (
+                  <div className="flex items-center justify-center py-6 text-slate-400 gap-2 text-xs">
+                    <Loader2 size={16} className="animate-spin text-indigo-600" />{uiText("Searching parents...")}
+                  </div>
+                ) : parentSearchResults.length > 0 ? (
+                  parentSearchResults.map((p) => (
+                    <div
+                      key={p.id}
+                      className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700/60 flex items-center justify-between gap-3 hover:border-indigo-300 dark:hover:border-indigo-600 transition-all"
+                    >
+                      <div>
+                        <p className="font-bold text-sm text-slate-900 dark:text-white">{p.name}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                          <span className="font-mono text-indigo-600 dark:text-indigo-400 font-semibold">{p.digital_id}</span>
+                          {p.phone && <span>· {p.phone}</span>}
+                          <span>· {p.children_count} {uiText("children linked")}</span>
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleLinkStudentToParent(p.digital_id || p.id)}
+                        disabled={linkingParent}
+                        className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold text-xs shadow transition-all shrink-0 active:scale-95 disabled:opacity-50"
+                      >
+                        {linkingParent ? uiText("Linking...") : uiText("Link Student")}
+                      </button>
+                    </div>
+                  ))
+                ) : parentSearchTerm.trim().length >= 2 ? (
+                  <div className="text-center py-6 text-slate-400 text-xs">
+                    {uiText("No matching parent accounts found for")} "{parentSearchTerm}"
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-400 italic text-center py-4">{uiText("Type a name, phone number, or Parent ID above to search existing parents.")}</p>
+                )}
+              </div>
+            </div>
+
+            <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-end">
+              <button
+                type="button"
+                onClick={() => { setShowLinkParentModal(false); setStudentToLink(null); }}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-bold text-xs uppercase tracking-wider"
+              >
+                {uiText("Close")}
               </button>
             </div>
           </div>
