@@ -18,7 +18,9 @@ import {
   Calendar,
   CreditCard,
   PhoneCall,
-  ExternalLink
+  ExternalLink,
+  Copy,
+  Check
 } from 'lucide-react';
 import { formatEthiopianLabel } from '../utils/ethiopianCalendar';
 import api from '../services/api';
@@ -58,6 +60,14 @@ export const StudentRecordPage = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [replacingDocId, setReplacingDocId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [copiedParentId, setCopiedParentId] = useState(false);
+
+  const handleCopyParentId = (text: string) => {
+    if (!text || text === '—') return;
+    navigator.clipboard.writeText(text);
+    setCopiedParentId(true);
+    setTimeout(() => setCopiedParentId(false), 2000);
+  };
 
   const triggerFileSelect = (appId: string) => {
     setReplacingDocId(appId);
@@ -369,8 +379,22 @@ export const StudentRecordPage = () => {
                   <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.address))}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Kebele")}</p>
-                  <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.kebele))}</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Parent ID")}</p>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <p className="font-bold dark:text-slate-200 font-mono text-xs">
+                      {uiText(displayValue(student?.parent_digital_id || app?.parent_digital_id || app?.parent_id || student?.parent_user_id))}
+                    </p>
+                    {Boolean(student?.parent_digital_id || app?.parent_digital_id || app?.parent_id || student?.parent_user_id) && (
+                      <button
+                        type="button"
+                        onClick={() => handleCopyParentId(String(student?.parent_digital_id || app?.parent_digital_id || app?.parent_id || student?.parent_user_id))}
+                        title={uiText("Copy Parent ID")}
+                        className="p-1 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-200 dark:hover:bg-slate-700 rounded transition-colors flex items-center gap-1"
+                      >
+                        {copiedParentId ? <Check size={13} className="text-emerald-500" /> : <Copy size={13} />}
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <div>
                   <p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Applicant Phone")}</p>

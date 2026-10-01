@@ -262,6 +262,10 @@ export interface StudentAdmissionRecord {
     section_name: string | null;
     section_label: string | null;
     enrolled_at: string;
+    parent_user_id?: string | null;
+    parent_digital_id?: string | null;
+    parent_name?: string | null;
+    parent_phone?: string | null;
   };
   application: Record<string, any> | null;
   documents: AdmissionDocument[];
