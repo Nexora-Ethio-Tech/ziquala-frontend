@@ -491,7 +491,12 @@ export const TimetableStructureEditor: React.FC<Props> = ({ classes, teachers, i
                       <div className="flex-1">
                       <label className="text-xs font-black">{uiText("Course Name")}</label>
                       <input value={course.name} onChange={(e) => updateCourse(gradeKey, course.id, { name: e.target.value })} className="w-full px-3 py-2 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm outline-none" />
-                      <div className="text-xs text-slate-400 mt-1">{uiText("Debug: assigned = ")}{uiText(String(Object.keys(g.assignments || {}).some(sec => g.assignments?.[sec]?.[course.id] !== undefined)))}</div>
+                      <div className="text-xs text-slate-400 mt-1">
+                        {uiText("Assigned sections: ")}
+                        <span className="font-semibold text-slate-600 dark:text-slate-300">
+                          {g.sections.filter(sec => g.assignments?.[sec.name]?.[course.id] !== undefined).map(sec => sec.name).join(', ') || uiText('None')}
+                        </span>
+                      </div>
                     </div>
                     <div className="w-40">
                       <label className="text-xs font-black">{uiText("Sessions / Week")}</label>
@@ -506,6 +511,7 @@ export const TimetableStructureEditor: React.FC<Props> = ({ classes, teachers, i
 
               <div className="mt-4">
                 <label className="text-xs font-black">{uiText("Section Assignments")}</label>
+                <p className="text-xs text-slate-500 mt-0.5">{uiText("Assign courses (such as Amharic or Afan Oromo) exclusively to their respective sections.")}</p>
                 <div className="space-y-3 mt-2">
                   {(g.sections && g.sections.length>0) ? g.sections.map((s:any) => (
                     <div key={s.name} className="p-3 bg-white dark:bg-slate-800 rounded-md border">
