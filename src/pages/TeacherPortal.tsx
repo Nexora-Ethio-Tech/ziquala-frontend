@@ -2766,10 +2766,12 @@ export const TeacherPortal = () => {
                 <div className="flex gap-4 flex-wrap">
                   <button onClick={() => {
                     setEditingPlan(null);
-                    const draft = loadLocalDraft();
                     const targetIso = selectedWeekDate.toISOString().split('T')[0];
-                    const baseForm = draft ?? emptyPlan;
-                    setPlanForm({ ...baseForm, dateFrom: targetIso, dateTo: targetIso, date: targetIso });
+                    // Every new plan must start with its own form state. Reusing
+                    // the single legacy localStorage draft caused a second
+                    // grade's plan to inherit or overwrite the first one's data.
+                    clearLocalDraft();
+                    setPlanForm({ ...emptyPlan, dateFrom: targetIso, dateTo: targetIso, date: targetIso, status: 'Draft' });
                     setIsPlanModalOpen(true);
                   }}
                     className="flex items-center gap-3 px-8 py-4 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-700 transition-all shadow-xl shadow-blue-500/20">
