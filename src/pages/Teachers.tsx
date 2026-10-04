@@ -423,10 +423,10 @@ export const Teachers = () => {
     try {
       if (planType === 'annual') {
         const res = await getVPAnnualPlanById(planId);
-        setSelectedAnnualPlan(res.data || res);
+        setSelectedAnnualPlan(res.data?.data || res.data || res);
       } else {
         const res = await getVPWeeklyPlanById(planId);
-        setSelectedWeeklyPlan(res.data || res);
+        setSelectedWeeklyPlan(res.data?.data || res.data || res);
       }
     } catch (err) {
       console.error('Failed to load specific plan:', err);
