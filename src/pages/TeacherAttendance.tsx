@@ -25,7 +25,7 @@ export const TeacherAttendance = () => {
   const [students, setStudents] = useState<any[]>([]);
   const [selectedClass, setSelectedClass] = useState<any>(null);
   const [selectedDate, setSelectedDate] = useState<string>(getTodayEthiopianDate());
-  const [attendance, setAttendance] = useState<Record<string, 'present' | 'absent' | 'excused'>>({});
+  const [attendance, setAttendance] = useState<Record<string, 'present' | 'absent' | 'late' | 'excused'>>({});
   const [loading, setLoading] = useState(true);
   const [loadingStudents, setLoadingStudents] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -70,14 +70,12 @@ export const TeacherAttendance = () => {
       }));
       setStudents(transformed);
 
-      // Default empty/null status to 'absent', else load from DB. Filter/fallback 'late' to 'present'.
-      const loadedAttendance: Record<string, 'present' | 'absent' | 'excused'> = {};
+      // Default empty/null status to 'present', else load from DB.
+      const loadedAttendance: Record<string, 'present' | 'absent' | 'late' | 'excused'> = {};
       transformed.forEach((s: any) => {
-        const rawStatus = s.status;
-        if (rawStatus === 'present' || rawStatus === 'absent' || rawStatus === 'excused') {
+        const rawStatus = (s.status || '').toLowerCase();
+        if (rawStatus === 'present' || rawStatus === 'absent' || rawStatus === 'late' || rawStatus === 'excused') {
           loadedAttendance[s.id] = rawStatus;
-        } else if (rawStatus === 'late') {
-          loadedAttendance[s.id] = 'present';
         } else {
           loadedAttendance[s.id] = 'present';
         }
@@ -102,7 +100,7 @@ export const TeacherAttendance = () => {
     }
   };
 
-  const handleStatusChange = (studentId: string, status: 'present' | 'absent' | 'excused') => {
+  const handleStatusChange = (studentId: string, status: 'present' | 'absent' | 'late' | 'excused') => {
     setAttendance(prev => {
       const current = prev[studentId] || 'absent';
       if (status === 'absent' && current === 'absent') {
@@ -111,6 +109,12 @@ export const TeacherAttendance = () => {
       if (status === 'present' && current === 'present') {
         return { ...prev, [studentId]: 'absent' };
       }
+      if (status === 'late' && current === 'late') {
+        return { ...prev, [studentId]: 'present' };
+      }
+      if (status === 'excused' && current === 'excused') {
+        return { ...prev, [studentId]: 'present' };
+      }
       return {
         ...prev,
         [studentId]: status
@@ -118,8 +122,8 @@ export const TeacherAttendance = () => {
     });
   };
 
-  const markAllStatus = (status: 'present' | 'absent' | 'excused') => {
-    const updated: Record<string, 'present' | 'absent' | 'excused'> = {};
+  const markAllStatus = (status: 'present' | 'absent' | 'late' | 'excused') => {
+    const updated: Record<string, 'present' | 'absent' | 'late' | 'excused'> = {};
     students.forEach(s => { updated[s.id] = status; });
     setAttendance(updated);
   };
@@ -142,7 +146,7 @@ export const TeacherAttendance = () => {
         return acc;
       }, {} as Record<string, number>);
 
-      const summary = `Present: ${counts.present || 0}, Absent: ${counts.absent || 0}, Excused: ${counts.excused || 0}`;
+      const summary = `Present: ${counts.present || 0}, Absent: ${counts.absent || 0}, Late: ${counts.late || 0}, Excused: ${counts.excused || 0}`;
       setSubmitMessage(`Attendance for ${selectedDate} submitted! (${summary})`);
       setSubmitted(true);
       setTimeout(() => setSubmitted(false), 5000);
@@ -163,7 +167,7 @@ export const TeacherAttendance = () => {
   const stats = Object.values(attendance).reduce((acc, curr) => {
     acc[curr] = (acc[curr] || 0) + 1;
     return acc;
-  }, { present: 0, absent: 0, excused: 0 });
+  }, { present: 0, absent: 0, late: 0, excused: 0 });
 
   if (loading) {
     return (
@@ -285,7 +289,7 @@ export const TeacherAttendance = () => {
       )}
 
       {/* Attendance Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div className="bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-100/50 dark:border-emerald-900/30 p-4 rounded-2xl text-center">
           <div className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">{stats.present}</div>
           <div className="text-xs font-bold text-emerald-800/60 dark:text-emerald-400/60 mt-0.5 uppercase tracking-wider">{uiText("Present")}</div>
@@ -293,6 +297,10 @@ export const TeacherAttendance = () => {
         <div className="bg-rose-50/50 dark:bg-rose-950/20 border border-rose-100/50 dark:border-rose-900/30 p-4 rounded-2xl text-center">
           <div className="text-2xl font-extrabold text-rose-600 dark:text-rose-400">{stats.absent}</div>
           <div className="text-xs font-bold text-rose-800/60 dark:text-rose-400/60 mt-0.5 uppercase tracking-wider">{uiText("Absent")}</div>
+        </div>
+        <div className="bg-amber-50/50 dark:bg-amber-950/20 border border-amber-100/50 dark:border-amber-900/30 p-4 rounded-2xl text-center">
+          <div className="text-2xl font-extrabold text-amber-600 dark:text-amber-400">{stats.late}</div>
+          <div className="text-xs font-bold text-amber-800/60 dark:text-amber-400/60 mt-0.5 uppercase tracking-wider">{uiText("Late")}</div>
         </div>
         <div className="bg-blue-50/50 dark:bg-blue-950/20 border border-blue-100/50 dark:border-blue-900/30 p-4 rounded-2xl text-center">
           <div className="text-2xl font-extrabold text-blue-600 dark:text-blue-400">{stats.excused}</div>
@@ -353,7 +361,7 @@ export const TeacherAttendance = () => {
                         </td>
                         <td className="px-6 py-4.5">
                           <div className="flex justify-center gap-1.5">
-                            {(['present', 'absent', 'excused'] as const).map((statusOption) => {
+                            {(['present', 'absent', 'late', 'excused'] as const).map((statusOption) => {
                               const isSelected = currentStatus === statusOption;
                               let themeClass = '';
                               let icon = null;
@@ -368,6 +376,11 @@ export const TeacherAttendance = () => {
                                   ? 'bg-rose-500 text-white shadow-md shadow-rose-500/20'
                                   : 'text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/20 hover:bg-rose-100';
                                 icon = <X size={14} />;
+                              } else if (statusOption === 'late') {
+                                themeClass = isSelected
+                                  ? 'bg-amber-500 text-white shadow-md shadow-amber-500/20'
+                                  : 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/20 hover:bg-amber-100';
+                                icon = <Clock size={14} />;
                               } else if (statusOption === 'excused') {
                                 themeClass = isSelected
                                   ? 'bg-blue-500 text-white shadow-md shadow-blue-500/20'
