@@ -197,7 +197,7 @@ export const TeacherAttendance = () => {
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-slate-800 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                    {cls.name} {(cls.section ? uiText("• Section {{value0}}", {value0: cls.section.replace(/^section\s*/i, '')}) : uiText(''))}
+                    {cls.name} {(cls.section ? `• ${cls.section}` : '')}
                   </h3>
                   <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">{uiText(cls.enrolledStudents)}{uiText(" Enrolled Students")}</p>
                 </div>
@@ -222,7 +222,7 @@ export const TeacherAttendance = () => {
 
           <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 justify-between lg:justify-start">
             <h2 className="text-xl sm:text-2xl font-bold text-slate-800 dark:text-white leading-tight">
-              {selectedClass.name} {(selectedClass.section ? uiText("- Section {{value0}}", {value0: selectedClass.section.replace(/^section\s*/i, '')}) : uiText(''))}
+              {selectedClass.name} {(selectedClass.section ? `• ${selectedClass.section}` : '')}
             </h2>
             <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 font-medium w-full sm:w-auto">
               <Calendar size={15} className="shrink-0" />
