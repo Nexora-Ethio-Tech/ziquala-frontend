@@ -2476,7 +2476,11 @@ export const TeacherPortal = () => {
                             <Users className="text-emerald-600 group-hover:text-white transition-all" size={26} />
                           </div>
                           <h4 className="text-lg font-black text-slate-800 dark:text-white">{sec.name}</h4>
-                          {sec.section && <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-0.5">{uiText("Section ")}{uiText(sec.section)}</p>}
+                          {sec.section && (
+                            <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-0.5">
+                              {uiText(/^section\s*/i.test(sec.section) ? sec.section : `Section ${sec.section}`)}
+                            </p>
+                          )}
                           <p className="text-xs text-emerald-600 dark:text-emerald-400 font-bold mt-3">{uiText(sec.enrolledStudents)}{uiText(" students · Click to view roster →")}</p>
                         </button>
                       ))}

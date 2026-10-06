@@ -6,6 +6,19 @@ import teacherService, { markAttendance, getMyClasses, getClassAttendance } from
 import { getTodayEthiopianDate } from '../utils/ethiopianCalendar';
 import { EthiopianDatePicker } from '../components/EthiopianDatePicker';
 
+const formatSection = (section?: string | null, className?: string) => {
+  if (!section) return '';
+  const trimmed = String(section).trim();
+  if (!trimmed) return '';
+  // Normalize repeated "Section" prefixes (e.g. "Section Section 1" or "Section 1")
+  const clean = trimmed.replace(/^(section\s*)+/i, '').trim();
+  const formatted = clean ? `Section ${clean}` : 'Section';
+  if (className && className.toLowerCase().includes(formatted.toLowerCase())) {
+    return '';
+  }
+  return formatted;
+};
+
 export const TeacherAttendance = () => {
   const { t } = useTranslation();
   const [classes, setClasses] = useState<any[]>([]);
@@ -197,7 +210,7 @@ export const TeacherAttendance = () => {
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-slate-800 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                    {cls.name} {(cls.section ? `• ${cls.section}` : '')}
+                    {cls.name} {formatSection(cls.section, cls.name) ? `• ${formatSection(cls.section, cls.name)}` : ''}
                   </h3>
                   <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">{uiText(cls.enrolledStudents)}{uiText(" Enrolled Students")}</p>
                 </div>
@@ -222,7 +235,7 @@ export const TeacherAttendance = () => {
 
           <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 justify-between lg:justify-start">
             <h2 className="text-xl sm:text-2xl font-bold text-slate-800 dark:text-white leading-tight">
-              {selectedClass.name} {(selectedClass.section ? `• ${selectedClass.section}` : '')}
+              {selectedClass.name} {formatSection(selectedClass.section, selectedClass.name) ? `• ${formatSection(selectedClass.section, selectedClass.name)}` : ''}
             </h2>
             <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 font-medium w-full sm:w-auto">
               <Calendar size={15} className="shrink-0" />
