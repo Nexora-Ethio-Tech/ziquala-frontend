@@ -116,8 +116,9 @@ export const getStudentAllGrades = async (studentId: string) => {
 };
 
 // Get grading config for a grade level
-export const getGradingConfigsForGrade = async (gradeLevel: string): Promise<Array<{ id: string; label: string; maxWeight: number }>> => {
-  const response = await api.get(`/grading-configs/${encodeURIComponent(gradeLevel)}`);
+export const getGradingConfigsForGrade = async (gradeLevel: string, branchId?: string): Promise<Array<{ id: string; label: string; maxWeight: number }>> => {
+  const query = branchId ? `?branchId=${encodeURIComponent(branchId)}` : '';
+  const response = await api.get(`/grading-configs/${encodeURIComponent(gradeLevel)}${query}`);
   return response.data.data;
 };
 
@@ -206,6 +207,10 @@ export interface TeacherClass {
   section: string;
   subject: string;
   gradeLevel?: string;
+  branch_id?: string;
+  branchId?: string;
+  course_id?: string;
+  class_id?: string;
   enrolledStudents?: number;
   capacity?: number;
   schedule?: string;

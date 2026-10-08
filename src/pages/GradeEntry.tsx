@@ -6,6 +6,7 @@ import { Save, Lock, ArrowLeft, ChevronRight, Users, Loader2, AlertCircle, Check
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Breadcrumbs } from '../components/Breadcrumbs';
 import { getMyClasses, getClassStudents, bulkEnterGrades, getCourseGrades, getGradingConfigsForGrade, submitCourseGrades, getGradeSubmissions, TeacherClass, ClassStudent } from '../services/teacherService';
+import { normalizeGradeForConfig, formatGradeDisplay } from '../utils/gradeUtils';
 import {
   getCurrentECYear,
   ecYearToGregorian,
@@ -87,11 +88,14 @@ export const GradeEntry = () => {
       .finally(() => setLoadingStudents(false));
 
     // Load grading methods for this grade level, then prefill existing grades
-    const gradeLevel = cls.gradeLevel || (cls as any).grade_level || cls.name?.replace(/\D/g, '') || 'default';
-    getGradingConfigsForGrade(gradeLevel)
+    const rawGrade = cls.gradeLevel || (cls as any).grade_level || cls.name || '';
+    const gradeLevel = normalizeGradeForConfig(rawGrade);
+    const classBranchId = cls.branch_id || (cls as any).branchId;
+    getGradingConfigsForGrade(gradeLevel, classBranchId)
       .then(async (methods) => {
         if (methods.length === 0) {
-          setSaveError(`No grading configuration found for Grade ${gradeLevel}. Please ask your admin to configure it in Settings.`);
+          const displayGrade = formatGradeDisplay(gradeLevel);
+          setSaveError(`No grading configuration found for ${displayGrade}. Please ask your admin to configure it in Settings.`);
           setGradingMethods([]);
         } else {
           setGradingMethods(methods);
