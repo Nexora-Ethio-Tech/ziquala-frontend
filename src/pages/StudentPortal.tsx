@@ -46,22 +46,25 @@ export const StudentPortal = () => {
   };
 
   /** True when voting is open and the student hasn't voted yet and there are candidates. */
-  const showVotingCard =
+  const showVotingCard = Boolean(
     teacherOfWeek?.isOpen &&
     !teacherOfWeek.hasVoted &&
-    (teacherOfWeek.teachers?.length ?? 0) > 0;
+    (teacherOfWeek.teachers?.length ?? 0) > 0
+  );
 
-  /** True after the student has just voted (or already voted in this cycle). */
-  const showVotedCard =
-    teacherOfWeek !== null &&
-    teacherOfWeek.hasVoted;
+  /** True after the student has voted during an open voting cycle. */
+  const showVotedCard = Boolean(
+    teacherOfWeek?.isOpen &&
+    teacherOfWeek.hasVoted
+  );
 
-  /** True when voting window is closed (Thu / Fri) — show the best teacher winner card. */
-  const showWinnerCard =
-    teacherOfWeek !== null &&
-    !teacherOfWeek.isOpen &&
-    !teacherOfWeek.hasVoted &&
-    teacherOfWeek.bestTeacher != null;
+  /** True when voting window is closed (Thu / Fri) OR when voting is open but no voting candidates exist, as long as a best teacher is available. */
+  const showWinnerCard = Boolean(
+    teacherOfWeek &&
+    !showVotingCard &&
+    !showVotedCard &&
+    teacherOfWeek.bestTeacher != null
+  );
 
   const handleVote = async (teacherId: string) => {
     setVoting(true);
@@ -285,12 +288,16 @@ export const StudentPortal = () => {
             <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="space-y-1.5 flex-1 max-w-md">
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-white/20 backdrop-blur-md rounded-full text-[10px] font-black uppercase tracking-wider">
-                  <Lock size={11} />{uiText(" Voting Closed")}
+                  <Star size={11} fill="currentColor" />{uiText(teacherOfWeek?.isOpen ? "Weekly Recognition" : "Voting Closed")}
                 </div>
                 <h2 className="text-xl sm:text-2xl font-black tracking-tight">
                   {uiText("Teacher of the Week")}
                 </h2>
-                <p className="text-xs sm:text-sm text-white/85">{uiText("Voting is closed until Saturday. Here is this week's recognized teacher!")}</p>
+                <p className="text-xs sm:text-sm text-white/85">
+                  {uiText(teacherOfWeek?.isOpen
+                    ? "Here is this week's recognized best teacher!"
+                    : "Voting is closed until Saturday. Here is this week's recognized teacher!")}
+                </p>
               </div>
 
               <div className="flex items-center gap-3.5 p-3.5 sm:p-4 rounded-2xl bg-white/15 border border-white/20 backdrop-blur-md flex-shrink-0">

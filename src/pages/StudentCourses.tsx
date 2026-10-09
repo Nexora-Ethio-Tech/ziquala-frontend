@@ -377,7 +377,7 @@ export const StudentCourses = () => {
                           <tr>
                             <td className="px-5 py-4 text-left font-black uppercase tracking-widest text-slate-400">{uiText("Student Score")}</td>
                             {gradingMethods.map((method) => {
-                              const gradeVal = selectedCourse.grades?.[method.id];
+                              const gradeVal = selectedCourse.grades?.[method.id] ?? (selectedCourse.grades as any)?.[method.label] ?? (selectedCourse as any)?.[method.id];
                               return (
                                 <td key={method.id} className="px-5 py-4 text-left font-bold text-slate-100 text-lg">
                                   {uiText(gradeVal !== null && gradeVal !== undefined ? Number(gradeVal).toFixed(1) : '--')}
