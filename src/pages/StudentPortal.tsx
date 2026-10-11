@@ -188,7 +188,9 @@ export const StudentPortal = () => {
 
               {/* Candidates Grid - Compact, responsive, no overflow */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 pt-1">
-                {teacherOfWeek!.teachers.map((teacher) => (
+                {teacherOfWeek!.teachers
+                  .filter((teacher) => Array.isArray(teacher.subjects) && teacher.subjects.length > 0)
+                  .map((teacher) => (
                   <motion.button
                     key={teacher.id}
                     type="button"
