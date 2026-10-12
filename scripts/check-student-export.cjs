@@ -32,6 +32,7 @@ function load(relative) {
 }
 async function main() {
   const { buildStudentsExportSheet } = load('src/utils/studentExport.ts');
+  const { buildStudentPrintHtml } = load('src/utils/studentPrint.ts');
   const { buildExcelWorkbook } = load('src/utils/exportUtils.ts');
   const service = load('src/services/studentService.ts').default;
   const records = [
@@ -128,6 +129,38 @@ async function main() {
   assert.equal(sheet.rows[1].applicationDate, '');
   assert.equal(sheet.rows[1].transcriptType, '');
   assert.equal(sheet.report.groups.length, 8);
+
+  const selectedSheet = buildStudentsExportSheet(result, {
+    ...context, selectedColumnKeys: ['fatherPhone', 'name', 'studentId', 'name', 'unknown'],
+  });
+  assert.deepEqual(Array.from(selectedSheet.report.groups.flatMap(group => group.columns.map(column => column.key))),
+    ['studentId', 'name', 'fatherPhone'], 'Selection preserves the established column order');
+  assert.equal(selectedSheet.report.groups.length, 2, 'Unselected groups disappear');
+  assert.equal(selectedSheet.report.freezeColumns, 2);
+  assert.deepEqual(Object.keys(selectedSheet.rows[0]), ['studentId', 'name', 'fatherPhone'],
+    'Unselected data must not enter either output');
+  const nameOnly = buildStudentsExportSheet(result, { ...context, selectedColumnKeys: ['name'] });
+  assert.equal(nameOnly.report.freezeColumns, 0);
+  assert.deepEqual(Object.keys(nameOnly.rows[0]), ['name']);
+  const phoneOnly = buildStudentsExportSheet(result, { ...context, selectedColumnKeys: ['fatherPhone'] });
+  assert.equal(phoneOnly.report.freezeColumns, 0, 'Other columns must not be frozen as student identifiers');
+  assert.throws(() => buildStudentsExportSheet(result, { ...context, selectedColumnKeys: [] }), /Choose at least one column/);
+  assert.throws(() => buildStudentsExportSheet(result, { ...context, selectedColumnKeys: ['unknown'] }), /Choose at least one column/);
+  const printHtml = buildStudentPrintHtml(selectedSheet);
+  const printedKeys = [...printHtml.matchAll(/data-column-key="([^"]+)"/g)].map(match => match[1]);
+  assert.deepEqual([...new Set(printedKeys)], ['studentId', 'name', 'fatherPhone']);
+  assert.ok(printHtml.includes('+251912345678'));
+  assert.ok(!printHtml.includes('0912345678'), 'Unselected mother phone must not appear in print');
+  assert.ok(printHtml.includes('Sample Student &amp; Family'), 'Print escapes authored content');
+  const lonePhonePrint = buildStudentPrintHtml(phoneOnly);
+  assert.ok(!lonePhonePrint.includes('Sample Student'), 'Print must not add unselected identifiers');
+  assert.ok(!lonePhonePrint.includes('data-column-key="studentId"'));
+  const allPrintHtml = buildStudentPrintHtml(sheet);
+  assert.ok((allPrintHtml.match(/data-print-band=/g) || []).length > 1, 'Wide reports split into readable bands');
+  const allPrintedKeys = [...allPrintHtml.matchAll(/data-column-key="([^"]+)"/g)].map(match => match[1]);
+  assert.deepEqual([...new Set(allPrintedKeys)].sort(), [...expectedKeys].sort());
+  fs.writeFileSync(path.join(outputDir, 'student-export-selected.xlsx'), buildExcelWorkbook([selectedSheet]));
+  fs.writeFileSync(path.join(outputDir, 'student-export-print.html'), allPrintHtml);
   fs.writeFileSync(path.join(outputDir, 'student-export-sample.xlsx'), buildExcelWorkbook([sheet]));
   fs.writeFileSync(path.join(outputDir, 'student-export-sample.json'), JSON.stringify(sheet));
   fs.writeFileSync(path.join(outputDir, 'student-export-plain.xlsx'), buildExcelWorkbook([{name:'Plain', rows:[{ID:'00123', Phone:'+251912345678', Formula:'=1+1', Unicode:'ሙሉ <>&\u0001'}]}]));
@@ -148,6 +181,6 @@ async function main() {
   assert.equal(batched[0].student.student_id, '0');
   assert.equal(batched[500].student.student_id, '500');
   console.log(`Workbook fixtures: ${outputDir}`);
-  console.log('Student export checks passed: exact IDs, order, 501-row batching, missing-record failure, 45 columns across 8 groups, 29 removed fields omitted, retained payment/document fields, dates, original grade, Unicode, literal IDs/phones, absent admission data, and plain export fixture.');
+  console.log('Student export checks passed: filtered IDs, 501-row batching, 45-column defaults, custom selections, omitted groups/data, empty-selection guards, selected-only print/Excel, readable print bands, escaped print content, dates, Unicode, and translations.');
 }
 main().catch(error => { console.error(error); process.exit(1); });

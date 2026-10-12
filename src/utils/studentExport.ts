@@ -7,7 +7,7 @@ const column = (key: string, header: string, width = 24, hyperlink = false) => (
   key, header: uiText(header), width, hyperlink,
 });
 
-const reportGroups = (): ExcelReportGroup[] => [
+export const getStudentExportGroups = (): ExcelReportGroup[] => [
   {
     label: uiText('System IDs'), color: '2563EB', tint: 'EFF6FF',
     columns: [
@@ -104,14 +104,22 @@ export interface StudentExportContext {
   filters: string;
   origin: string;
   exportedAt?: Date;
+  selectedColumnKeys?: readonly string[];
 }
 
 export const buildStudentsExportSheet = (records: StudentExportRecord[], context: StudentExportContext): ExcelSheet => {
+  const selected = context.selectedColumnKeys === undefined ? null : new Set(context.selectedColumnKeys);
+  const groups = getStudentExportGroups()
+    .map(group => ({ ...group, columns: group.columns.filter(column => !selected || selected.has(column.key)) }))
+    .filter(group => group.columns.length > 0);
+  const columns = groups.flatMap(group => group.columns);
+  if (!columns.length) throw new Error('Choose at least one column to continue.');
+
   const rows = records.map(({ student: s, application, parents }) => {
     const a = application || {};
     const parentValues = (key: 'digital_id' | 'username' | 'name' | 'phone') => parents.map(parent => text(parent[key])).join('\n');
     const birthDate = s.birth_date || a.dob;
-    return {
+    const row = {
       studentId: text(s.digital_id), name: s.name, parentIds: parentValues('digital_id'),
       username: text(s.username), parentUsernames: parentValues('username'),
       branch: text(s.branch_name), grade: gradeLabel(s.grade), section: sectionLabel(s.section), status: text(s.status),
@@ -133,6 +141,7 @@ export const buildStudentsExportSheet = (records: StudentExportRecord[], context
       transcriptType: text(a.transcript_file_type),
       recordUrl: new URL(`/students/${encodeURIComponent(s.student_id)}/record`, context.origin).href,
     };
+    return Object.fromEntries(columns.map(column => [column.key, row[column.key as keyof typeof row]]));
   });
   const branchNames = [...new Set(records.map(record => record.student.branch_name).filter(Boolean))];
   const branches = branchNames.join(', ') || context.branchName || '';
@@ -146,8 +155,11 @@ export const buildStudentsExportSheet = (records: StudentExportRecord[], context
       title: uiText('Student Register'),
       subtitle: `${branches} | ${rows.length} ${uiText('students')} | ${uiText('Exported')}: ${exportTime} EAT (G.C.)`,
       filters: context.filters,
-      groups: reportGroups(),
-      freezeColumns: 2,
+      groups,
+      freezeColumns: Math.min(
+        columns.filter(column => column.key === 'studentId' || column.key === 'name').length,
+        Math.max(0, columns.length - 1),
+      ),
     },
   };
 };

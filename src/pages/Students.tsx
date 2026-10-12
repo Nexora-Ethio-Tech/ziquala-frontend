@@ -1,7 +1,7 @@
 import { uiError, uiText } from "../localization";
 import { useTranslation } from 'react-i18next';
 import { Search, Download, UserPlus, X, Edit2, Trash2, Users, ArrowLeft, CheckCircle2, XCircle, Check, Loader2, GraduationCap, FileText, RefreshCw, UserCog, Link, Link2 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import api from '../services/api';
 import studentService, { type UpdateStudentData } from '../services/studentService';
@@ -11,7 +11,9 @@ import { useUser } from '../context/UserContext';
 import { StudentRegistration } from '../components/StudentRegistration';
 import * as sectionService from '../services/sectionService';
 import { exportToExcel } from '../utils/exportUtils';
-import { buildStudentsExportSheet } from '../utils/studentExport';
+import { buildStudentsExportSheet, getStudentExportGroups } from '../utils/studentExport';
+import { StudentExportDialog } from '../components/StudentExportDialog';
+import { renderStudentPrintPreview } from '../utils/studentPrint';
 import { getCurrentECYear } from '../utils/ethiopianCalendar';
 
 export const Students = () => {
@@ -62,7 +64,11 @@ export const Students = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [exporting, setExporting] = useState(false);
+  const [exportRequest, setExportRequest] = useState<{ studentIds: string[]; filters: string } | null>(null);
+  const [exportAction, setExportAction] = useState<'export' | 'print' | null>(null);
+  const [exportError, setExportError] = useState<string | null>(null);
+  const exportRunning = useRef(false);
+  const exporting = exportAction !== null;
   const [search, setSearch] = useState(() => searchParams.get('q') || '');
   const [filterGrade, setFilterGrade] = useState(() => searchParams.get('grade') || '');
   const [filterSection, setFilterSection] = useState(() => searchParams.get('section') || '');
@@ -712,7 +718,7 @@ export const Students = () => {
     setShowEditModal(true);
   };
 
-  const handleExport = async () => {
+  const handleExport = () => {
     if (exporting || loading) return;
     if (filtered.length === 0) {
       showToast(uiText("No students to export for the current filters"), 'error');
@@ -729,18 +735,46 @@ export const Students = () => {
       `${uiText('Graduation Year (E.C.)')}: ${filterGraduationYear || uiText('All')}`,
     ].join(' | ');
 
-    setExporting(true);
+    setExportError(null);
+    setExportRequest({ studentIds, filters });
+  };
+
+  const handleStudentOutput = async (action: 'export' | 'print', selectedColumnKeys: string[]) => {
+    if (exportRunning.current || !exportRequest || selectedColumnKeys.length === 0) return;
+    const { studentIds, filters } = exportRequest;
+    exportRunning.current = true;
+    setExportAction(action);
+    setExportError(null);
+    let printWindow: Window | null = null;
     try {
+      if (action === 'print') {
+        // Open during the tap/click so mobile browsers do not block an async popup.
+        printWindow = window.open('', '_blank');
+        if (!printWindow) throw new Error('Allow pop-ups to open the print preview, then try again.');
+        printWindow.opener = null;
+        printWindow.document.title = uiText('Print preview');
+        printWindow.document.body.textContent = uiText('Preparing print preview...');
+        printWindow.document.body.style.cssText = 'font:16px system-ui;padding:32px;color:#334155;background:#f8fafc';
+      }
       const records = await studentService.getStudentExportRecords(studentIds);
       const sheet = buildStudentsExportSheet(records, {
-        branchName: user?.branchName, filters, origin: window.location.origin,
+        branchName: user?.branchName, filters, origin: window.location.origin, selectedColumnKeys,
       });
-      exportToExcel([sheet], 'students');
-      showToast(uiText('Exported {{value0}} students', { value0: records.length }), 'success');
+      if (action === 'print') {
+        if (!printWindow || printWindow.closed) throw new Error('The print preview was closed. Click Print to open it again.');
+        renderStudentPrintPreview(printWindow, sheet);
+      } else {
+        exportToExcel([sheet], 'students');
+        setExportRequest(null);
+        showToast(uiText('Exported {{value0}} students', { value0: records.length }), 'success');
+      }
     } catch (err: any) {
-      showToast(uiError(err.response?.data?.error?.message || err.message || 'Failed to export students'), 'error');
+      if (printWindow && !printWindow.closed) printWindow.close();
+      setExportError(uiError(err.response?.data?.error?.message || err.message ||
+        (action === 'print' ? 'Failed to prepare the print preview.' : 'Failed to export students')));
     } finally {
-      setExporting(false);
+      exportRunning.current = false;
+      setExportAction(null);
     }
   };
 
@@ -773,6 +807,17 @@ export const Students = () => {
 
   return (
     <div className="space-y-6 pb-12">
+      {exportRequest && (
+        <StudentExportDialog
+          groups={getStudentExportGroups()}
+          studentCount={exportRequest.studentIds.length}
+          filters={exportRequest.filters}
+          busyAction={exportAction}
+          error={exportError}
+          onClose={() => { if (!exportRunning.current) setExportRequest(null); }}
+          onAction={handleStudentOutput}
+        />
+      )}
       <button
         type="button"
         onClick={() => navigate(-1)}
