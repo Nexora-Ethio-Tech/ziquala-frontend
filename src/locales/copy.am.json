@@ -4202,5 +4202,18 @@
   "Scroll sideways to see all columns.": "ሁሉንም ዓምዶች ለማየት ወደ ጎን ያንሸራትቱ።",
   "Select at least one column to print.": "ለማተም ቢያንስ አንድ ዓምድ ይምረጡ።",
   "No students to print.": "የሚታተም የተማሪዎች መረጃ የለም።",
-  "Filters": "ማጣሪያዎች"
+  "Filters": "ማጣሪያዎች",
+  "Download Excel": "ኤክሴል አውርድ",
+  "Field": "መስክ",
+  "Value": "እሴት",
+  "Finance & Registration": "ፋይናንስ እና ምዝገባ",
+  "Choose Print to print this student record or save it as a PDF.": "ይህን የተማሪ መዝገብ ለማተም ወይም በPDF ለማስቀመጥ «አትም» የሚለውን ይምረጡ።",
+  "Failed to download the student record. Please try again.": "የተማሪውን መዝገብ ማውረድ አልተቻለም። እባክዎ እንደገና ይሞክሩ።",
+  "Download student record": "የተማሪውን መዝገብ አውርድ",
+  "Choose a file type to download this student's admission record.": "የዚህን ተማሪ የመግቢያ መዝገብ ለማውረድ የፋይል አይነት ይምረጡ።",
+  "Download PDF": "PDF አውርድ",
+  "Document (.pdf)": "ሰነድ (.pdf)",
+  "Spreadsheet (.xlsx)": "የሂሳብ ሠንጠረዥ (.xlsx)",
+  "Preparing PDF...": "PDF በማዘጋጀት ላይ...",
+  "Failed to print the student record. Please try again.": "የተማሪውን መዝገብ ማተም አልተቻለም። እባክዎ እንደገና ይሞክሩ።"
 }

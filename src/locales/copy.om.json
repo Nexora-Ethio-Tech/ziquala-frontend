@@ -4200,5 +4200,18 @@
   "Scroll sideways to see all columns.": "Tarjaawwan hunda ilaaluuf gara cinaatti siqsi.",
   "Select at least one column to print.": "Maxxansuuf yoo xiqqaate tarjaa tokko filadhu.",
   "No students to print.": "Odeeffannoon barattootaa maxxanfamu hin jiru.",
-  "Filters": "Calaltuuwwan"
+  "Filters": "Calaltuuwwan",
+  "Download Excel": "Excel buusi",
+  "Field": "Dirree",
+  "Value": "Gatii",
+  "Finance & Registration": "Faayinaansii fi Galmee",
+  "Choose Print to print this student record or save it as a PDF.": "Galmee barataa kana maxxansuuf ykn akka PDFtti olkaa'uuf Maxxansi filadhu.",
+  "Failed to download the student record. Please try again.": "Galmee barataa buusuun hin milkoofne. Maaloo irra deebi'ii yaali.",
+  "Download student record": "Galmee barataa buusi",
+  "Choose a file type to download this student's admission record.": "Galmee seensaa barataa kana buusuuf gosa faayilii filadhu.",
+  "Download PDF": "PDF buusi",
+  "Document (.pdf)": "Sanada (.pdf)",
+  "Spreadsheet (.xlsx)": "Gabatee shallaggii (.xlsx)",
+  "Preparing PDF...": "PDF qopheessaa jira...",
+  "Failed to print the student record. Please try again.": "Galmee barataa maxxansuun hin milkoofne. Maaloo irra deebi'ii yaali."
 }

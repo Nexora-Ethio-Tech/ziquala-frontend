@@ -500,5 +500,18 @@
   "Scroll sideways to see all columns.": "Scroll sideways to see all columns.",
   "Select at least one column to print.": "Select at least one column to print.",
   "No students to print.": "No students to print.",
-  "Filters": "Filters"
+  "Filters": "Filters",
+  "Download Excel": "Download Excel",
+  "Field": "Field",
+  "Value": "Value",
+  "Finance & Registration": "Finance & Registration",
+  "Choose Print to print this student record or save it as a PDF.": "Choose Print to print this student record or save it as a PDF.",
+  "Failed to download the student record. Please try again.": "Failed to download the student record. Please try again.",
+  "Download student record": "Download student record",
+  "Choose a file type to download this student's admission record.": "Choose a file type to download this student's admission record.",
+  "Download PDF": "Download PDF",
+  "Document (.pdf)": "Document (.pdf)",
+  "Spreadsheet (.xlsx)": "Spreadsheet (.xlsx)",
+  "Preparing PDF...": "Preparing PDF...",
+  "Failed to print the student record. Please try again.": "Failed to print the student record. Please try again."
 }

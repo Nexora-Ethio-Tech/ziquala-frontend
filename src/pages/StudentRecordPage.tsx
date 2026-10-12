@@ -10,6 +10,7 @@ import {
   GraduationCap,
   Clock,
   Download,
+  Printer,
   Upload,
   X,
   Users,
@@ -26,6 +27,10 @@ import { formatEthiopianLabel } from '../utils/ethiopianCalendar';
 import api from '../services/api';
 import { getStudentAdmissionRecord, type StudentAdmissionRecord } from '../services/schoolAdminService';
 import { useUser } from '../context/UserContext';
+import { exportToExcel } from '../utils/exportUtils';
+import { buildStudentRecordExportSheet, studentRecordFilename } from '../utils/studentRecordExport';
+import { printStudentRecord } from '../utils/studentRecordPrint';
+import { StudentRecordDownloadDialog, type StudentRecordDownloadFormat } from '../components/StudentRecordDownloadDialog';
 
 const displayValue = (value?: string | number | null) => {
   if (value === null || value === undefined || String(value).trim() === '') return '—';
@@ -34,6 +39,7 @@ const displayValue = (value?: string | number | null) => {
 
 const formatDate = (value?: string | null) => {
   if (!value) return '—';
+  if (Number.isNaN(Date.parse(value))) return value;
   const formatted = formatEthiopianLabel(value);
   return formatted || value;
 };
@@ -42,6 +48,8 @@ export const StudentRecordPage = () => {
   const { role } = useUser();
   const isSchoolAdmin = role === 'school-admin';
   const { studentId } = useParams<{ studentId: string }>();
+  const currentStudentIdRef = useRef(studentId);
+  currentStudentIdRef.current = studentId;
   const navigate = useNavigate();
   const location = useLocation();
   const returnTo =
@@ -50,6 +58,11 @@ export const StudentRecordPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [record, setRecord] = useState<StudentAdmissionRecord | null>(null);
+  const [recordStudentId, setRecordStudentId] = useState<string | null>(null);
+  const [outputError, setOutputError] = useState<string | null>(null);
+  const [downloadStudentId, setDownloadStudentId] = useState<string | null>(null);
+  const [outputAction, setOutputAction] = useState<'print' | StudentRecordDownloadFormat | null>(null);
+  const outputControllerRef = useRef<AbortController | null>(null);
 
   const [viewingDoc, setViewingDoc] = useState<{ applicationId: string; fileName: string; hasFile?: boolean } | null>(null);
   const [docUrl, setDocUrl] = useState<string | null>(null);
@@ -99,7 +112,9 @@ export const StudentRecordPage = () => {
       // Refresh admission record and automatically preview
       if (studentId) {
         const res = await getStudentAdmissionRecord(studentId);
+        if (currentStudentIdRef.current !== studentId) return;
         setRecord(res);
+        setRecordStudentId(studentId);
         const updatedDoc = res.documents.find((d) => d.applicationId === replacingDocId || d.id.includes(replacingDocId));
         setViewingDoc({
           applicationId: replacingDocId,
@@ -122,9 +137,17 @@ export const StudentRecordPage = () => {
       if (!studentId) return;
       setLoading(true);
       setError(null);
+      setRecord(null);
+      setRecordStudentId(null);
+      setOutputError(null);
+      setDownloadStudentId(null);
+      setOutputAction(null);
       try {
         const res = await getStudentAdmissionRecord(studentId);
-        if (!cancelled) setRecord(res);
+        if (!cancelled) {
+          setRecord(res);
+          setRecordStudentId(studentId);
+        }
       } catch (err: any) {
         if (!cancelled) {
           setError(
@@ -141,6 +164,8 @@ export const StudentRecordPage = () => {
     load();
     return () => {
       cancelled = true;
+      outputControllerRef.current?.abort();
+      outputControllerRef.current = null;
     };
   }, [studentId]);
 
@@ -203,6 +228,52 @@ export const StudentRecordPage = () => {
       ? 'Enrolled / Active'
       : displayValue(app?.status).replace(/-/g, ' ');
 
+  const canOutputRecord = !loading && !error && !!record && recordStudentId === studentId;
+  const handleRecordOutput = async (action: 'print' | StudentRecordDownloadFormat) => {
+    if (!canOutputRecord || !record || outputControllerRef.current) return;
+    const controller = new AbortController();
+    outputControllerRef.current = controller;
+    setOutputAction(action);
+    setOutputError(null);
+    try {
+      if (action === 'print') {
+        await printStudentRecord(record, controller.signal);
+      } else {
+        const sheet = buildStudentRecordExportSheet(record);
+        const filename = studentRecordFilename(record);
+        if (action === 'pdf') {
+          const { buildStudentRecordPdf } = await import('../utils/studentRecordPdf');
+          const blob = await buildStudentRecordPdf(sheet);
+          if (controller.signal.aborted || currentStudentIdRef.current !== studentId) return;
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `${filename}_${new Date().toISOString().split('T')[0]}.pdf`;
+          document.body.appendChild(link);
+          try {
+            link.click();
+          } finally {
+            link.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 10000);
+          }
+        } else {
+          exportToExcel([sheet], filename);
+        }
+        setDownloadStudentId(null);
+      }
+    } catch {
+      if (controller.signal.aborted || currentStudentIdRef.current !== studentId) return;
+      setOutputError(action === 'print'
+        ? uiText('Failed to print the student record. Please try again.')
+        : uiText('Failed to download the student record. Please try again.'));
+    } finally {
+      if (outputControllerRef.current === controller) {
+        outputControllerRef.current = null;
+        setOutputAction(null);
+      }
+    }
+  };
+
   return (
     <div className="space-y-6 pb-12">
       <button
@@ -212,10 +283,51 @@ export const StudentRecordPage = () => {
       >
         <ArrowLeft size={14} />{uiText("Back")}</button>
 
-      <div>
-        <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{uiText("Student Admission Record")}</h1>
-        <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">{uiText("Complete admission details filled during student registration")}</p>
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{uiText("Student Admission Record")}</h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">{uiText("Complete admission details filled during student registration")}</p>
+        </div>
+        <div className="flex flex-wrap gap-2 shrink-0">
+          <button
+            type="button"
+            disabled={!canOutputRecord || outputAction !== null}
+            onClick={() => handleRecordOutput('print')}
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+          >
+            {outputAction === 'print' ? <Loader2 size={16} className="animate-spin" aria-hidden="true" /> : <Printer size={16} aria-hidden="true" />}{uiText('Print')}
+          </button>
+          <button
+            type="button"
+            disabled={!canOutputRecord || outputAction !== null}
+            aria-haspopup="dialog"
+            aria-expanded={downloadStudentId === studentId}
+            onClick={() => {
+              setOutputError(null);
+              setDownloadStudentId(studentId || null);
+            }}
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <Download size={16} aria-hidden="true" />{uiText('Download')}
+          </button>
+        </div>
       </div>
+
+      {outputError && downloadStudentId !== studentId && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-200">{uiError(outputError)}</p>}
+
+      {downloadStudentId === studentId && canOutputRecord && (
+        <StudentRecordDownloadDialog
+          busyFormat={outputAction === 'pdf' || outputAction === 'excel' ? outputAction : null}
+          error={outputError}
+          onClose={() => {
+            if (!outputControllerRef.current) {
+              setDownloadStudentId(null);
+              setOutputError(null);
+            }
+          }}
+          onSelect={handleRecordOutput}
+        />
+      )}
 
       {loading ? (
         <div className="flex items-center justify-center h-64">
@@ -450,7 +562,7 @@ export const StudentRecordPage = () => {
             ))}
 
             {/* 6. Exam Info if present */}
-            {uiText((app?.exam_date || app?.exam_location) && (
+            {uiText((app?.exam_date || app?.exam_time || app?.exam_location || app?.exam_subjects || app?.exam_notes) && (
               <div className="p-4 bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-800/30 rounded-xl">
                 <p className="text-[10px] font-black text-amber-600 uppercase tracking-widest mb-2 flex items-center gap-2">
                   <Clock size={12} />{uiText(" Placement Exam Information")}</p>
@@ -482,7 +594,7 @@ export const StudentRecordPage = () => {
             ))}
 
             {/* 7. Finance & Registration completion if present */}
-            {uiText((app?.finance_status || app?.registration_completed_at) && (
+            {uiText((app?.finance_status || app?.registration_completed_at || app?.payment_amount != null || app?.payment_reference) && (
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs pt-4 border-t border-slate-100 dark:border-slate-800">
                 <div>
                   <p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Finance Status")}</p>
