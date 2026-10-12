@@ -11,6 +11,7 @@ import { useUser } from '../context/UserContext';
 import { StudentRegistration } from '../components/StudentRegistration';
 import * as sectionService from '../services/sectionService';
 import { exportToExcel } from '../utils/exportUtils';
+import { buildStudentsExportSheet } from '../utils/studentExport';
 import { getCurrentECYear } from '../utils/ethiopianCalendar';
 
 export const Students = () => {
@@ -61,6 +62,7 @@ export const Students = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [search, setSearch] = useState(() => searchParams.get('q') || '');
   const [filterGrade, setFilterGrade] = useState(() => searchParams.get('grade') || '');
   const [filterSection, setFilterSection] = useState(() => searchParams.get('section') || '');
@@ -510,7 +512,7 @@ export const Students = () => {
 
       // Use the new /school-admin/students endpoint that includes class info
       const response = await studentService.getAllStudents({
-        status: filterStatus || undefined
+        status: filterStatus && filterStatus !== 'ALL' ? filterStatus : undefined
       });
 
       const data = response || [];
@@ -526,6 +528,7 @@ export const Students = () => {
         className: s.class_name || s.className,
         section: s.class_section || s.section,
         status: s.status,
+        graduationYear: s.graduation_year || s.graduationYear || null,
         parentUserId: s.parent_user_id || s.parentUserId || null,
         parentName: s.parent_name || s.parentName || null,
         parentPhone: s.parent_phone || s.parentPhone || null,
@@ -709,21 +712,36 @@ export const Students = () => {
     setShowEditModal(true);
   };
 
-  const handleExport = () => {
+  const handleExport = async () => {
+    if (exporting || loading) return;
     if (filtered.length === 0) {
       showToast(uiText("No students to export for the current filters"), 'error');
       return;
     }
 
-    const rows = filtered.map((s) => ({
-      Student: `${s.firstName} ${s.lastName}`.trim(),
-      'Digital ID': s.digitalId || '',
-      Section: formatSectionDisplay(s.section),
-      Grade: formatGradeDisplay(s.grade),
-      Status: s.status || '',
-    }));
+    // Snapshot the visible filters and IDs before fetching the complete records.
+    const studentIds = filtered.map(student => student.id);
+    const filters = [
+      `${uiText('Search')}: ${search || uiText('All')}`,
+      `${uiText('Grade')}: ${filterGrade ? formatGradeDisplay(filterGrade) : uiText('All')}`,
+      `${uiText('Section')}: ${filterSection ? formatSectionDisplay(filterSection) : uiText('All')}`,
+      `${uiText('Status')}: ${filterStatus === 'ALL' ? uiText('All') : filterStatus || uiText('All except Graduated')}`,
+      `${uiText('Graduation Year (E.C.)')}: ${filterGraduationYear || uiText('All')}`,
+    ].join(' | ');
 
-    exportToExcel([{ name: 'Students', rows }], 'students');
+    setExporting(true);
+    try {
+      const records = await studentService.getStudentExportRecords(studentIds);
+      const sheet = buildStudentsExportSheet(records, {
+        branchName: user?.branchName, filters, origin: window.location.origin,
+      });
+      exportToExcel([sheet], 'students');
+      showToast(uiText('Exported {{value0}} students', { value0: records.length }), 'success');
+    } catch (err: any) {
+      showToast(uiError(err.response?.data?.error?.message || err.message || 'Failed to export students'), 'error');
+    } finally {
+      setExporting(false);
+    }
   };
 
   const availableGraduationYears = Array.from(
@@ -821,10 +839,12 @@ export const Students = () => {
           <button
             type="button"
             onClick={handleExport}
-            className="px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg flex items-center gap-2 text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-800"
+            disabled={exporting || loading}
+            title={uiText('Export the filtered students with their admission details')}
+            className="px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg flex items-center gap-2 text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-wait"
           >
-            <Download size={18} />
-            {t('students.export')}
+            {exporting ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
+            {exporting ? uiText('Exporting...') : t('students.export')}
           </button>
         </div>
       </div>
