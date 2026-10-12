@@ -1,7 +1,7 @@
 import { uiText, uiError } from "../localization";
 import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
-import { Users, MessageSquare, Send, Loader, CheckCircle, AlertCircle, Phone, Trash2, Calendar } from 'lucide-react';
+import { Users, MessageSquare, Send, Loader, CheckCircle, AlertCircle, Phone, Trash2, Calendar, Clock } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import api from '../services/api';
 import { getTodayEthiopianDate } from '../utils/ethiopianCalendar';
@@ -34,6 +34,7 @@ export const VPAttendanceOversight = () => {
   // Default to today's Ethiopian date for Student Attendance
   const [selectedDate, setSelectedDate] = useState<string>(getTodayEthiopianDate());
   const [absentStudents, setAbsentStudents] = useState<AbsentStudent[]>([]);
+  const [statusFilter, setStatusFilter] = useState<'all' | 'absent' | 'late' | 'excused'>('all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectAll, setSelectAll] = useState(false);
@@ -225,10 +226,20 @@ export const VPAttendanceOversight = () => {
     }
   };
 
+  const filteredStudents = absentStudents.filter(student => {
+    if (statusFilter === 'all') return true;
+    return student.status === statusFilter;
+  });
+
+  useEffect(() => {
+    setSelectedStudents(new Set());
+    setSelectAll(false);
+  }, [statusFilter]);
+
   const handleSelectAll = (checked: boolean) => {
     setSelectAll(checked);
     if (checked) {
-      setSelectedStudents(new Set(absentStudents.map(s => s.id)));
+      setSelectedStudents(new Set(filteredStudents.map(s => s.id)));
     } else {
       setSelectedStudents(new Set());
     }
@@ -242,7 +253,7 @@ export const VPAttendanceOversight = () => {
       newSelected.delete(studentId);
     }
     setSelectedStudents(newSelected);
-    setSelectAll(newSelected.size === absentStudents.length && absentStudents.length > 0);
+    setSelectAll(newSelected.size === filteredStudents.length && filteredStudents.length > 0);
   };
 
   const showToast = (message: string, type: 'success' | 'error') => {
@@ -397,8 +408,17 @@ export const VPAttendanceOversight = () => {
 
           {/* Status Summary Cards */}
           {!loading && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-              <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-lg transition-shadow">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
+              {/* Absent Today */}
+              <button
+                type="button"
+                onClick={() => setStatusFilter(statusFilter === 'absent' ? 'all' : 'absent')}
+                className={`bg-white dark:bg-slate-800 rounded-2xl p-5 border text-left shadow-sm hover:shadow-lg transition-all cursor-pointer ${
+                  statusFilter === 'absent'
+                    ? 'border-rose-500 ring-2 ring-rose-500/20 shadow-md'
+                    : 'border-slate-100 dark:border-slate-700'
+                }`}
+              >
                 <div className="flex items-center gap-3.5 min-w-0">
                   <div className="p-3 bg-rose-100 dark:bg-rose-900/30 rounded-xl flex-shrink-0">
                     <AlertCircle className="text-rose-600 dark:text-rose-400" size={24} />
@@ -410,9 +430,41 @@ export const VPAttendanceOversight = () => {
                     </p>
                   </div>
                 </div>
-              </div>
+              </button>
 
-              <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-lg transition-shadow">
+              {/* Late Today */}
+              <button
+                type="button"
+                onClick={() => setStatusFilter(statusFilter === 'late' ? 'all' : 'late')}
+                className={`bg-white dark:bg-slate-800 rounded-2xl p-5 border text-left shadow-sm hover:shadow-lg transition-all cursor-pointer ${
+                  statusFilter === 'late'
+                    ? 'border-amber-500 ring-2 ring-amber-500/20 shadow-md'
+                    : 'border-slate-100 dark:border-slate-700'
+                }`}
+              >
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className="p-3 bg-amber-100 dark:bg-amber-900/30 rounded-xl flex-shrink-0">
+                    <Clock className="text-amber-600 dark:text-amber-400" size={24} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 truncate">{t("vp.lateToday", "Late Today")}</p>
+                    <p className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-0.5 tracking-tight">
+                      {absentStudents.filter(s => s.status === 'late').length}
+                    </p>
+                  </div>
+                </div>
+              </button>
+
+              {/* Excused Today */}
+              <button
+                type="button"
+                onClick={() => setStatusFilter(statusFilter === 'excused' ? 'all' : 'excused')}
+                className={`bg-white dark:bg-slate-800 rounded-2xl p-5 border text-left shadow-sm hover:shadow-lg transition-all cursor-pointer ${
+                  statusFilter === 'excused'
+                    ? 'border-blue-500 ring-2 ring-blue-500/20 shadow-md'
+                    : 'border-slate-100 dark:border-slate-700'
+                }`}
+              >
                 <div className="flex items-center gap-3.5 min-w-0">
                   <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex-shrink-0">
                     <CheckCircle className="text-blue-600 dark:text-blue-400" size={24} />
@@ -424,8 +476,9 @@ export const VPAttendanceOversight = () => {
                     </p>
                   </div>
                 </div>
-              </div>
+              </button>
 
+              {/* Selected */}
               <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-lg transition-shadow">
                 <div className="flex items-center gap-3.5 min-w-0">
                   <div className="p-3 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl flex-shrink-0">
@@ -440,7 +493,8 @@ export const VPAttendanceOversight = () => {
                 </div>
               </div>
 
-              <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-lg transition-shadow">
+              {/* Parents Notified */}
+              <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-lg transition-shadow col-span-2 sm:col-span-1">
                 <div className="flex items-center gap-3.5 min-w-0">
                   <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-xl flex-shrink-0">
                     <Phone className="text-purple-600 dark:text-purple-400" size={24} />
@@ -489,7 +543,7 @@ export const VPAttendanceOversight = () => {
           ) : (
             <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
               <div className="bg-slate-50 dark:bg-slate-700/50 border-b border-slate-100 dark:border-slate-700 p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 flex-wrap">
                   <label className="flex items-center gap-3 cursor-pointer">
                     <input
                       type="checkbox"
@@ -503,11 +557,67 @@ export const VPAttendanceOversight = () => {
                     </span>
                   </label>
                   <span className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
-                    {t("vp.selectedOf", { selected: selectedStudents.size, total: absentStudents.length, defaultValue: `${selectedStudents.size} of ${absentStudents.length} selected` })}
+                    {t("vp.selectedOf", { selected: selectedStudents.size, total: filteredStudents.length, defaultValue: `${selectedStudents.size} of ${filteredStudents.length} selected` })}
                   </span>
+
+                  {/* Filter Pills */}
+                  <div className="flex items-center bg-white dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xs text-xs font-bold gap-1">
+                    <button
+                      type="button"
+                      onClick={() => setStatusFilter('all')}
+                      className={`px-2.5 py-1 rounded-lg transition-all ${
+                        statusFilter === 'all'
+                          ? 'bg-indigo-600 text-white shadow-xs'
+                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                      }`}
+                    >
+                      {uiText("All")} ({absentStudents.length})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setStatusFilter('absent')}
+                      className={`px-2.5 py-1 rounded-lg transition-all ${
+                        statusFilter === 'absent'
+                          ? 'bg-rose-600 text-white shadow-xs'
+                          : 'text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/20'
+                      }`}
+                    >
+                      {uiText("Absent")} ({absentStudents.filter(s => s.status === 'absent').length})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setStatusFilter('late')}
+                      className={`px-2.5 py-1 rounded-lg transition-all ${
+                        statusFilter === 'late'
+                          ? 'bg-amber-600 text-white shadow-xs'
+                          : 'text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/20'
+                      }`}
+                    >
+                      {uiText("Late")} ({absentStudents.filter(s => s.status === 'late').length})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setStatusFilter('excused')}
+                      className={`px-2.5 py-1 rounded-lg transition-all ${
+                        statusFilter === 'excused'
+                          ? 'bg-blue-600 text-white shadow-xs'
+                          : 'text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/20'
+                      }`}
+                    >
+                      {uiText("Excused")} ({absentStudents.filter(s => s.status === 'excused').length})
+                    </button>
+                  </div>
                 </div>
                 <button
-                  onClick={() => setShowSMSModal(true)}
+                  onClick={() => {
+                    const selectedList = absentStudents.filter(s => selectedStudents.has(s.id));
+                    if (selectedList.length > 0 && selectedList.every(s => s.status === 'late')) {
+                      setSmsMessage('Your child arrived late to school today. Please ensure timely arrival.');
+                    } else {
+                      setSmsMessage('Your child is absent from school today. Please contact the school if you have any questions.');
+                    }
+                    setShowSMSModal(true);
+                  }}
                   disabled={selectedStudents.size === 0}
                   className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-sm transition-all ${selectedStudents.size === 0
                     ? 'bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500 cursor-not-allowed'
@@ -519,32 +629,44 @@ export const VPAttendanceOversight = () => {
                 </button>
               </div>
 
-              <div className="divide-y divide-slate-100 dark:divide-slate-700">
-                {absentStudents.map((student, idx) => (
-                  <div key={`${student.id}-${idx}`} className="p-6 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
-                    <div className="flex items-start gap-4">
-                      <input
-                        type="checkbox"
-                        checked={selectedStudents.has(student.id)}
-                        onChange={(e) => handleSelectStudent(student.id, e.target.checked)} aria-label={`Select ${student.name}`} className="w-5 h-5 rounded border-slate-300 text-indigo-600 cursor-pointer mt-1 flex-shrink-0"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-4 mb-2">
-                          <h3 className="font-bold text-slate-900 dark:text-white text-lg">{student.name}</h3>
-                          <div className="flex gap-2 flex-wrap">
-                            <span className="px-2 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded text-xs font-bold uppercase tracking-widest">
-                              {student.grade} - {student.section}
-                            </span>
-                            {student.status && (
-                              <span className={`px-2 py-1 rounded text-xs font-bold uppercase tracking-widest ${student.status === 'exceeded' || (student.totalAbsences && student.totalAbsences >= 3)
-                                  ? 'bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-900/40'
-                                  : student.status === 'absent'
-                                    ? 'bg-rose-100 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-900/40'
-                                    : 'bg-blue-100 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-900/40'
-                                }`}>
-                                {(student.status === 'exceeded' || (student.totalAbsences && student.totalAbsences >= 3) ? uiText("Exceeded Limit ({{value0}} Absences)", {value0: student.totalAbsences || 0}) : uiText(student.status))}
+              {filteredStudents.length === 0 ? (
+                <div className="p-12 text-center text-slate-500 dark:text-slate-400">
+                  <p className="font-semibold text-sm">{uiText("No students match the selected filter.")}</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-slate-100 dark:divide-slate-700">
+                  {filteredStudents.map((student, idx) => (
+                    <div key={`${student.id}-${idx}`} className="p-6 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
+                      <div className="flex items-start gap-4">
+                        <input
+                          type="checkbox"
+                          checked={selectedStudents.has(student.id)}
+                          onChange={(e) => handleSelectStudent(student.id, e.target.checked)} aria-label={`Select ${student.name}`} className="w-5 h-5 rounded border-slate-300 text-indigo-600 cursor-pointer mt-1 flex-shrink-0"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-4 mb-2">
+                            <h3 className="font-bold text-slate-900 dark:text-white text-lg">{student.name}</h3>
+                            <div className="flex gap-2 flex-wrap">
+                              <span className="px-2 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded text-xs font-bold uppercase tracking-widest">
+                                {student.grade} - {student.section}
                               </span>
-                            )}
+                              {student.status && (
+                                <span className={`px-2 py-1 rounded text-xs font-bold uppercase tracking-widest inline-flex items-center gap-1 ${student.status === 'late'
+                                    ? 'bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-900/40'
+                                    : (student.status === 'exceeded' || (student.totalAbsences && student.totalAbsences >= 3))
+                                      ? 'bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-900/40'
+                                      : student.status === 'absent'
+                                        ? 'bg-rose-100 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-900/40'
+                                        : 'bg-blue-100 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-900/40'
+                                  }`}>
+                                  {student.status === 'late' && <Clock size={11} />}
+                                  {student.status === 'late'
+                                    ? uiText("Late")
+                                    : (student.status === 'exceeded' || (student.totalAbsences && student.totalAbsences >= 3))
+                                      ? uiText("Exceeded Limit ({{value0}} Absences)", {value0: student.totalAbsences || 0})
+                                      : uiText(student.status)}
+                                </span>
+                              )}
                             {notifiedStudents.has(student.id) && (
                               <span className="px-2 py-1 bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/40 rounded text-xs font-bold uppercase tracking-widest inline-flex items-center gap-1">
                                 <CheckCircle size={10} />
@@ -577,6 +699,7 @@ export const VPAttendanceOversight = () => {
                   </div>
                 ))}
               </div>
+              )}
             </div>
           )}
         </div>
@@ -628,7 +751,7 @@ export const VPAttendanceOversight = () => {
           ) : (
             <>
               {/* Teacher Summary Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
                 <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-lg transition-shadow">
                   <div className="flex items-center gap-3.5 min-w-0">
                     <div className="p-3 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl flex-shrink-0">
@@ -657,6 +780,20 @@ export const VPAttendanceOversight = () => {
 
                 <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-lg transition-shadow">
                   <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="p-3 bg-amber-100 dark:bg-amber-900/30 rounded-xl flex-shrink-0">
+                      <Clock className="text-amber-600 dark:text-amber-400" size={24} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 truncate">{t("vp.lateToday", "Late Today")}</p>
+                      <p className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-0.5 tracking-tight">
+                        {teachers.filter(t => t.attendanceStatus === 'late').length}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-lg transition-shadow">
+                  <div className="flex items-center gap-3.5 min-w-0">
                     <div className="p-3 bg-rose-100 dark:bg-rose-900/30 rounded-xl flex-shrink-0">
                       <AlertCircle className="text-rose-600 dark:text-rose-400" size={24} />
                     </div>
@@ -669,10 +806,10 @@ export const VPAttendanceOversight = () => {
                   </div>
                 </div>
 
-                <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-lg transition-shadow">
+                <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-lg transition-shadow col-span-2 sm:col-span-1">
                   <div className="flex items-center gap-3.5 min-w-0">
-                    <div className="p-3 bg-amber-100 dark:bg-amber-900/30 rounded-xl flex-shrink-0">
-                      <Users className="text-amber-600 dark:text-amber-400" size={24} />
+                    <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-xl flex-shrink-0">
+                      <Users className="text-purple-600 dark:text-purple-400" size={24} />
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 truncate">{t("vp.proxyCoverages", "Proxy Coverages")}</p>
@@ -750,11 +887,14 @@ export const VPAttendanceOversight = () => {
                                     ? 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 border-emerald-100 dark:border-emerald-800/50'
                                     : teacher.attendanceStatus === 'absent'
                                       ? 'bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400 border-rose-100 dark:border-rose-800/50'
-                                      : 'bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-400 border-blue-100 dark:border-blue-800/50'
+                                      : teacher.attendanceStatus === 'late'
+                                        ? 'bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 border-amber-100 dark:border-amber-800/50'
+                                        : 'bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-400 border-blue-100 dark:border-blue-800/50'
                                   }`}
                               >
                                 <option value="present">{t("vp.present", "Present")}</option>
                                 <option value="absent">{t("vp.absent", "Absent")}</option>
+                                <option value="late">{t("vp.late", "Late")}</option>
                                 <option value="excused">{t("vp.excused", "Excused")}</option>
                               </select>
                             </td>
@@ -876,7 +1016,26 @@ export const VPAttendanceOversight = () => {
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-900 dark:text-white mb-2">{uiText("SMS Message")}</label>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block font-bold text-slate-900 dark:text-white">{uiText("SMS Message")}</label>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setSmsMessage('Your child is absent from school today. Please contact the school if you have any questions.')}
+                        className="text-xs px-2.5 py-1 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg text-slate-700 dark:text-slate-300 font-semibold transition-colors"
+                      >
+                        {uiText("Absence Notice")}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSmsMessage('Your child arrived late to school today. Please ensure timely arrival.')}
+                        className="text-xs px-2.5 py-1 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/40 rounded-lg text-amber-700 dark:text-amber-300 font-semibold transition-colors flex items-center gap-1 border border-amber-200/50 dark:border-amber-900/40"
+                      >
+                        <Clock size={11} />
+                        {uiText("Late Notice")}
+                      </button>
+                    </div>
+                  </div>
                   <textarea
                     value={smsMessage}
                     onChange={(e) => setSmsMessage(e.target.value)}

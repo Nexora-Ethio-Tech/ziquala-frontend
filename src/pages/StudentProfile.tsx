@@ -29,6 +29,7 @@ import { useUser } from '../context/UserContext';
 import { Breadcrumbs } from '../components/Breadcrumbs';
 import * as sectionService from '../services/sectionService';
 import { getGradingConfigsForGrade } from '../services/studentPortalService';
+import { normalizeGradeForConfig } from '../utils/gradeUtils';
 
 export const StudentProfile = () => {
   const { id } = useParams();
@@ -47,7 +48,7 @@ export const StudentProfile = () => {
   const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({ show: false, message: '', type: 'success' });
 
   const student = mockStudents.find(s => s.id === id) as any;
-  const gradeLevel = student?.grade?.replace(/[A-Z]/g, '');
+  const gradeLevel = normalizeGradeForConfig(student?.grade);
 
   // Grading methods: load from backend, fallback to empty
   const [gradingMethods, setGradingMethods] = useState<Array<{ id: string; label: string; maxWeight: number }>>([]);

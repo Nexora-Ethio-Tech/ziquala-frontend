@@ -11,6 +11,15 @@ DirectoryIndex index.html
     AddType font/woff2                      .woff2
 </IfModule>
 
+# ── Prevent caching of index.html so SPA updates take effect immediately ─────
+<FilesMatch "\.(html|htm)$">
+    <IfModule mod_headers.c>
+        Header set Cache-Control "no-cache, no-store, must-revalidate"
+        Header set Pragma "no-cache"
+        Header set Expires "0"
+    </IfModule>
+</FilesMatch>
+
 # ── Caching for static assets ────────────────────────────────────────────────
 <IfModule mod_expires.c>
     ExpiresActive On

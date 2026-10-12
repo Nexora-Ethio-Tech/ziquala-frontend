@@ -2,6 +2,7 @@ import { uiError, uiText } from "../localization";
 import { useState, useEffect } from 'react';
 import { Award, Edit2, X, Plus, TrendingUp, Trash2, Users, Save, Lock, Loader2, CheckCircle2 } from 'lucide-react';
 import * as teacherService from '../services/teacherService';
+import { normalizeGradeForConfig } from '../utils/gradeUtils';
 import { ecYearToGregorian, getCurrentECYear, getCurrentSemester } from '../utils/ethiopianCalendar';
 
 interface Course {
@@ -84,6 +85,7 @@ export const TeacherGrades = () => {
         name: cls.subject || cls.name,
         code: cls.section || 'N/A',
         gradeLevel: cls.gradeLevel || cls.name,
+        branch_id: cls.branch_id || cls.branchId,
       }));
       setCourses(coursesData);
       if (coursesData.length > 0) {
@@ -115,8 +117,10 @@ export const TeacherGrades = () => {
       setSubmissions(subsData || []);
 
       // Load configs
-      const gradeLvl = courseObj.gradeLevel ? courseObj.gradeLevel.replace(/\D/g, '') : 'default';
-      const configs = await teacherService.getGradingConfigsForGrade(gradeLvl || 'default');
+      const rawGrade = courseObj.gradeLevel || '';
+      const gradeLvl = normalizeGradeForConfig(rawGrade);
+      const classBranchId = (courseObj as any).branch_id || (courseObj as any).branchId;
+      const configs = await teacherService.getGradingConfigsForGrade(gradeLvl, classBranchId);
       setGradingConfigs(configs || []);
 
       if (configs.length > 0 && !formData.type) {
