@@ -122,7 +122,7 @@ const escapeHtml = (value: string): string => value
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
   .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
-/** Self-contained portrait print document, containing only the student's record. */
+/** Compact A4 form; long records can continue onto another page without losing fields. */
 export const buildStudentRecordPrintHtml = (record: StudentAdmissionRecord): string => {
   const title = uiText('Student Admission Record');
   const name = displayValue(record.student.name || record.application?.name);
@@ -143,40 +143,52 @@ export const buildStudentRecordPrintHtml = (record: StudentAdmissionRecord): str
     :root { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; color: #172033; background: #f1f5f9; }
     body { margin: 0; }
     main { max-width: 850px; margin: 24px auto; padding: 32px; background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; }
+    .record-header { margin-bottom: 18px; }
     h1 { font-size: 26px; margin: 0 0 10px; }
-    .identity { font-size: 16px; font-weight: 650; margin: 0 0 6px; }
+    .record-meta { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px; }
+    .identity { font-size: 16px; font-weight: 650; margin: 0; }
     .identifier { color: #526178; font-size: 13px; margin: 0; }
-    section { margin-top: 24px; }
+    .record-sections { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 22px; align-items: start; }
+    section { min-width: 0; }
     h2 { font-size: 14px; color: #1e40af; border-bottom: 2px solid #dbeafe; padding-bottom: 8px; margin: 0; break-after: avoid; }
     dl { margin: 0; }
-    .field { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 16px; padding: 8px 0; border-bottom: 1px solid #f1f5f9; }
+    .field { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 10px; padding: 5px 0; border-bottom: 1px solid #e2e8f0; }
     dt { color: #526178; font-size: 12px; }
     dd { margin: 0; font-size: 13px; white-space: pre-wrap; }
     h1, .identity, .identifier, dt, dd { overflow-wrap: anywhere; }
     @media (max-width: 600px) {
       main { margin: 12px; padding: 20px 16px; }
       h1 { font-size: 22px; }
-      .field { grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 10px; }
+      .record-sections { grid-template-columns: 1fr; }
     }
-    @page { size: A4 portrait; margin: 14mm; }
+    @page { size: A4 portrait; margin: 10mm; }
     @media print {
       :root { background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       main { max-width: none; margin: 0; padding: 0; border: 0; border-radius: 0; }
-      h1 { font-size: 18pt; }
-      section { margin-top: 5mm; }
-      h2 { font-size: 11pt; }
-      .field { padding: 2mm 0; break-inside: avoid; }
-      dt { font-size: 9pt; }
-      dd { font-size: 10pt; }
+      .record-header { margin-bottom: 4mm; break-inside: avoid; }
+      h1 { font-size: 14pt; line-height: 1.2; margin-bottom: 1.5mm; }
+      .record-meta { gap: 1mm 4mm; }
+      .identity { font-size: 10.5pt; line-height: 1.25; }
+      .identifier { font-size: 9pt; line-height: 1.25; }
+      .record-sections { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3mm 5mm; }
+      section { break-inside: avoid; }
+      h2 { font-size: 9.5pt; line-height: 1.25; padding: 1.2mm 1.4mm; margin-bottom: .5mm; background: #eff6ff; border-bottom: .3mm solid #cbd5e1; }
+      .field { gap: 2mm; padding: .85mm .6mm; break-inside: avoid; }
+      dt { font-size: 9pt; line-height: 1.25; }
+      dd { font-size: 9.5pt; line-height: 1.25; }
     }
   </style>
 </head>
 <body>
   <main>
-    <h1>${escapeHtml(title)}</h1>
-    <p class="identity">${escapeHtml(name)}</p>
-    <p class="identifier">${escapeHtml(uiText('Digital ID'))}: ${escapeHtml(digitalId)}</p>
-    ${sections}
+    <header class="record-header">
+      <h1>${escapeHtml(title)}</h1>
+      <div class="record-meta">
+        <p class="identity">${escapeHtml(name)}</p>
+        <p class="identifier">${escapeHtml(uiText('Digital ID'))}: ${escapeHtml(digitalId)}</p>
+      </div>
+    </header>
+    <div class="record-sections">${sections}</div>
   </main>
 </body>
 </html>`;
