@@ -1,3 +1,6 @@
+import { usePagedList, useDebouncedValue } from '../hooks/usePagedList';
+import { ListPagination } from '../components/ListPagination';
+import { getAllListRows } from '../services/pagedList';
 import { uiText, uiError, localizeHtml } from "../localization";
 import { useTranslation } from 'react-i18next';
 import { Plus, UserPlus, X, Check, ArrowLeft, MoreVertical, CheckCircle, XCircle, Trash2, Printer, Eye, Edit2, Loader2, FileText, Download, Upload, Users, Calendar, Clock, BookOpen, FileCheck, AlertCircle, CheckCircle2, MessageSquare, Filter, Lock, Unlock, AlertTriangle, FlaskConical } from 'lucide-react';
@@ -122,6 +125,42 @@ const MultiSelectDropdown = ({
   );
 };
 
+const mapTeacher = (teacher: any) => {
+  const rawProfile = teacher.staffProfile || teacher.staff_profile;
+  let parsedProfile = rawProfile;
+  if (typeof rawProfile === 'string' && rawProfile.length > 0) {
+    try {
+      parsedProfile = JSON.parse(rawProfile);
+    } catch {
+      parsedProfile = rawProfile;
+    }
+  }
+
+  return {
+    id: teacher.id,
+    name: teacher.name,
+    email: teacher.email,
+    role: teacher.role || teacher.user_role || parsedProfile?.role || 'teacher',
+    digitalId: teacher.digital_id,
+    zkDeviceId: teacher.zk_device_id || teacher.zkDeviceId,
+    status: teacher.status,
+    specialty: teacher.specialty,
+    userId: teacher.user_id,
+    branchId: teacher.branch_id,
+    createdAt: teacher.created_at,
+    staffProfile: parsedProfile,
+    todayAttendanceStatus: teacher.today_attendance_status,
+    todayAttendanceCount: Number(teacher.today_attendance_count || 0),
+    // VP-specific fields
+    classesAssigned: teacher.classes_assigned || '0',
+    plansSubmitted: teacher.plans_submitted || '0',
+    plansPending: teacher.plans_pending || '0',
+    document_file_name: teacher.document_file_name,
+    document_file_size: teacher.document_file_size,
+    document_mime_type: teacher.document_mime_type,
+  };
+};
+
 export const Teachers = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -132,9 +171,6 @@ export const Teachers = () => {
   const canRegisterTeacher = !isSuperviseRoute && (role === 'school-admin' || role === 'super-admin' || role === 'academic-manager');
   const isVP = role === 'vice-principal';
 
-  const [teachers, setTeachers] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [creating, setCreating] = useState(false);
   const [successModal, setSuccessModal] = useState<{ show: boolean; data: any }>({ show: false, data: null });
@@ -146,216 +182,63 @@ export const Teachers = () => {
   const [teacherSearchQuery, setTeacherSearchQuery] = useState('');
   const [teacherEducationFilter, setTeacherEducationFilter] = useState('all');
   const [teacherStatusFilter, setTeacherStatusFilter] = useState('all');
+  const teacherSearchTerm = useDebouncedValue(teacherSearchQuery);
+  const teacherEndpoint = isVP ? '/vice-principal/teachers' : '/school-admin/teachers';
+  const teacherFilters = { search: teacherSearchTerm, education: teacherEducationFilter, status: teacherStatusFilter };
+  const teacherPaging = usePagedList(teacherEndpoint, teacherFilters, activeTab === 'teachers');
+  const teachers = teacherPaging.data.map(mapTeacher);
+  const { loading, error } = teacherPaging;
+  const [exportingTeachers, setExportingTeachers] = useState(false);
 
-  // ─── Supervise Lab Requisition States ───
-  const [superviseLabRequests, setSuperviseLabRequests] = useState<any[]>(() => {
-    try {
-      const stored = localStorage.getItem('lab_requisition_requests');
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) {
-          return parsed.filter((r: any) => r.status === 'Approved by Lab Tech' || r.status === 'Approved by Principal');
-        }
-      }
-    } catch {}
-    return [];
-  });
-
-  const fetchSuperviseLabRequests = useCallback(async () => {
-    try {
-      const data = await getBranchLabRequisitions().catch(() => null);
-      if (Array.isArray(data) && data.length > 0) {
-        const mapped = data
-          .filter((r: any) => r.status === 'Approved by Lab Tech' || r.status === 'Approved by Principal')
-          .map((r: any) => ({
-            id: r.id,
-            academicYear: r.academic_year || r.academicYear,
-            gradeLevel: r.grade_level || r.gradeLevel,
-            subject: r.subject,
-            teacherName: r.teacher_name || r.teacherName,
-            labTechId: r.lab_tech_id || r.labTechId,
-            labTechName: r.lab_tech_name || r.labTechName,
-            labTechSignature: r.lab_tech_signature || r.labTechSignature,
-            labTechFeedback: r.lab_tech_feedback || r.labTechFeedback,
-            principalId: r.principal_id || r.principalId,
-            principalName: r.principal_name || r.principalName,
-            principalSignature: r.principal_signature || r.principalSignature,
-            principalFeedback: r.principal_feedback || r.principalFeedback,
-            items: typeof r.items === 'string' ? JSON.parse(r.items) : (r.items || []),
-            status: r.status,
-            created_at: r.created_at || r.createdAt
-          }));
-        setSuperviseLabRequests(mapped);
-      }
-    } catch {}
-  }, []);
-
-  useEffect(() => {
-    fetchSuperviseLabRequests();
-  }, [activeTab, fetchSuperviseLabRequests]);
 
   const [labSearchQuery, setLabSearchQuery] = useState('');
   const [labGradeFilter, setLabGradeFilter] = useState('all');
   const [labSubjectFilter, setLabSubjectFilter] = useState('all');
   const [labStatusFilter, setLabStatusFilter] = useState('all');
+  const labSearchTerm = useDebouncedValue(labSearchQuery);
+  const labPaging = usePagedList('/teacher/branch-lab-requisitions', { search: labSearchTerm, grade: labGradeFilter, subject: labSubjectFilter, status: labStatusFilter }, activeTab === 'lab-requisition');
+  const superviseLabRequests = labPaging.data.map((r: any) => ({
+    ...r, academicYear: r.academic_year, gradeLevel: r.grade_level, teacherName: r.teacher_name,
+    labTechId: r.lab_tech_id, labTechName: r.lab_tech_name, labTechSignature: r.lab_tech_signature,
+    labTechFeedback: r.lab_tech_feedback, principalId: r.principal_id, principalName: r.principal_name,
+    principalSignature: r.principal_signature, principalFeedback: r.principal_feedback,
+    items: typeof r.items === 'string' ? JSON.parse(r.items) : (r.items || []),
+  }));
+
   const [selectedLabForView, setSelectedLabForView] = useState<any | null>(null);
   const [adminReviewFeedback, setAdminReviewFeedback] = useState('');
 
-  const availableLabGrades = useMemo(() => {
-    const grades = new Set<string>();
-    superviseLabRequests.forEach(r => {
-      if (r.gradeLevel) grades.add(r.gradeLevel);
-    });
-    return Array.from(grades).sort();
-  }, [superviseLabRequests]);
-
-  const availableLabSubjects = useMemo(() => {
-    const subjects = new Set<string>();
-    superviseLabRequests.forEach(r => {
-      if (r.subject) subjects.add(r.subject);
-    });
-    return Array.from(subjects).sort();
-  }, [superviseLabRequests]);
+  const availableLabGrades = labPaging.pagination.grades || [];
+  const availableLabSubjects = labPaging.pagination.subjects || [];
 
   const handleApproveAsPrincipal = async (labId: string) => {
     const feedback = adminReviewFeedback || 'Approved by Principal';
     const sig = user?.name || 'School Principal / Admin';
     try {
-      if (!labId.startsWith('lab-req-')) {
-        await reviewLabRequisition(labId, {
-          status: 'Approved by Principal',
-          principalFeedback: feedback,
-          principalSignature: sig
-        }).catch(() => null);
-      }
-    } catch {}
-
-    const updated = superviseLabRequests.map((r: any) => {
-      if (r.id === labId) {
-        return {
-          ...r,
-          status: 'Approved by Principal',
-          principalSignature: sig,
-          principalFeedback: feedback
-        };
-      }
-      return r;
-    });
-    setSuperviseLabRequests(updated);
-    try { localStorage.setItem('lab_requisition_requests', JSON.stringify(updated)); } catch {}
-    if (selectedLabForView?.id === labId) {
-      setSelectedLabForView((prev: any) => prev ? {
-        ...prev,
-        status: 'Approved by Principal',
-        principalSignature: sig,
-        principalFeedback: feedback
-      } : null);
-    }
+      await reviewLabRequisition(labId, { status: 'Approved by Principal', principalFeedback: feedback, principalSignature: sig });
+      await labPaging.refresh();
+      if (selectedLabForView?.id === labId) setSelectedLabForView((prev: any) => ({ ...prev, status: 'Approved by Principal', principalSignature: sig, principalFeedback: feedback }));
+    } catch (err: any) { alert(uiError(err.message || 'Failed to review requisition')); }
   };
 
   const handleRequestRevisionAsPrincipal = async (labId: string) => {
     const feedback = adminReviewFeedback || 'Revision requested by Principal';
     try {
-      if (!labId.startsWith('lab-req-')) {
-        await reviewLabRequisition(labId, {
-          status: 'Revision Required',
-          principalFeedback: feedback
-        }).catch(() => null);
-      }
-    } catch {}
-
-    const updated = superviseLabRequests.map((r: any) => {
-      if (r.id === labId) {
-        return {
-          ...r,
-          status: 'Revision Required',
-          principalFeedback: feedback
-        };
-      }
-      return r;
-    });
-    setSuperviseLabRequests(updated);
-    try { localStorage.setItem('lab_requisition_requests', JSON.stringify(updated)); } catch {}
-    if (selectedLabForView?.id === labId) {
-      setSelectedLabForView((prev: any) => prev ? {
-        ...prev,
-        status: 'Revision Required',
-        principalFeedback: feedback
-      } : null);
-    }
+      await reviewLabRequisition(labId, { status: 'Revision Required', principalFeedback: feedback });
+      await labPaging.refresh();
+      if (selectedLabForView?.id === labId) setSelectedLabForView((prev: any) => ({ ...prev, status: 'Revision Required', principalFeedback: feedback }));
+    } catch (err: any) { alert(uiError(err.message || 'Failed to review requisition')); }
   };
 
-  const filteredSuperviseLabRequests = useMemo(() => {
-    return superviseLabRequests.filter((r: any) => {
-      // 1. Only show requisitions that have ALREADY been approved by the Lab Technician
-      const isApprovedByLabTech = r.status === 'Approved by Lab Tech' || r.status === 'Approved by Principal';
-      if (!isApprovedByLabTech) return false;
+  const filteredSuperviseLabRequests = superviseLabRequests;
+  const filteredTeachers = teachers;
 
-      if (labSearchQuery.trim()) {
-        const q = labSearchQuery.toLowerCase().trim();
-        const matchesSearch =
-          (r.teacherName || '').toLowerCase().includes(q) ||
-          (r.subject || '').toLowerCase().includes(q) ||
-          (r.gradeLevel || '').toLowerCase().includes(q);
-        if (!matchesSearch) return false;
-      }
-      if (labGradeFilter !== 'all') {
-        if ((r.gradeLevel || '').toLowerCase() !== labGradeFilter.toLowerCase()) return false;
-      }
-      if (labSubjectFilter !== 'all') {
-        if ((r.subject || '').toLowerCase() !== labSubjectFilter.toLowerCase()) return false;
-      }
-      if (labStatusFilter !== 'all') {
-        if (labStatusFilter === 'pending' || labStatusFilter === 'Approved by Lab Tech') {
-          if (r.status !== 'Approved by Lab Tech') return false;
-        } else if (labStatusFilter === 'Approved by Principal') {
-          if (r.status !== 'Approved by Principal') return false;
-        }
-      }
-      return true;
-    });
-  }, [superviseLabRequests, labSearchQuery, labGradeFilter, labSubjectFilter, labStatusFilter]);
-
-  const filteredTeachers = useMemo(() => {
-    return teachers.filter((teacher) => {
-      // 1. Search Query Filter (name, email, digitalId, specialty, educationLevel)
-      if (teacherSearchQuery.trim()) {
-        const q = teacherSearchQuery.toLowerCase().trim();
-        const edu = getTeacherEducationLevel(teacher).toLowerCase();
-        const spec = String(teacher.staffProfile?.specialty || teacher.specialty || '').toLowerCase();
-        const matchesSearch =
-          (teacher.name || '').toLowerCase().includes(q) ||
-          (teacher.email || '').toLowerCase().includes(q) ||
-          (teacher.digitalId || '').toLowerCase().includes(q) ||
-          edu.includes(q) ||
-          spec.includes(q);
-        if (!matchesSearch) return false;
-      }
-
-      // 2. Education Level Filter
-      if (teacherEducationFilter !== 'all') {
-        const eduLevel = getTeacherEducationLevel(teacher);
-        if (!matchesEducationLevel(eduLevel, teacherEducationFilter)) {
-          return false;
-        }
-      }
-
-      // 3. Status Filter
-      if (teacherStatusFilter !== 'all') {
-        const status = String(teacher.status || '').toLowerCase();
-        if (teacherStatusFilter === 'active' && !isTeacherActive(teacher.status)) return false;
-        if (teacherStatusFilter === 'pending' && !isTeacherPending(teacher.status)) return false;
-        if (teacherStatusFilter === 'revoked' && status !== 'revoked' && status !== 'inactive') return false;
-      }
-
-      return true;
-    });
-  }, [teachers, teacherSearchQuery, teacherEducationFilter, teacherStatusFilter]);
-
-  const handleExportTeachersToExcel = () => {
-    if (filteredTeachers.length === 0) return;
-
-    const exportData = filteredTeachers.map((teacher, index) => {
+  const handleExportTeachersToExcel = async () => {
+    if (exportingTeachers || loading || teacherSearchQuery !== teacherSearchTerm || !teacherPaging.pagination.total) return;
+    setExportingTeachers(true);
+    try {
+    const allTeachers = (await getAllListRows(teacherEndpoint, teacherFilters)).map(mapTeacher);
+    const exportData = allTeachers.map((teacher, index) => {
       const edu = getTeacherEducationLevel(teacher) || 'N/A';
       const spec = teacher.staffProfile?.specialty || teacher.specialty || 'N/A';
       const status = teacher.status || 'N/A';
@@ -376,6 +259,8 @@ export const Teachers = () => {
       [{ name: 'Teachers List', rows: exportData }],
       `Teachers_List_${new Date().toISOString().split('T')[0]}`
     );
+    } catch (err: any) { alert(uiError(err.message || 'Failed to export teachers')); }
+    finally { setExportingTeachers(false); }
   };
   const getParsedDailyActivities = (plan: any) => {
     if (!plan) return null;
@@ -399,9 +284,6 @@ export const Teachers = () => {
     return null;
   };
 
-  const [annualPlans, setAnnualPlans] = useState<any[]>([]);
-  const [weeklyPlans, setWeeklyPlans] = useState<any[]>([]);
-  const [plansLoading, setPlansLoading] = useState(false);
   const [selectedAnnualPlan, setSelectedAnnualPlan] = useState<any | null>(null);
   const [selectedWeeklyPlan, setSelectedWeeklyPlan] = useState<any | null>(null);
   const [gradeSelectModal, setGradeSelectModal] = useState<{
@@ -510,38 +392,20 @@ export const Teachers = () => {
   const [annualPlanFilter, setAnnualPlanFilter] = useState<'all' | 'submitted' | 'not_submitted' | 'unlocked'>('all');
   const [annualPlanSearch, setAnnualPlanSearch] = useState('');
   const [annualGradeFilter, setAnnualGradeFilter] = useState<string>('all');
+  const annualSearchTerm = useDebouncedValue(annualPlanSearch);
+  const weeklySearchTerm = useDebouncedValue(weeklyPlanSearch);
+  const annualPaging = usePagedList('/vice-principal/annual-plans', { search: annualSearchTerm, grade: annualGradeFilter, category: annualPlanFilter }, activeTab === 'annual-plans');
+  const weeklyPaging = usePagedList('/vice-principal/weekly-plans', { search: weeklySearchTerm, grade: weeklyGradeFilter, category: weeklyPlanFilter, weekDate: selectedWeekDate.toISOString().split('T')[0] }, activeTab === 'weekly-plans');
+  const annualPlans = annualPaging.data;
+  const weeklyPlans = weeklyPaging.data;
+  const plansLoading = activeTab === 'annual-plans' ? annualPaging.loading : weeklyPaging.loading;
+  const annualSummary = annualPaging.pagination.summary || {};
+  const weeklySummary = weeklyPaging.pagination.summary || {};
+  const labSummary = labPaging.pagination.summary || {};
 
-  const availableAnnualGrades = useMemo(() => {
-    const gradesSet = new Set<string>();
-    annualPlans.forEach(p => {
-      if (p.grade_statuses && Array.isArray(p.grade_statuses)) {
-        p.grade_statuses.forEach((g: any) => { if (g.grade) gradesSet.add(g.grade); });
-      } else if (p.grade) {
-        p.grade.split(',').forEach((g: string) => { if (g.trim()) gradesSet.add(g.trim()); });
-      }
-    });
-    return Array.from(gradesSet).sort((a, b) => {
-      const numA = parseInt(a.replace(/\D/g, '')) || 0;
-      const numB = parseInt(b.replace(/\D/g, '')) || 0;
-      return numA - numB;
-    });
-  }, [annualPlans]);
 
-  const availableWeeklyGrades = useMemo(() => {
-    const gradesSet = new Set<string>();
-    weeklyPlans.forEach(p => {
-      if (p.grade_statuses && Array.isArray(p.grade_statuses)) {
-        p.grade_statuses.forEach((g: any) => { if (g.grade) gradesSet.add(g.grade); });
-      } else if (p.grade_section || p.grade) {
-        (p.grade_section || p.grade).split(',').forEach((g: string) => { if (g.trim()) gradesSet.add(g.trim()); });
-      }
-    });
-    return Array.from(gradesSet).sort((a, b) => {
-      const numA = parseInt(a.replace(/\D/g, '')) || 0;
-      const numB = parseInt(b.replace(/\D/g, '')) || 0;
-      return numA - numB;
-    });
-  }, [weeklyPlans]);
+  const availableAnnualGrades = annualPaging.pagination.grades || [];
+  const availableWeeklyGrades = weeklyPaging.pagination.grades || [];
   const [reviewModal, setReviewModal] = useState<{
     show: boolean;
     planId: string;
@@ -668,46 +532,16 @@ export const Teachers = () => {
   };
 
   useEffect(() => {
-    fetchTeachers();
     fetchClasses();
     fetchSubjects();
   }, []);
 
   useEffect(() => {
-    if (activeTab === 'leaderboard') {
-      fetchLeaderboardData();
-    } else if (activeTab === 'annual-plans') {
-      fetchAnnualPlansData();
-    } else if (activeTab === 'weekly-plans') {
-      fetchWeeklyPlansData(selectedWeekDate);
-    }
-  }, [activeTab, isSuperviseRoute, selectedWeekDate]);
+    if (activeTab === 'leaderboard') fetchLeaderboardData();
+  }, [activeTab]);
+  const fetchAnnualPlansData = async () => { try { await annualPaging.refresh(); } catch {} };
+  const fetchWeeklyPlansData = async (_targetWeekDate?: Date) => { try { await weeklyPaging.refresh(); } catch {} };
 
-  const fetchAnnualPlansData = async () => {
-    try {
-      setPlansLoading(true);
-      const res = await getVPAnnualPlans();
-      setAnnualPlans(res.data || res || []);
-    } catch (err) {
-      console.error('Error fetching annual plans:', err);
-    } finally {
-      setPlansLoading(false);
-    }
-  };
-
-  const fetchWeeklyPlansData = async (targetWeekDate?: Date) => {
-    try {
-      setPlansLoading(true);
-      const dateToUse = targetWeekDate || selectedWeekDate;
-      const dateStr = dateToUse.toISOString().split('T')[0];
-      const res = await getWeeklyPlans(undefined, undefined, dateStr);
-      setWeeklyPlans(res.data || res || []);
-    } catch (err) {
-      console.error('Error fetching weekly plans:', err);
-    } finally {
-      setPlansLoading(false);
-    }
-  };
 
   const handleReviewPlanSubmit = async (status: 'Approved' | 'Revision Required', customFeedback?: string) => {
     const { planId, planType, feedback } = reviewModal;
@@ -867,55 +701,8 @@ export const Teachers = () => {
   };
 
   const fetchTeachers = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      // Use different endpoint based on role
-      const response = isVP ? await getVPTeachers() : await getBranchTeachers();
-
-      const teachers = (response.data || []).map((teacher: any) => {
-        const rawProfile = teacher.staff_profile;
-        let parsedProfile = rawProfile;
-        if (typeof rawProfile === 'string' && rawProfile.length > 0) {
-          try {
-            parsedProfile = JSON.parse(rawProfile);
-          } catch {
-            parsedProfile = rawProfile;
-          }
-        }
-
-        return {
-          id: teacher.id,
-          name: teacher.name,
-          email: teacher.email,
-          role: teacher.role || teacher.user_role || parsedProfile?.role || 'teacher',
-          digitalId: teacher.digital_id,
-          zkDeviceId: teacher.zk_device_id || teacher.zkDeviceId,
-          status: teacher.status,
-          userId: teacher.user_id,
-          branchId: teacher.branch_id,
-          createdAt: teacher.created_at,
-          staffProfile: parsedProfile,
-          todayAttendanceStatus: teacher.today_attendance_status,
-          todayAttendanceCount: Number(teacher.today_attendance_count || 0),
-          // VP-specific fields
-          classesAssigned: teacher.classes_assigned || '0',
-          plansSubmitted: teacher.plans_submitted || '0',
-          plansPending: teacher.plans_pending || '0',
-          document_file_name: teacher.document_file_name,
-          document_file_size: teacher.document_file_size,
-          document_mime_type: teacher.document_mime_type,
-        };
-      });
-      setTeachers(teachers);
-      return teachers;
-    } catch (err: any) {
-      console.error('Failed to fetch teachers:', err);
-      setError(uiError(err.response?.data?.error?.message || 'Failed to load teachers'));
-    } finally {
-      setLoading(false);
-    }
+    try { return (await teacherPaging.refresh()).data.map(mapTeacher); }
+    catch { return []; }
   };
 
   const handleAction = async () => {
@@ -1133,13 +920,7 @@ export const Teachers = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="w-12 h-12 border-4 border-blue-600/30 border-t-blue-600 rounded-full animate-spin" />
-      </div>
-    );
-  }
+
 
   // Derive all unique grades from the leaderboard for the filter dropdown
   const allLeaderboardGrades = Array.from(
@@ -1208,9 +989,9 @@ export const Teachers = () => {
             >
               <Calendar size={16} />
               <span>{uiText("Annual Plans")}</span>
-              {annualPlans.filter(p => p.status === 'Pending').length > 0 && (
+              {(annualSummary.pendingReview || 0) > 0 && (
                 <span className="bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 text-xs px-2 py-0.5 rounded-full font-bold">
-                  {annualPlans.filter(p => p.status === 'Pending').length}
+                  {(annualSummary.pendingReview || 0)}
                 </span>
               )}
             </button>
@@ -1225,9 +1006,9 @@ export const Teachers = () => {
             >
               <Clock size={16} />
               <span>{uiText("Weekly Plans")}</span>
-              {weeklyPlans.filter(p => p.status === 'Pending').length > 0 && (
+              {(weeklySummary.pendingReview || 0) > 0 && (
                 <span className="bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 text-xs px-2 py-0.5 rounded-full font-bold">
-                  {weeklyPlans.filter(p => p.status === 'Pending').length}
+                  {(weeklySummary.pendingReview || 0)}
                 </span>
               )}
             </button>
@@ -1242,9 +1023,9 @@ export const Teachers = () => {
             >
               <FlaskConical size={16} />
               <span>{uiText(" 🧪 Lab Requisitions Supervision ")}</span>
-              {superviseLabRequests.filter((r: any) => r.status === 'Approved by Lab Tech').length > 0 && (
+              {(labSummary.labPending || 0) > 0 && (
                 <span className="bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 text-xs px-2 py-0.5 rounded-full font-bold">
-                  {superviseLabRequests.filter((r: any) => r.status === 'Approved by Lab Tech').length}
+                  {(labSummary.labPending || 0)}
                 </span>
               )}
             </button>
@@ -1266,6 +1047,7 @@ export const Teachers = () => {
         )}
       </div>
 
+      {activeTab === 'teachers' && <ListPagination list={teacherPaging} />}
       {activeTab === 'teachers' && (
         <div className="space-y-4">
           {/* Search and Filters Bar */}
@@ -1339,7 +1121,7 @@ export const Teachers = () => {
               {/* Export to Excel Button */}
               <button
                 onClick={handleExportTeachersToExcel}
-                disabled={filteredTeachers.length === 0}
+                disabled={!teacherPaging.pagination.total || loading || exportingTeachers || teacherSearchQuery !== teacherSearchTerm}
                 className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm shrink-0 whitespace-nowrap"
                 title={uiText("Export teachers list to Excel file")}
               >
@@ -1781,6 +1563,7 @@ export const Teachers = () => {
       )}
 
       {/* Annual Plans View */}
+      {activeTab === 'annual-plans' && <ListPagination list={annualPaging} />}
       {activeTab === 'annual-plans' && (
         <div className="space-y-6">
           {/* Search and Status Filter Bar */}
@@ -1822,10 +1605,10 @@ export const Teachers = () => {
                 { key: 'not_submitted', label: 'Pending' },
                 { key: 'unlocked',      label: 'Revision Requested' },
               ] as const).map(({ key, label }) => {
-                const submittedCount = annualPlans.filter(p => p.status === 'Approved').length;
-                const notSubmittedCount = annualPlans.filter(p => p.status === 'Not Submitted' || p.status === 'Pending').length;
-                const unlockedCount = annualPlans.filter(p => p.status === 'Revision Required').length;
-                const count = key === 'submitted' ? submittedCount : key === 'not_submitted' ? notSubmittedCount : key === 'unlocked' ? unlockedCount : annualPlans.length;
+                const submittedCount = (annualSummary.approved || 0);
+                const notSubmittedCount = (annualSummary.pending || 0);
+                const unlockedCount = (annualSummary.unlocked || 0);
+                const count = key === 'submitted' ? submittedCount : key === 'not_submitted' ? notSubmittedCount : key === 'unlocked' ? unlockedCount : (annualSummary.total || 0);
 
                 return (
                   <button
@@ -1850,16 +1633,16 @@ export const Teachers = () => {
           {/* Summary Chips */}
           <div className="flex flex-wrap gap-2">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-full text-[11px] font-bold text-slate-600 dark:text-slate-300">
-              <span className="w-2 h-2 rounded-full bg-slate-400" />{uiText(" Total Annual Plans: ")}{annualPlans.length}
+              <span className="w-2 h-2 rounded-full bg-slate-400" />{uiText(" Total Annual Plans: ")}{(annualSummary.total || 0)}
             </span>
             <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 dark:bg-emerald-900/20 rounded-full text-[11px] font-bold text-emerald-700 dark:text-emerald-400">
-              <CheckCircle2 size={11} />{uiText(" Approved: ")}{annualPlans.filter(p => p.status === 'Approved').length}
+              <CheckCircle2 size={11} />{uiText(" Approved: ")}{(annualSummary.approved || 0)}
             </span>
             <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 dark:bg-amber-900/20 rounded-full text-[11px] font-bold text-amber-700 dark:text-amber-400">
-              <AlertTriangle size={11} />{uiText(" Pending: ")}{annualPlans.filter(p => p.status === 'Not Submitted' || p.status === 'Pending').length}
+              <AlertTriangle size={11} />{uiText(" Pending: ")}{(annualSummary.pending || 0)}
             </span>
             <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-50 dark:bg-rose-900/20 rounded-full text-[11px] font-bold text-rose-700 dark:text-rose-400">
-              <Unlock size={11} />{uiText(" Revision Requested: ")}{annualPlans.filter(p => p.status === 'Revision Required').length}
+              <Unlock size={11} />{uiText(" Revision Requested: ")}{(annualSummary.unlocked || 0)}
             </span>
           </div>
 
@@ -1868,38 +1651,7 @@ export const Teachers = () => {
               <Loader2 className="animate-spin text-blue-600" size={32} />
             </div>
           ) : (() => {
-            const filteredAnnualPlans = annualPlans
-              .filter(plan => {
-                if (annualGradeFilter === 'all') return true;
-                const statuses: Array<{ grade: string; submitted: boolean }> = plan.grade_statuses || [];
-                if (statuses.length > 0) {
-                  return statuses.some(g => g.grade.toLowerCase() === annualGradeFilter.toLowerCase());
-                }
-                return plan.grade && plan.grade.toLowerCase().includes(annualGradeFilter.toLowerCase());
-              })
-              .filter(plan => {
-                const statuses: Array<{ grade: string; submitted: boolean; status?: string }> = plan.grade_statuses || [];
-                if (annualPlanFilter === 'submitted') {
-                  return statuses.length > 0 ? statuses.some(g => g.status === 'Approved') : plan.status === 'Approved';
-                }
-                if (annualPlanFilter === 'not_submitted') {
-                  return statuses.length > 0 ? statuses.some(g => g.status === 'Not Submitted' || g.status === 'Pending') : (plan.status === 'Not Submitted' || plan.status === 'Pending');
-                }
-                if (annualPlanFilter === 'unlocked') {
-                  return plan.status === 'Revision Required' || (statuses.length > 0 && statuses.some(g => g.status === 'Revision Required'));
-                }
-                return true;
-              })
-              .filter(plan => {
-                const q = annualPlanSearch.toLowerCase();
-                if (!q) return true;
-                return (
-                  (plan.teacher_name && plan.teacher_name.toLowerCase().includes(q)) ||
-                  (plan.subject && plan.subject.toLowerCase().includes(q)) ||
-                  (plan.grade && plan.grade.toLowerCase().includes(q)) ||
-                  (plan.academic_year && plan.academic_year.toLowerCase().includes(q))
-                );
-              });
+            const filteredAnnualPlans = annualPlans;
 
             return filteredAnnualPlans.length === 0 ? (
               <div className="bg-white dark:bg-slate-900 rounded-2xl p-12 text-center border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
@@ -2060,6 +1812,7 @@ export const Teachers = () => {
       )}
 
       {/* Weekly Plans View */}
+      {activeTab === 'weekly-plans' && <ListPagination list={weeklyPaging} />}
       {activeTab === 'weekly-plans' && (
         <div className="space-y-6">
           {/* Header Controls & Filters */}
@@ -2148,10 +1901,10 @@ export const Teachers = () => {
                   { key: 'not_submitted', label: 'Pending / Not Submitted' },
                   { key: 'unlocked',      label: 'Revision Requested' },
                 ] as const).map(({ key, label }) => {
-                  const approvedCount = weeklyPlans.filter(p => p.status === 'Approved').length;
-                  const notSubmittedCount = weeklyPlans.filter(p => p.status === 'Not Submitted' || p.status === 'Pending').length;
-                  const unlockedCount = weeklyPlans.filter(p => p.status === 'Revision Required').length;
-                  const count = key === 'submitted' ? approvedCount : key === 'not_submitted' ? notSubmittedCount : key === 'unlocked' ? unlockedCount : weeklyPlans.length;
+                  const approvedCount = (weeklySummary.approved || 0);
+                  const notSubmittedCount = (weeklySummary.pending || 0);
+                  const unlockedCount = (weeklySummary.unlocked || 0);
+                  const count = key === 'submitted' ? approvedCount : key === 'not_submitted' ? notSubmittedCount : key === 'unlocked' ? unlockedCount : (weeklySummary.total || 0);
 
                   return (
                     <button
@@ -2176,16 +1929,16 @@ export const Teachers = () => {
             {/* Summary Chips */}
             <div className="flex flex-wrap gap-2">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-full text-[11px] font-bold text-slate-600 dark:text-slate-300">
-                <span className="w-2 h-2 rounded-full bg-slate-400" />{uiText(" Total: ")}{weeklyPlans.length}
+                <span className="w-2 h-2 rounded-full bg-slate-400" />{uiText(" Total: ")}{(weeklySummary.total || 0)}
               </span>
               <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 dark:bg-emerald-900/20 rounded-full text-[11px] font-bold text-emerald-700 dark:text-emerald-400">
-                <CheckCircle2 size={11} />{uiText(" Approved: ")}{weeklyPlans.filter(p => p.status === 'Approved').length}
+                <CheckCircle2 size={11} />{uiText(" Approved: ")}{(weeklySummary.approved || 0)}
               </span>
               <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 dark:bg-amber-900/20 rounded-full text-[11px] font-bold text-amber-700 dark:text-amber-400">
-                <AlertTriangle size={11} />{uiText(" Pending / Not Submitted: ")}{weeklyPlans.filter(p => p.status === 'Not Submitted' || p.status === 'Pending').length}
+                <AlertTriangle size={11} />{uiText(" Pending / Not Submitted: ")}{(weeklySummary.pending || 0)}
               </span>
               <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-50 dark:bg-rose-900/20 rounded-full text-[11px] font-bold text-rose-700 dark:text-rose-400">
-                <Unlock size={11} />{uiText(" Revision Requested: ")}{weeklyPlans.filter(p => p.status === 'Revision Required').length}
+                <Unlock size={11} />{uiText(" Revision Requested: ")}{(weeklySummary.unlocked || 0)}
               </span>
             </div>
 
@@ -2194,40 +1947,7 @@ export const Teachers = () => {
                 <Loader2 className="animate-spin text-blue-600" size={32} />
               </div>
             ) : (() => {
-              const filteredWeeklyPlans = weeklyPlans
-                .filter(plan => {
-                  if (weeklyGradeFilter === 'all') return true;
-                  const statuses: Array<{ grade: string; submitted: boolean }> = plan.grade_statuses || [];
-                  if (statuses.length > 0) {
-                    return statuses.some(g => g.grade.toLowerCase() === weeklyGradeFilter.toLowerCase());
-                  }
-                  return (plan.grade_section || plan.grade || '').toLowerCase().includes(weeklyGradeFilter.toLowerCase());
-                })
-                .filter(plan => {
-                  const statuses: Array<{ grade: string; submitted: boolean; status?: string }> = plan.grade_statuses || [];
-                  if (weeklyPlanFilter === 'submitted') {
-                    return statuses.length > 0 ? statuses.some(g => g.status === 'Approved') : plan.status === 'Approved';
-                  }
-                  if (weeklyPlanFilter === 'not_submitted') {
-                    return statuses.length > 0 ? statuses.some(g => g.status === 'Not Submitted' || g.status === 'Pending') : (plan.status === 'Not Submitted' || plan.status === 'Pending');
-                  }
-                  if (weeklyPlanFilter === 'unlocked') {
-                    return plan.status === 'Revision Required' || (statuses.length > 0 && statuses.some(g => g.status === 'Revision Required'));
-                  }
-                  return true;
-                })
-                .filter(plan => {
-                  const q = weeklyPlanSearch.toLowerCase();
-                  if (!q) return true;
-                  return (
-                    (plan.teacher_name && plan.teacher_name.toLowerCase().includes(q)) ||
-                    (plan.subject && plan.subject.toLowerCase().includes(q)) ||
-                    (plan.course_name && plan.course_name.toLowerCase().includes(q)) ||
-                    (plan.topic && plan.topic.toLowerCase().includes(q)) ||
-                    (plan.chapter && plan.chapter.toLowerCase().includes(q)) ||
-                    (plan.grade && plan.grade.toLowerCase().includes(q))
-                  );
-                });
+              const filteredWeeklyPlans = weeklyPlans;
 
               return filteredWeeklyPlans.length === 0 ? (
                 <div className="bg-white dark:bg-slate-900 rounded-2xl p-12 text-center border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
@@ -2397,6 +2117,7 @@ export const Teachers = () => {
       )}
 
       {/* ── Lab Requisition Supervision View (School Admin / Principal) ── */}
+      {activeTab === 'lab-requisition' && <ListPagination list={labPaging} />}
       {activeTab === 'lab-requisition' && (
         <div className="space-y-6 animate-in fade-in duration-200">
           {/* Top Banner */}
@@ -2423,7 +2144,7 @@ export const Teachers = () => {
               <div>
                 <p className="text-xs font-black text-amber-800 dark:text-amber-300 uppercase tracking-wider">{uiText("All Tech-Approved")}</p>
                 <p className="text-2xl font-black text-amber-900 dark:text-amber-100 mt-1">
-                  {superviseLabRequests.filter(r => r.status === 'Approved by Lab Tech' || r.status === 'Approved by Principal').length}
+                  {(labSummary.total || 0)}
                 </p>
                 {labStatusFilter === 'all' && (
                   <span className="inline-block mt-1 text-[10px] font-extrabold text-amber-700 dark:text-amber-300 bg-amber-200 dark:bg-amber-800/60 px-2 py-0.5 rounded-full">
@@ -2448,7 +2169,7 @@ export const Teachers = () => {
               <div>
                 <p className="text-xs font-black text-orange-800 dark:text-orange-300 uppercase tracking-wider">{uiText("Pending Principal Approval")}</p>
                 <p className="text-2xl font-black text-orange-900 dark:text-orange-100 mt-1">
-                  {superviseLabRequests.filter(r => r.status === 'Approved by Lab Tech').length}
+                  {(labSummary.labPending || 0)}
                 </p>
                 {labStatusFilter === 'pending' && (
                   <span className="inline-block mt-1 text-[10px] font-extrabold text-orange-700 dark:text-orange-300 bg-orange-200 dark:bg-orange-800/60 px-2 py-0.5 rounded-full">
@@ -2473,7 +2194,7 @@ export const Teachers = () => {
               <div>
                 <p className="text-xs font-black text-emerald-800 dark:text-emerald-300 uppercase tracking-wider">{uiText("Approved by Principal")}</p>
                 <p className="text-2xl font-black text-emerald-900 dark:text-emerald-100 mt-1">
-                  {superviseLabRequests.filter(r => r.status === 'Approved by Principal').length}
+                  {(labSummary.labApproved || 0)}
                 </p>
                 {labStatusFilter === 'Approved by Principal' && (
                   <span className="inline-block mt-1 text-[10px] font-extrabold text-emerald-700 dark:text-emerald-300 bg-emerald-200 dark:bg-emerald-800/60 px-2 py-0.5 rounded-full">
@@ -2613,7 +2334,7 @@ export const Teachers = () => {
             <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
               <h3 className="font-black text-slate-800 dark:text-white">{uiText("Submitted Lab Requisitions")}</h3>
               <span className="text-xs font-bold text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-3 py-1 rounded-full">
-                {filteredSuperviseLabRequests.length} {uiText("requisition form(s)")}
+                {labPaging.pagination.total} {uiText("requisition form(s)")}
               </span>
             </div>
 
