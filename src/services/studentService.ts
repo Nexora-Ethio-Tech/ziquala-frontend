@@ -1,4 +1,5 @@
 import api from './api';
+import { cachedList, clearListCache } from './listCache';
 
 export interface Student {
   id: string;
@@ -54,6 +55,18 @@ export interface UpdateStudentData {
   address?: string;
 }
 
+export interface StudentListFilters {
+  grade?: string;
+  status?: string;
+  graduationYear?: string;
+  section?: string;
+  search?: string;
+}
+export interface StudentPage {
+  data: any[];
+  pagination: { total: number; page: number; pageSize: number; graduationYears: string[] };
+}
+
 export interface StudentFilters {
   classId?: string;
   grade?: string;
@@ -96,6 +109,25 @@ export interface StudentExportRecord {
 }
 
 const studentService = {
+  clearListCache,
+  getStudentsPage: (filters: StudentListFilters, page: number, pageSize: number): Promise<StudentPage> => {
+    const params = { ...filters, page, pageSize };
+    return cachedList(JSON.stringify(params), async () => (await api.get('/school-admin/students', { params })).data);
+  },
+  getMatchingStudentIds: async (filters: StudentListFilters): Promise<string[]> => {
+    const ids: string[] = [];
+    let page = 1;
+    let total = 0;
+    do {
+      const response = await api.get('/school-admin/students', { params: { ...filters, page, pageSize: 100, idsOnly: true } });
+      const result = response.data as StudentPage;
+      if (!result.data.length) break;
+      ids.push(...result.data.map(student => student.student_id));
+      total = result.pagination.total;
+      page += 1;
+    } while (ids.length < total);
+    return [...new Set(ids)];
+  },
   createStudent: async (data: CreateStudentData): Promise<Student> => {
     const response = await api.post('/school-admin/students', data);
     return response.data.data;
