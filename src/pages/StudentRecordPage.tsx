@@ -35,6 +35,7 @@ import {
   type StudentAdmissionRecord
 } from '../services/schoolAdminService';
 import { useUser } from '../context/UserContext';
+import { EthiopianDatePicker } from '../components/EthiopianDatePicker';
 
 const displayValue = (value?: string | number | null) => {
   if (value === null || value === undefined || String(value).trim() === '') return '—';
@@ -79,6 +80,108 @@ export const StudentRecordPage = () => {
   const [replacingDocId, setReplacingDocId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [copiedParentId, setCopiedParentId] = useState(false);
+
+  // ── Edit Mode State ──
+  const [isEditing, setIsEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [recordStudentId, setRecordStudentId] = useState<string | null>(null);
+  const [outputError, setOutputError] = useState<string | null>(null);
+  const [downloadStudentId, setDownloadStudentId] = useState<string | null>(null);
+  const [outputAction, setOutputAction] = useState<string | null>(null);
+  const outputControllerRef = useRef<AbortController | null>(null);
+
+  const gregToEthStr = (dateStr?: string | null): string => {
+    if (!dateStr || Number.isNaN(Date.parse(dateStr))) return '';
+    const { year, month, day } = gregorianToEthiopian(dateStr);
+    return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  };
+
+  const emptyForm = {
+    name: '',
+    ethDob: '',
+    gender: '',
+    place_of_birth: '',
+    religion: '',
+    ethDateRegistered: '',
+    father_name: '',
+    father_occupation: '',
+    father_phone: '',
+    mother_name: '',
+    mother_occupation: '',
+    mother_phone: '',
+    address: '',
+    applicant_phone: '',
+    grade_applying: '',
+    last_grade_completed: '',
+    previous_school: '',
+    blood_group: '',
+    allergies: '',
+    chronic_conditions: '',
+    medications: '',
+  };
+
+  const [formData, setFormData] = useState(emptyForm);
+
+  const handleStartEdit = () => {
+    const a = record?.application;
+    const s = record?.student;
+    setFormData({
+      name: a?.name || s?.name || '',
+      ethDob: gregToEthStr(a?.dob),
+      gender: a?.gender || '',
+      place_of_birth: a?.place_of_birth || '',
+      religion: a?.religion || '',
+      ethDateRegistered: gregToEthStr(a?.date_registered || a?.created_at),
+      father_name: a?.father_name || a?.parent_name || '',
+      father_occupation: a?.father_occupation || '',
+      father_phone: a?.father_phone || a?.parent_phone || '',
+      mother_name: a?.mother_name || '',
+      mother_occupation: a?.mother_occupation || '',
+      mother_phone: a?.mother_phone || '',
+      address: a?.address || '',
+      applicant_phone: a?.applicant_phone || a?.phone || '',
+      grade_applying: a?.grade_applying || a?.grade || '',
+      last_grade_completed: a?.last_grade_completed || a?.grade || '',
+      previous_school: a?.previous_school || '',
+      blood_group: a?.blood_group || '',
+      allergies: a?.allergies || '',
+      chronic_conditions: a?.chronic_conditions || '',
+      medications: a?.medications || '',
+    });
+    setIsEditing(true);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setFormData(emptyForm);
+  };
+
+  const handleSaveRecord = async () => {
+    if (!studentId || saving) return;
+    setSaving(true);
+    try {
+      const payload: Record<string, any> = { ...formData };
+      // Convert Ethiopian dates to Gregorian ISO for the backend
+      if (formData.ethDob) {
+        payload.dob = ethiopianToGregorianIso(formData.ethDob);
+      }
+      if (formData.ethDateRegistered) {
+        payload.date_registered = ethiopianToGregorianIso(formData.ethDateRegistered);
+      }
+      delete payload.ethDob;
+      delete payload.ethDateRegistered;
+
+      const updated = await updateStudentAdmissionRecord(studentId, payload);
+      setRecord(updated);
+      setRecordStudentId(studentId);
+      setIsEditing(false);
+      setFormData(emptyForm);
+    } catch (err: any) {
+      alert(uiError(err.response?.data?.message || err.message || 'Failed to save changes'));
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const handleCopyParentId = (text: string) => {
     if (!text || text === '—') return;
@@ -308,8 +411,20 @@ export const StudentRecordPage = () => {
                   <p className="text-xs text-slate-500">{uiText("Data submitted during application for admission")}</p>
                 </div>
               </div>
-              <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 w-fit">{uiText("Status: ")}{uiText(applicationStatusLabel)}
-              </span>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 w-fit">{uiText("Status: ")}{uiText(applicationStatusLabel)}
+                </span>
+                {canEdit && !isEditing && (
+                  <button
+                    type="button"
+                    onClick={handleStartEdit}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-2 shadow-lg shadow-blue-500/20 cursor-pointer"
+                  >
+                    <Edit2 size={14} />
+                    {uiText("Edit Record")}
+                  </button>
+                )}
+              </div>
             </div>
 
             {isEditing && (
