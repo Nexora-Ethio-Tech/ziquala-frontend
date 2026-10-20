@@ -431,38 +431,38 @@ export const TeacherPortal = () => {
   const [selectedWeekDate, setSelectedWeekDate] = useState<Date>(() => {
     const today = new Date();
     const day = today.getDay();
-    let diff = 4 - day; // Thursday week ending
+    let diff = 5 - day; // Friday week ending (last school day of the week)
     if (diff < 0) diff += 7;
-    const thursday = new Date(today);
-    thursday.setDate(today.getDate() + diff);
-    return thursday;
+    const friday = new Date(today);
+    friday.setDate(today.getDate() + diff);
+    return friday;
   });
 
   const formatEthWeekRangeStr = (date: Date): string => {
-    const thu = new Date(date);
-    const mon = new Date(thu);
-    mon.setDate(thu.getDate() - 3);
+    const fri = new Date(date);
+    const mon = new Date(fri);
+    mon.setDate(fri.getDate() - 4);
 
     const ethMonStr = formatEthiopianLabel(mon);
-    const ethThuStr = formatEthiopianLabel(thu);
+    const ethFriStr = formatEthiopianLabel(fri);
 
-    return `${ethMonStr} – ${ethThuStr}`;
+    return `${ethMonStr} – ${ethFriStr}`;
   };
 
-  const isPlanInWeek = (plan: any, weekThuDate: Date) => {
+  const isPlanInWeek = (plan: any, weekFriDate: Date) => {
     if (!plan) return false;
 
-    const selectedWeekIso = weekThuDate.toISOString().split('T')[0];
+    const selectedWeekIso = weekFriDate.toISOString().split('T')[0];
 
-    const mon = new Date(weekThuDate);
-    mon.setDate(weekThuDate.getDate() - 3);
+    const mon = new Date(weekFriDate);
+    mon.setDate(weekFriDate.getDate() - 4);
     mon.setHours(0, 0, 0, 0);
 
-    const sun = new Date(weekThuDate);
-    sun.setDate(weekThuDate.getDate() + 3);
+    const sun = new Date(weekFriDate);
+    sun.setDate(weekFriDate.getDate() + 2);
     sun.setHours(23, 59, 59, 999);
 
-    const ethThuStr = formatEthiopianLabel(weekThuDate);
+    const ethFriStr = formatEthiopianLabel(weekFriDate);
     const ethMonStr = formatEthiopianLabel(mon);
 
     const candidateDates = [
@@ -473,7 +473,7 @@ export const TeacherPortal = () => {
 
     for (const cand of candidateDates) {
       if (typeof cand === 'string') {
-        if (cand.includes(ethThuStr) || cand.includes(ethMonStr)) return true;
+        if (cand.includes(ethFriStr) || cand.includes(ethMonStr)) return true;
 
         if (cand.match(/^\d{4}-\d{2}-\d{2}/) || cand.includes('T')) {
           const parsed = new Date(cand);
@@ -481,32 +481,32 @@ export const TeacherPortal = () => {
             if (parsed >= mon && parsed <= sun) return true;
 
             const pDay = parsed.getDay();
-            let pDiff = 4 - pDay;
+            let pDiff = 5 - pDay;
             if (pDiff < 0) pDiff += 7;
-            const pThu = new Date(parsed);
-            pThu.setDate(parsed.getDate() + pDiff);
-            if (pThu.toISOString().split('T')[0] === selectedWeekIso) return true;
+            const pFri = new Date(parsed);
+            pFri.setDate(parsed.getDate() + pDiff);
+            if (pFri.toISOString().split('T')[0] === selectedWeekIso) return true;
           }
         }
       } else if (cand instanceof Date && !isNaN(cand.getTime())) {
         if (cand >= mon && cand <= sun) return true;
         const pDay = cand.getDay();
-        let pDiff = 4 - pDay;
+        let pDiff = 5 - pDay;
         if (pDiff < 0) pDiff += 7;
-        const pThu = new Date(cand);
-        pThu.setDate(cand.getDate() + pDiff);
-        if (pThu.toISOString().split('T')[0] === selectedWeekIso) return true;
+        const pFri = new Date(cand);
+        pFri.setDate(cand.getDate() + pDiff);
+        if (pFri.toISOString().split('T')[0] === selectedWeekIso) return true;
       }
     }
 
     // Fallback for active/current week if dates are missing or freshly created
     const now = new Date();
     const nowDay = now.getDay();
-    let nowDiff = 4 - nowDay;
+    let nowDiff = 5 - nowDay;
     if (nowDiff < 0) nowDiff += 7;
-    const nowThu = new Date(now);
-    nowThu.setDate(now.getDate() + nowDiff);
-    if (selectedWeekIso === nowThu.toISOString().split('T')[0]) {
+    const nowFri = new Date(now);
+    nowFri.setDate(now.getDate() + nowDiff);
+    if (selectedWeekIso === nowFri.toISOString().split('T')[0]) {
       if (candidateDates.length === 0) return true;
     }
 
@@ -1133,36 +1133,36 @@ export const TeacherPortal = () => {
   }, [location.search]);
 
   // ─── Communication Book Helpers ───────────────────────────────────────────────
-  const getWeekEndingThursday = (): string => {
+  const getWeekEndingFriday = (): string => {
     const today = new Date();
     const day = today.getDay(); // 0=Sun, 1=Mon, ..., 4=Thu, 5=Fri, 6=Sat
-    // Cycle starts on Friday, ends on Thursday.
-    // If today is Fri (5), diff = 6. If Thu (4), diff = 0.
-    let diff = 4 - day;
+    // Cycle ends on Friday (last school day of the week).
+    let diff = 5 - day;
     if (diff < 0) {
       diff += 7;
     }
-    const thursday = new Date(today);
-    thursday.setDate(today.getDate() + diff);
-    const yyyy = thursday.getFullYear();
-    const mm = String(thursday.getMonth() + 1).padStart(2, '0');
-    const dd = String(thursday.getDate()).padStart(2, '0');
+    const friday = new Date(today);
+    friday.setDate(today.getDate() + diff);
+    const yyyy = friday.getFullYear();
+    const mm = String(friday.getMonth() + 1).padStart(2, '0');
+    const dd = String(friday.getDate()).padStart(2, '0');
     return `${yyyy}-${mm}-${dd}`;
   };
+  const getWeekEndingThursday = getWeekEndingFriday;
 
   const getRecentWeekEndings = (): string[] => {
     const list: string[] = [];
     const today = new Date();
     const day = today.getDay();
-    let diff = 4 - day;
+    let diff = 5 - day;
     if (diff < 0) diff += 7;
-    const currentThursday = new Date(today);
-    currentThursday.setDate(today.getDate() + diff);
+    const currentFriday = new Date(today);
+    currentFriday.setDate(today.getDate() + diff);
 
     const offsets = [0, -1, -2, -3, -4, 1];
     for (const i of offsets) {
-      const d = new Date(currentThursday);
-      d.setDate(currentThursday.getDate() - i * 7);
+      const d = new Date(currentFriday);
+      d.setDate(currentFriday.getDate() - i * 7);
       const yyyy = d.getFullYear();
       const mm = String(d.getMonth() + 1).padStart(2, '0');
       const dd = String(d.getDate()).padStart(2, '0');

@@ -58,21 +58,21 @@ export const VPCommunication = () => {
     setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 4000);
   };
 
-  // Generate last 6 Thursdays for the week selector
+  // Generate last 6 Fridays for the week selector
   const getRecentThursdays = () => {
     const list: string[] = [];
     const today = new Date();
     const day = today.getDay();
-    let diff = 4 - day; // 4 is Thursday
+    let diff = 5 - day; // 5 is Friday (Week Ending day in Ethiopian academic calendar)
     if (diff < 0) {
       diff += 7;
     }
-    const currentThursday = new Date(today);
-    currentThursday.setDate(today.getDate() + diff);
+    const currentFriday = new Date(today);
+    currentFriday.setDate(today.getDate() + diff);
 
     for (let i = 0; i < 6; i++) {
-      const d = new Date(currentThursday);
-      d.setDate(currentThursday.getDate() - i * 7);
+      const d = new Date(currentFriday);
+      d.setDate(currentFriday.getDate() - i * 7);
       const yyyy = d.getFullYear();
       const mm = String(d.getMonth() + 1).padStart(2, '0');
       const dd = String(d.getDate()).padStart(2, '0');

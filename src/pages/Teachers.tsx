@@ -330,23 +330,23 @@ export const Teachers = () => {
     const day = d.getDay();
     const diff = d.getDate() - day + (day === 0 ? -6 : 1);
     const monday = new Date(d.setDate(diff));
-    const sunday = new Date(monday);
-    sunday.setDate(monday.getDate() + 6);
-    return { monday, sunday };
+    const friday = new Date(monday);
+    friday.setDate(monday.getDate() + 4);
+    return { monday, friday };
   };
 
   const formatEthWeekRangeStr = (date: Date) => {
-    const { monday, sunday } = getWeekRange(date);
+    const { monday, friday } = getWeekRange(date);
     const ethMon = gregorianToEthiopian(monday);
-    const ethSun = gregorianToEthiopian(sunday);
+    const ethFri = gregorianToEthiopian(friday);
     const monthNames = [
       'Meskerem', 'Tikimt', 'Hidar', 'Tahsas', 'Tir', 'Yekatit',
       'Megabit', 'Miazia', 'Ginbot', 'Sene', 'Hamle', 'Nehase', 'Pagume'
     ];
-    if (ethMon.month === ethSun.month) {
-      return `${ethMon.day} - ${ethSun.day} ${monthNames[ethMon.month - 1]} ${ethMon.year} E.C.`;
+    if (ethMon.month === ethFri.month) {
+      return `${ethMon.day} - ${ethFri.day} ${monthNames[ethMon.month - 1]} ${ethMon.year} E.C.`;
     } else {
-      return `${ethMon.day} ${monthNames[ethMon.month - 1]} - ${ethSun.day} ${monthNames[ethSun.month - 1]} ${ethMon.year === ethSun.year ? `${ethMon.year} E.C.` : `${ethMon.year} / ${ethSun.year} E.C.`}`;
+      return `${ethMon.day} ${monthNames[ethMon.month - 1]} - ${ethFri.day} ${monthNames[ethFri.month - 1]} ${ethMon.year === ethFri.year ? `${ethMon.year} E.C.` : `${ethMon.year} / ${ethFri.year} E.C.`}`;
     }
   };
 
@@ -371,16 +371,16 @@ export const Teachers = () => {
     const list: string[] = [];
     const today = new Date();
     const day = today.getDay();
-    let diff = 4 - day; // 4 is Thursday (Week Ending day in Ethiopian academic calendar)
+    let diff = 5 - day; // 5 is Friday (Week Ending day in Ethiopian academic calendar)
     if (diff < 0) diff += 7;
-    const currentThursday = new Date(today);
-    currentThursday.setDate(today.getDate() + diff);
+    const currentFriday = new Date(today);
+    currentFriday.setDate(today.getDate() + diff);
 
     // [0] = Current Week (top item), [-1..-4] = Upcoming weeks, [1] = Previous Week
     const offsets = [0, -1, -2, -3, -4, 1];
     for (const i of offsets) {
-      const d = new Date(currentThursday);
-      d.setDate(currentThursday.getDate() - i * 7);
+      const d = new Date(currentFriday);
+      d.setDate(currentFriday.getDate() - i * 7);
       const yyyy = d.getFullYear();
       const mm = String(d.getMonth() + 1).padStart(2, '0');
       const dd = String(d.getDate()).padStart(2, '0');
