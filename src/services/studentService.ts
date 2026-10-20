@@ -1,4 +1,5 @@
 import api from './api';
+import { cachedList, clearListCache } from './listCache';
 
 export interface Student {
   id: string;
@@ -54,6 +55,18 @@ export interface UpdateStudentData {
   address?: string;
 }
 
+export interface StudentListFilters {
+  grade?: string;
+  status?: string;
+  graduationYear?: string;
+  section?: string;
+  search?: string;
+}
+export interface StudentPage {
+  data: any[];
+  pagination: { total: number; page: number; pageSize: number; graduationYears: string[] };
+}
+
 export interface StudentFilters {
   classId?: string;
   grade?: string;
@@ -61,7 +74,60 @@ export interface StudentFilters {
   graduationYear?: string;
 }
 
+export interface StudentExportRecord {
+  student: {
+    student_id: string;
+    user_id: string;
+    digital_id: string;
+    name: string;
+    username?: string | null;
+    email?: string | null;
+    branch_name?: string | null;
+    grade?: string | null;
+    section?: string | null;
+    status?: string | null;
+    enrolled_at?: string | null;
+    graduation_year?: string | null;
+    sex?: string | null;
+    age?: string | null;
+    birth_date?: string | null;
+    birth_place?: string | null;
+    region?: string | null;
+    town?: string | null;
+    house_no?: string | null;
+    phone_no?: string | null;
+    po_box?: string | null;
+  };
+  application: Record<string, string | number | boolean | null> | null;
+  parents: Array<{
+    digital_id?: string | null;
+    username?: string | null;
+    name?: string | null;
+    phone?: string | null;
+  }>;
+  admission_match: 'linked' | 'matched' | 'ambiguous' | 'missing';
+}
+
 const studentService = {
+  clearListCache,
+  getStudentsPage: (filters: StudentListFilters, page: number, pageSize: number): Promise<StudentPage> => {
+    const params = { ...filters, page, pageSize };
+    return cachedList(JSON.stringify(params), async () => (await api.get('/school-admin/students', { params })).data);
+  },
+  getMatchingStudentIds: async (filters: StudentListFilters): Promise<string[]> => {
+    const ids: string[] = [];
+    let page = 1;
+    let total = 0;
+    do {
+      const response = await api.get('/school-admin/students', { params: { ...filters, page, pageSize: 100, idsOnly: true } });
+      const result = response.data as StudentPage;
+      if (!result.data.length) break;
+      ids.push(...result.data.map(student => student.student_id));
+      total = result.pagination.total;
+      page += 1;
+    } while (ids.length < total);
+    return [...new Set(ids)];
+  },
   createStudent: async (data: CreateStudentData): Promise<Student> => {
     const response = await api.post('/school-admin/students', data);
     return response.data.data;
@@ -70,6 +136,22 @@ const studentService = {
   getAllStudents: async (filters?: StudentFilters): Promise<Student[]> => {
     const response = await api.get('/school-admin/students', { params: filters });
     return response.data.data;
+  },
+
+  getStudentExportRecords: async (studentIds: string[]): Promise<StudentExportRecord[]> => {
+    const records: StudentExportRecord[] = [];
+    // Send exactly the filtered profile IDs; batching also accommodates large branches.
+    for (let start = 0; start < studentIds.length; start += 500) {
+      const response = await api.post('/school-admin/students/export', {
+        studentIds: studentIds.slice(start, start + 500),
+      });
+      records.push(...response.data.data);
+    }
+    const byId = new Map(records.map(record => [record.student.student_id, record]));
+    if (studentIds.some(id => !byId.has(id))) {
+      throw new Error('Some students are no longer available. Refresh the list and export again.');
+    }
+    return studentIds.map(id => byId.get(id)!);
   },
 
   getStudentById: async (id: string): Promise<Student> => {

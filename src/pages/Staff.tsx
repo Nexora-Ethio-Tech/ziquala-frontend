@@ -1,3 +1,5 @@
+import { usePagedList, useDebouncedValue } from '../hooks/usePagedList';
+import { ListPagination } from '../components/ListPagination';
 import { uiText, uiError } from "../localization";
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Loader2, AlertCircle, UserCheck, UserPlus, ShieldAlert, Users, Building2, X, Edit2, Trash2, Check, Eye, FileText, Phone, Briefcase, User, Download, Upload } from 'lucide-react';
@@ -16,14 +18,23 @@ export const Staff = () => {
   const navigate = useNavigate();
   const { role: currentUserRole, selectedBranch } = useUser();
   const { selectedBranchId } = useStore();
-  const [staffList, setStaffList] = useState<any[]>([]);
   const [managingStaff, setManagingStaff] = useState<any | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [roleFilter, setRoleFilter] = useState('');
+  const [staffSearch, setStaffSearch] = useState('');
+  const staffSearchTerm = useDebouncedValue(staffSearch);
   const [statusFilter, setStatusFilter] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [branches, setBranches] = useState<any[]>([]);
+
+  const staffPaging = usePagedList(currentUserRole === 'super-admin' ? '/super-admin/users' : '/school-admin/users', {
+    staffOnly: true, role: roleFilter, status: statusFilter, search: staffSearchTerm,
+    ...(currentUserRole === 'super-admin' ? { branchId: selectedBranchId } : {}),
+  }, currentUserRole === 'super-admin' && !!selectedBranchId);
+  const { loading, error } = staffPaging;
+  const staffList = staffPaging.data.map((u: any) => ({
+    ...u, digitalId: u.digital_id, branchId: u.branch_id, branchName: u.branch_name || 'All Branches',
+    staffProfile: u.staff_profile || {}, documentFileName: u.document_file_name, createdAt: u.created_at,
+  }));
 
   const initialCreateForm = {
     role: currentUserRole === 'super-admin' ? 'school-admin' : 'vice-principal',
@@ -69,12 +80,8 @@ export const Staff = () => {
   ];
 
   useEffect(() => {
-    const init = async () => {
-      const branchList = await fetchBranches();
-      await fetchUsers(branchList);
-    };
-    init();
-  }, [roleFilter, statusFilter, currentUserRole, selectedBranchId]);
+    if (currentUserRole === 'super-admin' && selectedBranchId) fetchBranches();
+  }, [currentUserRole, selectedBranchId]);
 
   useEffect(() => {
     if (currentUserRole === 'super-admin' && selectedBranchId) {
@@ -135,50 +142,8 @@ export const Staff = () => {
     }
   };
 
-  const fetchUsers = async (branchList?: any[]) => {
-    try {
-      setLoading(true);
-      setError(null);
-      const filters: any = {};
-      if (roleFilter) filters.role = roleFilter;
-      if (statusFilter) filters.status = statusFilter as any;
-      if (currentUserRole === 'super-admin' && selectedBranchId) {
-        filters.branchId = selectedBranchId;
-      }
-      const response = await userService.getAllUsers(filters);
-      const resolvedBranches = branchList || branches;
-
-      const MANAGEABLE_ROLES = currentUserRole === 'super-admin'
-        ? ['super-admin', 'academic-manager', 'school-admin', 'vice-principal', 'storekeeper']
-        : ['academic-manager', 'school-admin', 'vice-principal', 'teacher', 'librarian', 'storekeeper'];
-
-      const transformed = (response.data || [])
-        .filter((u: any) => MANAGEABLE_ROLES.includes(u.role))
-        .map((u: any) => {
-          const branchId = u.branch_id || u.branchId;
-          const matched = resolvedBranches.find((b: any) => b.id === branchId);
-          return {
-            id: u.id,
-            name: u.name,
-            email: u.email,
-            role: u.role,
-            status: u.status,
-            digitalId: u.digital_id || u.digitalId,
-            zkDeviceId: u.zk_device_id || u.zkDeviceId,
-            branchId,
-            branchName: matched?.name || (branchId ? 'Unknown Branch' : 'All Branches'),
-            staffProfile: u.staff_profile || u.staffProfile || {},
-            documentFileName: u.document_file_name || u.documentFileName || null,
-            createdAt: u.created_at || u.createdAt
-          };
-        });
-      setStaffList(transformed);
-    } catch (err: any) {
-      console.error('❌ Error fetching users:', err);
-      setError(uiError(err.response?.data?.error?.message || 'Failed to load users'));
-    } finally {
-      setLoading(false);
-    }
+  const fetchUsers = async (_branchList?: any[]) => {
+    try { await staffPaging.refresh(); } catch {}
   };
 
   const openViewModal = async (staff: any) => {
@@ -266,7 +231,7 @@ export const Staff = () => {
         documentFileName: newDocName,
         document_file_name: newDocName,
       }));
-      setStaffList((prevList) =>
+      staffPaging.updateRows((prevList) =>
         prevList.map((st) =>
           st.id === viewingStaff.id
             ? { ...st, documentFileName: newDocName, document_file_name: newDocName }
@@ -511,6 +476,18 @@ export const Staff = () => {
         </>
       ) : (
         <>
+          <div className="flex flex-wrap gap-3">
+            <input aria-label={uiText('Search staff')} placeholder={uiText('Search staff...')} value={staffSearch} onChange={event => setStaffSearch(event.target.value)} className="rounded-lg border p-2 bg-white dark:bg-slate-900" />
+            <select aria-label={uiText('Filter by role')} value={roleFilter} onChange={event => setRoleFilter(event.target.value)} className="rounded-lg border p-2 bg-white dark:bg-slate-900">
+              <option value="">{uiText('All roles')}</option>
+              {['super-admin', 'academic-manager', 'school-admin', 'vice-principal', 'storekeeper'].map(role => <option key={role} value={role}>{uiText(role)}</option>)}
+            </select>
+            <select aria-label={uiText('Filter by status')} value={statusFilter} onChange={event => setStatusFilter(event.target.value)} className="rounded-lg border p-2 bg-white dark:bg-slate-900">
+              <option value="">{uiText('All statuses')}</option>
+              {['Active', 'Approved', 'Pending', 'Revoked', 'Inactive'].map(status => <option key={status} value={status}>{uiText(status)}</option>)}
+            </select>
+          </div>
+          <ListPagination list={staffPaging} />
           {loading && (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="animate-spin text-blue-600" size={32} />

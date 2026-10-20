@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { clearListCache } from './listCache';
 import { API_BASE_URL } from '../config/api';
 
 const api = axios.create({
@@ -9,6 +10,7 @@ const api = axios.create({
 // Request interceptor - Add auth token
 api.interceptors.request.use(
   (config) => {
+    if (config.method && !['get', 'head', 'options'].includes(config.method)) clearListCache();
     const token = localStorage.getItem('ziquala_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -20,7 +22,10 @@ api.interceptors.request.use(
 
 // Response interceptor - Handle token refresh
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    if (response.config.method && !['get', 'head', 'options'].includes(response.config.method)) clearListCache();
+    return response;
+  },
   async (error) => {
     const originalRequest = error.config;
 

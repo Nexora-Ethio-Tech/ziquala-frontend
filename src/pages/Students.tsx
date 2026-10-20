@@ -1,7 +1,7 @@
 import { uiError, uiText } from "../localization";
 import { useTranslation } from 'react-i18next';
 import { Search, Download, UserPlus, X, Edit2, Trash2, Users, ArrowLeft, CheckCircle2, XCircle, Check, Loader2, GraduationCap, FileText, RefreshCw, UserCog, Link, Link2 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import api from '../services/api';
 import studentService, { type UpdateStudentData } from '../services/studentService';
@@ -11,6 +11,9 @@ import { useUser } from '../context/UserContext';
 import { StudentRegistration } from '../components/StudentRegistration';
 import * as sectionService from '../services/sectionService';
 import { exportToExcel } from '../utils/exportUtils';
+import { buildStudentsExportSheet, getStudentExportGroups } from '../utils/studentExport';
+import { StudentExportDialog } from '../components/StudentExportDialog';
+import { renderStudentPrintPreview } from '../utils/studentPrint';
 import { getCurrentECYear } from '../utils/ethiopianCalendar';
 
 export const Students = () => {
@@ -57,10 +60,21 @@ export const Students = () => {
   };
 
   const [students, setStudents] = useState<any[]>([]);
+  const [page, setPage] = useState(() => (() => { const value = Number(searchParams.get('page')); return Number.isSafeInteger(value) && value > 0 ? value : 1; })());
+  const [pageSize, setPageSize] = useState(50);
+  const [totalStudents, setTotalStudents] = useState(0);
+  const [availableGraduationYears, setAvailableGraduationYears] = useState<string[]>([]);
+  const [debouncedSearch, setDebouncedSearch] = useState(() => searchParams.get('q') || '');
+  const requestSequence = useRef(0);
   const [classes, setClasses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [exportRequest, setExportRequest] = useState<{ studentIds: string[]; filters: string } | null>(null);
+  const [exportAction, setExportAction] = useState<'export' | 'print' | null>(null);
+  const [exportError, setExportError] = useState<string | null>(null);
+  const exportRunning = useRef(false);
+  const exporting = exportAction !== null;
   const [search, setSearch] = useState(() => searchParams.get('q') || '');
   const [filterGrade, setFilterGrade] = useState(() => searchParams.get('grade') || '');
   const [filterSection, setFilterSection] = useState(() => searchParams.get('section') || '');
@@ -210,7 +224,7 @@ export const Students = () => {
   const handleUpdateStatus = async (studentUserId: string, newStatus: string) => {
     try {
       await studentService.updateStudent(studentUserId, { status: newStatus as any });
-      setStudents(prev => prev.map(s => s.userId === studentUserId ? { ...s, status: newStatus } : s));
+      fetchStudents();
       showToast(uiText("Status updated to {{value0}} successfully!", { value0: uiText(newStatus) }), 'success');
     } catch (err: any) {
       showToast(uiText(getErrorMessage(err, 'Failed to update student status')), 'error');
@@ -235,6 +249,7 @@ export const Students = () => {
     if (filterSection) params.set('section', filterSection);
     if (filterStatus) params.set('status', filterStatus);
     if (filterGraduationYear) params.set('gradYear', filterGraduationYear);
+    if (page > 1) params.set('page', String(page));
     if (activeView !== 'students') params.set('view', activeView);
     const qs = params.toString();
     return `/students${qs ? `?${qs}` : ''}`;
@@ -251,9 +266,10 @@ export const Students = () => {
     if (filterSection) next.set('section', filterSection);
     if (filterStatus) next.set('status', filterStatus);
     if (filterGraduationYear) next.set('gradYear', filterGraduationYear);
+    if (page > 1) next.set('page', String(page));
     if (activeView !== 'students') next.set('view', activeView);
     setSearchParams(next, { replace: true });
-  }, [search, filterGrade, filterSection, filterStatus, filterGraduationYear, activeView, setSearchParams]);
+  }, [search, filterGrade, filterSection, filterStatus, filterGraduationYear, activeView, page, setSearchParams]);
 
   const toggleStudentSelection = (studentId: string) => {
     const newSelected = new Set(selectedStudentIds);
@@ -500,20 +516,39 @@ export const Students = () => {
     }
   };
 
-  useEffect(() => { fetchStudents(); }, [filterStatus]);
+  useEffect(() => {
+    const timer = window.setTimeout(() => setDebouncedSearch(search), 300);
+    return () => window.clearTimeout(timer);
+  }, [search]);
+  const listFilters = { search: debouncedSearch, grade: filterGrade, section: filterSection, status: filterStatus, graduationYear: filterGraduationYear };
+  const filterKey = JSON.stringify(listFilters);
+  const previousFilterKey = useRef(filterKey);
+  useEffect(() => {
+    if (previousFilterKey.current !== filterKey) {
+      previousFilterKey.current = filterKey;
+      setSelectedStudentIds(new Set());
+      if (page !== 1) { setPage(1); return; }
+    }
+    setSelectedStudentIds(new Set());
+    fetchStudents(false);
+    return () => { requestSequence.current += 1; };
+  }, [filterKey, page, pageSize, activeView]);
   useEffect(() => { fetchClasses(); }, []);
 
-  const fetchStudents = async () => {
+  const fetchStudents = async (force = true) => {
+    const sequence = ++requestSequence.current;
+    if (force) studentService.clearListCache();
     try {
       setLoading(true);
       setError(null);
 
-      // Use the new /school-admin/students endpoint that includes class info
-      const response = await studentService.getAllStudents({
-        status: filterStatus || undefined
-      });
-
-      const data = response || [];
+      const response = await studentService.getStudentsPage(listFilters, page, pageSize);
+      if (sequence !== requestSequence.current) return;
+      setTotalStudents(response.pagination.total);
+      setAvailableGraduationYears(response.pagination.graduationYears);
+      const lastPage = Math.max(1, Math.ceil(response.pagination.total / pageSize));
+      if (page > lastPage) { setPage(lastPage); return; }
+      const data = response.data;
       const transformed = data.map((s: any) => ({
         id: s.student_id || s.id,
         userId: s.user_id || s.userId,
@@ -526,6 +561,7 @@ export const Students = () => {
         className: s.class_name || s.className,
         section: s.class_section || s.section,
         status: s.status,
+        graduationYear: s.graduation_year || s.graduationYear || null,
         parentUserId: s.parent_user_id || s.parentUserId || null,
         parentName: s.parent_name || s.parentName || null,
         parentPhone: s.parent_phone || s.parentPhone || null,
@@ -533,9 +569,13 @@ export const Students = () => {
 
       setStudents(transformed);
     } catch (err: any) {
-      setError(uiError(err.response?.data?.error?.message || 'Failed to fetch students'));
+      if (sequence === requestSequence.current) {
+        setStudents([]);
+        setTotalStudents(0);
+        setError(uiError(err.response?.data?.error?.message || 'Failed to fetch students'));
+      }
     } finally {
-      setLoading(false);
+      if (sequence === requestSequence.current) setLoading(false);
     }
   };
 
@@ -709,52 +749,90 @@ export const Students = () => {
     setShowEditModal(true);
   };
 
-  const handleExport = () => {
-    if (filtered.length === 0) {
+  const handleExport = async () => {
+    if (exporting || loading || search !== debouncedSearch) return;
+    if (totalStudents === 0) {
       showToast(uiText("No students to export for the current filters"), 'error');
       return;
     }
 
-    const rows = filtered.map((s) => ({
-      Student: `${s.firstName} ${s.lastName}`.trim(),
-      'Digital ID': s.digitalId || '',
-      Section: formatSectionDisplay(s.section),
-      Grade: formatGradeDisplay(s.grade),
-      Status: s.status || '',
-    }));
+    const snapshotFilters = { ...listFilters };
+    const filters = [
+      `${uiText('Search')}: ${search || uiText('All')}`,
+      `${uiText('Grade')}: ${filterGrade ? formatGradeDisplay(filterGrade) : uiText('All')}`,
+      `${uiText('Section')}: ${filterSection ? formatSectionDisplay(filterSection) : uiText('All')}`,
+      `${uiText('Status')}: ${filterStatus === 'ALL' ? uiText('All') : filterStatus || uiText('All except Graduated')}`,
+      `${uiText('Graduation Year (E.C.)')}: ${filterGraduationYear || uiText('All')}`,
+    ].join(' | ');
 
-    exportToExcel([{ name: 'Students', rows }], 'students');
+    setExportError(null);
+    exportRunning.current = true;
+    setExportAction('export');
+    try {
+      const studentIds = await studentService.getMatchingStudentIds(snapshotFilters);
+      setExportRequest({ studentIds, filters });
+    } catch (err: any) {
+      showToast(uiError(err.message || 'Failed to fetch students'), 'error');
+    } finally {
+      exportRunning.current = false;
+      setExportAction(null);
+    }
   };
 
-  const availableGraduationYears = Array.from(
-    new Set(students.map(s => s.graduationYear || s.graduation_year).filter(Boolean))
-  ).sort().reverse() as string[];
-
-  const filtered = students.filter(s => {
-    const matchSearch = !search || `${s.firstName} ${s.lastName} ${s.email} ${s.digitalId}`.toLowerCase().includes(search.toLowerCase());
-    const studentGradeNumber = getGradeNumber(s.grade);
-    const studentSectionNumber = getSectionNumber(s.section);
-    const matchGrade = !filterGrade || studentGradeNumber === filterGrade;
-    const matchSection = !filterSection || studentSectionNumber === filterSection;
-
-    let matchStatus = true;
-    if (filterStatus === 'ALL') {
-      matchStatus = true;
-    } else if (filterStatus) {
-      matchStatus = (s.status || '').toLowerCase() === filterStatus.toLowerCase();
-    } else {
-      // Default view when status filter is not set: hide Graduated students so active & graduated don't mix on the same page
-      matchStatus = (s.status || '').toLowerCase() !== 'graduated';
+  const handleStudentOutput = async (action: 'export' | 'print', selectedColumnKeys: string[]) => {
+    if (exportRunning.current || !exportRequest || selectedColumnKeys.length === 0) return;
+    const { studentIds, filters } = exportRequest;
+    exportRunning.current = true;
+    setExportAction(action);
+    setExportError(null);
+    let printWindow: Window | null = null;
+    try {
+      if (action === 'print') {
+        // Open during the tap/click so mobile browsers do not block an async popup.
+        printWindow = window.open('', '_blank');
+        if (!printWindow) throw new Error('Allow pop-ups to open the print preview, then try again.');
+        printWindow.opener = null;
+        printWindow.document.title = uiText('Print preview');
+        printWindow.document.body.textContent = uiText('Preparing print preview...');
+        printWindow.document.body.style.cssText = 'font:16px system-ui;padding:32px;color:#334155;background:#f8fafc';
+      }
+      const records = await studentService.getStudentExportRecords(studentIds);
+      const sheet = buildStudentsExportSheet(records, {
+        branchName: user?.branchName, filters, origin: window.location.origin, selectedColumnKeys,
+      });
+      if (action === 'print') {
+        if (!printWindow || printWindow.closed) throw new Error('The print preview was closed. Click Print to open it again.');
+        renderStudentPrintPreview(printWindow, sheet);
+      } else {
+        exportToExcel([sheet], 'students');
+        setExportRequest(null);
+        showToast(uiText('Exported {{value0}} students', { value0: records.length }), 'success');
+      }
+    } catch (err: any) {
+      if (printWindow && !printWindow.closed) printWindow.close();
+      setExportError(uiError(err.response?.data?.error?.message || err.message ||
+        (action === 'print' ? 'Failed to prepare the print preview.' : 'Failed to export students')));
+    } finally {
+      exportRunning.current = false;
+      setExportAction(null);
     }
+  };
 
-    const studentGradYear = s.graduationYear || s.graduation_year;
-    const matchGradYear = !filterGraduationYear || studentGradYear === filterGraduationYear;
-
-    return matchSearch && matchGrade && matchSection && matchStatus && matchGradYear;
-  });
+  const filtered = students;
 
   return (
     <div className="space-y-6 pb-12">
+      {exportRequest && (
+        <StudentExportDialog
+          groups={getStudentExportGroups()}
+          studentCount={exportRequest.studentIds.length}
+          filters={exportRequest.filters}
+          busyAction={exportAction}
+          error={exportError}
+          onClose={() => { if (!exportRunning.current) setExportRequest(null); }}
+          onAction={handleStudentOutput}
+        />
+      )}
       <button
         type="button"
         onClick={() => navigate(-1)}
@@ -821,10 +899,12 @@ export const Students = () => {
           <button
             type="button"
             onClick={handleExport}
-            className="px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg flex items-center gap-2 text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-800"
+            disabled={exporting || loading || search !== debouncedSearch}
+            title={uiText('Export the filtered students with their admission details')}
+            className="px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg flex items-center gap-2 text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-wait"
           >
-            <Download size={18} />
-            {t('students.export')}
+            {exporting ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
+            {exporting ? uiText('Exporting...') : t('students.export')}
           </button>
         </div>
       </div>
@@ -924,7 +1004,7 @@ export const Students = () => {
         <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 p-6 md:p-8">
           <StudentRegistration
             isAdminView={false}
-            onCreated={() => setActiveView('students')}
+            onCreated={() => { studentService.clearListCache(); setActiveView('students'); }}
           />
         </div>
       ) : (
@@ -991,7 +1071,7 @@ export const Students = () => {
                           onChange={selectAllFiltered}
                           className="rounded cursor-pointer"
                           title={uiText("Select all visible students")}
-                          aria-label={uiText("Select all students")}
+                          aria-label={uiText("Select all students on this page")}
                         />
                       </th>
                     )}
@@ -1193,6 +1273,20 @@ export const Students = () => {
                   )}
                 </tbody>
               </table>
+              </div>
+              <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 dark:border-slate-800 px-6 py-4 text-sm">
+                <span aria-live="polite">{uiText('Showing {{value0}}–{{value1}} of {{value2}} students', { value0: totalStudents ? (page - 1) * pageSize + 1 : 0, value1: Math.min(page * pageSize, totalStudents), value2: totalStudents })}</span>
+                <div className="flex items-center gap-3">
+                  <label>{uiText('Rows per page')}{' '}
+                    <select value={pageSize} onChange={event => { setPageSize(Number(event.target.value)); setPage(1); }} className="rounded border p-1 bg-white dark:bg-slate-900">
+                      {[25, 50, 100].map(size => <option key={size} value={size}>{size}</option>)}
+                    </select>
+                  </label>
+                  <button type="button" disabled={page <= 1} onClick={() => setPage(page - 1)} className="rounded border px-3 py-1 disabled:opacity-40">{uiText('Previous')}</button>
+                  <span>{page} / {Math.max(1, Math.ceil(totalStudents / pageSize))}</span>
+                  <button type="button" disabled={page * pageSize >= totalStudents} onClick={() => setPage(page + 1)} className="rounded border px-3 py-1 disabled:opacity-40">{uiText('Next')}</button>
+                  <button type="button" onClick={() => fetchStudents()} className="rounded border px-3 py-1">{uiText('Refresh')}</button>
+                </div>
               </div>
             </div>
           )}

@@ -1,3 +1,5 @@
+import { usePagedList, useDebouncedValue } from '../hooks/usePagedList';
+import { ListPagination } from '../components/ListPagination';
 import { uiText, uiError, localizeHtml } from "../localization";
 import { useTranslation } from 'react-i18next';
 import { UserPlus, X, Check, ArrowLeft, MoreVertical, CheckCircle, XCircle, Trash2, Printer, Clock, Eye, Edit2, Loader2, FileText, Download, Upload } from 'lucide-react';
@@ -17,9 +19,14 @@ export const LibrarianStaff = () => {
   const { role } = useUser();
   const isAdmin = role === 'school-admin' || role === 'super-admin' || role === 'academic-manager';
 
-  const [librarianStaff, setLibrarianStaff] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [staffSearch, setStaffSearch] = useState('');
+  const searchTerm = useDebouncedValue(staffSearch);
+  const librarianPaging = usePagedList('/school-admin/users', { role: 'librarian', search: searchTerm }, isAdmin);
+  const { loading, error } = librarianPaging;
+  const librarianStaff = librarianPaging.data.map((person: any) => ({ ...person,
+    digitalId: person.digital_id, userId: person.user_id || person.id, branchId: person.branch_id,
+    createdAt: person.created_at, staffProfile: person.staff_profile,
+  }));
   const [showAddModal, setShowAddModal] = useState(false);
   const [creating, setCreating] = useState(false);
   const [successModal, setSuccessModal] = useState<{ show: boolean; data: any }>({ show: false, data: null });
@@ -51,40 +58,8 @@ export const LibrarianStaff = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
 
-  useEffect(() => {
-    fetchLibrarianStaff();
-  }, []);
-
   const fetchLibrarianStaff = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const response = await getBranchUsers('librarian', '');
-
-      const staff = (response.data || []).map((person: any) => ({
-        id: person.id,
-        name: person.name,
-        email: person.email,
-        digitalId: person.digital_id || person.digitalId,
-        zkDeviceId: person.zk_device_id || person.zkDeviceId,
-        status: person.status,
-        userId: person.user_id || person.id,
-        branchId: person.branch_id,
-        createdAt: person.created_at,
-        staffProfile: person.staff_profile,
-        document_file_name: person.document_file_name,
-        document_file_size: person.document_file_size,
-        document_mime_type: person.document_mime_type,
-      }));
-      setLibrarianStaff(staff);
-      return staff;
-    } catch (err: any) {
-      console.error('Failed to fetch librarian staff:', err);
-      setError(uiError(err.response?.data?.error?.message || 'Failed to load librarian staff'));
-    } finally {
-      setLoading(false);
-    }
+    try { return (await librarianPaging.refresh()).data.map((person: any) => ({ ...person, userId: person.user_id || person.id, digitalId: person.digital_id, staffProfile: person.staff_profile })); } catch { return []; }
   };
 
   const handleAction = async () => {
@@ -320,6 +295,8 @@ export const LibrarianStaff = () => {
 
   return (
     <div className="p-4 sm:p-6 md:p-8 space-y-6">
+      <input aria-label={uiText('Search librarians')} placeholder={uiText('Search librarians...')} value={staffSearch} onChange={event => setStaffSearch(event.target.value)} className="w-full rounded-lg border p-2 bg-white dark:bg-slate-900" />
+      <ListPagination list={librarianPaging} />
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">

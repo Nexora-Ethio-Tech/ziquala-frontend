@@ -10,6 +10,7 @@ import {
   GraduationCap,
   Clock,
   Download,
+  Printer,
   Upload,
   X,
   Users,
@@ -34,7 +35,6 @@ import {
   type StudentAdmissionRecord
 } from '../services/schoolAdminService';
 import { useUser } from '../context/UserContext';
-import { EthiopianDatePicker } from '../components/EthiopianDatePicker';
 
 const displayValue = (value?: string | number | null) => {
   if (value === null || value === undefined || String(value).trim() === '') return '—';
@@ -43,6 +43,7 @@ const displayValue = (value?: string | number | null) => {
 
 const formatDate = (value?: string | null) => {
   if (!value) return '—';
+  if (Number.isNaN(Date.parse(value))) return value;
   const formatted = formatEthiopianLabel(value);
   return formatted || value;
 };
@@ -57,6 +58,8 @@ export const StudentRecordPage = () => {
   const isSchoolAdmin = role === 'school-admin';
   const canEdit = role === 'school-admin' || role === 'super-admin';
   const { studentId } = useParams<{ studentId: string }>();
+  const currentStudentIdRef = useRef(studentId);
+  currentStudentIdRef.current = studentId;
   const navigate = useNavigate();
   const location = useLocation();
   const returnTo =
@@ -65,38 +68,6 @@ export const StudentRecordPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [record, setRecord] = useState<StudentAdmissionRecord | null>(null);
-
-  // Edit record state
-  const [isEditing, setIsEditing] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [saveSuccess, setSaveSuccess] = useState(false);
-  const [saveError, setSaveError] = useState<string | null>(null);
-
-  const [formData, setFormData] = useState({
-    name: '',
-    dob: '',
-    ethDob: '',
-    gender: '',
-    place_of_birth: '',
-    religion: '',
-    date_registered: '',
-    ethDateRegistered: '',
-    father_name: '',
-    father_occupation: '',
-    father_phone: '',
-    mother_name: '',
-    mother_occupation: '',
-    mother_phone: '',
-    address: '',
-    applicant_phone: '',
-    grade_applying: '',
-    last_grade_completed: '',
-    previous_school: '',
-    blood_group: '',
-    allergies: '',
-    chronic_conditions: '',
-    medications: ''
-  });
 
   const [viewingDoc, setViewingDoc] = useState<{ applicationId: string; fileName: string; hasFile?: boolean } | null>(null);
   const [docUrl, setDocUrl] = useState<string | null>(null);
@@ -146,7 +117,9 @@ export const StudentRecordPage = () => {
       // Refresh admission record and automatically preview
       if (studentId) {
         const res = await getStudentAdmissionRecord(studentId);
+        if (currentStudentIdRef.current !== studentId) return;
         setRecord(res);
+        setRecordStudentId(studentId);
         const updatedDoc = res.documents.find((d) => d.applicationId === replacingDocId || d.id.includes(replacingDocId));
         setViewingDoc({
           applicationId: replacingDocId,
@@ -169,9 +142,17 @@ export const StudentRecordPage = () => {
       if (!studentId) return;
       setLoading(true);
       setError(null);
+      setRecord(null);
+      setRecordStudentId(null);
+      setOutputError(null);
+      setDownloadStudentId(null);
+      setOutputAction(null);
       try {
         const res = await getStudentAdmissionRecord(studentId);
-        if (!cancelled) setRecord(res);
+        if (!cancelled) {
+          setRecord(res);
+          setRecordStudentId(studentId);
+        }
       } catch (err: any) {
         if (!cancelled) {
           setError(
@@ -188,6 +169,8 @@ export const StudentRecordPage = () => {
     load();
     return () => {
       cancelled = true;
+      outputControllerRef.current?.abort();
+      outputControllerRef.current = null;
     };
   }, [studentId]);
 
@@ -222,8 +205,8 @@ export const StudentRecordPage = () => {
       } catch (err: any) {
         setDocError(
           err.response?.data?.message ||
-            err.message ||
-            'No transcript document uploaded for this record yet.'
+          err.message ||
+          'No transcript document uploaded for this record yet.'
         );
       } finally {
         setDocLoading(false);
@@ -250,127 +233,6 @@ export const StudentRecordPage = () => {
       ? 'Enrolled / Active'
       : displayValue(app?.status).replace(/-/g, ' ');
 
-  const handleStartEdit = () => {
-    const sName = student?.name || app?.name || '';
-    const rawDob = app?.dob ? String(app.dob).split('T')[0] : '';
-    let initialEthDob = '';
-    if (rawDob) {
-      try {
-        const d = new Date(rawDob);
-        if (!isNaN(d.getTime())) {
-          const eth = gregorianToEthiopian(d);
-          initialEthDob = `${eth.year}-${String(eth.month).padStart(2, '0')}-${String(eth.day).padStart(2, '0')}`;
-        }
-      } catch {}
-    }
-
-    const rawRegDate = app?.date_registered || (app?.created_at ? String(app.created_at).split('T')[0] : '');
-    let initialEthReg = '';
-    if (rawRegDate) {
-      try {
-        const d = new Date(rawRegDate);
-        if (!isNaN(d.getTime())) {
-          const eth = gregorianToEthiopian(d);
-          initialEthReg = `${eth.year}-${String(eth.month).padStart(2, '0')}-${String(eth.day).padStart(2, '0')}`;
-        }
-      } catch {}
-    }
-
-    setFormData({
-      name: sName,
-      dob: rawDob,
-      ethDob: initialEthDob,
-      gender: app?.gender || '',
-      place_of_birth: app?.place_of_birth || '',
-      religion: app?.religion || '',
-      date_registered: rawRegDate,
-      ethDateRegistered: initialEthReg,
-      father_name: app?.father_name || app?.parent_name || student?.parent_name || '',
-      father_occupation: app?.father_occupation || '',
-      father_phone: app?.father_phone || app?.parent_phone || student?.parent_phone || '',
-      mother_name: app?.mother_name || '',
-      mother_occupation: app?.mother_occupation || '',
-      mother_phone: app?.mother_phone || '',
-      address: app?.address || '',
-      applicant_phone: app?.applicant_phone || app?.phone || '',
-      grade_applying: app?.grade_applying || app?.grade || student?.grade || '',
-      last_grade_completed: app?.last_grade_completed || '',
-      previous_school: app?.previous_school || '',
-      blood_group: app?.blood_group || '',
-      allergies: app?.allergies || '',
-      chronic_conditions: app?.chronic_conditions || '',
-      medications: app?.medications || ''
-    });
-    setSaveError(null);
-    setIsEditing(true);
-  };
-
-  const handleCancelEdit = () => {
-    setIsEditing(false);
-    setSaveError(null);
-  };
-
-  const handleSaveRecord = async () => {
-    if (!studentId) return;
-    setSaving(true);
-    setSaveError(null);
-    try {
-      let finalDob = formData.dob;
-      if (formData.ethDob) {
-        const converted = ethiopianToGregorianIso(formData.ethDob);
-        if (converted) finalDob = converted;
-      }
-
-      let finalRegDate = formData.date_registered;
-      if (formData.ethDateRegistered) {
-        const converted = ethiopianToGregorianIso(formData.ethDateRegistered);
-        if (converted) finalRegDate = converted;
-      }
-
-      const payload = {
-        name: formData.name,
-        dob: finalDob || null,
-        gender: formData.gender || null,
-        place_of_birth: formData.place_of_birth || null,
-        religion: formData.religion || null,
-        date_registered: finalRegDate || null,
-        father_name: formData.father_name || null,
-        father_occupation: formData.father_occupation || null,
-        father_phone: formData.father_phone || null,
-        mother_name: formData.mother_name || null,
-        mother_occupation: formData.mother_occupation || null,
-        mother_phone: formData.mother_phone || null,
-        address: formData.address || null,
-        applicant_phone: formData.applicant_phone || null,
-        parent_phone: formData.father_phone || null,
-        parent_name: formData.father_name || null,
-        grade_applying: formData.grade_applying || null,
-        last_grade_completed: formData.last_grade_completed || null,
-        previous_school: formData.previous_school || null,
-        blood_group: formData.blood_group || null,
-        allergies: formData.allergies || null,
-        chronic_conditions: formData.chronic_conditions || null,
-        medications: formData.medications || null
-      };
-
-      const res = await updateStudentAdmissionRecord(studentId, payload);
-      setRecord(res);
-      setIsEditing(false);
-      setSaveSuccess(true);
-      setTimeout(() => setSaveSuccess(false), 3500);
-    } catch (err: any) {
-      setSaveError(
-        uiError(
-          err.response?.data?.message ||
-            err.message ||
-            'Failed to update student admission record'
-        )
-      );
-    } finally {
-      setSaving(false);
-    }
-  };
-
   return (
     <div className="space-y-6 pb-12">
       <button
@@ -380,61 +242,10 @@ export const StudentRecordPage = () => {
       >
         <ArrowLeft size={14} />{uiText("Back")}</button>
 
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{uiText("Student Admission Record")}</h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">{uiText("Complete admission details filled during student registration")}</p>
-        </div>
-        {canEdit && !loading && !error && (
-          <div className="flex items-center gap-3 shrink-0">
-            {isEditing ? (
-              <>
-                <button
-                  type="button"
-                  disabled={saving}
-                  onClick={handleCancelEdit}
-                  className="px-4 py-2 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
-                >
-                  <X size={15} />
-                  {uiText("Cancel")}
-                </button>
-                <button
-                  type="button"
-                  disabled={saving}
-                  onClick={handleSaveRecord}
-                  className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-2 shadow-lg shadow-emerald-500/20 cursor-pointer disabled:opacity-50"
-                >
-                  {saving ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />}
-                  {saving ? uiText("Saving...") : uiText("Save Changes")}
-                </button>
-              </>
-            ) : (
-              <button
-                type="button"
-                onClick={handleStartEdit}
-                className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-2 shadow-lg shadow-blue-500/20 cursor-pointer"
-              >
-                <Edit2 size={15} />
-                {uiText("Edit Record")}
-              </button>
-            )}
-          </div>
-        )}
+      <div>
+        <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{uiText("Student Admission Record")}</h1>
+        <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">{uiText("Complete admission details filled during student registration")}</p>
       </div>
-
-      {saveSuccess && (
-        <div className="p-4 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl flex items-center gap-3 text-emerald-800 dark:text-emerald-200 text-xs font-bold animate-in fade-in duration-300">
-          <CheckCircle2 size={18} className="text-emerald-600 shrink-0" />
-          <span>{uiText("Student admission record updated successfully!")}</span>
-        </div>
-      )}
-
-      {saveError && (
-        <div className="p-4 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-xl flex items-center gap-3 text-rose-800 dark:text-rose-200 text-xs font-bold animate-in fade-in duration-300">
-          <AlertCircle size={18} className="text-rose-600 shrink-0" />
-          <span>{uiError(saveError)}</span>
-        </div>
-      )}
 
       {loading ? (
         <div className="flex items-center justify-center h-64">
@@ -930,7 +741,7 @@ export const StudentRecordPage = () => {
             )}
 
             {/* 6. Exam Info if present */}
-            {uiText((app?.exam_date || app?.exam_location) && (
+            {uiText((app?.exam_date || app?.exam_time || app?.exam_location || app?.exam_subjects || app?.exam_notes) && (
               <div className="p-4 bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-800/30 rounded-xl">
                 <p className="text-[10px] font-black text-amber-600 uppercase tracking-widest mb-2 flex items-center gap-2">
                   <Clock size={12} />{uiText(" Placement Exam Information")}</p>
@@ -962,7 +773,7 @@ export const StudentRecordPage = () => {
             ))}
 
             {/* 7. Finance & Registration completion if present */}
-            {uiText((app?.finance_status || app?.registration_completed_at) && (
+            {uiText((app?.finance_status || app?.registration_completed_at || app?.payment_amount != null || app?.payment_reference) && (
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs pt-4 border-t border-slate-100 dark:border-slate-800">
                 <div>
                   <p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Finance Status")}</p>
