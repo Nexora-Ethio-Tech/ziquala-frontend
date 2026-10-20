@@ -20,12 +20,21 @@ import {
   PhoneCall,
   ExternalLink,
   Copy,
-  Check
+  Check,
+  Edit2,
+  Save,
+  CheckCircle2,
+  AlertCircle
 } from 'lucide-react';
-import { formatEthiopianLabel } from '../utils/ethiopianCalendar';
+import { formatEthiopianLabel, gregorianToEthiopian, ethiopianToGregorianIso } from '../utils/ethiopianCalendar';
 import api from '../services/api';
-import { getStudentAdmissionRecord, type StudentAdmissionRecord } from '../services/schoolAdminService';
+import {
+  getStudentAdmissionRecord,
+  updateStudentAdmissionRecord,
+  type StudentAdmissionRecord
+} from '../services/schoolAdminService';
 import { useUser } from '../context/UserContext';
+import { EthiopianDatePicker } from '../components/EthiopianDatePicker';
 
 const displayValue = (value?: string | number | null) => {
   if (value === null || value === undefined || String(value).trim() === '') return '—';
@@ -38,9 +47,15 @@ const formatDate = (value?: string | null) => {
   return formatted || value;
 };
 
+const inputClass =
+  'w-full mt-1 px-3 py-1.5 text-xs font-semibold bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-800 dark:text-slate-100 transition-all';
+const selectClass =
+  'w-full mt-1 px-3 py-1.5 text-xs font-semibold bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-800 dark:text-slate-100 transition-all cursor-pointer';
+
 export const StudentRecordPage = () => {
   const { role } = useUser();
   const isSchoolAdmin = role === 'school-admin';
+  const canEdit = role === 'school-admin' || role === 'super-admin';
   const { studentId } = useParams<{ studentId: string }>();
   const navigate = useNavigate();
   const location = useLocation();
@@ -50,6 +65,38 @@ export const StudentRecordPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [record, setRecord] = useState<StudentAdmissionRecord | null>(null);
+
+  // Edit record state
+  const [isEditing, setIsEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  const [formData, setFormData] = useState({
+    name: '',
+    dob: '',
+    ethDob: '',
+    gender: '',
+    place_of_birth: '',
+    religion: '',
+    date_registered: '',
+    ethDateRegistered: '',
+    father_name: '',
+    father_occupation: '',
+    father_phone: '',
+    mother_name: '',
+    mother_occupation: '',
+    mother_phone: '',
+    address: '',
+    applicant_phone: '',
+    grade_applying: '',
+    last_grade_completed: '',
+    previous_school: '',
+    blood_group: '',
+    allergies: '',
+    chronic_conditions: '',
+    medications: ''
+  });
 
   const [viewingDoc, setViewingDoc] = useState<{ applicationId: string; fileName: string; hasFile?: boolean } | null>(null);
   const [docUrl, setDocUrl] = useState<string | null>(null);
@@ -86,12 +133,12 @@ export const StudentRecordPage = () => {
       return;
     }
 
-    const formData = new FormData();
-    formData.append('transcript', file);
+    const formDataUpload = new FormData();
+    formDataUpload.append('transcript', file);
 
     try {
       setUploading(true);
-      await api.post(`/school-admin/applications/${replacingDocId}/transcript/replace`, formData, {
+      await api.post(`/school-admin/applications/${replacingDocId}/transcript/replace`, formDataUpload, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       alert(uiText("Transcript uploaded successfully"));
@@ -203,6 +250,127 @@ export const StudentRecordPage = () => {
       ? 'Enrolled / Active'
       : displayValue(app?.status).replace(/-/g, ' ');
 
+  const handleStartEdit = () => {
+    const sName = student?.name || app?.name || '';
+    const rawDob = app?.dob ? String(app.dob).split('T')[0] : '';
+    let initialEthDob = '';
+    if (rawDob) {
+      try {
+        const d = new Date(rawDob);
+        if (!isNaN(d.getTime())) {
+          const eth = gregorianToEthiopian(d);
+          initialEthDob = `${eth.year}-${String(eth.month).padStart(2, '0')}-${String(eth.day).padStart(2, '0')}`;
+        }
+      } catch {}
+    }
+
+    const rawRegDate = app?.date_registered || (app?.created_at ? String(app.created_at).split('T')[0] : '');
+    let initialEthReg = '';
+    if (rawRegDate) {
+      try {
+        const d = new Date(rawRegDate);
+        if (!isNaN(d.getTime())) {
+          const eth = gregorianToEthiopian(d);
+          initialEthReg = `${eth.year}-${String(eth.month).padStart(2, '0')}-${String(eth.day).padStart(2, '0')}`;
+        }
+      } catch {}
+    }
+
+    setFormData({
+      name: sName,
+      dob: rawDob,
+      ethDob: initialEthDob,
+      gender: app?.gender || '',
+      place_of_birth: app?.place_of_birth || '',
+      religion: app?.religion || '',
+      date_registered: rawRegDate,
+      ethDateRegistered: initialEthReg,
+      father_name: app?.father_name || app?.parent_name || student?.parent_name || '',
+      father_occupation: app?.father_occupation || '',
+      father_phone: app?.father_phone || app?.parent_phone || student?.parent_phone || '',
+      mother_name: app?.mother_name || '',
+      mother_occupation: app?.mother_occupation || '',
+      mother_phone: app?.mother_phone || '',
+      address: app?.address || '',
+      applicant_phone: app?.applicant_phone || app?.phone || '',
+      grade_applying: app?.grade_applying || app?.grade || student?.grade || '',
+      last_grade_completed: app?.last_grade_completed || '',
+      previous_school: app?.previous_school || '',
+      blood_group: app?.blood_group || '',
+      allergies: app?.allergies || '',
+      chronic_conditions: app?.chronic_conditions || '',
+      medications: app?.medications || ''
+    });
+    setSaveError(null);
+    setIsEditing(true);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setSaveError(null);
+  };
+
+  const handleSaveRecord = async () => {
+    if (!studentId) return;
+    setSaving(true);
+    setSaveError(null);
+    try {
+      let finalDob = formData.dob;
+      if (formData.ethDob) {
+        const converted = ethiopianToGregorianIso(formData.ethDob);
+        if (converted) finalDob = converted;
+      }
+
+      let finalRegDate = formData.date_registered;
+      if (formData.ethDateRegistered) {
+        const converted = ethiopianToGregorianIso(formData.ethDateRegistered);
+        if (converted) finalRegDate = converted;
+      }
+
+      const payload = {
+        name: formData.name,
+        dob: finalDob || null,
+        gender: formData.gender || null,
+        place_of_birth: formData.place_of_birth || null,
+        religion: formData.religion || null,
+        date_registered: finalRegDate || null,
+        father_name: formData.father_name || null,
+        father_occupation: formData.father_occupation || null,
+        father_phone: formData.father_phone || null,
+        mother_name: formData.mother_name || null,
+        mother_occupation: formData.mother_occupation || null,
+        mother_phone: formData.mother_phone || null,
+        address: formData.address || null,
+        applicant_phone: formData.applicant_phone || null,
+        parent_phone: formData.father_phone || null,
+        parent_name: formData.father_name || null,
+        grade_applying: formData.grade_applying || null,
+        last_grade_completed: formData.last_grade_completed || null,
+        previous_school: formData.previous_school || null,
+        blood_group: formData.blood_group || null,
+        allergies: formData.allergies || null,
+        chronic_conditions: formData.chronic_conditions || null,
+        medications: formData.medications || null
+      };
+
+      const res = await updateStudentAdmissionRecord(studentId, payload);
+      setRecord(res);
+      setIsEditing(false);
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3500);
+    } catch (err: any) {
+      setSaveError(
+        uiError(
+          err.response?.data?.message ||
+            err.message ||
+            'Failed to update student admission record'
+        )
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <div className="space-y-6 pb-12">
       <button
@@ -212,10 +380,61 @@ export const StudentRecordPage = () => {
       >
         <ArrowLeft size={14} />{uiText("Back")}</button>
 
-      <div>
-        <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{uiText("Student Admission Record")}</h1>
-        <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">{uiText("Complete admission details filled during student registration")}</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{uiText("Student Admission Record")}</h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">{uiText("Complete admission details filled during student registration")}</p>
+        </div>
+        {canEdit && !loading && !error && (
+          <div className="flex items-center gap-3 shrink-0">
+            {isEditing ? (
+              <>
+                <button
+                  type="button"
+                  disabled={saving}
+                  onClick={handleCancelEdit}
+                  className="px-4 py-2 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  <X size={15} />
+                  {uiText("Cancel")}
+                </button>
+                <button
+                  type="button"
+                  disabled={saving}
+                  onClick={handleSaveRecord}
+                  className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-2 shadow-lg shadow-emerald-500/20 cursor-pointer disabled:opacity-50"
+                >
+                  {saving ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />}
+                  {saving ? uiText("Saving...") : uiText("Save Changes")}
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                onClick={handleStartEdit}
+                className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-2 shadow-lg shadow-blue-500/20 cursor-pointer"
+              >
+                <Edit2 size={15} />
+                {uiText("Edit Record")}
+              </button>
+            )}
+          </div>
+        )}
       </div>
+
+      {saveSuccess && (
+        <div className="p-4 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl flex items-center gap-3 text-emerald-800 dark:text-emerald-200 text-xs font-bold animate-in fade-in duration-300">
+          <CheckCircle2 size={18} className="text-emerald-600 shrink-0" />
+          <span>{uiText("Student admission record updated successfully!")}</span>
+        </div>
+      )}
+
+      {saveError && (
+        <div className="p-4 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-xl flex items-center gap-3 text-rose-800 dark:text-rose-200 text-xs font-bold animate-in fade-in duration-300">
+          <AlertCircle size={18} className="text-rose-600 shrink-0" />
+          <span>{uiError(saveError)}</span>
+        </div>
+      )}
 
       {loading ? (
         <div className="flex items-center justify-center h-64">
@@ -235,7 +454,9 @@ export const StudentRecordPage = () => {
                   <User size={24} />
                 </div>
                 <div>
-                  <h2 className="text-xl font-black text-slate-900 dark:text-white">{uiText(studentName)}</h2>
+                  <h2 className="text-xl font-black text-slate-900 dark:text-white">
+                    {uiText(isEditing ? (formData.name || studentName) : studentName)}
+                  </h2>
                   <p className="text-xs text-slate-400">{uiText("Digital ID: ")}<span className="font-mono font-bold text-slate-700 dark:text-slate-300">{uiText(displayValue(student?.digital_id || app?.digital_id))}</span></p>
                 </div>
               </div>
@@ -280,22 +501,61 @@ export const StudentRecordPage = () => {
               </span>
             </div>
 
-            {/* 1. Student Personal Information */}
+            {isEditing && (
+              <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/40 rounded-xl flex items-center gap-2.5 text-xs text-blue-700 dark:text-blue-300 font-medium animate-in fade-in duration-300">
+                <Edit2 size={14} className="text-blue-600 dark:text-blue-400 shrink-0" />
+                <span>{uiText("You are currently editing the demographic and admission details. Update the information below and click Save Changes.")}</span>
+              </div>
+            )}
+
+            {/* 1. Student Personal Information (Demographics) */}
             <div>
               <h3 className="text-xs font-black uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
                 <User size={14} className="text-indigo-500" />{uiText("Personal Information")}</h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs bg-slate-50 dark:bg-slate-800/40 p-4 rounded-xl">
                 <div>
                   <p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Full Name")}</p>
-                  <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.name || student?.name))}</p>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      className={inputClass}
+                      placeholder={uiText("Student full name")}
+                    />
+                  ) : (
+                    <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.name || student?.name))}</p>
+                  )}
                 </div>
                 <div>
                   <p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Date of Birth")}</p>
-                  <p className="font-bold dark:text-slate-200">{uiText(formatDate(app?.dob))}</p>
+                  {isEditing ? (
+                    <div className="mt-1">
+                      <EthiopianDatePicker
+                        value={formData.ethDob}
+                        onChange={(val) => setFormData({ ...formData, ethDob: val })}
+                        placeholder={uiText("YYYY-MM-DD")}
+                      />
+                    </div>
+                  ) : (
+                    <p className="font-bold dark:text-slate-200">{uiText(formatDate(app?.dob))}</p>
+                  )}
                 </div>
                 <div>
                   <p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Gender")}</p>
-                  <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.gender))}</p>
+                  {isEditing ? (
+                    <select
+                      value={formData.gender}
+                      onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                      className={selectClass}
+                    >
+                      <option value="">{uiText("Select Gender")}</option>
+                      <option value="Male">{uiText("Male")}</option>
+                      <option value="Female">{uiText("Female")}</option>
+                    </select>
+                  ) : (
+                    <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.gender))}</p>
+                  )}
                 </div>
                 <div>
                   <p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Digital ID")}</p>
@@ -305,15 +565,53 @@ export const StudentRecordPage = () => {
                 </div>
                 <div>
                   <p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Place of Birth")}</p>
-                  <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.place_of_birth))}</p>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={formData.place_of_birth}
+                      onChange={(e) => setFormData({ ...formData, place_of_birth: e.target.value })}
+                      className={inputClass}
+                      placeholder={uiText("e.g. Bishoftu")}
+                    />
+                  ) : (
+                    <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.place_of_birth))}</p>
+                  )}
                 </div>
                 <div>
                   <p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Religion")}</p>
-                  <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.religion))}</p>
+                  {isEditing ? (
+                    <select
+                      value={formData.religion}
+                      onChange={(e) => setFormData({ ...formData, religion: e.target.value })}
+                      className={selectClass}
+                    >
+                      <option value="">{uiText("Select Religion")}</option>
+                      <option value="Orthodox">{uiText("Orthodox")}</option>
+                      <option value="Muslim">{uiText("Muslim")}</option>
+                      <option value="Protestant">{uiText("Protestant")}</option>
+                      <option value="Catholic">{uiText("Catholic")}</option>
+                      <option value="Other">{uiText("Other")}</option>
+                      {Boolean(formData.religion && !['Orthodox', 'Muslim', 'Protestant', 'Catholic', 'Other'].includes(formData.religion)) && (
+                        <option value={formData.religion}>{formData.religion}</option>
+                      )}
+                    </select>
+                  ) : (
+                    <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.religion))}</p>
+                  )}
                 </div>
                 <div>
                   <p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Date Registered")}</p>
-                  <p className="font-bold dark:text-slate-200">{uiText(formatDate(app?.date_registered || app?.created_at))}</p>
+                  {isEditing ? (
+                    <div className="mt-1">
+                      <EthiopianDatePicker
+                        value={formData.ethDateRegistered}
+                        onChange={(val) => setFormData({ ...formData, ethDateRegistered: val })}
+                        placeholder={uiText("YYYY-MM-DD")}
+                      />
+                    </div>
+                  ) : (
+                    <p className="font-bold dark:text-slate-200">{uiText(formatDate(app?.date_registered || app?.created_at))}</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -329,18 +627,48 @@ export const StudentRecordPage = () => {
                   <div className="grid grid-cols-2 gap-2">
                     <div>
                       <p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Full Name")}</p>
-                      <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.father_name || app?.parent_name))}</p>
+                      {isEditing ? (
+                        <input
+                          type="text"
+                          value={formData.father_name}
+                          onChange={(e) => setFormData({ ...formData, father_name: e.target.value })}
+                          className={inputClass}
+                          placeholder={uiText("Father's name")}
+                        />
+                      ) : (
+                        <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.father_name || app?.parent_name))}</p>
+                      )}
                     </div>
                     <div>
                       <p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Occupation")}</p>
-                      <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.father_occupation))}</p>
+                      {isEditing ? (
+                        <input
+                          type="text"
+                          value={formData.father_occupation}
+                          onChange={(e) => setFormData({ ...formData, father_occupation: e.target.value })}
+                          className={inputClass}
+                          placeholder={uiText("Occupation")}
+                        />
+                      ) : (
+                        <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.father_occupation))}</p>
+                      )}
                     </div>
                     <div className="col-span-2">
                       <p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Phone Number")}</p>
-                      <p className="font-bold dark:text-slate-200 flex items-center gap-1">
-                        <PhoneCall size={12} className="text-slate-400" />
-                        {uiText(displayValue(app?.father_phone || app?.parent_phone))}
-                      </p>
+                      {isEditing ? (
+                        <input
+                          type="text"
+                          value={formData.father_phone}
+                          onChange={(e) => setFormData({ ...formData, father_phone: e.target.value })}
+                          className={inputClass}
+                          placeholder="+2519..."
+                        />
+                      ) : (
+                        <p className="font-bold dark:text-slate-200 flex items-center gap-1">
+                          <PhoneCall size={12} className="text-slate-400" />
+                          {uiText(displayValue(app?.father_phone || app?.parent_phone))}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -351,18 +679,48 @@ export const StudentRecordPage = () => {
                   <div className="grid grid-cols-2 gap-2">
                     <div>
                       <p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Full Name")}</p>
-                      <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.mother_name))}</p>
+                      {isEditing ? (
+                        <input
+                          type="text"
+                          value={formData.mother_name}
+                          onChange={(e) => setFormData({ ...formData, mother_name: e.target.value })}
+                          className={inputClass}
+                          placeholder={uiText("Mother's name")}
+                        />
+                      ) : (
+                        <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.mother_name))}</p>
+                      )}
                     </div>
                     <div>
                       <p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Occupation")}</p>
-                      <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.mother_occupation))}</p>
+                      {isEditing ? (
+                        <input
+                          type="text"
+                          value={formData.mother_occupation}
+                          onChange={(e) => setFormData({ ...formData, mother_occupation: e.target.value })}
+                          className={inputClass}
+                          placeholder={uiText("Occupation")}
+                        />
+                      ) : (
+                        <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.mother_occupation))}</p>
+                      )}
                     </div>
                     <div className="col-span-2">
                       <p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Phone Number")}</p>
-                      <p className="font-bold dark:text-slate-200 flex items-center gap-1">
-                        <PhoneCall size={12} className="text-slate-400" />
-                        {uiText(displayValue(app?.mother_phone))}
-                      </p>
+                      {isEditing ? (
+                        <input
+                          type="text"
+                          value={formData.mother_phone}
+                          onChange={(e) => setFormData({ ...formData, mother_phone: e.target.value })}
+                          className={inputClass}
+                          placeholder="+2519..."
+                        />
+                      ) : (
+                        <p className="font-bold dark:text-slate-200 flex items-center gap-1">
+                          <PhoneCall size={12} className="text-slate-400" />
+                          {uiText(displayValue(app?.mother_phone))}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -376,7 +734,17 @@ export const StudentRecordPage = () => {
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-xs bg-slate-50 dark:bg-slate-800/40 p-4 rounded-xl">
                 <div>
                   <p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Full Address")}</p>
-                  <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.address))}</p>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={formData.address}
+                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                      className={inputClass}
+                      placeholder={uiText("Full address / City / Kebele")}
+                    />
+                  ) : (
+                    <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.address))}</p>
+                  )}
                 </div>
                 <div>
                   <p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Parent ID")}</p>
@@ -389,7 +757,7 @@ export const StudentRecordPage = () => {
                         type="button"
                         onClick={() => handleCopyParentId(String(student?.parent_digital_id || app?.parent_digital_id || app?.parent_id || student?.parent_user_id))}
                         title={uiText("Copy Parent ID")}
-                        className="p-1 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-200 dark:hover:bg-slate-700 rounded transition-colors flex items-center gap-1"
+                        className="p-1 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-200 dark:hover:bg-slate-700 rounded transition-colors flex items-center gap-1 cursor-pointer"
                       >
                         {copiedParentId ? <Check size={13} className="text-emerald-500" /> : <Copy size={13} />}
                       </button>
@@ -398,7 +766,17 @@ export const StudentRecordPage = () => {
                 </div>
                 <div>
                   <p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Applicant Phone")}</p>
-                  <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.applicant_phone || app?.phone))}</p>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={formData.applicant_phone}
+                      onChange={(e) => setFormData({ ...formData, applicant_phone: e.target.value })}
+                      className={inputClass}
+                      placeholder="+2519..."
+                    />
+                  ) : (
+                    <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.applicant_phone || app?.phone))}</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -410,44 +788,146 @@ export const StudentRecordPage = () => {
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-xs bg-slate-50 dark:bg-slate-800/40 p-4 rounded-xl">
                 <div>
                   <p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Grade Applying For")}</p>
-                  <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.grade_applying || app?.grade))}</p>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={formData.grade_applying}
+                      onChange={(e) => setFormData({ ...formData, grade_applying: e.target.value })}
+                      className={inputClass}
+                      placeholder={uiText("e.g. 1, 2, KG 3")}
+                    />
+                  ) : (
+                    <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.grade_applying || app?.grade))}</p>
+                  )}
                 </div>
                 <div>
                   <p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Last Grade Completed")}</p>
-                  <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.last_grade_completed || app?.grade))}</p>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={formData.last_grade_completed}
+                      onChange={(e) => setFormData({ ...formData, last_grade_completed: e.target.value })}
+                      className={inputClass}
+                      placeholder={uiText("e.g. KG 3")}
+                    />
+                  ) : (
+                    <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.last_grade_completed || app?.grade))}</p>
+                  )}
                 </div>
                 <div>
                   <p className="text-[10px] font-bold text-slate-400 uppercase">{uiText("Previous School")}</p>
-                  <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.previous_school))}</p>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={formData.previous_school}
+                      onChange={(e) => setFormData({ ...formData, previous_school: e.target.value })}
+                      className={inputClass}
+                      placeholder={uiText("Previous school name")}
+                    />
+                  ) : (
+                    <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.previous_school))}</p>
+                  )}
                 </div>
               </div>
             </div>
 
             {/* 5. Medical Information */}
-            {uiText((app?.blood_group || app?.allergies || app?.chronic_conditions || app?.medications) && (
+            {Boolean(isEditing || app?.blood_group || app?.allergies || app?.chronic_conditions || app?.medications) && (
               <div>
                 <h3 className="text-xs font-black uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
                   <HeartPulse size={14} className="text-rose-500" />{uiText("Medical & Health Records")}</h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs bg-rose-50/50 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/30 p-4 rounded-xl">
                   <div>
                     <span className="text-[10px] font-bold text-rose-500 uppercase">{uiText("Blood Group")}</span>
-                    <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.blood_group))}</p>
+                    {isEditing ? (
+                      <select
+                        value={formData.blood_group}
+                        onChange={(e) => setFormData({ ...formData, blood_group: e.target.value })}
+                        className={selectClass}
+                      >
+                        <option value="">{uiText("Select Blood Group")}</option>
+                        <option value="A+">A+</option>
+                        <option value="A-">A-</option>
+                        <option value="B+">B+</option>
+                        <option value="B-">B-</option>
+                        <option value="AB+">AB+</option>
+                        <option value="AB-">AB-</option>
+                        <option value="O+">O+</option>
+                        <option value="O-">O-</option>
+                      </select>
+                    ) : (
+                      <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.blood_group))}</p>
+                    )}
                   </div>
                   <div>
                     <span className="text-[10px] font-bold text-rose-500 uppercase">{uiText("Allergies")}</span>
-                    <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.allergies))}</p>
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        value={formData.allergies}
+                        onChange={(e) => setFormData({ ...formData, allergies: e.target.value })}
+                        className={inputClass}
+                        placeholder={uiText("e.g. None or Peanuts")}
+                      />
+                    ) : (
+                      <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.allergies))}</p>
+                    )}
                   </div>
                   <div>
                     <span className="text-[10px] font-bold text-rose-500 uppercase">{uiText("Chronic Conditions")}</span>
-                    <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.chronic_conditions))}</p>
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        value={formData.chronic_conditions}
+                        onChange={(e) => setFormData({ ...formData, chronic_conditions: e.target.value })}
+                        className={inputClass}
+                        placeholder={uiText("e.g. None or Asthma")}
+                      />
+                    ) : (
+                      <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.chronic_conditions))}</p>
+                    )}
                   </div>
                   <div>
                     <span className="text-[10px] font-bold text-rose-500 uppercase">{uiText("Current Medications")}</span>
-                    <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.medications))}</p>
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        value={formData.medications}
+                        onChange={(e) => setFormData({ ...formData, medications: e.target.value })}
+                        className={inputClass}
+                        placeholder={uiText("e.g. None or Inhaler")}
+                      />
+                    ) : (
+                      <p className="font-bold dark:text-slate-200">{uiText(displayValue(app?.medications))}</p>
+                    )}
                   </div>
                 </div>
               </div>
-            ))}
+            )}
+
+            {/* Bottom action buttons while editing */}
+            {isEditing && (
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800 animate-in fade-in duration-200">
+                <button
+                  type="button"
+                  disabled={saving}
+                  onClick={handleCancelEdit}
+                  className="px-5 py-2.5 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  <X size={15} />
+                  {uiText("Cancel")}
+                </button>
+                <button
+                  type="button"
+                  disabled={saving}
+                  onClick={handleSaveRecord}
+                  className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-2 shadow-lg shadow-emerald-500/20 cursor-pointer disabled:opacity-50"
+                >
+                  {saving ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />}
+                  {saving ? uiText("Saving Changes...") : uiText("Save Changes")}
+                </button>
+              </div>
+            )}
 
             {/* 6. Exam Info if present */}
             {uiText((app?.exam_date || app?.exam_location) && (

@@ -277,6 +277,14 @@ export const getStudentAdmissionRecord = async (studentId: string): Promise<Stud
   return response.data.data;
 };
 
+export const updateStudentAdmissionRecord = async (
+  studentId: string,
+  payload: Record<string, any>
+): Promise<StudentAdmissionRecord> => {
+  const response = await api.put(`/school-admin/students/${studentId}/admission-record`, payload);
+  return response.data.data;
+};
+
 export const createPublicPendingApplication = async (data: any) => {
   // Public landing-page application submission without auth token
   try {
