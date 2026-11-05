@@ -395,25 +395,22 @@ const HomePage = () => {
 
   return (
     <>
-      <section className="relative isolate flex min-h-[62rem] items-end overflow-hidden bg-brand-canvas text-brand-forest-950 dark:min-h-[calc(100svh-4.75rem)] dark:text-white md:min-h-[calc(100svh-4.75rem)]">
+      <section className="relative isolate flex min-h-[calc(100svh-4.75rem)] items-end overflow-hidden bg-brand-canvas text-brand-forest-950 dark:text-white">
         <motion.img
           initial={reduceMotion ? false : { scale: 1.08 }}
           animate={{ scale: 1 }}
           transition={{ duration: 1.8, ease: [0.16, 1, 0.3, 1] }}
           src={schoolBuilding}
           alt={uiText("copy.theZiqualaAboSchoolBuildingInBishoftu")}
-          className="absolute inset-0 -z-20 h-[20rem] w-full object-cover dark:h-full md:h-full"
+          className="absolute inset-0 -z-20 h-full w-full object-cover"
         />
-        <div className="absolute inset-x-0 bottom-0 top-[17rem] -z-10 bg-brand-canvas dark:hidden md:hidden" />
-        <div className="absolute inset-x-0 top-[14rem] -z-10 h-12 bg-gradient-to-b from-transparent to-brand-canvas dark:hidden md:hidden" />
-        <div className="absolute inset-y-0 left-0 -z-10 hidden w-[86%] bg-brand-canvas [clip-path:polygon(0_0,74%_0,100%_100%,0_100%)] dark:hidden md:block" />
-        <div className="absolute inset-0 -z-10 hidden bg-[linear-gradient(90deg,rgba(2,44,32,.94)_0%,rgba(2,44,32,.85)_44%,rgba(2,44,32,.75)_78%),linear-gradient(0deg,rgba(3,30,24,.72)_0%,transparent_50%)] dark:block" />
-        <div className="mx-auto grid w-full max-w-[90rem] gap-12 px-5 pb-28 pt-[20rem] dark:pt-24 md:pt-24 lg:grid-cols-[1fr_23rem] lg:items-end lg:px-10">
+        <div className="pointer-events-none absolute inset-0 -z-10 bg-black/10 dark:bg-black/25" aria-hidden="true" />
+        <div className="mx-auto grid w-full max-w-[90rem] gap-8 px-5 pb-28 pt-24 lg:grid-cols-[1fr_23rem] lg:items-end lg:px-10">
           <motion.div
             initial={reduceMotion ? false : { opacity: 0, y: 36 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.9, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-            className="max-w-5xl bg-brand-canvas dark:bg-transparent"
+            className="max-w-5xl rounded-2xl border border-white/40 bg-white/90 p-6 shadow-lg backdrop-blur-md dark:border-white/20 dark:bg-slate-950/85 sm:p-10"
           >
             <p className="flex items-center gap-3 text-base font-black uppercase tracking-[0.28em] text-brand-gold-800 dark:text-brand-gold-300">
               <span className="h-px w-9 bg-brand-gold-700 dark:bg-brand-gold-300" />{uiText(" copy.bishoftuKGGrade8")}</p>
@@ -432,7 +429,7 @@ const HomePage = () => {
             initial={reduceMotion ? false : { opacity: 0, x: 24 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.55 }}
-            className="hero-identity-card mr-20 flex items-center gap-4 border-l border-brand-forest-900/25 bg-brand-canvas p-5 text-sm leading-7 text-slate-600 backdrop-blur-sm dark:border-white/30 dark:bg-transparent dark:py-0 dark:pr-0 dark:text-slate-100"
+            className="hero-identity-card mr-20 flex items-center gap-4 rounded-2xl border border-white/40 bg-white/90 p-5 text-sm leading-7 text-slate-600 shadow-lg backdrop-blur-md dark:border-white/20 dark:bg-slate-950/85 dark:text-slate-100"
           >
             <img src={schoolLogo} alt={uiText("copy.ziqualaAboSchoolLogo")} className="h-16 w-16 shrink-0 rounded-full border-4 border-white object-cover shadow-lg sm:h-20 sm:w-20" />
             <div className="min-w-0 flex-1">
@@ -1166,14 +1163,14 @@ const SchoolPage = () => {
   <>
     <section className="relative flex min-h-[42rem] items-end overflow-hidden bg-white text-slate-900 dark:bg-brand-forest-950 dark:text-white">
       <img src={schoolBuilding} alt={uiText("copy.ziqualaAboPrimarySchoolCampus")} className="absolute inset-0 h-full w-full object-cover" />
-      <div className="absolute inset-0 bg-gradient-to-t from-white via-white/95 to-white/80 dark:from-brand-forest-950 dark:via-brand-forest-950/80 dark:to-brand-forest-950/75" />
-      <div className="relative mx-auto grid w-full max-w-[90rem] items-end gap-10 px-5 pb-14 lg:grid-cols-[1fr_.65fr] lg:px-10 lg:pb-20">
-        <div>
+      <div className="pointer-events-none absolute inset-0 bg-black/10 dark:bg-black/25" aria-hidden="true" />
+      <div className="relative mx-auto grid w-full max-w-[90rem] items-end gap-8 px-5 pb-14 pt-24 lg:grid-cols-[1fr_.65fr] lg:px-10 lg:pb-20">
+        <div className="rounded-2xl border border-white/40 bg-white/90 p-6 shadow-lg backdrop-blur-md dark:border-white/20 dark:bg-slate-950/85 sm:p-10">
           <p className="text-base font-black uppercase tracking-[0.28em] text-brand-gold-700 dark:text-brand-gold-300">{uiText("copy.theSchoolKG1Grade8TwoCampuses")}</p>
           <h1 className="mt-6 max-w-5xl font-serif text-5xl font-medium leading-[.96] tracking-[-0.04em] sm:text-6xl md:text-8xl">{uiText("copy.educationRootedInKnowledgeEthicsAndService")}</h1>
           <div className="mt-8"><Link to="/register" className="group inline-flex items-center gap-3 bg-brand-gold-400 px-6 py-4 text-sm font-black text-brand-forest-950 transition-colors hover:bg-brand-gold-300">{uiText("copy.joinOurSchool")}<ArrowRight size={18} className="transition-transform group-hover:translate-x-1" /></Link></div>
         </div>
-        <p className="border-l border-slate-300 dark:border-white/35 pl-6 text-lg leading-8 text-slate-700 dark:text-slate-100">{uiText("copy.aStudentCentredSchoolServing1534LearnersAcrossKindergartenAndPrim")}</p>
+        <p className="rounded-2xl border border-white/40 bg-white/90 p-6 text-lg leading-8 text-slate-700 shadow-lg backdrop-blur-md dark:border-white/20 dark:bg-slate-950/85 dark:text-slate-100 sm:p-10">{uiText("copy.aStudentCentredSchoolServing1534LearnersAcrossKindergartenAndPrim")}</p>
       </div>
     </section>
 
