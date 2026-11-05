@@ -1,3 +1,5 @@
+@config "../tailwind.config.cjs";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -5,12 +7,24 @@
 :root {
   --primary: #075b42;
   --secondary: #d6a31b;
-  --accent: #4f8f62;
+  --accent: var(--secondary);
+  /* Public brand: forest green, gold accents, and warm neutral surfaces. */
+  --brand-canvas: 244 240 231;
+  --brand-surface: 255 255 255;
+  --brand-muted: 235 228 213;
+  --brand-heading: 7 91 66;
   --app-radius: 1rem;
   --app-spacing: 1.5rem;
   --app-font-size: 1rem;
   --app-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   --app-font-weight: 500;
+}
+
+.dark {
+  --brand-canvas: 2 44 34;
+  --brand-surface: 6 55 43;
+  --brand-muted: 6 65 49;
+  --brand-heading: 255 255 255;
 }
 
 [data-ui-style="standard"] {
@@ -127,7 +141,7 @@
 
   .btn-accent {
     background-color: var(--accent);
-    @apply hover:opacity-90 text-white font-bold transition-all active:scale-95;
+    @apply hover:opacity-90 text-brand-forest-950 font-bold transition-all active:scale-95;
     border-radius: var(--app-radius);
     box-shadow: var(--app-shadow);
   }
@@ -193,7 +207,7 @@
   }
 
   .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-school-primary via-blue-500 to-school-accent;
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-school-primary to-school-accent;
   }
 
   .section-header {
@@ -201,11 +215,11 @@
   }
 
   .section-title {
-    @apply text-3xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight;
+    @apply text-3xl md:text-5xl font-black text-brand-heading tracking-tight;
   }
 
   .section-subtitle {
-    @apply text-[10px] md:text-xs font-black uppercase tracking-[0.3em] text-school-primary mb-4 block;
+    @apply text-[10px] md:text-xs font-black uppercase tracking-[0.3em] text-brand-gold-700 dark:text-brand-gold-300 mb-4 block;
   }
 
   .shine {
