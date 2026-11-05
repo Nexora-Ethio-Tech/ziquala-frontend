@@ -165,6 +165,15 @@ const PublicHeader = () => {
   const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
+    const desktop = window.matchMedia('(min-width: 768px)');
+    const closeOnDesktop = () => {
+      if (desktop.matches) setMenuOpen(false);
+    };
+    desktop.addEventListener('change', closeOnDesktop);
+    return () => desktop.removeEventListener('change', closeOnDesktop);
+  }, []);
+
+  useEffect(() => {
     if (!menuOpen) return undefined;
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') setMenuOpen(false);
@@ -180,14 +189,14 @@ const PublicHeader = () => {
   return (
     <>
       <header className="sticky top-0 z-50 border-b border-black/10 bg-brand-canvas/95 backdrop-blur-xl dark:border-white/10">
-        <div className="mx-auto flex h-[4.75rem] max-w-[90rem] items-center justify-between gap-4 px-4 sm:px-6 lg:px-10">
+        <div className="mx-auto flex h-[4.75rem] min-h-[4.75rem] max-w-[90rem] flex-nowrap items-center justify-between gap-4 px-4 sm:px-6 md:h-auto md:flex-wrap md:py-3 lg:px-10 xl:h-[4.75rem] xl:flex-nowrap xl:py-0">
           <Link to="/" onClick={() => setMenuOpen(false)} aria-label={uiText("Ziquala Abo School home")} className="min-w-0">
             <BrandMark />
           </Link>
 
-          <nav className="hidden items-center gap-7 xl:flex" aria-label={uiText("Quick navigation")}>
+          <nav className="hidden items-center gap-7 md:order-last md:flex md:w-full md:justify-center xl:order-none xl:w-auto" aria-label={uiText("Quick navigation")}>
             {publicNavigation.slice(0, 4).map((item) => (
-              <div key={item.to} className="group relative flex h-[4.75rem] items-center">
+              <div key={item.to} className="group relative flex h-12 items-center xl:h-[4.75rem]">
                 <NavLink
                   to={item.to}
                   end={item.to === '/'}
@@ -229,7 +238,7 @@ const PublicHeader = () => {
             <button
               type="button"
               onClick={() => setMenuOpen((open) => !open)}
-              className="ml-1 inline-flex h-11 items-center gap-2 border border-brand-forest-950/20 px-3 text-xs font-black uppercase tracking-[0.16em] text-brand-forest-950 transition-colors hover:border-brand-forest-900 hover:bg-brand-forest-900 hover:text-white dark:border-white/25 dark:text-white dark:hover:bg-white dark:hover:text-slate-950 sm:px-4 xl:hidden"
+              className="ml-1 inline-flex h-11 items-center gap-2 border border-brand-forest-950/20 px-3 text-xs font-black uppercase tracking-[0.16em] text-brand-forest-950 transition-colors hover:border-brand-forest-900 hover:bg-brand-forest-900 hover:text-white dark:border-white/25 dark:text-white dark:hover:bg-white dark:hover:text-slate-950 sm:px-4 md:hidden"
               aria-label={uiText(menuOpen ? 'Close navigation menu' : 'Open navigation menu')}
               aria-expanded={menuOpen}
               aria-controls="public-navigation-menu"
@@ -249,7 +258,7 @@ const PublicHeader = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -12 }}
             transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed inset-x-0 bottom-0 top-[4.75rem] z-40 overflow-y-auto bg-brand-forest-950 text-white"
+            className="fixed inset-x-0 bottom-0 top-[4.75rem] z-40 overflow-y-auto bg-brand-forest-950 text-white md:hidden"
           >
             <div className="mx-auto grid min-h-full max-w-[90rem] gap-12 px-5 py-10 sm:px-8 sm:py-14 lg:grid-cols-[.8fr_1.2fr] lg:gap-20 lg:px-10">
               <div className="flex flex-col">
@@ -385,7 +394,7 @@ const HomePage = () => {
         <div className="absolute inset-x-0 top-[14rem] -z-10 h-12 bg-gradient-to-b from-transparent to-brand-canvas dark:hidden md:hidden" />
         <div className="absolute inset-y-0 left-0 -z-10 hidden w-[86%] bg-brand-canvas [clip-path:polygon(0_0,74%_0,100%_100%,0_100%)] dark:hidden md:block" />
         <div className="absolute inset-0 -z-10 hidden bg-[linear-gradient(90deg,rgba(2,44,32,.94)_0%,rgba(2,44,32,.85)_44%,rgba(2,44,32,.75)_78%),linear-gradient(0deg,rgba(3,30,24,.72)_0%,transparent_50%)] dark:block" />
-        <div className="mx-auto grid w-full max-w-[90rem] gap-12 px-5 pb-12 pt-[20rem] dark:pt-24 md:pb-16 md:pt-24 lg:grid-cols-[1fr_18rem] lg:items-end lg:px-10 lg:pb-20">
+        <div className="mx-auto grid w-full max-w-[90rem] gap-12 px-5 pb-28 pt-[20rem] dark:pt-24 md:pt-24 lg:grid-cols-[1fr_23rem] lg:items-end lg:px-10">
           <motion.div
             initial={reduceMotion ? false : { opacity: 0, y: 36 }}
             animate={{ opacity: 1, y: 0 }}
@@ -409,10 +418,10 @@ const HomePage = () => {
             initial={reduceMotion ? false : { opacity: 0, x: 24 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.55 }}
-            className="flex items-center gap-4 border-l border-brand-forest-900/25 bg-brand-canvas/90 p-5 text-sm leading-7 text-slate-600 backdrop-blur-sm dark:border-white/30 dark:bg-transparent dark:py-0 dark:pr-0 dark:text-slate-100"
+            className="hero-identity-card mr-20 flex items-center gap-4 border-l border-brand-forest-900/25 bg-brand-canvas/90 p-5 text-sm leading-7 text-slate-600 backdrop-blur-sm dark:border-white/30 dark:bg-transparent dark:py-0 dark:pr-0 dark:text-slate-100"
           >
-            <img src={schoolLogo} alt={uiText("Ziquala Abo School logo")} className="h-20 w-20 shrink-0 rounded-full border-4 border-white object-cover shadow-lg" />
-            <div>
+            <img src={schoolLogo} alt={uiText("Ziquala Abo School logo")} className="h-16 w-16 shrink-0 rounded-full border-4 border-white object-cover shadow-lg sm:h-20 sm:w-20" />
+            <div className="min-w-0 flex-1">
               <p className="font-serif text-lg leading-8 text-brand-forest-950 dark:text-white">{uiText(ziqualaIdentity.amharicName)}</p>
               <p className="mt-3 text-base font-black uppercase tracking-[0.14em] text-brand-gold-700 dark:text-brand-gold-300 sm:tracking-[0.24em]">{uiText("Official school identity")}</p>
             </div>

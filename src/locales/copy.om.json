@@ -3449,7 +3449,7 @@
   "Microscopes, prepared slides, wall charts": "Maaykirooskooppii, islaayidii qophaa’e, chaartii dallaa",
   "Lab report and diagram accuracy check.": "Gabaasa laabraatoorii fi sakatta’iinsa sirrii ta’uu diyaagiraamii.",
   "Practical sessions were very engaging.": "Kutaawwan qabatamaa baayʼee nama hawwatu turan.",
-  "Zuqualla Abbo Primary School (Grade 1–8)": "Mana Barumsaa Sadarkaa Tokkoffaa Ziquala Abo (Kutaa 1–8)",
+  "Ziquala Abo Primary School (Grade 1–8)": "Mana Barumsaa Sadarkaa Tokkoffaa Ziquala Abo (Kutaa 1–8)",
   "Mana Baruumsa Zuqaalaa Aabboo Sad. 1ffaa": "Mana Baruumsa Zuqaalaa Aabboo Gaddisiisaa. 1ffaa",
   "Ziquala Debre Kewakibt Abune Gebre Menfes Kidus Monastery Association": "Ziquala Debre Kewakibt Abune Gebre Menfes Waldaa Mana Qulqullummaa Kiduus",
   "Main Campus": "Mooraa Guddaa",
@@ -4213,5 +4213,10 @@
   "Document (.pdf)": "Sanada (.pdf)",
   "Spreadsheet (.xlsx)": "Gabatee shallaggii (.xlsx)",
   "Preparing PDF...": "PDF qopheessaa jira...",
-  "Failed to print the student record. Please try again.": "Galmee barataa maxxansuun hin milkoofne. Maaloo irra deebi'ii yaali."
+  "Failed to print the student record. Please try again.": "Galmee barataa maxxansuun hin milkoofne. Maaloo irra deebi'ii yaali.",
+  "Ziquala Debre Kewakibt Abune Gebre Menfes Kidus communal Monastery": "Gadaamii Tokkummaa Ziquala Debre Kewakibt Abune Gebre Menfes Kidus",
+  "Ziquala Debre Kewakibt Abune Gebre Menfes Kidus Unity Monastery": "Gadaamii Tokkummaa Ziquala Debre Kewakibt Abune Gebre Menfes Kidus",
+  "Something went wrong": "Rakkoon uumameera",
+  "An unexpected rendering error occurred.": "Fuula agarsiisuun osoo hin eegamin dogoggorri uumameera.",
+  "Refresh Page": "Fuula irra deebi'ii bani"
 }

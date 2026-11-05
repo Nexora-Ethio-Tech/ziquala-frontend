@@ -7,7 +7,7 @@ import yosefTemesgen from '../assets/leadership/yosef-temesgen.webp';
 
 export const ziqualaIdentity = {
   shortName: 'Ziquala Abo School',
-  fullName: 'Zuqualla Abbo Primary School (Grade 1–8)',
+  fullName: 'Ziquala Abo Primary School (Grade 1–8)',
   amharicName: officialSchoolStatement.am.name,
   oromoName: officialSchoolStatement.om.name,
   location: 'Bishoftu, Kebele 03',

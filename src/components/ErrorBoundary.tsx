@@ -1,5 +1,6 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { uiError, uiText } from '../localization';
 
 interface Props {
   children: ReactNode;
@@ -41,9 +42,9 @@ export class ErrorBoundary extends Component<Props, State> {
             <AlertTriangle size={24} />
           </div>
           <div>
-            <h3 className="text-lg font-black text-rose-900 dark:text-rose-200">Something went wrong</h3>
+            <h3 className="text-lg font-black text-rose-900 dark:text-rose-200">{uiText('Something went wrong')}</h3>
             <p className="text-xs text-rose-600 dark:text-rose-400 mt-1">
-              {this.state.error?.message || 'An unexpected rendering error occurred.'}
+              {uiError(this.state.error?.message || 'An unexpected rendering error occurred.')}
             </p>
           </div>
           <button
@@ -54,7 +55,7 @@ export class ErrorBoundary extends Component<Props, State> {
             className="px-5 py-2.5 bg-rose-600 text-white rounded-xl text-xs font-bold hover:bg-rose-700 transition-colors inline-flex items-center gap-2"
           >
             <RefreshCw size={14} />
-            Refresh Page
+            {uiText('Refresh Page')}
           </button>
         </div>
       );

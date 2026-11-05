@@ -288,6 +288,13 @@
   line-height: 1.35;
 }
 
+/* Leave room for the two-row navigation between mobile and wide desktop. */
+@media (min-width: 768px) and (max-width: 1279px) {
+  .public-site [id] {
+    scroll-margin-top: 11rem;
+  }
+}
+
 /* Match inherited language and explicitly tagged Ethiopic passages, including
    Amharic sections shown while the interface language is English. */
 :lang(am) {

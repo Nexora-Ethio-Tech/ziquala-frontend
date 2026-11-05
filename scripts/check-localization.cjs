@@ -61,15 +61,40 @@ const savedMessage = uiText('Grade {{value0}}', { value0: 9 });
 i18n.language = 'om';
 assert.equal(uiText(savedMessage), uiText('Grade {{value0}}', { value0: 9 }), 'Messages update when language changes');
 
-// Supplied library labels translate, but staff edits remain authored content.
+// Catalogue titles are authored content; translate the surrounding interface only.
 const bookModule = {};
 const bookCode = ts.transpileModule(fs.readFileSync(path.join(root, 'src/utils/localizeBook.ts'), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
 const defaultBook = { id: 'demo-book', title: 'Home', description: 'School' };
 vm.runInNewContext(bookCode, { exports: bookModule, require: id => id.endsWith('localization') ? exportsObject : { defaultELearningBooks: [defaultBook] } });
-i18n.language = 'am';
-assert.notEqual(bookModule.bookText(defaultBook, 'title'), 'Home');
+for (const language of ['en', 'am', 'om']) {
+  i18n.language = language;
+  assert.equal(bookModule.bookText(defaultBook, 'title'), 'Home');
+  assert.equal(bookModule.bookText(defaultBook, 'description'), 'School');
+}
 assert.equal(bookModule.bookText({ ...defaultBook, title: 'Student' }, 'title'), 'Student');
 assert.equal(bookModule.bookText({ ...defaultBook, id: 'staff-created' }, 'title'), 'Home');
+
+// Exercise contextual public copy through the real lookup, including case aliases.
+i18n.language = 'am';
+for (const [source, expected] of Object.entries({
+  Monastery: 'ገዳሙ',
+  eLearning: 'ዲጂታል ትምህርት',
+  'Portal Login': 'ወደ ፖርታል መግቢያ',
+  Menu: 'ማውጫ',
+  Overview: 'አጠቃላይ ገጽታ',
+  overview: 'አጠቃላይ ገጽታ',
+  'Shared books': 'የጋራ መጻሕፍት',
+  'Shared Books': 'የጋራ መጻሕፍት',
+  'Digital bookshelf': 'ዲጂታል ቤተ-መጻሕፍት',
+  Campuses: 'ቅርንጫፎች',
+  'Join our school': 'ወደ ትምህርት ቤታችን ይቀላቀሉ',
+})) assert.equal(uiText(source), expected, source);
+assert.equal(uiText('Learning with roots. ') + uiText('Growing with purpose.'), 'በጽኑ መሠረት መማር፤ በዓላማ ማደግ።');
+
+if (process.argv.includes('--catalogs-only')) {
+  console.log('Catalog parity, interpolation, authored content, and contextual Amharic checks passed.');
+  process.exit(0);
+}
 
 // Follow actual imports from main.tsx. Historical and unused page backups are outside the app.
 const seen = new Set();
@@ -92,7 +117,9 @@ function visitFile(file) {
       const text = node.initializer.text.trim().replace(/\s+/g, ' ');
       if (/[A-Za-z\u1200-\u137f]/.test(text)) literalCopy.add(text);
     }
-    if (ts.isJsxAttribute(node) && ['title', 'placeholder', 'alt', 'aria-label', 'label', 'description'].includes(node.name.getText(source)) && node.initializer && ts.isStringLiteral(node.initializer) && /[A-Za-z\u1200-\u137f]/.test(node.initializer.text)) assert.fail(`Unlocalized attribute in ${path.relative(root, file)}: ${node.initializer.text}`);
+    // DocumentContentBand translates its title prop when rendering its h2.
+    const translatedComponentTitle = ts.isJsxAttribute(node) && node.name.getText(source) === 'title' && node.parent.parent.tagName?.getText(source) === 'DocumentContentBand';
+    if (ts.isJsxAttribute(node) && !translatedComponentTitle && ['title', 'placeholder', 'alt', 'aria-label', 'label', 'description'].includes(node.name.getText(source)) && node.initializer && ts.isStringLiteral(node.initializer) && /[A-Za-z\u1200-\u137f]/.test(node.initializer.text)) assert.fail(`Unlocalized attribute in ${path.relative(root, file)}: ${node.initializer.text}`);
     if (ts.isCallExpression(node) && node.expression.getText(source) === 'uiText' && node.arguments[0] && /(?:target|currentTarget)\.value$/.test(node.arguments[0].getText(source))) assert.fail('User input must not be translated before storing it');
     if (ts.isJsxText(node) && /[A-Za-z\u1200-\u137f]/.test(node.text) && !file.endsWith('LanguageSelector.tsx')) {
       assert.fail(`Unlocalized JSX in ${path.relative(root, file)}: ${node.text.trim()}`);
