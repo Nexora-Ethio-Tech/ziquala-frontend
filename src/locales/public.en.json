@@ -572,8 +572,14 @@
     "subject": "Subject",
     "message": "Message",
     "send": "Send Message",
-    "emailHelp": "Complete all fields to open a prefilled draft in your email app. Review and send it from there. You can also email us directly using the address above.",
-    "draftNotice": "Send the draft from your email app to complete your inquiry. If it did not open, use the link below or email us directly.",
-    "openDraft": "Open email draft"
+    "emailHelp": "Send your enquiry directly to our office using this form. All fields are required.",
+    "sending": "Sending…",
+    "successTitle": "Message sent",
+    "successMessage": "Thank you! Your message has been successfully sent. We will get back to you soon.",
+    "sendAnother": "Send another message",
+    "invalidInput": "Please complete all fields with a valid email address and phone number, then try again.",
+    "rateLimit": "Too many attempts. Please wait 15 minutes before trying again, or call our office.",
+    "networkError": "We could not confirm your submission because the connection failed or timed out. Your message is still here. Please check your connection before retrying, or contact us by phone or email.",
+    "deliveryError": "Your message could not be sent. Please try again later, or contact us using the phone number or email address above."
   }
 }

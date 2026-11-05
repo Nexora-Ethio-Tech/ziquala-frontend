@@ -572,8 +572,14 @@
     "subject": "Mata Duree",
     "message": "Ergaa",
     "send": "Ergaa Ergi",
-    "emailHelp": "Dirreewwan hunda guutuun wixinee qophaa’e appii imeelii keessan keessatti bana. Achitti ilaalaa ergaa. Teessoo armaan oliitiin kallattiinis imeelii nuuf erguu dandeessu.",
-    "draftNotice": "Gaaffiin keessan akka nu ga’uuf wixinee sana appii imeelii keessan keessaa ergaa. Yoo hin banamne, geessituu armaan gadii fayyadamaa yookaan kallattiin imeelii nuuf ergaa.",
-    "openDraft": "Wixinee imeelii bani"
+    "emailHelp": "Unka kanaan gaaffii keessan kallattiin gara waajjira keenyaatti ergaa. Dirreewwan hundi guutamuu qabu.",
+    "sending": "Ergaa jira…",
+    "successTitle": "Ergaan ergameera",
+    "successMessage": "Galatoomaa! Ergaan keessan milkaa’inaan ergameera. Yeroo dhihootti deebii isiniif kennina.",
+    "sendAnother": "Ergaa biraa ergi",
+    "invalidInput": "Maaloo dirreewwan hunda teessoo imeelii fi lakkoofsa bilbilaa sirrii ta’een guutaa, itti aansuun irra deebi’aa yaalaa.",
+    "rateLimit": "Yeroo baay’ee yaaltaniittu. Maaloo daqiiqaa 15 eegaa irra deebi’aa yaalaa yookaan waajjira keenyaaf bilbilaa.",
+    "networkError": "Walqunnamtiin waan citeef yookaan yeroon eegumsaa waan dhumeef ergaan keessan gahuu isaa mirkaneessuu hin dandeenye. Ergaan keessan asuma jira. Irra deebitanii yaaluu dura walqunnamtii keessan mirkaneessaa yookaan bilbilaan yookaan imeeliin nu quunnamaa.",
+    "deliveryError": "Ergaan keessan ergamuu hin dandeenye. Maaloo yeroo biraa yaalaa yookaan lakkoofsa bilbilaa fi teessoo imeelii armaan oliitiin nu quunnamaa."
   }
 }
