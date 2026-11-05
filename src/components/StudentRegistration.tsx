@@ -1216,11 +1216,11 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
           </div>
         ) : !registrationOpen ? (
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-12 text-center space-y-4">
-            <div className="w-16 h-16 bg-rose-100 text-rose-500 rounded-full flex items-center justify-center mx-auto">
+            <div className="w-16 h-16 bg-rose-100 text-rose-700 dark:text-rose-300 rounded-full flex items-center justify-center mx-auto">
               <Shield size={32} />
             </div>
             <h3 className="text-xl font-black text-slate-800 dark:text-white">{uiText("Online applications are currently closed")}</h3>
-            <p className="text-sm text-slate-500 max-w-md mx-auto">{uiText("Please contact the school administration or check back later for registration updates.")}</p>
+            <p className="text-base text-slate-600 dark:text-slate-200 max-w-md mx-auto">{uiText("Please contact the school administration or check back later for registration updates.")}</p>
           </div>
         ) : (
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
@@ -1231,8 +1231,8 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                 <div className="flex items-center gap-1 md:gap-2">
                   {[1, 2, 3].map((step) => (
                     <div key={step} className="flex items-center">
-                      <div className={`w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-[10px] md:text-xs font-bold transition-all ${registrationStep === step ? 'bg-blue-600 text-white' :
-                        registrationStep > step ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-400'
+                      <div className={`w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-base md:text-xs font-bold transition-all ${registrationStep === step ? 'bg-blue-600 text-white' :
+                        registrationStep > step ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'
                         }`}>
                         {registrationStep > step ? <Check size={14} className="w-3 h-3 md:w-4 md:h-4" /> : step}
                       </div>
@@ -1242,68 +1242,68 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                 </div>
               </div>
             </div>
-            <form ref={formRef} onSubmit={handleRegister} className="p-4 sm:p-6 space-y-6">
+            <form ref={formRef} onSubmit={handleRegister} className="p-4 text-left sm:p-6 space-y-6">
               {uiText(activeApplicationError && (
                 <div className="rounded-xl border border-rose-200 bg-rose-50 dark:bg-rose-950/30 dark:border-rose-900/50 p-4 flex gap-3">
-                  <AlertTriangle className="text-rose-600 dark:text-rose-400 flex-shrink-0 mt-0.5" size={18} />
+                  <AlertTriangle className="text-rose-700 dark:text-rose-300 flex-shrink-0 mt-0.5" size={18} />
                   <div className="flex-1">
-                    <h4 className="text-sm font-bold text-rose-700 dark:text-rose-300">{uiText("Active Application Exists")}</h4>
-                    <p className="text-sm text-rose-600 dark:text-rose-400 mt-1">{uiError(activeApplicationError)}</p>
-                    <p className="text-xs text-rose-500 dark:text-rose-400 mt-2">{uiText("Once your current application is completed, you will be able to submit a new one. If you need assistance, please contact school administration.")}</p>
+                    <h4 className="text-base font-bold text-rose-700 dark:text-rose-300">{uiText("Active Application Exists")}</h4>
+                    <p className="text-base text-rose-700 dark:text-rose-300 mt-1">{uiError(activeApplicationError)}</p>
+                    <p className="text-base text-rose-700 dark:text-rose-300 mt-2">{uiText("Once your current application is completed, you will be able to submit a new one. If you need assistance, please contact school administration.")}</p>
                   </div>
                 </div>
               ))}
               <div className={`space-y-6 animate-in fade-in slide-in-from-right-4 ${registrationStep !== 1 ? 'hidden' : ''}`}>
-                <h4 className="text-xs font-black text-slate-500 uppercase tracking-wider pb-2 border-b border-slate-100 dark:border-slate-800">{uiText("1. Student Information / የተማሪዎች መረጃ")}</h4>
+                <h4 className="text-base font-black text-slate-600 dark:text-slate-200 uppercase tracking-wider pb-2 border-b border-slate-100 dark:border-slate-800">{uiText("1. Student Information / የተማሪዎች መረጃ")}</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Row 1: Full Name & Place of Birth */}
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">{uiText("Full Name ")}<span className="text-rose-500">{uiText("*")}</span>{uiText(" / የተማሪዎች ስም")}</label>
+                    <label className="text-base font-bold text-slate-600 dark:text-slate-200 uppercase flex items-center gap-1">{uiText("Full Name ")}<span className="text-rose-700 dark:text-rose-300">{uiText("*")}</span>{uiText(" / የተማሪዎች ስም")}</label>
                     <input
                       required
                       name="name"
                       type="text"
                       placeholder={uiText("Enter student full name")}
                       onBlur={(e) => { e.target.value = toTitleCase(e.target.value); }}
-                      className={`w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-sm outline-none focus:ring-2 ${validationErrors.name
+                      className={`w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-base outline-none focus:ring-2 ${validationErrors.name
                         ? 'border-rose-300 focus:ring-rose-500 dark:border-rose-700'
                         : 'border-slate-200 dark:border-slate-700 focus:ring-blue-500'
                         }`}
                     />
-                    {uiText(validationErrors.name && <p className="text-[10px] text-rose-500 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {validationErrors.name}</p>)}
+                    {uiText(validationErrors.name && <p className="text-base text-rose-700 dark:text-rose-300 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {validationErrors.name}</p>)}
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
+                    <label className="text-base font-bold text-slate-600 dark:text-slate-200 uppercase flex items-center gap-1">
                       {t('registration.placeOfBirth', 'Place of Birth')}{uiText(" / የትውልድ ቦታ")}</label>
                     <input
                       name="placeOfBirth"
                       type="text"
                       placeholder={uiText("Place of Birth / የትውልድ ቦታ")}
                       onBlur={(e) => { e.target.value = toTitleCase(e.target.value); }}
-                      className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-base outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">{uiText("Current Address ")}<span className="text-rose-500">{uiText("*")}</span>{uiText(" / አሁን ያለበት አድራሻ")}</label>
+                    <label className="text-base font-bold text-slate-600 dark:text-slate-200 uppercase flex items-center gap-1">{uiText("Current Address ")}<span className="text-rose-700 dark:text-rose-300">{uiText("*")}</span>{uiText(" / አሁን ያለበት አድራሻ")}</label>
                     <input
                       required
                       name="address"
                       type="text"
                       placeholder={uiText("City, Sub-city, Woreda")}
                       onBlur={(e) => { e.target.value = toTitleCase(e.target.value); }}
-                      className={`w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-sm outline-none focus:ring-2 ${validationErrors.address
+                      className={`w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-base outline-none focus:ring-2 ${validationErrors.address
                         ? 'border-rose-300 focus:ring-rose-500 dark:border-rose-700'
                         : 'border-slate-200 dark:border-slate-700 focus:ring-blue-500'
                         }`}
                     />
-                    {uiText(validationErrors.address && <p className="text-[10px] text-rose-500 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {uiText(validationErrors.address)}</p>)}
+                    {uiText(validationErrors.address && <p className="text-base text-rose-700 dark:text-rose-300 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {uiText(validationErrors.address)}</p>)}
                   </div>
 
                   {/* Row 2: Date of Birth & Card Age */}
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">{uiText("Date of Birth (Ethiopian Calendar) ")}<span className="text-rose-500">{uiText("*")}</span>{uiText(" / የትውልድ ቀን")}</label>
+                    <label className="text-base font-bold text-slate-600 dark:text-slate-200 uppercase flex items-center gap-1">{uiText("Date of Birth (Ethiopian Calendar) ")}<span className="text-rose-700 dark:text-rose-300">{uiText("*")}</span>{uiText(" / የትውልድ ቀን")}</label>
                     <EthiopianDatePicker
                       value={ethiopianDob}
                       onChange={(val) => setEthiopianDob(val)}
@@ -1311,20 +1311,20 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                       className={validationErrors.dob ? 'border-rose-300 dark:border-rose-700 focus:ring-rose-500' : ''}
                     />
                     <input type="hidden" name="dob" value={ethiopianDob ? ethiopianToGregorianIso(ethiopianDob) : ''} />
-                    {uiText(validationErrors.dob && <p className="text-[10px] text-rose-500 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {uiText(validationErrors.dob)}</p>)}
+                    {uiText(validationErrors.dob && <p className="text-base text-rose-700 dark:text-rose-300 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {uiText(validationErrors.dob)}</p>)}
                   </div>
 
 
 
                   {/* Row 3: Religion (Dropdown) & Gender (Dropdown) */}
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
+                    <label className="text-base font-bold text-slate-600 dark:text-slate-200 uppercase flex items-center gap-1">
                       {t('registration.religion', 'Religion')}{uiText(" / ሐይማኖት")}</label>
                     <select
                       name="religion"
                       title={uiText("Religion")}
                       aria-label={uiText("Religion")}
-                      className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-base outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="">{uiText("Select Religion / ሐይማኖት ይምረጡ")}</option>
                       <option value="Orthodox">{uiText("Orthodox / ኦርቶዶክስ")}</option>
@@ -1336,12 +1336,12 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">{uiText("Gender ")}<span className="text-rose-500">{uiText("*")}</span>{uiText(" / ጾታ")}</label>
+                    <label className="text-base font-bold text-slate-600 dark:text-slate-200 uppercase flex items-center gap-1">{uiText("Gender ")}<span className="text-rose-700 dark:text-rose-300">{uiText("*")}</span>{uiText(" / ጾታ")}</label>
                     <select
                       name="gender"
                       title={uiText("Gender")}
                       aria-label={uiText("Gender")}
-                      className={`w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-sm outline-none focus:ring-2 ${validationErrors.gender
+                      className={`w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-base outline-none focus:ring-2 ${validationErrors.gender
                         ? 'border-rose-300 focus:ring-rose-500 dark:border-rose-700'
                         : 'border-slate-200 dark:border-slate-700 focus:ring-blue-500'
                         }`}
@@ -1350,7 +1350,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                       <option value="Male">{uiText("Male / ወንድ")}</option>
                       <option value="Female">{uiText("Female / ሴት")}</option>
                     </select>
-                    {uiText(validationErrors.gender && <p className="text-[10px] text-rose-500 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {uiText(validationErrors.gender)}</p>)}
+                    {uiText(validationErrors.gender && <p className="text-base text-rose-700 dark:text-rose-300 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {uiText(validationErrors.gender)}</p>)}
                   </div>
                 </div>
               </div>
@@ -1358,40 +1358,40 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
               <div className={`space-y-6 animate-in fade-in slide-in-from-right-4 ${registrationStep !== 2 ? 'hidden' : ''}`}>
                 {/* Father's Information */}
                 <div className="p-4 rounded-2xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/40 space-y-4">
-                  <h4 className="text-xs font-bold text-blue-700 dark:text-blue-400 uppercase tracking-wider flex items-center gap-2">
+                  <h4 className="text-base font-bold text-blue-700 dark:text-blue-400 uppercase tracking-wider flex items-center gap-2">
                     <User size={14} />{uiText(" Father's Details / የአባት መረጃ")}</h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">{uiText("Father's Full Name ")}<span className="text-rose-500">{uiText("*")}</span>{uiText(" / የአባት ሙሉ ስም")}</label>
+                      <label className="text-base font-bold text-slate-600 dark:text-slate-200 uppercase flex items-center gap-1">{uiText("Father's Full Name ")}<span className="text-rose-700 dark:text-rose-300">{uiText("*")}</span>{uiText(" / የአባት ሙሉ ስም")}</label>
                       <input
                         required
                         name="fatherName"
                         type="text"
                         placeholder={uiText("Father's Full Name")}
                         onBlur={(e) => { e.target.value = toTitleCase(e.target.value); }}
-                        className={`w-full px-4 py-2 bg-white dark:bg-slate-800 border rounded-xl text-sm outline-none focus:ring-2 ${validationErrors.fatherName
+                        className={`w-full px-4 py-2 bg-white dark:bg-slate-800 border rounded-xl text-base outline-none focus:ring-2 ${validationErrors.fatherName
                           ? 'border-rose-300 focus:ring-rose-500 dark:border-rose-700'
                           : 'border-slate-200 dark:border-slate-700 focus:ring-blue-500'
                           }`}
                       />
-                      {uiText(validationErrors.fatherName && <p className="text-[10px] text-rose-500 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {uiText(validationErrors.fatherName)}</p>)}
+                      {uiText(validationErrors.fatherName && <p className="text-base text-rose-700 dark:text-rose-300 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {uiText(validationErrors.fatherName)}</p>)}
                     </div>
 
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase">{uiText("Father's Occupation / የአባት ስራ")}</label>
+                      <label className="text-base font-bold text-slate-600 dark:text-slate-200 uppercase">{uiText("Father's Occupation / የአባት ስራ")}</label>
                       <input
                         name="fatherOccupation"
                         type="text"
                         placeholder={uiText("e.g. Teacher, Merchant, Engineer")}
                         onBlur={(e) => { e.target.value = toTitleCase(e.target.value); }}
-                        className="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-base outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
 
                     <div className="space-y-1 min-w-0">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">{uiText("Father's Phone / የአባት ስልክ")}</label>
+                      <label className="text-base font-bold text-slate-600 dark:text-slate-200 uppercase flex items-center gap-1">{uiText("Father's Phone / የአባት ስልክ")}</label>
                       <div className="flex items-center gap-1.5 w-full min-w-0">
-                        <div className="flex items-center justify-center px-2.5 py-2 bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl text-xs font-black text-slate-600 dark:text-slate-300 select-none shrink-0">{uiText("+251")}</div>
+                        <div className="flex items-center justify-center px-2.5 py-2 bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl text-base font-black text-slate-600 dark:text-slate-300 select-none shrink-0">{uiText("+251")}</div>
                         <input
                           type="tel"
                           inputMode="numeric"
@@ -1401,7 +1401,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                           onChange={(e) => {
                             e.target.value = e.target.value.replace(/[^\d]/g, '').slice(0, 9);
                           }}
-                          className="flex-1 min-w-0 w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 font-bold"
+                          className="flex-1 min-w-0 w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-base outline-none focus:ring-2 focus:ring-blue-500 font-bold"
                         />
                       </div>
                     </div>
@@ -1410,40 +1410,40 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
 
                 {/* Mother's Information */}
                 <div className="p-4 rounded-2xl bg-purple-50/50 dark:bg-purple-950/20 border border-purple-100 dark:border-purple-900/40 space-y-4">
-                  <h4 className="text-xs font-bold text-purple-700 dark:text-purple-400 uppercase tracking-wider flex items-center gap-2">
+                  <h4 className="text-base font-bold text-purple-700 dark:text-purple-400 uppercase tracking-wider flex items-center gap-2">
                     <User size={14} />{uiText(" Mother's Details / የእናት መረጃ")}</h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">{uiText("Mother's Full Name ")}<span className="text-rose-500">{uiText("*")}</span>{uiText(" / የእናት ሙሉ ስም")}</label>
+                      <label className="text-base font-bold text-slate-600 dark:text-slate-200 uppercase flex items-center gap-1">{uiText("Mother's Full Name ")}<span className="text-rose-700 dark:text-rose-300">{uiText("*")}</span>{uiText(" / የእናት ሙሉ ስም")}</label>
                       <input
                         required
                         name="motherName"
                         type="text"
                         placeholder={uiText("Mother's Full Name")}
                         onBlur={(e) => { e.target.value = toTitleCase(e.target.value); }}
-                        className={`w-full px-4 py-2 bg-white dark:bg-slate-800 border rounded-xl text-sm outline-none focus:ring-2 ${validationErrors.motherName
+                        className={`w-full px-4 py-2 bg-white dark:bg-slate-800 border rounded-xl text-base outline-none focus:ring-2 ${validationErrors.motherName
                           ? 'border-rose-300 focus:ring-rose-500 dark:border-rose-700'
                           : 'border-slate-200 dark:border-slate-700 focus:ring-blue-500'
                           }`}
                       />
-                      {uiText(validationErrors.motherName && <p className="text-[10px] text-rose-500 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {uiText(validationErrors.motherName)}</p>)}
+                      {uiText(validationErrors.motherName && <p className="text-base text-rose-700 dark:text-rose-300 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {uiText(validationErrors.motherName)}</p>)}
                     </div>
 
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase">{uiText("Mother's Occupation / የእናት ስራ")}</label>
+                      <label className="text-base font-bold text-slate-600 dark:text-slate-200 uppercase">{uiText("Mother's Occupation / የእናት ስራ")}</label>
                       <input
                         name="motherOccupation"
                         type="text"
                         placeholder={uiText("e.g. Accountant, Doctor, Housewife")}
                         onBlur={(e) => { e.target.value = toTitleCase(e.target.value); }}
-                        className="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-base outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
 
                     <div className="space-y-1 min-w-0">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">{uiText("Mother's Phone / የእናት ስልክ")}</label>
+                      <label className="text-base font-bold text-slate-600 dark:text-slate-200 uppercase flex items-center gap-1">{uiText("Mother's Phone / የእናት ስልክ")}</label>
                       <div className="flex items-center gap-1.5 w-full min-w-0">
-                        <div className="flex items-center justify-center px-2.5 py-2 bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl text-xs font-black text-slate-600 dark:text-slate-300 select-none shrink-0">{uiText("+251")}</div>
+                        <div className="flex items-center justify-center px-2.5 py-2 bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl text-base font-black text-slate-600 dark:text-slate-300 select-none shrink-0">{uiText("+251")}</div>
                         <input
                           type="tel"
                           inputMode="numeric"
@@ -1453,7 +1453,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                           onChange={(e) => {
                             e.target.value = e.target.value.replace(/[^\d]/g, '').slice(0, 9);
                           }}
-                          className="flex-1 min-w-0 w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 font-bold"
+                          className="flex-1 min-w-0 w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-base outline-none focus:ring-2 focus:ring-blue-500 font-bold"
                         />
                       </div>
                     </div>
@@ -1513,15 +1513,15 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
               <div className={`space-y-6 animate-in fade-in slide-in-from-right-4 ${registrationStep !== 3 ? 'hidden' : ''}`}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">{uiText("Previous School ")}<span className="text-slate-400 text-[10px] font-medium">{uiText("(optional)")}</span></label>
-                    <input name="previousSchool" type="text" placeholder={uiText("Name of previous school")} onBlur={(e) => { e.target.value = toTitleCase(e.target.value); }} className={`w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-sm outline-none focus:ring-2 ${validationErrors.previousSchool
+                    <label className="text-base font-bold text-slate-600 dark:text-slate-200 uppercase flex items-center gap-1">{uiText("Previous School ")}<span className="text-slate-400 text-base font-medium">{uiText("(optional)")}</span></label>
+                    <input name="previousSchool" type="text" placeholder={uiText("Name of previous school")} onBlur={(e) => { e.target.value = toTitleCase(e.target.value); }} className={`w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-base outline-none focus:ring-2 ${validationErrors.previousSchool
                       ? 'border-rose-300 focus:ring-rose-500 dark:border-rose-700'
                       : 'border-slate-200 dark:border-slate-700 focus:ring-blue-500'
                       }`} />
-                    {uiText(validationErrors.previousSchool && <p className="text-[10px] text-rose-500 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {uiText(validationErrors.previousSchool)}</p>)}
+                    {uiText(validationErrors.previousSchool && <p className="text-base text-rose-700 dark:text-rose-300 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {uiText(validationErrors.previousSchool)}</p>)}
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">{uiText("Last Grade Completed ")}<span className="text-rose-500">{uiText("*")}</span></label>
+                    <label className="text-base font-bold text-slate-600 dark:text-slate-200 uppercase flex items-center gap-1">{uiText("Last Grade Completed ")}<span className="text-rose-700 dark:text-rose-300">{uiText("*")}</span></label>
                     <select
                       name="grade"
                       required
@@ -1534,7 +1534,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                           });
                         }
                       }}
-                      className={`w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-sm outline-none focus:ring-2 ${validationErrors.grade
+                      className={`w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-base outline-none focus:ring-2 ${validationErrors.grade
                         ? 'border-rose-300 focus:ring-rose-500 dark:border-rose-700'
                         : 'border-slate-200 dark:border-slate-700 focus:ring-blue-500'
                         }`}
@@ -1548,12 +1548,12 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                         <option key={g} value={g}>{uiText("Grade ")}{uiText(g)}</option>
                       ))}
                     </select>
-                    {uiText(validationErrors.grade && <p className="text-[10px] text-rose-500 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {uiText(validationErrors.grade)}</p>)}
+                    {uiText(validationErrors.grade && <p className="text-base text-rose-700 dark:text-rose-300 font-semibold flex items-center gap-1"><AlertTriangle size={12} /> {uiText(validationErrors.grade)}</p>)}
                   </div>
                 </div>
 
                 <div className="space-y-3">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase block">{uiText("Last Transcript (Optional, Max 2MB)")}</label>
+                  <label className="text-base font-bold text-slate-600 dark:text-slate-200 uppercase block">{uiText("Last Transcript (Optional, Max 2MB)")}</label>
                   <div className={`relative border-2 border-dashed rounded-2xl p-8 transition-all flex flex-col items-center justify-center gap-2 group cursor-pointer ${fileError ? 'border-rose-300 bg-rose-50 dark:bg-rose-900/10' : 'border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-600'
                     }`}>
                     <input
@@ -1569,14 +1569,14 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                       {fileName ? <FileText size={32} /> : <Upload size={32} />}
                     </div>
                     <div className="text-center">
-                      <p className="text-sm font-bold text-slate-700 dark:text-slate-200">
+                      <p className="text-base font-bold text-slate-700 dark:text-slate-200">
                         {uiText(fileName || 'Click to upload transcript (Optional)')}
                       </p>
-                      <p className="text-xs text-slate-400 mt-1">{uiText("Accepted formats: PDF, PNG, JPG (Max 2MB)")}</p>
+                      <p className="text-base text-slate-400 mt-1">{uiText("Accepted formats: PDF, PNG, JPG (Max 2MB)")}</p>
                     </div>
                   </div>
                   {uiText(fileError && (
-                    <p className="text-sm text-rose-600 font-bold text-center flex items-center justify-center gap-1 bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-xl py-2 px-4">
+                    <p className="text-base text-rose-600 font-bold text-center flex items-center justify-center gap-1 bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-xl py-2 px-4">
                       <AlertTriangle size={14} /> {uiError(fileError)}
                     </p>
                   ))}
@@ -1584,7 +1584,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
 
                 {/* Branch Selection Section */}
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">{uiText("Branch ")}<span className="text-rose-500">{uiText("*")}</span></label>
+                  <label className="text-base font-bold text-slate-600 dark:text-slate-200 uppercase flex items-center gap-1">{uiText("Branch ")}<span className="text-rose-700 dark:text-rose-300">{uiText("*")}</span></label>
                   {(() => {
                     const displayBranches = [...branchesList];
                     if (selectedBranchName && !displayBranches.some(b => b.name === selectedBranchName)) {
@@ -1597,7 +1597,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                             value={selectedBranchName}
                             onChange={(e) => setSelectedBranchName(e.target.value)}
                             disabled={user.role === 'school-admin'}
-                            className="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none text-slate-500 font-semibold cursor-not-allowed"
+                            className="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-base outline-none text-slate-600 dark:text-slate-200 font-semibold cursor-not-allowed"
                           >
                             <option value="">{uiText("Select Branch")}</option>
                             {displayBranches.map(b => (
@@ -1623,7 +1623,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                             });
                           }
                         }}
-                        className={`w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-sm outline-none focus:ring-2 ${validationErrors.branchName
+                        className={`w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-base outline-none focus:ring-2 ${validationErrors.branchName
                           ? 'border-rose-300 focus:ring-rose-500 dark:border-rose-700'
                           : 'border-slate-200 dark:border-slate-700 focus:ring-blue-500'
                           }`}
@@ -1636,7 +1636,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                     );
                   })()}
                   {uiText(validationErrors.branchName && (
-                    <p className="text-[10px] text-rose-500 font-semibold flex items-center gap-1">
+                    <p className="text-base text-rose-700 dark:text-rose-300 font-semibold flex items-center gap-1">
                       <AlertTriangle size={12} /> {uiText(validationErrors.branchName)}
                     </p>
                   ))}
@@ -1648,7 +1648,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                   type="button"
                   onClick={prevStep}
                   disabled={registrationStep === 1}
-                  className="w-full sm:w-auto px-6 py-2 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-all disabled:hidden"
+                  className="w-full sm:w-auto px-6 py-2 rounded-xl font-bold text-slate-600 dark:text-slate-200 hover:bg-slate-100 transition-all disabled:hidden"
                 >{uiText("Previous")}</button>
                 {registrationStep < 3 ? (
                   <button
@@ -1660,7 +1660,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                   <button
                     type="submit"
                     disabled={isSubmitting || !!activeApplicationError}
-                    className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white px-10 py-3 rounded-xl font-bold transition-all shadow-lg disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="w-full sm:w-auto bg-brand-forest-700 hover:bg-brand-forest-800 text-white px-10 py-3 rounded-xl font-bold transition-all shadow-lg disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     {uiText(isSubmitting ? (
                       <>

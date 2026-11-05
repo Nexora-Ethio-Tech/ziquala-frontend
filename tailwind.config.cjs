@@ -1,4 +1,5 @@
 const colors = require('tailwindcss/colors');
+const defaultTheme = require('tailwindcss/defaultTheme');
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
@@ -9,6 +10,10 @@ module.exports = {
   darkMode: 'class',
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Noto Sans Ethiopic', 'Nyala', 'Abyssinica SIL', ...defaultTheme.fontFamily.sans],
+        serif: ['Georgia', 'Noto Sans Ethiopic', 'Nyala', 'Abyssinica SIL', ...defaultTheme.fontFamily.serif],
+      },
       colors: {
         brand: {
           forest: { ...colors.emerald, 700: '#075b42' },

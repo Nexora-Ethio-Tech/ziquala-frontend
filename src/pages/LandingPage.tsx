@@ -82,8 +82,8 @@ import oilProject from '../assets/monastery/projects/oil-project.jpeg';
 import cbeLogo from '../assets/cbe-logo.svg';
 
 const SectionTitle = ({ eyebrow, children, copy }: { eyebrow: string; children: ReactNode; copy?: string }) => (
-  <div className="max-w-3xl mb-10 md:mb-14">
-    <p className="text-xs font-black uppercase tracking-[0.28em] text-brand-gold-700 dark:text-brand-gold-300">{uiText(eyebrow)}</p>
+  <div className="max-w-3xl mb-10 text-left md:mb-14">
+    <p className="text-base font-black uppercase tracking-[0.28em] text-brand-gold-700 dark:text-brand-gold-300">{uiText(eyebrow)}</p>
     <h2 className="text-brand-heading mt-4 text-3xl md:text-5xl font-black tracking-tight">{uiText(children)}</h2>
     {uiText(copy && <p className="mt-5 text-base md:text-lg leading-8 text-slate-600 dark:text-slate-300">{uiText(copy)}</p>)}
   </div>
@@ -148,7 +148,7 @@ const BrandMark = ({ compact = false }: { compact?: boolean }) => (
     </div>
     <div className="min-w-0">
       <p className={`${compact ? 'text-sm' : 'text-base'} font-black tracking-tight text-slate-950 dark:text-white truncate`}>{uiText(ziqualaIdentity.shortName)}</p>
-      <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-brand-gold-700 dark:text-brand-gold-400 truncate">{uiText("Primary · Grade 1–8")}</p>
+      <p className="text-base font-bold uppercase tracking-[0.2em] text-brand-gold-700 dark:text-brand-gold-400 truncate">{uiText("Primary · Grade 1–8")}</p>
     </div>
   </div>
 );
@@ -191,7 +191,7 @@ const PublicHeader = () => {
                 <NavLink
                   to={item.to}
                   end={item.to === '/'}
-                  className={({ isActive }) => `relative py-2 text-[13px] font-bold transition-colors after:absolute after:inset-x-0 after:-bottom-0.5 after:h-px after:origin-left after:transition-transform ${isActive
+                  className={({ isActive }) => `relative py-2 text-sm font-bold transition-colors after:absolute after:inset-x-0 after:-bottom-0.5 after:h-px after:origin-left after:transition-transform ${isActive
                     ? 'text-brand-forest-950 after:scale-x-100 after:bg-brand-forest-800 dark:text-white dark:after:bg-brand-gold-400'
                     : 'text-slate-600 after:scale-x-0 after:bg-brand-forest-800 hover:text-brand-forest-900 hover:after:scale-x-100 dark:text-slate-300 dark:hover:text-white'
                     }`}
@@ -200,7 +200,7 @@ const PublicHeader = () => {
                 </NavLink>
                 {item.children.length > 0 && (
                   <div className="invisible absolute left-1/2 top-full w-64 -translate-x-1/2 translate-y-2 border-t-4 border-brand-gold-400 bg-brand-forest-950 p-3 opacity-0 shadow-2xl transition duration-200 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100">
-                    <p className="px-3 pb-2 pt-1 text-[9px] font-black uppercase tracking-[0.24em] text-brand-forest-300">{uiText("Jump to")}</p>
+                    <p className="px-3 pb-2 pt-1 text-base font-black uppercase tracking-[0.24em] text-brand-forest-300">{uiText("Jump to")}</p>
                     {item.children.map((child) => (
                       <Link key={child.hash} to={`${item.to}${child.hash}`} className="flex items-center justify-between border-t border-white/10 px-3 py-3 text-sm font-bold text-white transition hover:bg-white/10 hover:text-brand-gold-300">
                         {uiText(child.label)}<ArrowRight size={14} />
@@ -217,7 +217,7 @@ const PublicHeader = () => {
             <button
               type="button"
               onClick={toggleTheme}
-              className="grid h-10 w-10 place-items-center text-slate-500 transition-colors hover:text-brand-gold-700 dark:text-slate-300 dark:hover:text-brand-gold-300"
+              className="grid h-10 w-10 place-items-center text-slate-600 transition-colors hover:text-brand-gold-700 dark:text-slate-300 dark:hover:text-brand-gold-300"
               aria-label={uiText(theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode')}
               aria-pressed={theme === 'dark'}
               title={uiText(theme === 'light' ? 'Use dark theme' : 'Use light theme')}
@@ -253,7 +253,7 @@ const PublicHeader = () => {
           >
             <div className="mx-auto grid min-h-full max-w-[90rem] gap-12 px-5 py-10 sm:px-8 sm:py-14 lg:grid-cols-[.8fr_1.2fr] lg:gap-20 lg:px-10">
               <div className="flex flex-col">
-                <p className="text-[10px] font-black uppercase tracking-[0.28em] text-brand-gold-300">{uiText("Explore Ziquala")}</p>
+                <p className="text-base font-black uppercase tracking-[0.28em] text-brand-gold-300">{uiText("Explore Ziquala")}</p>
                 <nav className="mt-7 border-t border-white/20" aria-label={uiText("Main navigation")}>
                   {publicNavigation.map((item, index) => (
                     <div key={item.to} className="border-b border-white/20 py-4 sm:py-5">
@@ -264,7 +264,7 @@ const PublicHeader = () => {
                         className={({ isActive }) => `group flex items-center justify-between transition-colors ${isActive ? 'text-brand-gold-300' : 'text-white hover:text-brand-gold-200'}`}
                       >
                         <span className="flex items-baseline gap-4 sm:gap-6">
-                          <span className="font-mono text-[10px] text-white/45">{uiText(String(index + 1).padStart(2, '0'))}</span>
+                          <span className="font-mono text-sm text-slate-200">{uiText(String(index + 1).padStart(2, '0'))}</span>
                           <span className="font-serif text-3xl sm:text-4xl">{uiText(item.label)}</span>
                         </span>
                         <ArrowRight size={20} className="transition-transform group-hover:translate-x-1" />
@@ -272,7 +272,7 @@ const PublicHeader = () => {
                       {item.children.length > 0 && (
                         <div className="ml-9 mt-4 flex flex-wrap gap-x-5 gap-y-2 sm:ml-14">
                           {item.children.map((child) => (
-                            <Link key={child.hash} to={`${item.to}${child.hash}`} onClick={() => setMenuOpen(false)} className="text-xs font-bold text-white/60 transition hover:text-brand-gold-300">{uiText(child.label)}</Link>
+                            <Link key={child.hash} to={`${item.to}${child.hash}`} onClick={() => setMenuOpen(false)} className="text-xs font-bold text-slate-200 transition hover:text-brand-gold-300">{uiText(child.label)}</Link>
                           ))}
                         </div>
                       )}
@@ -288,7 +288,7 @@ const PublicHeader = () => {
                   <img src={studentAssembly} alt={uiText("Ziquala Abo students in the school courtyard")} className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105" />
                   <div className="absolute inset-0 bg-gradient-to-t from-brand-forest-950 via-transparent to-transparent" />
                   <div className="absolute inset-x-0 bottom-0 p-6">
-                    <p className="text-[10px] font-black uppercase tracking-[0.24em] text-brand-gold-300">{uiText("School")}</p>
+                    <p className="text-base font-black uppercase tracking-[0.24em] text-brand-gold-300">{uiText("School")}</p>
                     <p className="mt-2 font-serif text-3xl">{uiText("Learning for tomorrow")}</p>
                   </div>
                 </Link>
@@ -296,7 +296,7 @@ const PublicHeader = () => {
                   <img src={craterCommunity} alt={uiText("Ziquala monastery community near the crater lake")} className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105" />
                   <div className="absolute inset-0 bg-gradient-to-t from-brand-forest-950 via-transparent to-transparent" />
                   <div className="absolute inset-x-0 bottom-0 p-6">
-                    <p className="text-[10px] font-black uppercase tracking-[0.24em] text-brand-gold-300">{uiText("Monastery")}</p>
+                    <p className="text-base font-black uppercase tracking-[0.24em] text-brand-gold-300">{uiText("Monastery")}</p>
                     <p className="mt-2 font-serif text-3xl">{uiText("A living heritage")}</p>
                   </div>
                 </Link>
@@ -314,11 +314,11 @@ const PublicFooter = () => (
     <div className="max-w-7xl mx-auto px-5 lg:px-8 py-14 grid gap-10 lg:grid-cols-[1.2fr_.8fr_1fr]">
       <div>
         <BrandMark />
-        <p className="mt-5 max-w-md text-sm leading-7 text-slate-600 dark:text-slate-400">{uiText(ziqualaIdentity.fullName)}{uiText(", serving children and families in Bishoftu under the stewardship of the monastery association.")}</p>
-        <p className="mt-3 text-sm font-semibold text-slate-700 dark:text-slate-300">{uiText(ziqualaIdentity.location)}</p>
+        <p className="mt-5 max-w-md text-base leading-7 text-slate-600 dark:text-slate-200">{uiText(ziqualaIdentity.fullName)}{uiText(", serving children and families in Bishoftu under the stewardship of the monastery association.")}</p>
+        <p className="mt-3 text-base font-semibold text-slate-700 dark:text-slate-300">{uiText(ziqualaIdentity.location)}</p>
       </div>
       <div>
-        <p className="text-xs font-black uppercase tracking-[0.24em] text-brand-gold-400">{uiText("Explore")}</p>
+        <p className="text-base font-black uppercase tracking-[0.24em] text-brand-gold-700 dark:text-brand-gold-300">{uiText("Explore")}</p>
         <div className="mt-5 grid gap-3 text-sm font-semibold text-slate-700 dark:text-slate-300">
           <Link to="/school" className="hover:text-brand-forest-800 dark:hover:text-white">{uiText("School information")}</Link>
           <Link to="/monastery" className="hover:text-brand-forest-800 dark:hover:text-white">{uiText("Monastery information")}</Link>
@@ -327,7 +327,7 @@ const PublicFooter = () => (
         </div>
       </div>
       <div>
-        <p className="text-xs font-black uppercase tracking-[0.24em] text-brand-gold-400">{uiText("Ziquala Abo Media")}</p>
+        <p className="text-base font-black uppercase tracking-[0.24em] text-brand-gold-700 dark:text-brand-gold-300">{uiText("Ziquala Abo Media")}</p>
         <div className="mt-5 flex flex-wrap gap-2">
           {socialLinks.map((social) => {
             const Icon = socialIcon(social.platform);
@@ -340,7 +340,7 @@ const PublicFooter = () => (
         </div>
       </div>
     </div>
-    <div className="border-t border-black/10 px-5 py-5 text-center text-xs text-slate-500 dark:border-white/10">{uiText("© 2026 Ziquala Abo School. Public content is separated between school and monastery areas.")}</div>
+    <div className="border-t border-black/10 px-5 py-5 text-center text-base text-slate-600 dark:border-white/10 dark:text-slate-200">{uiText("© 2026 Ziquala Abo School. Public content is separated between school and monastery areas.")}</div>
   </footer>
 );
 
@@ -359,7 +359,7 @@ const PublicLayout = () => {
   }, [location.pathname, location.hash]);
 
   return (
-    <div className="min-h-screen overflow-x-clip bg-brand-canvas text-slate-900 dark:text-slate-100">
+    <div className="public-site min-h-screen overflow-x-clip text-left bg-brand-canvas text-slate-900 dark:text-slate-100">
       <PublicHeader />
       <main><Outlet /></main>
       <PublicFooter />
@@ -384,15 +384,15 @@ const HomePage = () => {
         <div className="absolute inset-x-0 bottom-0 top-[17rem] -z-10 bg-brand-canvas dark:hidden md:hidden" />
         <div className="absolute inset-x-0 top-[14rem] -z-10 h-12 bg-gradient-to-b from-transparent to-brand-canvas dark:hidden md:hidden" />
         <div className="absolute inset-y-0 left-0 -z-10 hidden w-[86%] bg-brand-canvas [clip-path:polygon(0_0,74%_0,100%_100%,0_100%)] dark:hidden md:block" />
-        <div className="absolute inset-0 -z-10 hidden bg-[linear-gradient(90deg,rgba(2,44,32,.94)_0%,rgba(2,44,32,.72)_44%,rgba(2,44,32,.15)_78%),linear-gradient(0deg,rgba(3,30,24,.72)_0%,transparent_50%)] dark:block" />
+        <div className="absolute inset-0 -z-10 hidden bg-[linear-gradient(90deg,rgba(2,44,32,.94)_0%,rgba(2,44,32,.85)_44%,rgba(2,44,32,.75)_78%),linear-gradient(0deg,rgba(3,30,24,.72)_0%,transparent_50%)] dark:block" />
         <div className="mx-auto grid w-full max-w-[90rem] gap-12 px-5 pb-12 pt-[20rem] dark:pt-24 md:pb-16 md:pt-24 lg:grid-cols-[1fr_18rem] lg:items-end lg:px-10 lg:pb-20">
           <motion.div
             initial={reduceMotion ? false : { opacity: 0, y: 36 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.9, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-            className="max-w-5xl"
+            className="max-w-5xl bg-brand-canvas/95 dark:bg-transparent"
           >
-            <p className="flex items-center gap-3 text-xs font-black uppercase tracking-[0.28em] text-brand-gold-800 dark:text-brand-gold-300">
+            <p className="flex items-center gap-3 text-base font-black uppercase tracking-[0.28em] text-brand-gold-800 dark:text-brand-gold-300">
               <span className="h-px w-9 bg-brand-gold-700 dark:bg-brand-gold-300" />{uiText(" Bishoftu · KG–Grade 8")}</p>
             <h1 className="mt-7 max-w-5xl font-serif text-5xl font-medium leading-[0.95] tracking-[-0.045em] sm:text-6xl md:text-8xl lg:text-[6.4rem]">{uiText("Learning with roots. ")}<span className="text-brand-gold-700 dark:text-brand-gold-300">{uiText("Growing with purpose.")}</span>
             </h1>
@@ -409,12 +409,12 @@ const HomePage = () => {
             initial={reduceMotion ? false : { opacity: 0, x: 24 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.55 }}
-            className="flex items-center gap-4 border-l border-brand-forest-900/25 bg-brand-canvas/90 p-5 text-sm leading-7 text-slate-600 backdrop-blur-sm dark:border-white/30 dark:bg-transparent dark:py-0 dark:pr-0 dark:text-white/72"
+            className="flex items-center gap-4 border-l border-brand-forest-900/25 bg-brand-canvas/90 p-5 text-sm leading-7 text-slate-600 backdrop-blur-sm dark:border-white/30 dark:bg-transparent dark:py-0 dark:pr-0 dark:text-slate-100"
           >
             <img src={schoolLogo} alt={uiText("Ziquala Abo School logo")} className="h-20 w-20 shrink-0 rounded-full border-4 border-white object-cover shadow-lg" />
             <div>
               <p className="font-serif text-lg leading-8 text-brand-forest-950 dark:text-white">{uiText(ziqualaIdentity.amharicName)}</p>
-              <p className="mt-3 text-[10px] font-black uppercase tracking-[0.14em] text-brand-gold-700 dark:text-brand-gold-300 sm:tracking-[0.24em]">{uiText("Official school identity")}</p>
+              <p className="mt-3 text-base font-black uppercase tracking-[0.14em] text-brand-gold-700 dark:text-brand-gold-300 sm:tracking-[0.24em]">{uiText("Official school identity")}</p>
             </div>
           </motion.div>
         </div>
@@ -423,20 +423,20 @@ const HomePage = () => {
       <section id="destinations" className="scroll-mt-24 px-5 py-20 dark:bg-brand-forest-950 md:py-28 lg:px-10">
         <div className="mx-auto max-w-[90rem]">
           <div className="grid gap-10 border-b border-black/15 pb-14 dark:border-white/15 lg:grid-cols-[.75fr_1.25fr] lg:items-end">
-            <p className="text-xs font-black uppercase tracking-[0.28em] text-brand-gold-700 dark:text-brand-gold-300">{uiText("One heritage · Two destinations")}</p>
+            <p className="text-base font-black uppercase tracking-[0.28em] text-brand-gold-700 dark:text-brand-gold-300">{uiText("One heritage · Two destinations")}</p>
             <h2 className="text-brand-heading max-w-4xl font-serif text-4xl font-medium leading-[1.02] tracking-[-0.035em] sm:text-5xl md:text-6xl">{uiText("The school and monastery belong to one story, with space for each to speak clearly.")}</h2>
           </div>
 
           <div className="mt-10 grid gap-5 lg:grid-cols-[1.12fr_.88fr]">
             <Link to="/school" className="group relative min-h-[34rem] overflow-hidden bg-brand-forest-950 text-white">
               <img src={studentAssembly} alt={uiText("Ziquala Abo students gathered in the school courtyard")} className="absolute inset-0 h-full w-full object-cover transition duration-700 ease-out group-hover:scale-[1.035]" />
-              <div className="absolute inset-0 bg-gradient-to-t from-brand-forest-950 via-brand-forest-950/30 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-brand-forest-950 via-brand-forest-950/80 to-brand-forest-950/75" />
               <div className="absolute inset-x-0 bottom-0 p-7 sm:p-10">
-                <p className="text-xs font-black uppercase tracking-[0.25em] text-brand-gold-300">{uiText("School experience")}</p>
+                <p className="text-base font-black uppercase tracking-[0.25em] text-brand-gold-300">{uiText("School experience")}</p>
                 <div className="mt-3 flex items-end justify-between gap-8">
                   <div>
                     <h3 className="font-serif text-5xl font-medium sm:text-6xl">{uiText("Learn. Grow. Lead.")}</h3>
-                    <p className="mt-4 max-w-xl leading-7 text-white/75">{uiText("Explore learning, student life, leadership, school news, and the Grade 1–8 academic experience.")}</p>
+                    <p className="mt-4 max-w-xl leading-7 text-slate-100">{uiText("Explore learning, student life, leadership, school news, and the Grade 1–8 academic experience.")}</p>
                   </div>
                   <span className="hidden h-14 w-14 shrink-0 place-items-center rounded-full border border-white/50 transition group-hover:translate-x-1 group-hover:bg-white group-hover:text-brand-forest-950 sm:grid"><ArrowRight /></span>
                 </div>
@@ -445,11 +445,11 @@ const HomePage = () => {
 
             <Link to="/monastery" className="group relative min-h-[34rem] overflow-hidden bg-brand-forest-950 text-white">
               <img src={ziqualaAerial} alt={uiText("Aerial view of Ziquala crater lake and monastery")} className="absolute inset-0 h-full w-full object-cover transition duration-700 ease-out group-hover:scale-[1.035]" />
-              <div className="absolute inset-0 bg-gradient-to-t from-brand-forest-950 via-brand-forest-950/35 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-brand-forest-950 via-brand-forest-950/80 to-brand-forest-950/75" />
               <div className="absolute inset-x-0 bottom-0 p-7 sm:p-10">
-                <p className="text-xs font-black uppercase tracking-[0.25em] text-brand-gold-300">{uiText("Monastery experience")}</p>
+                <p className="text-base font-black uppercase tracking-[0.25em] text-brand-gold-300">{uiText("Monastery experience")}</p>
                 <h3 className="mt-3 font-serif text-5xl font-medium sm:text-6xl">{uiText("Faith. Place. Heritage.")}</h3>
-                <p className="mt-4 max-w-lg leading-7 text-white/75">{uiText("Enter a dedicated space for history, sacred life, community projects, and the monastery media archive.")}</p>
+                <p className="mt-4 max-w-lg leading-7 text-slate-100">{uiText("Enter a dedicated space for history, sacred life, community projects, and the monastery media archive.")}</p>
                 <span className="mt-7 inline-flex items-center gap-3 text-sm font-black">{uiText("Visit the monastery ")}<ArrowRight size={18} className="transition-transform group-hover:translate-x-1" /></span>
               </div>
             </Link>
@@ -465,7 +465,7 @@ const HomePage = () => {
             ['Grades', 'KG 1–Grade 8'],
           ].map(([label, value]) => (
             <div key={label} className="py-8 sm:px-7 first:pl-0">
-              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-brand-gold-700 dark:text-brand-gold-300">{uiText(label)}</p>
+              <p className="text-base font-black uppercase tracking-[0.24em] text-brand-gold-700 dark:text-brand-gold-300">{uiText(label)}</p>
               <p className="mt-2 font-serif text-xl text-brand-forest-950 dark:text-white/90">{uiText(value)}</p>
             </div>
           ))}
@@ -517,7 +517,7 @@ const LeadershipAlbum = () => {
           <div className="mx-auto mt-7 max-w-md text-center">
             <h3 className="text-xl font-black leading-tight sm:text-2xl">{displayName}</h3>
           </div>
-          <p className={`mt-7 font-serif text-xs italic text-brand-gold-900/55 ${right ? 'text-right' : 'text-left'}`}>{uiText("Page ")}{index + 1}</p>
+          <p className={`mt-7 font-serif text-xs italic text-brand-gold-800 ${right ? 'text-right' : 'text-left'}`}>{uiText("Page ")}{index + 1}</p>
         </div>
       </article>
     );
@@ -536,13 +536,13 @@ const LeadershipAlbum = () => {
         </div>
 
         <div className="mt-7 flex flex-wrap items-center justify-center gap-4">
-          <button type="button" onClick={() => move(-1)} aria-label={uiText("Previous leadership photo")} className="grid h-11 w-11 place-items-center rounded-full border border-slate-300 bg-brand-surface text-slate-700 shadow-sm transition hover:border-brand-forest-700 hover:text-brand-forest-800 dark:border-slate-700 dark:text-white"><ChevronLeft size={21} /></button>
+          <button type="button" onClick={() => move(-1)} aria-label={uiText("Previous leadership photo")} className="grid h-11 w-11 place-items-center rounded-full border border-slate-300 bg-brand-surface text-slate-700 shadow-sm transition hover:border-brand-forest-700 hover:text-brand-forest-800 dark:hover:text-brand-gold-300 dark:border-slate-700 dark:text-white"><ChevronLeft size={21} /></button>
           <div className="flex items-center gap-2" aria-label={uiText("Leadership page {{value0}} of {{value1}}", { value0: activeSpread + 1, value1: pageCount })}>
             {Array.from({ length: pageCount }, (_, index) => (
               <button key={index} type="button" onClick={() => setPage(index * pageSize)} aria-label={uiText("Show leadership page {{value0}}", { value0: index + 1 })} className={`h-2.5 rounded-full transition-all ${index === activeSpread ? 'w-8 bg-brand-forest-700' : 'w-2.5 bg-slate-300 dark:bg-slate-700'}`} />
             ))}
           </div>
-          <button type="button" onClick={() => move(1)} aria-label={uiText("Next leadership photo")} className="grid h-11 w-11 place-items-center rounded-full border border-slate-300 bg-brand-surface text-slate-700 shadow-sm transition hover:border-brand-forest-700 hover:text-brand-forest-800 dark:border-slate-700 dark:text-white"><ChevronRight size={21} /></button>
+          <button type="button" onClick={() => move(1)} aria-label={uiText("Next leadership photo")} className="grid h-11 w-11 place-items-center rounded-full border border-slate-300 bg-brand-surface text-slate-700 shadow-sm transition hover:border-brand-forest-700 hover:text-brand-forest-800 dark:hover:text-brand-gold-300 dark:border-slate-700 dark:text-white"><ChevronRight size={21} /></button>
         </div>
       </div>
     </section>
@@ -683,14 +683,14 @@ const StaffGallery = () => {
               </div>
               <div className="border-t-4 border-brand-gold-500 bg-brand-surface px-4 py-5">
                 <h3 className="text-brand-heading text-base font-black leading-6">{member.name}</h3>
-                <p className="mt-2 text-xs font-bold leading-5 text-slate-500 dark:text-slate-400">{uiText(member.role)}</p>
-                {member.body && <p className="mt-3 line-clamp-3 text-xs leading-5 text-slate-500 dark:text-slate-400">{uiText(member.body)}</p>}
+                <p className="mt-2 text-base font-bold leading-7 text-slate-600 dark:text-slate-200">{uiText(member.role)}</p>
+                {member.body && <p className="mt-3 text-base leading-7 text-slate-600 dark:text-slate-200">{uiText(member.body)}</p>}
               </div>
             </motion.article>
           ))}
           <div className="w-1 shrink-0" aria-hidden="true" />
         </div>
-        <p className="mt-2 text-xs font-bold uppercase tracking-[0.18em] text-brand-forest-900/55 dark:text-white/45">{uiText("Swipe or scroll to meet the full team · ")}{visibleStaff.length}{uiText(" people")}</p>
+        <p className="mt-2 text-base font-bold uppercase tracking-[0.18em] text-brand-forest-800 dark:text-slate-200">{uiText("Swipe or scroll to meet the full team · ")}{visibleStaff.length}{uiText(" people")}</p>
       </div>
     </section>
   );
@@ -746,10 +746,10 @@ const PublicCommunityHighlights = ({ compact = false }: { compact?: boolean }) =
                 )}
               </div>
               <div className="p-6">
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-gold-700 dark:text-brand-gold-400">{uiText(item.category || item.subtitle || 'School update')}</p>
+                <p className="text-base font-black uppercase tracking-[0.2em] text-brand-gold-700 dark:text-brand-gold-400">{uiText(item.category || item.subtitle || 'School update')}</p>
                 <h3 className="text-brand-heading mt-3 text-2xl font-black">{uiText(item.title)}</h3>
-                <p className="mt-4 text-sm leading-7 text-slate-600 dark:text-slate-300">{uiText(item.body)}</p>
-                {item.event_date && <p className="mt-5 text-xs font-black uppercase tracking-[0.18em] text-brand-gold-700 dark:text-brand-gold-300">{uiText(item.event_date)}</p>}
+                <p className="mt-4 text-base leading-7 text-slate-600 dark:text-slate-300">{uiText(item.body)}</p>
+                {item.event_date && <p className="mt-5 text-base font-black uppercase tracking-[0.18em] text-brand-gold-700 dark:text-brand-gold-300">{uiText(item.event_date)}</p>}
               </div>
             </motion.article>
           ))}
@@ -809,9 +809,9 @@ const UniformShowcase = () => {
                 )}
               </div>
               <div className="p-7">
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-gold-700 dark:text-brand-gold-400">{uiText(item.category || item.subtitle || 'Uniform')}</p>
+                <p className="text-base font-black uppercase tracking-[0.2em] text-brand-gold-700 dark:text-brand-gold-400">{uiText(item.category || item.subtitle || 'Uniform')}</p>
                 <h3 className="text-brand-heading mt-4 text-3xl font-black leading-tight">{uiText(item.title)}</h3>
-                {item.subtitle && <p className="mt-3 text-sm font-black text-brand-forest-700 dark:text-brand-forest-300">{uiText(item.subtitle)}</p>}
+                {item.subtitle && <p className="mt-3 text-base font-black text-brand-forest-700 dark:text-brand-forest-300">{uiText(item.subtitle)}</p>}
                 <p className="mt-5 leading-7 text-slate-600 dark:text-slate-300">{uiText(item.body)}</p>
               </div>
             </motion.article>
@@ -886,7 +886,7 @@ const MonasteryProjects = () => (
     <div className="mx-auto max-w-[90rem] px-5 lg:px-10">
       <ScrollReveal effect="wipe">
         <div className="grid gap-8 lg:grid-cols-[.75fr_1.25fr] lg:items-end">
-          <p className="text-xs font-black uppercase tracking-[0.28em] text-brand-gold-700 dark:text-brand-gold-400">{uiText("Sustaining the monastery")}</p>
+          <p className="text-base font-black uppercase tracking-[0.28em] text-brand-gold-700 dark:text-brand-gold-400">{uiText("Sustaining the monastery")}</p>
           <div>
             <h2 className="text-brand-heading font-serif text-4xl font-medium leading-[1.02] tracking-[-0.035em] sm:text-5xl md:text-6xl">{uiText("Income-generating projects.")}</h2>
             <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-600 dark:text-slate-300">{uiText("Farming, food production, sewing, and livestock care generate the income the monastery needs for everyday expenses, community life, and long-term sustainability. The monastery also operates a school in Debre Zeyit city, strengthening both spiritual life and community development.")}</p>
@@ -900,12 +900,12 @@ const MonasteryProjects = () => (
             <article className="grid overflow-hidden bg-brand-surface md:grid-cols-2">
               <div className={`relative min-h-72 overflow-hidden bg-stone-300 dark:bg-brand-forest-800 md:min-h-[30rem] ${index % 2 === 1 ? 'md:order-2' : ''}`}>
                 <img src={project.image} alt={uiText(project.alt)} loading="lazy" decoding="async" className="h-full w-full object-cover transition duration-700 hover:scale-[1.035]" />
-                <span className="absolute left-5 top-5 bg-brand-gold-400 px-3 py-2 font-mono text-[10px] font-black text-brand-forest-950">{uiText(String(index + 1).padStart(2, '0'))}</span>
+                <span className="absolute left-5 top-5 bg-brand-gold-400 px-3 py-2 font-mono text-sm font-black text-brand-forest-950">{uiText(String(index + 1).padStart(2, '0'))}</span>
               </div>
               <div className="flex flex-col justify-center p-7 sm:p-10 lg:p-14">
-                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-brand-gold-700 dark:text-brand-gold-400">{uiText("Product focus")}</p>
+                <p className="text-base font-black uppercase tracking-[0.24em] text-brand-gold-700 dark:text-brand-gold-400">{uiText("Product focus")}</p>
                 <h3 className="text-brand-heading mt-4 font-serif text-4xl sm:text-5xl">{uiText(project.title)}</h3>
-                <p className="mt-5 text-sm font-black uppercase tracking-[0.16em] text-brand-forest-700 dark:text-brand-forest-300">{uiText(project.product)}</p>
+                <p className="mt-5 text-base font-black uppercase tracking-[0.16em] text-brand-forest-700 dark:text-brand-forest-300">{uiText(project.product)}</p>
                 <p className="mt-6 max-w-xl text-lg leading-8 text-slate-600 dark:text-slate-300">{uiText(project.copy)}</p>
                 <a href="#monastery-contact" className="mt-8 inline-flex w-fit items-center gap-2 border-b border-brand-forest-800 pb-2 text-sm font-black text-brand-forest-900 dark:border-brand-gold-300 dark:text-brand-gold-300">{uiText("Ask about this project ")}<ArrowRight size={17} /></a>
               </div>
@@ -922,7 +922,7 @@ const MonasteryHistory = () => (
     <div className="mx-auto max-w-[90rem] px-5 lg:px-10">
       <ScrollReveal effect="wipe">
         <div className="grid gap-8 border-b border-black/15 pb-12 dark:border-white/15 lg:grid-cols-[.7fr_1.3fr] lg:items-end">
-          <p className="text-xs font-black uppercase tracking-[0.28em] text-brand-gold-700 dark:text-brand-gold-300">{uiText("A living history")}</p>
+          <p className="text-base font-black uppercase tracking-[0.28em] text-brand-gold-700 dark:text-brand-gold-300">{uiText("A living history")}</p>
           <div>
             <h2 className="text-brand-heading font-serif text-4xl font-medium leading-[1.1] tracking-[-0.025em] sm:text-5xl md:text-6xl">{uiText("የደብረ ዝቋላ ገዳም ታሪክ")}</h2>
             <p className="mt-6 max-w-3xl text-lg leading-9 text-slate-600 dark:text-slate-300">{uiText("የዘመናት የታሪክ፣ የቅድስና እና የትምህርት ማዕከል። ከዘመነ አክሱም እስከ ዛሬ የዘለቀውን የገዳሙን ታሪክ ከተሰጠን የገዳሙ ሰነድ እናቀርባለን።")}</p>
@@ -935,8 +935,8 @@ const MonasteryHistory = () => (
           <ScrollReveal key={chapter.title} direction={index % 2 === 0 ? 'left' : 'right'} effect="slide" delay={Math.min(index * 0.04, 0.16)}>
             <article className="grid gap-5 py-9 md:grid-cols-[11rem_1fr] md:gap-10 md:py-12">
               <div>
-                <p className="font-mono text-xs font-black text-brand-gold-700 dark:text-brand-gold-400">{uiText(String(index + 1).padStart(2, '0'))}</p>
-                <p className="mt-3 text-sm font-black leading-6 text-brand-forest-800 dark:text-brand-forest-300">{uiText(chapter.period)}</p>
+                <p className="font-mono text-base font-black text-brand-gold-700 dark:text-brand-gold-400">{uiText(String(index + 1).padStart(2, '0'))}</p>
+                <p className="mt-3 text-base font-black leading-6 text-brand-forest-800 dark:text-brand-forest-300">{uiText(chapter.period)}</p>
               </div>
               <div className="max-w-4xl">
                 <h3 className="text-brand-heading text-2xl font-black leading-10 md:text-3xl">{uiText(chapter.title)}</h3>
@@ -961,9 +961,9 @@ const MonasteryHistory = () => (
           />
           </div>
           <div className="flex flex-col justify-center p-8 sm:p-10 md:p-12">
-            <p className="text-xs font-black uppercase tracking-[0.24em] text-brand-gold-300">{uiText("History film · የገዳሙ ታሪክ")}</p>
+            <p className="text-base font-black uppercase tracking-[0.24em] text-brand-gold-300">{uiText("History film · የገዳሙ ታሪክ")}</p>
             <h3 className="mt-5 font-serif text-3xl leading-tight sm:text-4xl">{uiText("ስለ ገዳሙ አጭር ታሪክ")}</h3>
-            <p className="mt-5 leading-7 text-white/70">{uiText("Watch the monastery’s history film from the selected starting point at 1:58.")}</p>
+            <p className="mt-5 leading-7 text-slate-200">{uiText("Watch the monastery’s history film from the selected starting point at 1:58.")}</p>
             <a href="https://youtu.be/6zhMGpFsfGg?t=118" target="_blank" rel="noreferrer" className="mt-8 inline-flex items-center gap-2 font-black text-brand-gold-300">{uiText("Watch directly on YouTube ")}<ExternalLink size={17} /></a>
           </div>
         </div>
@@ -979,17 +979,17 @@ const MonasteryMuseum = () => (
         <div className="relative min-h-[22rem] overflow-hidden sm:min-h-[30rem] lg:min-h-[38rem]">
           <img src={monasteryMuseum} alt={uiText("The Ziquala Abo Monastery museum building")} decoding="async" className="absolute inset-0 h-full w-full object-cover transition duration-1000 hover:scale-[1.025]" />
           <div className="absolute inset-0 bg-gradient-to-t from-brand-forest-950/65 via-transparent to-transparent" />
-          <span className="absolute bottom-5 left-5 border border-white/35 bg-brand-forest-950/55 px-4 py-2 text-[10px] font-black uppercase tracking-[0.22em] backdrop-blur-sm">{uiText("Monastery heritage")}</span>
+          <span className="absolute bottom-5 left-5 border border-white/35 bg-brand-forest-950/55 px-4 py-2 text-sm font-black uppercase tracking-[0.22em] backdrop-blur-sm">{uiText("Monastery heritage")}</span>
         </div>
       </ScrollReveal>
 
       <ScrollReveal effect="rise" delay={0.14}>
         <div className="max-w-xl">
           <span className="grid h-14 w-14 place-items-center rounded-full border border-brand-gold-300/50 text-brand-gold-300"><Building2 size={25} /></span>
-          <p className="mt-8 text-xs font-black uppercase tracking-[0.28em] text-brand-gold-300">{uiText("The monastery museum")}</p>
+          <p className="mt-8 text-base font-black uppercase tracking-[0.28em] text-brand-gold-300">{uiText("The monastery museum")}</p>
           <h2 className="mt-5 font-serif text-4xl leading-tight sm:text-5xl">{uiText("የገዳሙ ቤተ መዘክር")}</h2>
-          <p className="mt-6 text-lg leading-8 text-white/75">{uiText("A dedicated place for safeguarding and sharing the history, heritage, and living memory of Debre Ziquala Monastery.")}</p>
-          <p className="mt-5 leading-7 text-white/60">{uiText("Information about the collection and visitor access can be confirmed through the monastery’s official contact channels.")}</p>
+          <p className="mt-6 text-lg leading-8 text-slate-100">{uiText("A dedicated place for safeguarding and sharing the history, heritage, and living memory of Debre Ziquala Monastery.")}</p>
+          <p className="mt-5 leading-7 text-slate-200">{uiText("Information about the collection and visitor access can be confirmed through the monastery’s official contact channels.")}</p>
           <a href="#monastery-contact" className="group mt-8 inline-flex items-center gap-3 border-b border-brand-gold-300/70 pb-2 text-sm font-black text-brand-gold-300">{uiText("Ask about visiting ")}<ArrowRight size={17} className="transition-transform group-hover:translate-x-1" /></a>
         </div>
       </ScrollReveal>
@@ -1011,7 +1011,7 @@ const MonasteryDonation = () => {
       <ScrollReveal effect="scale" className="mx-auto max-w-[90rem] px-5 lg:px-10">
         <div className="grid gap-10 lg:grid-cols-[.8fr_1.2fr]">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.28em] text-brand-gold-300">{uiText("Support the monastery")}</p>
+            <p className="text-base font-black uppercase tracking-[0.28em] text-brand-gold-300">{uiText("Support the monastery")}</p>
             <h2 className="mt-5 font-serif text-4xl leading-tight sm:text-5xl">{uiText("Help preserve a living spiritual heritage.")}</h2>
             <p className="mt-6 max-w-xl text-lg leading-8 text-brand-forest-50/75">{uiText("Donations help the monastery meet its needs, sustain its community, care for its heritage, and continue its service.")}</p>
           </div>
@@ -1019,17 +1019,17 @@ const MonasteryDonation = () => {
             <div className="flex items-center gap-4">
               <span className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-full bg-white p-1 shadow-lg"><img src={cbeLogo} alt={uiText("Commercial Bank of Ethiopia logo")} className="h-full w-full object-contain" /></span>
               <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-brand-forest-200">{uiText("CBE donation account")}</p>
+                <p className="text-base font-black uppercase tracking-[0.22em] text-brand-forest-200">{uiText("CBE donation account")}</p>
                 <p className="mt-1 font-bold text-white">{uiText(monasteryDonation.bankName)}</p>
               </div>
             </div>
-            <p className="mt-8 text-xs font-black uppercase tracking-[0.22em] text-brand-forest-200">{uiText("Account number")}</p>
+            <p className="mt-8 text-base font-black uppercase tracking-[0.22em] text-brand-forest-200">{uiText("Account number")}</p>
             <p className="mt-3 break-all font-mono text-3xl font-black tracking-tight sm:text-4xl">{uiText(monasteryDonation.accountNumber)}</p>
             <button type="button" onClick={copyAccountNumber} className="mt-6 inline-flex items-center gap-2 border border-white/30 px-5 py-3 text-sm font-black transition hover:bg-white hover:text-brand-forest-950">
               {copied ? <CheckCircle2 size={18} /> : <Copy size={18} />}
               {uiText(copied ? 'Account number copied' : 'Copy account number')}
             </button>
-            <p className="mt-7 max-w-xl text-sm leading-7 text-brand-forest-50/65">{uiText("Please confirm the account-holder details with the monastery through its official email, phone, or Telegram before transferring funds.")}</p>
+            <p className="mt-7 max-w-xl text-base leading-7 text-slate-200">{uiText("Please confirm the account-holder details with the monastery through its official email, phone, or Telegram before transferring funds.")}</p>
           </div>
         </div>
       </ScrollReveal>
@@ -1051,7 +1051,7 @@ const MonasteryContact = () => {
       <ScrollReveal className="mx-auto max-w-[90rem] px-5 lg:px-10">
         <div className="grid gap-10 lg:grid-cols-[.7fr_1.3fr]">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.28em] text-brand-gold-700 dark:text-brand-gold-300">{uiText("Contact the monastery")}</p>
+            <p className="text-base font-black uppercase tracking-[0.28em] text-brand-gold-700 dark:text-brand-gold-300">{uiText("Contact the monastery")}</p>
             <h2 className="text-brand-heading mt-5 font-serif text-4xl sm:text-5xl">{uiText("Stay connected.")}</h2>
             <p className="mt-5 max-w-md leading-7 text-slate-600 dark:text-slate-300">{uiText("Use the monastery’s verified channels for enquiries, media, and community updates.")}</p>
           </div>
@@ -1060,7 +1060,7 @@ const MonasteryContact = () => {
               <a key={item.label} href={item.href} target={item.href.startsWith('http') ? '_blank' : undefined} rel={item.href.startsWith('http') ? 'noreferrer' : undefined} className="group flex min-h-32 items-center gap-4 border-b border-black/15 py-6 sm:px-6 sm:odd:border-r dark:border-white/15">
                 <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-brand-gold-700/20 text-brand-gold-700 transition group-hover:bg-brand-gold-400 group-hover:text-brand-forest-950 dark:border-brand-gold-300/30 dark:text-brand-gold-300 dark:group-hover:text-brand-forest-950"><item.icon size={19} /></span>
                 <span className="min-w-0">
-                  <span className="block text-[10px] font-black uppercase tracking-[0.2em] text-brand-gold-700 dark:text-brand-gold-400">{uiText(item.label)}</span>
+                  <span className="block text-sm font-black uppercase tracking-[0.2em] text-brand-gold-700 dark:text-brand-gold-400">{uiText(item.label)}</span>
                   <span className="mt-2 block break-words font-bold text-brand-forest-950 dark:text-white">{uiText(item.value)}</span>
                 </span>
               </a>
@@ -1078,7 +1078,7 @@ const DocumentContentBand = ({ title, eyebrow, copy, dark = false }: { title: st
       <ScrollReveal effect="wipe">
         <p className={`text-xs font-black uppercase tracking-[0.28em] ${dark ? 'text-brand-gold-300' : 'text-brand-forest-700 dark:text-brand-gold-300'}`}>{uiText(eyebrow)}</p>
         <h2 className="mt-5 max-w-4xl font-serif text-4xl leading-tight sm:text-5xl">{uiText(title)}</h2>
-        <p className={`mt-6 max-w-4xl whitespace-pre-line text-lg leading-9 ${dark ? 'text-white/75' : 'text-slate-600 dark:text-slate-300'}`}>{uiText(copy)}</p>
+        <p className={`mt-6 max-w-4xl whitespace-pre-line text-lg leading-9 ${dark ? 'text-slate-100' : 'text-slate-600 dark:text-slate-300'}`}>{uiText(copy)}</p>
       </ScrollReveal>
     </div>
   </section>
@@ -1092,7 +1092,7 @@ const MonasteryDocumentSections = () => (
       <div className="mx-auto max-w-7xl px-5 lg:px-8">
         <SectionTitle eyebrow={uiText("የገዳሙ ዋና ዋና የልማት እንቅስቃሴዎች")} copy={uiText("መንፈሳዊ አገልግሎትን ከማኅበራዊና ኢኮኖሚያዊ ልማት ጋር ማስተሳሰር።")}>{uiText("ራስን የማስቻል ሥራዎች")}</SectionTitle>
         <div className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {monasteryDevelopmentProjects.map((project, index) => <ScrollReveal key={project.title} effect="scale" delay={index * 0.06}><article className="border border-black/10 bg-brand-canvas p-7 dark:border-white/10"><p className="font-mono text-xs font-black text-brand-gold-700 dark:text-brand-gold-300">{String(index + 1).padStart(2, '0')}</p><h3 className="text-brand-heading mt-6 text-xl font-black">{uiText(project.title)}</h3><p className="mt-4 leading-7 text-slate-600 dark:text-slate-300">{uiText(project.body)}</p></article></ScrollReveal>)}
+          {monasteryDevelopmentProjects.map((project, index) => <ScrollReveal key={project.title} effect="scale" delay={index * 0.06}><article className="border border-black/10 bg-brand-canvas p-7 dark:border-white/10"><p className="font-mono text-base font-black text-brand-gold-700 dark:text-brand-gold-300">{String(index + 1).padStart(2, '0')}</p><h3 className="text-brand-heading mt-6 text-xl font-black">{uiText(project.title)}</h3><p className="mt-4 leading-7 text-slate-600 dark:text-slate-300">{uiText(project.body)}</p></article></ScrollReveal>)}
         </div>
       </div>
     </section>
@@ -1115,14 +1115,14 @@ const SchoolPage = () => (
   <>
     <section className="relative flex min-h-[42rem] items-end overflow-hidden bg-brand-forest-950 text-white">
       <img src={schoolBuilding} alt={uiText("Ziquala Abo Primary School campus")} className="absolute inset-0 h-full w-full object-cover" />
-      <div className="absolute inset-0 bg-gradient-to-t from-brand-forest-950 via-brand-forest-950/55 to-brand-forest-950/10" />
+      <div className="absolute inset-0 bg-gradient-to-t from-brand-forest-950 via-brand-forest-950/80 to-brand-forest-950/75" />
       <div className="relative mx-auto grid w-full max-w-[90rem] items-end gap-10 px-5 pb-14 lg:grid-cols-[1fr_.65fr] lg:px-10 lg:pb-20">
         <div>
-          <p className="text-xs font-black uppercase tracking-[0.28em] text-brand-gold-300">{uiText("The school · KG 1–Grade 8 · Two campuses")}</p>
+          <p className="text-base font-black uppercase tracking-[0.28em] text-brand-gold-300">{uiText("The school · KG 1–Grade 8 · Two campuses")}</p>
           <h1 className="mt-6 max-w-5xl font-serif text-5xl font-medium leading-[.96] tracking-[-0.04em] sm:text-6xl md:text-8xl">{uiText("Education rooted in knowledge, ethics, and service.")}</h1>
           <div className="mt-8"><Link to="/register" className="group inline-flex items-center gap-3 bg-brand-gold-400 px-6 py-4 text-sm font-black text-brand-forest-950 transition-colors hover:bg-brand-gold-300">{uiText("Join our school")}<ArrowRight size={18} className="transition-transform group-hover:translate-x-1" /></Link></div>
         </div>
-        <p className="border-l border-white/35 pl-6 text-lg leading-8 text-white/78">{uiText("A student-centred school serving 1,534 learners across kindergarten and primary campuses in Bishoftu.")}</p>
+        <p className="border-l border-white/35 pl-6 text-lg leading-8 text-slate-100">{uiText("A student-centred school serving 1,534 learners across kindergarten and primary campuses in Bishoftu.")}</p>
       </div>
     </section>
 
@@ -1145,7 +1145,7 @@ const SchoolPage = () => (
         <div className="grid gap-8 lg:grid-cols-[.65fr_1.35fr] lg:items-end">
           <div>
             <Building2 className="text-brand-gold-700 dark:text-brand-gold-400" size={34} />
-            <p className="mt-7 text-xs font-black uppercase tracking-[0.25em] text-brand-gold-700 dark:text-brand-gold-300">{uiText("Two Bishoftu campuses")}</p>
+            <p className="mt-7 text-base font-black uppercase tracking-[0.25em] text-brand-gold-700 dark:text-brand-gold-300">{uiText("Two Bishoftu campuses")}</p>
           </div>
           <div>
             <h2 className="text-brand-heading font-serif text-4xl sm:text-5xl">{uiText("1,534 students from KG 1 through Grade 8.")}</h2>
@@ -1157,13 +1157,13 @@ const SchoolPage = () => (
           {ziqualaBranches.map((branch, index) => (
             <article key={branch.id} className="border border-black/10 bg-brand-canvas p-7 dark:border-white/10 sm:p-9">
               <div className="flex items-start justify-between gap-5">
-                <p className="font-mono text-xs font-black text-brand-gold-700 dark:text-brand-gold-400">{uiText("0")}{index + 1}</p>
+                <p className="font-mono text-base font-black text-brand-gold-700 dark:text-brand-gold-400">{uiText("0")}{index + 1}</p>
                 <p className="text-right text-4xl font-black text-brand-forest-950 dark:text-white">{uiText(branch.enrollment.toLocaleString(localeTag()))}</p>
               </div>
               <h3 className="text-brand-heading mt-10 font-serif text-3xl">{uiText(branch.name)}</h3>
               <p className="mt-4 font-black text-brand-forest-700 dark:text-brand-forest-300">{uiText(branch.grades)}</p>
               <p className="mt-3 leading-7 text-slate-600 dark:text-slate-300">{uiText(branch.location)}</p>
-              <p className="mt-8 text-xs font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">{uiText(branch.enrollment.toLocaleString(localeTag()))}{uiText(" students")}</p>
+              <p className="mt-8 text-base font-black uppercase tracking-[0.2em] text-slate-600 dark:text-slate-200">{uiText(branch.enrollment.toLocaleString(localeTag()))}{uiText(" students")}</p>
             </article>
           ))}
         </div>
@@ -1212,7 +1212,7 @@ const MonasteryHero = () => {
         onPause={() => setIsPaused(true)}
         className="absolute inset-0 h-full w-full object-cover"
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-brand-forest-950 via-brand-forest-950/45 to-brand-forest-950/10" />
+      <div className="absolute inset-0 bg-gradient-to-t from-brand-forest-950 via-brand-forest-950/80 to-brand-forest-950/75" />
 
       <div className="absolute right-5 top-5 z-20 flex gap-2 sm:right-8 sm:top-8">
         <button type="button" onClick={togglePlayback} aria-label={uiText(isPaused ? 'Play monastery background video' : 'Pause monastery background video')} aria-pressed={isPaused} className="grid h-11 w-11 place-items-center rounded-full border border-white/35 bg-brand-forest-950/35 text-white backdrop-blur transition hover:bg-white hover:text-brand-forest-950">
@@ -1232,12 +1232,12 @@ const MonasteryHero = () => {
         <div>
           <div className="flex items-center gap-4">
             <img src={monasteryMark} alt={uiText("Ziquala Abo Media mark")} className="h-20 w-20 rounded-xl bg-white/95 object-contain p-2" />
-            <p className="text-xs font-black uppercase tracking-[0.28em] text-brand-gold-300">{uiText("Monastery information")}</p>
+            <p className="text-base font-black uppercase tracking-[0.28em] text-brand-gold-300">{uiText("Monastery information")}</p>
           </div>
           <h1 className="mt-7 max-w-5xl text-4xl font-black leading-tight tracking-[-0.045em] md:text-6xl">{uiText(ziqualaIdentity.monasteryNameEn)}</h1>
         </div>
         <div>
-          <p className="text-lg leading-8 text-white/75">{uiText("A dedicated space for the monastery’s history, spiritual community, income-generating projects, and media archive—kept separate from school photography and academic content.")}</p>
+          <p className="text-lg leading-8 text-slate-100">{uiText("A dedicated space for the monastery’s history, spiritual community, income-generating projects, and media archive—kept separate from school photography and academic content.")}</p>
           <div className="mt-7 flex flex-wrap gap-3">
             <a href="#monastery-history" className="inline-flex items-center gap-2 bg-brand-gold-400 px-5 py-3 text-sm font-black text-brand-forest-950">{uiText("Read the history ")}<ArrowRight size={17} /></a>
             <a href="#donate" className="inline-flex items-center gap-2 border border-white/35 px-5 py-3 text-sm font-black text-white">{uiText("Support the monastery ")}<HeartHandshake size={17} /></a>
