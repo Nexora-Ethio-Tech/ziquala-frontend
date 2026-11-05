@@ -79,7 +79,7 @@ export const Login = () => {
   const resetOtp = () => { setOtpStep('enter-fan'); setFan(''); setOtp(''); setSuccess(uiText("")); setError(uiText("")); };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-white dark:bg-slate-950 flex items-center justify-center p-4 relative overflow-hidden">
       <div className="absolute right-4 top-4 z-20"><LanguageSelector /></div>
       <ShootingStars />
 
@@ -139,7 +139,7 @@ export const Login = () => {
                     type="text" required value={digitalIdOrEmail}
                     onChange={e => setDigitalIdOrEmail(e.target.value)}
                     placeholder={uiText("e.g. SA-1001 or email@school.com")}
-                    className="w-full pl-12 pr-4 py-4 bg-slate-50 dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-2xl focus:border-school-primary focus:ring-4 focus:ring-school-primary/10 transition-all outline-none"
+                    className="w-full pl-12 pr-4 py-4 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-2xl focus:border-school-primary focus:ring-4 focus:ring-school-primary/10 transition-all outline-none"
                   />
                 </div>
               </div>
@@ -151,7 +151,7 @@ export const Login = () => {
                     type={showPassword ? "text" : "password"} required value={password}
                     onChange={e => setPassword(e.target.value)}
                     placeholder={uiText("••••••••")}
-                    className="w-full pl-12 pr-12 py-4 bg-slate-50 dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-2xl focus:border-school-primary focus:ring-4 focus:ring-school-primary/10 transition-all outline-none"
+                    className="w-full pl-12 pr-12 py-4 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-2xl focus:border-school-primary focus:ring-4 focus:ring-school-primary/10 transition-all outline-none"
                   />
                   <button
                     type="button"
@@ -198,7 +198,7 @@ export const Login = () => {
                         type="text" required value={fan}
                         onChange={e => setFan(e.target.value)}
                         placeholder={uiText("e.g. FAN-12345678")}
-                        className="w-full pl-12 pr-4 py-4 bg-slate-50 dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-2xl focus:border-school-primary focus:ring-4 focus:ring-school-primary/10 transition-all outline-none"
+                        className="w-full pl-12 pr-4 py-4 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-2xl focus:border-school-primary focus:ring-4 focus:ring-school-primary/10 transition-all outline-none"
                       />
                     </div>
                     <p className="text-[11px] text-slate-400 ml-1">{uiText("Your alias number from the Ethiopia Digital ID (Fayda) system")}</p>
@@ -223,7 +223,7 @@ export const Login = () => {
                         type="text" required maxLength={6} value={otp}
                         onChange={e => setOtp(e.target.value.replace(/\D/g, ''))}
                         placeholder={uiText("● ● ● ● ● ●")}
-                        className="w-full pl-12 pr-4 py-4 bg-slate-50 dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-2xl focus:border-school-primary focus:ring-4 focus:ring-school-primary/10 transition-all outline-none text-2xl tracking-[0.5em] font-black text-center"
+                        className="w-full pl-12 pr-4 py-4 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-2xl focus:border-school-primary focus:ring-4 focus:ring-school-primary/10 transition-all outline-none text-2xl tracking-[0.5em] font-black text-center"
                       />
                     </div>
                     <p className="text-[11px] text-slate-400 ml-1">{uiText("Enter the 6-digit code sent to your registered contact")}</p>

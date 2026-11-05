@@ -54,16 +54,16 @@ export const BookReader = ({ book, onClose }: { book: ELearningBook; onClose: ()
             <h2 id="book-reader-title" className="truncate font-black">{bookText(book, 'title')}</h2>
             <p className="text-xs text-slate-500">{uiText(book.grade)} · {uiText(book.subject)}</p>
           </div>
-          <button ref={closeRef} onClick={onClose} aria-label={uiText("copy.closeViewer")} className="grid h-11 w-11 place-items-center rounded-xl bg-slate-100 dark:bg-slate-800"><X size={20} /></button>
+          <button ref={closeRef} onClick={onClose} aria-label={uiText("copy.closeViewer")} className="grid h-11 w-11 place-items-center rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800"><X size={20} /></button>
           {previewUrl && <div className="flex w-full flex-wrap items-center gap-2">
             {downloadUrl && <a href={downloadUrl} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-emerald-800 px-4 text-sm font-bold text-white"><Download size={18} />{uiText("copy.downloadBook")}</a>}
-            <button onClick={toggleFullscreen} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-slate-100 px-3 text-sm font-bold dark:bg-slate-800">{expanded ? <Minimize2 size={18} /> : <Maximize2 size={18} />}{uiText(expanded ? "copy.exitFullscreen" : "copy.fullscreen")}</button>
+            <button onClick={toggleFullscreen} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold dark:border-slate-700 dark:bg-slate-800">{expanded ? <Minimize2 size={18} /> : <Maximize2 size={18} />}{uiText(expanded ? "copy.exitFullscreen" : "copy.fullscreen")}</button>
             <a href={book.driveUrl} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center gap-2 px-3 text-sm font-bold text-emerald-700 dark:text-emerald-300"><ExternalLink size={18} />{uiText("copy.openInGoogleDrive")}</a>
           </div>}
         </header>
         {previewUrl ? <>
           {!loaded && <p role="status" className="flex items-center justify-center gap-2 p-3 text-sm"><Loader2 size={18} className="animate-spin" />{uiText("copy.loadingBook")}</p>}
-          <iframe key={previewUrl} src={previewUrl} title={bookText(book, 'title')} allow="fullscreen" onLoad={() => setLoaded(true)} onError={() => setLoaded(true)} className="min-h-0 w-full flex-1 border-0 bg-slate-100" />
+          <iframe key={previewUrl} src={previewUrl} title={bookText(book, 'title')} allow="fullscreen" onLoad={() => setLoaded(true)} onError={() => setLoaded(true)} className="min-h-0 w-full flex-1 border-0 bg-white" />
           <p className="border-t border-slate-200 px-4 py-2 text-center text-xs text-slate-500 dark:border-slate-800">{uiText("copy.readHereWithoutDownloadingIfTheBookDoesNotLoadOpenItInGoogleDrive")}</p>
         </> : <div className="grid min-h-0 flex-1 place-items-center overflow-y-auto p-8 text-center">
           <div className="max-w-md"><h3 className="text-2xl font-black">{uiText("copy.bookFileNotAvailableYet")}</h3><p className="mt-3 leading-7 text-slate-500">{uiText("copy.readingAndDownloadingWillBeAvailableWhenTheSchoolAddsThisBookSFil")}</p></div>

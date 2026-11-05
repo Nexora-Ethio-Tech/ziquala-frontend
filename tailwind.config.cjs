@@ -1,5 +1,5 @@
 const colors = require('tailwindcss/colors');
-const defaultTheme = require('tailwindcss/defaultTheme');
+const academicSerif = ['Times New Roman', 'Times', 'Abyssinica SIL', 'Nyala', 'serif'];
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
@@ -11,8 +11,8 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Noto Sans Ethiopic', 'Nyala', 'Abyssinica SIL', ...defaultTheme.fontFamily.sans],
-        serif: ['Georgia', 'Noto Sans Ethiopic', 'Nyala', 'Abyssinica SIL', ...defaultTheme.fontFamily.serif],
+        sans: academicSerif,
+        serif: academicSerif,
       },
       colors: {
         brand: {

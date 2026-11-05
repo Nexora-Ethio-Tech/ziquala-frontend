@@ -1224,7 +1224,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
           </div>
         ) : (
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
-            <div className="p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
+            <div className="p-6 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-800/50">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <h3 className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
                   <UserPlus size={20} className="text-blue-600" />{uiText("Admission Form (New Student)")}</h3>
@@ -1265,7 +1265,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                       type="text"
                       placeholder={uiText("Enter student full name")}
                       onBlur={(e) => { e.target.value = toTitleCase(e.target.value); }}
-                      className={`w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-base outline-none focus:ring-2 ${validationErrors.name
+                      className={`w-full px-4 py-2 bg-white dark:bg-slate-800 border rounded-xl text-base outline-none focus:ring-2 ${validationErrors.name
                         ? 'border-rose-300 focus:ring-rose-500 dark:border-rose-700'
                         : 'border-slate-200 dark:border-slate-700 focus:ring-blue-500'
                         }`}
@@ -1281,7 +1281,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                       type="text"
                       placeholder={uiText("Place of Birth / የትውልድ ቦታ")}
                       onBlur={(e) => { e.target.value = toTitleCase(e.target.value); }}
-                      className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-base outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-base outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
 
@@ -1293,7 +1293,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                       type="text"
                       placeholder={uiText("City, Sub-city, Woreda")}
                       onBlur={(e) => { e.target.value = toTitleCase(e.target.value); }}
-                      className={`w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-base outline-none focus:ring-2 ${validationErrors.address
+                      className={`w-full px-4 py-2 bg-white dark:bg-slate-800 border rounded-xl text-base outline-none focus:ring-2 ${validationErrors.address
                         ? 'border-rose-300 focus:ring-rose-500 dark:border-rose-700'
                         : 'border-slate-200 dark:border-slate-700 focus:ring-blue-500'
                         }`}
@@ -1324,7 +1324,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                       name="religion"
                       title={uiText("Religion")}
                       aria-label={uiText("Religion")}
-                      className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-base outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-base outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="">{uiText("Select Religion / ሐይማኖት ይምረጡ")}</option>
                       <option value="Orthodox">{uiText("Orthodox / ኦርቶዶክስ")}</option>
@@ -1341,7 +1341,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                       name="gender"
                       title={uiText("Gender")}
                       aria-label={uiText("Gender")}
-                      className={`w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-base outline-none focus:ring-2 ${validationErrors.gender
+                      className={`w-full px-4 py-2 bg-white dark:bg-slate-800 border rounded-xl text-base outline-none focus:ring-2 ${validationErrors.gender
                         ? 'border-rose-300 focus:ring-rose-500 dark:border-rose-700'
                         : 'border-slate-200 dark:border-slate-700 focus:ring-blue-500'
                         }`}
@@ -1514,7 +1514,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-1">
                     <label className="text-base font-bold text-slate-600 dark:text-slate-200 uppercase flex items-center gap-1">{uiText("Previous School ")}<span className="text-slate-400 text-base font-medium">{uiText("(optional)")}</span></label>
-                    <input name="previousSchool" type="text" placeholder={uiText("Name of previous school")} onBlur={(e) => { e.target.value = toTitleCase(e.target.value); }} className={`w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-base outline-none focus:ring-2 ${validationErrors.previousSchool
+                    <input name="previousSchool" type="text" placeholder={uiText("Name of previous school")} onBlur={(e) => { e.target.value = toTitleCase(e.target.value); }} className={`w-full px-4 py-2 bg-white dark:bg-slate-800 border rounded-xl text-base outline-none focus:ring-2 ${validationErrors.previousSchool
                       ? 'border-rose-300 focus:ring-rose-500 dark:border-rose-700'
                       : 'border-slate-200 dark:border-slate-700 focus:ring-blue-500'
                       }`} />
@@ -1534,7 +1534,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                           });
                         }
                       }}
-                      className={`w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-base outline-none focus:ring-2 ${validationErrors.grade
+                      className={`w-full px-4 py-2 bg-white dark:bg-slate-800 border rounded-xl text-base outline-none focus:ring-2 ${validationErrors.grade
                         ? 'border-rose-300 focus:ring-rose-500 dark:border-rose-700'
                         : 'border-slate-200 dark:border-slate-700 focus:ring-blue-500'
                         }`}
@@ -1623,7 +1623,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                             });
                           }
                         }}
-                        className={`w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-base outline-none focus:ring-2 ${validationErrors.branchName
+                        className={`w-full px-4 py-2 bg-white dark:bg-slate-800 border rounded-xl text-base outline-none focus:ring-2 ${validationErrors.branchName
                           ? 'border-rose-300 focus:ring-rose-500 dark:border-rose-700'
                           : 'border-slate-200 dark:border-slate-700 focus:ring-blue-500'
                           }`}

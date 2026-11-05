@@ -100,14 +100,14 @@ export const Layout = () => {
   // During an active exam, show only the exam UI (no sidebar, no header, no chatbot)
   if (isExamPage) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+      <div className="min-h-screen bg-white dark:bg-slate-950">
         <Outlet />
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-300 relative overflow-hidden">
+    <div className="flex min-h-screen bg-white dark:bg-slate-950 transition-colors duration-300 relative overflow-hidden">
       {shouldShowStars && <ShootingStars />}
       {/* Sidebar Backdrop for Mobile */}
       {isSidebarOpen && (

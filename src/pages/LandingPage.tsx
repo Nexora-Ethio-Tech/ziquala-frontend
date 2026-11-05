@@ -197,7 +197,7 @@ const PublicHeader = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-50 border-b border-black/10 bg-brand-canvas/95 backdrop-blur-xl dark:border-white/10">
+      <header className="sticky top-0 z-50 border-b border-black/10 bg-brand-canvas backdrop-blur-xl dark:border-white/10">
         <div className="mx-auto flex h-[4.75rem] min-h-[4.75rem] max-w-[90rem] flex-nowrap items-center justify-between gap-4 px-4 sm:px-6 md:h-auto md:flex-wrap md:py-3 lg:px-10 xl:h-[4.75rem] xl:flex-nowrap xl:py-0">
           <Link to="/" onClick={() => setMenuOpen(false)} aria-label={uiText("copy.ziqualaAboSchoolHome")} className="min-w-0">
             <BrandMark />
@@ -217,10 +217,10 @@ const PublicHeader = () => {
                   {uiText(item.label)}
                 </NavLink>
                 {item.children.length > 0 && (
-                  <div className="invisible absolute left-1/2 top-full w-64 -translate-x-1/2 translate-y-2 border-t-4 border-brand-gold-400 bg-brand-forest-950 p-3 opacity-0 shadow-2xl transition duration-200 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100">
-                    <p className="px-3 pb-2 pt-1 text-base font-black uppercase tracking-[0.24em] text-brand-forest-300">{uiText("copy.jumpTo")}</p>
+                  <div className="invisible absolute left-1/2 top-full w-64 -translate-x-1/2 translate-y-2 border-t-4 border-brand-gold-400 bg-white dark:bg-brand-forest-950 p-3 opacity-0 shadow-2xl transition duration-200 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100">
+                    <p className="px-3 pb-2 pt-1 text-base font-black uppercase tracking-[0.24em] text-brand-forest-700 dark:text-brand-forest-300">{uiText("copy.jumpTo")}</p>
                     {item.children.map((child) => (
-                      <Link key={child.hash} to={`${item.to}${child.hash}`} className="flex items-center justify-between border-t border-white/10 px-3 py-3 text-sm font-bold text-white transition hover:bg-white/10 hover:text-brand-gold-300">
+                      <Link key={child.hash} to={`${item.to}${child.hash}`} className="flex items-center justify-between border-t border-slate-200 dark:border-white/10 px-3 py-3 text-sm font-bold text-slate-900 dark:text-white transition hover:bg-slate-100 hover:text-brand-gold-700 dark:hover:bg-white/10 dark:hover:text-brand-gold-300">
                         {uiText(child.label)}<ArrowRight size={14} />
                       </Link>
                     ))}
@@ -267,22 +267,22 @@ const PublicHeader = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -12 }}
             transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed inset-x-0 bottom-0 top-[4.75rem] z-40 overflow-y-auto bg-brand-forest-950 text-white md:hidden"
+            className="fixed inset-x-0 bottom-0 top-[4.75rem] z-40 overflow-y-auto bg-white text-slate-900 dark:bg-brand-forest-950 dark:text-white md:hidden"
           >
             <div className="mx-auto grid min-h-full max-w-[90rem] gap-12 px-5 py-10 sm:px-8 sm:py-14 lg:grid-cols-[.8fr_1.2fr] lg:gap-20 lg:px-10">
               <div className="flex flex-col">
-                <p className="text-base font-black uppercase tracking-[0.28em] text-brand-gold-300">{uiText("copy.exploreZiquala")}</p>
-                <nav className="mt-7 border-t border-white/20" aria-label={uiText("copy.mainNavigation")}>
+                <p className="text-base font-black uppercase tracking-[0.28em] text-brand-gold-700 dark:text-brand-gold-300">{uiText("copy.exploreZiquala")}</p>
+                <nav className="mt-7 border-t border-slate-200 dark:border-white/20" aria-label={uiText("copy.mainNavigation")}>
                   {publicNavigation.map((item, index) => (
-                    <div key={item.to} className="border-b border-white/20 py-4 sm:py-5">
+                    <div key={item.to} className="border-b border-slate-200 dark:border-white/20 py-4 sm:py-5">
                       <NavLink
                         to={item.to}
                         end={item.to === '/'}
                         onClick={() => setMenuOpen(false)}
-                        className={({ isActive }) => `group flex items-center justify-between transition-colors ${isActive ? 'text-brand-gold-300' : 'text-white hover:text-brand-gold-200'}`}
+                        className={({ isActive }) => `group flex items-center justify-between transition-colors ${isActive ? 'text-brand-gold-700 dark:text-brand-gold-300' : 'text-slate-900 hover:text-brand-gold-700 dark:text-white dark:hover:text-brand-gold-200'}`}
                       >
                         <span className="flex items-baseline gap-4 sm:gap-6">
-                          <span className="font-mono text-sm text-slate-200">{uiText(String(index + 1).padStart(2, '0'))}</span>
+                          <span className="font-mono text-sm text-slate-600 dark:text-slate-200">{uiText(String(index + 1).padStart(2, '0'))}</span>
                           <span className="font-serif text-3xl sm:text-4xl">{uiText(item.label)}</span>
                         </span>
                         <ArrowRight size={20} className="transition-transform group-hover:translate-x-1" />
@@ -290,7 +290,7 @@ const PublicHeader = () => {
                       {item.children.length > 0 && (
                         <div className="ml-9 mt-4 flex flex-wrap gap-x-5 gap-y-2 sm:ml-14">
                           {item.children.map((child) => (
-                            <Link key={child.hash} to={`${item.to}${child.hash}`} onClick={() => setMenuOpen(false)} className="text-xs font-bold text-slate-200 transition hover:text-brand-gold-300">{uiText(child.label)}</Link>
+                            <Link key={child.hash} to={`${item.to}${child.hash}`} onClick={() => setMenuOpen(false)} className="text-xs font-bold text-slate-600 dark:text-slate-200 transition hover:text-brand-gold-700 dark:hover:text-brand-gold-300">{uiText(child.label)}</Link>
                           ))}
                         </div>
                       )}
@@ -304,17 +304,17 @@ const PublicHeader = () => {
               <div className="grid content-start gap-4 sm:grid-cols-2">
                 <Link to="/school" onClick={() => setMenuOpen(false)} className="group relative min-h-72 overflow-hidden sm:min-h-[30rem]">
                   <img src={studentAssembly} alt={uiText("copy.ziqualaAboStudentsInTheSchoolCourtyard")} className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-brand-forest-950 via-transparent to-transparent" />
-                  <div className="absolute inset-x-0 bottom-0 p-6">
-                    <p className="text-base font-black uppercase tracking-[0.24em] text-brand-gold-300">{uiText("copy.school")}</p>
+                  <div className="absolute inset-0 hidden dark:block bg-gradient-to-t from-brand-forest-950 via-transparent to-transparent" />
+                  <div className="absolute inset-x-0 bottom-0 bg-white p-6 dark:bg-transparent">
+                    <p className="text-base font-black uppercase tracking-[0.24em] text-brand-gold-700 dark:text-brand-gold-300">{uiText("copy.school")}</p>
                     <p className="mt-2 font-serif text-3xl">{uiText("copy.learningForTomorrow")}</p>
                   </div>
                 </Link>
                 <Link to="/monastery" onClick={() => setMenuOpen(false)} className="group relative min-h-72 overflow-hidden sm:min-h-[30rem]">
                   <img src={craterCommunity} alt={uiText("copy.ziqualaMonasteryCommunityNearTheCraterLake")} className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-brand-forest-950 via-transparent to-transparent" />
-                  <div className="absolute inset-x-0 bottom-0 p-6">
-                    <p className="text-base font-black uppercase tracking-[0.24em] text-brand-gold-300">{uiText("copy.monastery")}</p>
+                  <div className="absolute inset-0 hidden dark:block bg-gradient-to-t from-brand-forest-950 via-transparent to-transparent" />
+                  <div className="absolute inset-x-0 bottom-0 bg-white p-6 dark:bg-transparent">
+                    <p className="text-base font-black uppercase tracking-[0.24em] text-brand-gold-700 dark:text-brand-gold-300">{uiText("copy.monastery")}</p>
                     <p className="mt-2 font-serif text-3xl">{uiText("copy.aLivingHeritage")}</p>
                   </div>
                 </Link>
@@ -413,7 +413,7 @@ const HomePage = () => {
             initial={reduceMotion ? false : { opacity: 0, y: 36 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.9, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-            className="max-w-5xl bg-brand-canvas/95 dark:bg-transparent"
+            className="max-w-5xl bg-brand-canvas dark:bg-transparent"
           >
             <p className="flex items-center gap-3 text-base font-black uppercase tracking-[0.28em] text-brand-gold-800 dark:text-brand-gold-300">
               <span className="h-px w-9 bg-brand-gold-700 dark:bg-brand-gold-300" />{uiText(" copy.bishoftuKGGrade8")}</p>
@@ -432,7 +432,7 @@ const HomePage = () => {
             initial={reduceMotion ? false : { opacity: 0, x: 24 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.55 }}
-            className="hero-identity-card mr-20 flex items-center gap-4 border-l border-brand-forest-900/25 bg-brand-canvas/90 p-5 text-sm leading-7 text-slate-600 backdrop-blur-sm dark:border-white/30 dark:bg-transparent dark:py-0 dark:pr-0 dark:text-slate-100"
+            className="hero-identity-card mr-20 flex items-center gap-4 border-l border-brand-forest-900/25 bg-brand-canvas p-5 text-sm leading-7 text-slate-600 backdrop-blur-sm dark:border-white/30 dark:bg-transparent dark:py-0 dark:pr-0 dark:text-slate-100"
           >
             <img src={schoolLogo} alt={uiText("copy.ziqualaAboSchoolLogo")} className="h-16 w-16 shrink-0 rounded-full border-4 border-white object-cover shadow-lg sm:h-20 sm:w-20" />
             <div className="min-w-0 flex-1">
@@ -451,28 +451,28 @@ const HomePage = () => {
           </div>
 
           <div className="mt-10 grid gap-5 lg:grid-cols-[1.12fr_.88fr]">
-            <Link to="/school" className="group relative min-h-[34rem] overflow-hidden bg-brand-forest-950 text-white">
+            <Link to="/school" className="group relative min-h-[34rem] overflow-hidden border border-slate-200 bg-white text-slate-900 dark:border-brand-forest-800 dark:bg-brand-forest-950 dark:text-white">
               <img src={studentAssembly} alt={uiText("copy.ziqualaAboStudentsGatheredInTheSchoolCourtyard")} className="absolute inset-0 h-full w-full object-cover transition duration-700 ease-out group-hover:scale-[1.035]" />
-              <div className="absolute inset-0 bg-gradient-to-t from-brand-forest-950 via-brand-forest-950/80 to-brand-forest-950/75" />
-              <div className="absolute inset-x-0 bottom-0 p-7 sm:p-10">
-                <p className="text-base font-black uppercase tracking-[0.25em] text-brand-gold-300">{uiText("copy.schoolExperience")}</p>
+              <div className="absolute inset-0 hidden dark:block bg-gradient-to-t from-brand-forest-950 via-brand-forest-950/80 to-brand-forest-950/75" />
+              <div className="absolute inset-x-0 bottom-0 bg-white p-7 dark:bg-transparent sm:p-10">
+                <p className="text-base font-black uppercase tracking-[0.25em] text-brand-gold-700 dark:text-brand-gold-300">{uiText("copy.schoolExperience")}</p>
                 <div className="mt-3 flex items-end justify-between gap-8">
                   <div>
                     <h3 className="font-serif text-5xl font-medium sm:text-6xl">{uiText("copy.learnGrowLead")}</h3>
-                    <p className="mt-4 max-w-xl leading-7 text-slate-100">{uiText("copy.exploreLearningStudentLifeLeadershipSchoolNewsAndTheGrade18Academ")}</p>
+                    <p className="mt-4 max-w-xl leading-7 text-slate-700 dark:text-slate-100">{uiText("copy.exploreLearningStudentLifeLeadershipSchoolNewsAndTheGrade18Academ")}</p>
                   </div>
-                  <span className="hidden h-14 w-14 shrink-0 place-items-center rounded-full border border-white/50 transition group-hover:translate-x-1 group-hover:bg-white group-hover:text-brand-forest-950 sm:grid"><ArrowRight /></span>
+                  <span className="hidden h-14 w-14 shrink-0 place-items-center rounded-full border border-slate-300 dark:border-white/50 transition group-hover:translate-x-1 group-hover:bg-white group-hover:text-brand-forest-950 sm:grid"><ArrowRight /></span>
                 </div>
               </div>
             </Link>
 
-            <Link to="/monastery" className="group relative min-h-[34rem] overflow-hidden bg-brand-forest-950 text-white">
+            <Link to="/monastery" className="group relative min-h-[34rem] overflow-hidden border border-slate-200 bg-white text-slate-900 dark:border-brand-forest-800 dark:bg-brand-forest-950 dark:text-white">
               <img src={ziqualaAerial} alt={uiText("copy.aerialViewOfZiqualaCraterLakeAndMonastery")} className="absolute inset-0 h-full w-full object-cover transition duration-700 ease-out group-hover:scale-[1.035]" />
-              <div className="absolute inset-0 bg-gradient-to-t from-brand-forest-950 via-brand-forest-950/80 to-brand-forest-950/75" />
-              <div className="absolute inset-x-0 bottom-0 p-7 sm:p-10">
-                <p className="text-base font-black uppercase tracking-[0.25em] text-brand-gold-300">{uiText("copy.monasteryExperience")}</p>
+              <div className="absolute inset-0 hidden dark:block bg-gradient-to-t from-brand-forest-950 via-brand-forest-950/80 to-brand-forest-950/75" />
+              <div className="absolute inset-x-0 bottom-0 bg-white p-7 dark:bg-transparent sm:p-10">
+                <p className="text-base font-black uppercase tracking-[0.25em] text-brand-gold-700 dark:text-brand-gold-300">{uiText("copy.monasteryExperience")}</p>
                 <h3 className="mt-3 font-serif text-5xl font-medium sm:text-6xl">{uiText("monastery.heritage")}</h3>
-                <p className="mt-4 max-w-lg leading-7 text-slate-100">{uiText("copy.enterADedicatedSpaceForHistorySacredLifeCommunityProjectsAndTheMo")}</p>
+                <p className="mt-4 max-w-lg leading-7 text-slate-700 dark:text-slate-100">{uiText("copy.enterADedicatedSpaceForHistorySacredLifeCommunityProjectsAndTheMo")}</p>
                 <span className="mt-7 inline-flex items-center gap-3 text-sm font-black">{uiText("copy.visitTheMonastery ")}<ArrowRight size={18} className="transition-transform group-hover:translate-x-1" /></span>
               </div>
             </Link>
@@ -527,13 +527,13 @@ const LeadershipAlbum = () => {
     const profile = profiles[index];
     const displayName = uiText(profile.name);
     return (
-      <article className={`relative min-w-0 bg-[#fffdf5] p-5 text-slate-900 sm:p-7 lg:p-8 ${right ? 'hidden border-l border-brand-gold-900/15 md:block' : ''}`}>
-        <div className="absolute inset-0 opacity-35 [background-image:radial-gradient(#a16207_0.55px,transparent_0.55px)] [background-size:8px_8px]" />
+      <article className={`relative min-w-0 bg-white p-5 text-slate-900 sm:p-7 lg:p-8 ${right ? 'hidden border-l border-brand-gold-900/15 md:block' : ''}`}>
+        <div className="absolute inset-0 hidden opacity-35 dark:block [background-image:radial-gradient(#a16207_0.55px,transparent_0.55px)] [background-size:8px_8px]" />
         <div className="relative">
           <div className="relative mx-auto max-w-[13rem] rotate-[-0.35deg] rounded-sm bg-white p-2.5 pb-4 shadow-[0_12px_35px_rgba(67,43,15,.22)] sm:max-w-[15rem] sm:p-3 sm:pb-5">
             <span className="absolute -left-2 -top-2 h-8 w-16 -rotate-12 bg-brand-gold-100/80 shadow-sm" />
             <span className="absolute -right-2 -top-2 h-8 w-16 rotate-12 bg-brand-gold-100/80 shadow-sm" />
-            <div className="aspect-[4/5] overflow-hidden bg-stone-200">
+            <div className="aspect-[4/5] overflow-hidden bg-white">
               <img src={profile.image} alt={displayName} className="h-full w-full object-cover object-top" />
             </div>
           </div>
@@ -550,7 +550,7 @@ const LeadershipAlbum = () => {
     <section id="school-leadership" data-leadership-section className="scroll-mt-24 bg-brand-muted py-20 md:py-28">
       <div className="mx-auto max-w-7xl px-5 lg:px-8">
         <SectionTitle eyebrow={uiText("copy.schoolBoard")} copy={uiText("copy.theSchoolBoardConsistsOfTheFourLeadersShownHereSchoolManagementAn")}>{uiText("copy.boardLeadership")}</SectionTitle>
-        <div className="relative mx-auto max-w-5xl rounded-[1.75rem] bg-gradient-to-br from-brand-gold-950 via-brand-gold-900 to-stone-950 p-2.5 shadow-[0_30px_80px_rgba(67,43,15,.3)] sm:p-4">
+        <div className="relative mx-auto max-w-5xl rounded-[1.75rem] border border-slate-200 bg-white dark:border-white/10 dark:bg-gradient-to-br dark:from-brand-gold-950 dark:via-brand-gold-900 dark:to-stone-950 p-2.5 shadow-[0_30px_80px_rgba(67,43,15,.3)] sm:p-4">
           <div className="relative grid overflow-hidden rounded-[1.1rem] md:grid-cols-2">
             <AlbumPage index={page} />
             <AlbumPage index={nextPage} right />
@@ -697,11 +697,11 @@ const StaffGallery = () => {
               transition={{ duration: 0.45, delay: Math.min(index * 0.04, 0.2) }}
               className="w-[74vw] max-w-[17rem] shrink-0 snap-start sm:w-[17rem]"
             >
-              <div className="aspect-[4/5] overflow-hidden bg-stone-300 dark:bg-brand-forest-800">
+              <div className="aspect-[4/5] overflow-hidden bg-white dark:bg-brand-forest-800">
                 {member.image ? (
                   <img src={member.image} alt={uiText("copy.value0Value1", { value0: uiText(member.name), value1: uiText(member.role) })} loading="lazy" decoding="async" className="h-full w-full object-cover object-top transition duration-500 hover:scale-[1.025]" />
                 ) : (
-                  <div className="grid h-full place-items-center bg-brand-forest-950 text-white"><Users size={42} /></div>
+                  <div className="grid h-full place-items-center bg-brand-surface text-brand-heading"><Users size={42} /></div>
                 )}
               </div>
               <div className="border-t-4 border-brand-gold-500 bg-brand-surface px-4 py-5">
@@ -762,11 +762,11 @@ const PublicCommunityHighlights = ({ compact = false }: { compact?: boolean }) =
               transition={{ duration: 0.52, delay: Math.min(index * 0.08, 0.24) }}
               className="group overflow-hidden rounded-xl border border-slate-200 bg-brand-surface shadow-sm transition duration-500 hover:-translate-y-1 hover:shadow-xl dark:border-white/10"
             >
-              <div className="relative aspect-[16/10] overflow-hidden bg-slate-200 dark:bg-brand-forest-800">
+              <div className="relative aspect-[16/10] overflow-hidden bg-white dark:bg-brand-forest-800">
                 {item.image_url ? (
                   <img src={item.image_url} alt={uiText(item.title)} className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.04]" />
                 ) : (
-                  <div className="grid h-full place-items-center bg-brand-forest-950 text-white"><Newspaper size={38} /></div>
+                  <div className="grid h-full place-items-center bg-brand-surface text-brand-heading"><Newspaper size={38} /></div>
                 )}
               </div>
               <div className="p-6">
@@ -826,11 +826,11 @@ const UniformShowcase = () => {
               transition={{ duration: 0.58, ease: [0.16, 1, 0.3, 1] }}
               className="grid overflow-hidden rounded-xl border border-black/10 bg-brand-surface dark:border-white/10 sm:grid-cols-[.85fr_1fr]"
             >
-              <div className="relative min-h-72 bg-slate-200 dark:bg-brand-forest-800">
+              <div className="relative min-h-72 bg-white dark:bg-brand-forest-800">
                 {item.image_url ? (
                   <img src={item.image_url} alt={uiText(item.title)} className="absolute inset-0 h-full w-full object-cover" />
                 ) : (
-                  <div className="grid h-full place-items-center bg-brand-forest-950 text-white"><Shirt size={44} /></div>
+                  <div className="grid h-full place-items-center bg-brand-surface text-brand-heading"><Shirt size={44} /></div>
                 )}
               </div>
               <div className="p-7">
@@ -925,7 +925,7 @@ const MonasteryProjects = () => {
         {monasteryProjects.map((project, index) => (
           <ScrollReveal key={project.title} direction={index % 2 === 0 ? 'left' : 'right'} effect="slide">
             <article className="grid overflow-hidden bg-brand-surface md:grid-cols-2">
-              <div className={`relative min-h-72 overflow-hidden bg-stone-300 dark:bg-brand-forest-800 md:min-h-[30rem] ${index % 2 === 1 ? 'md:order-2' : ''}`}>
+              <div className={`relative min-h-72 overflow-hidden bg-white dark:bg-brand-forest-800 md:min-h-[30rem] ${index % 2 === 1 ? 'md:order-2' : ''}`}>
                 <img src={project.image} alt={uiText(project.alt)} loading="lazy" decoding="async" className="h-full w-full object-cover transition duration-700 hover:scale-[1.035]" />
                 <span className="absolute left-5 top-5 bg-brand-gold-400 px-3 py-2 font-mono text-sm font-black text-brand-forest-950">{uiText(String(index + 1).padStart(2, '0'))}</span>
               </div>
@@ -978,8 +978,8 @@ const MonasteryHistory = () => {
       </div>
 
       <ScrollReveal className="mt-6" direction="left" effect="scale">
-        <div id="monastery-film" className="grid scroll-mt-24 overflow-hidden bg-brand-forest-950 text-white lg:grid-cols-[1.35fr_.65fr]">
-          <div className="aspect-video min-h-64 bg-black lg:min-h-[28rem]">
+        <div id="monastery-film" className="grid scroll-mt-24 overflow-hidden border border-slate-200 bg-white text-slate-900 dark:border-brand-forest-800 dark:bg-brand-forest-950 dark:text-white lg:grid-cols-[1.35fr_.65fr]">
+          <div className="aspect-video min-h-64 bg-white dark:bg-black lg:min-h-[28rem]">
           <iframe
             src="https://www.youtube-nocookie.com/embed/6zhMGpFsfGg?start=118&rel=0"
             title={uiText("copy.theHistoryOfTheMonastery")}
@@ -991,10 +991,10 @@ const MonasteryHistory = () => {
           />
           </div>
           <div className="flex flex-col justify-center p-8 sm:p-10 md:p-12">
-            <p className="text-base font-black uppercase tracking-[0.24em] text-brand-gold-300">{uiText("copy.monasteryHistoryFilm")}</p>
+            <p className="text-base font-black uppercase tracking-[0.24em] text-brand-gold-700 dark:text-brand-gold-300">{uiText("copy.monasteryHistoryFilm")}</p>
             <h3 className="mt-5 font-serif text-3xl leading-tight sm:text-4xl">{uiText("copy.aBriefHistoryOfTheMonastery")}</h3>
-            <p className="mt-5 leading-7 text-slate-200">{uiText("copy.watchTheMonasterySHistoryFilmFromTheSelectedStartingPointAt158")}</p>
-            <a href="https://youtu.be/6zhMGpFsfGg?t=118" target="_blank" rel="noreferrer" className="mt-8 inline-flex items-center gap-2 font-black text-brand-gold-300">{uiText("copy.watchDirectlyOnYouTube ")}<ExternalLink size={17} /></a>
+            <p className="mt-5 leading-7 text-slate-600 dark:text-slate-200">{uiText("copy.watchTheMonasterySHistoryFilmFromTheSelectedStartingPointAt158")}</p>
+            <a href="https://youtu.be/6zhMGpFsfGg?t=118" target="_blank" rel="noreferrer" className="mt-8 inline-flex items-center gap-2 font-black text-brand-gold-700 dark:text-brand-gold-300">{uiText("copy.watchDirectlyOnYouTube ")}<ExternalLink size={17} /></a>
           </div>
         </div>
       </ScrollReveal>
@@ -1006,28 +1006,28 @@ const MonasteryHistory = () => {
 const MonasteryMuseum = () => {
   useTranslation('public');
   return (
-  <section id="monastery-museum" className="scroll-mt-24 overflow-hidden bg-brand-forest-950 py-20 text-white md:py-28">
+  <section id="monastery-museum" className="scroll-mt-24 overflow-hidden bg-brand-canvas py-20 text-brand-forest-950 dark:bg-brand-forest-950 dark:text-white md:py-28">
     <div className="mx-auto grid max-w-[90rem] items-center gap-10 px-5 lg:grid-cols-[1.18fr_.82fr] lg:gap-16 lg:px-10">
       <ScrollReveal effect="wipe" direction="left" className="relative">
         <div className="relative min-h-[22rem] overflow-hidden sm:min-h-[30rem] lg:min-h-[38rem]">
           <img src={monasteryMuseum} alt={uiText("copy.theZiqualaAboMonasteryMuseumBuilding")} decoding="async" className="absolute inset-0 h-full w-full object-cover transition duration-1000 hover:scale-[1.025]" />
-          <div className="absolute inset-0 bg-gradient-to-t from-brand-forest-950/65 via-transparent to-transparent" />
-          <span className="absolute bottom-5 left-5 border border-white/35 bg-brand-forest-950/55 px-4 py-2 text-sm font-black uppercase tracking-[0.22em] backdrop-blur-sm">{uiText("copy.monasteryHeritage")}</span>
+          <div className="absolute inset-0 hidden dark:block bg-gradient-to-t from-brand-forest-950/65 via-transparent to-transparent" />
+          <span className="absolute bottom-5 left-5 border border-slate-200 bg-white text-slate-900 dark:border-white/35 dark:bg-brand-forest-950/55 dark:text-white px-4 py-2 text-sm font-black uppercase tracking-[0.22em] backdrop-blur-sm">{uiText("copy.monasteryHeritage")}</span>
         </div>
       </ScrollReveal>
 
       <ScrollReveal effect="rise" delay={0.14}>
         <div className="max-w-xl">
-          <span className="grid h-14 w-14 place-items-center rounded-full border border-brand-gold-300/50 text-brand-gold-300"><Building2 size={25} /></span>
-          <p className="mt-8 text-base font-black uppercase tracking-[0.28em] text-brand-gold-300">{uiText("copy.theMonasteryMuseum")}</p>
+          <span className="grid h-14 w-14 place-items-center rounded-full border border-brand-gold-700/30 text-brand-gold-700 dark:border-brand-gold-300/50 dark:text-brand-gold-300"><Building2 size={25} /></span>
+          <p className="mt-8 text-base font-black uppercase tracking-[0.28em] text-brand-gold-700 dark:text-brand-gold-300">{uiText("copy.theMonasteryMuseum")}</p>
           <h2 className="mt-5 font-serif text-4xl leading-tight sm:text-5xl">{uiText("copy.theMonasteryMuseum_132")}</h2>
-          <ul className="mt-5 space-y-2 text-lg leading-8 text-slate-100">
+          <ul className="mt-5 space-y-2 text-lg leading-8 text-slate-700 dark:text-slate-100">
             <li>{uiText('monastery.museum.manuscripts')}</li>
             <li>{uiText('monastery.museum.vessels')}</li>
           </ul>
-          <p className="mt-6 text-lg leading-8 text-slate-100">{uiText("copy.aDedicatedPlaceForSafeguardingAndSharingTheHistoryHeritageAndLivi")}</p>
-          <p className="mt-5 leading-7 text-slate-200">{uiText("copy.informationAboutTheCollectionAndVisitorAccessCanBeConfirmedThroug")}</p>
-          <a href="#monastery-contact" className="group mt-8 inline-flex items-center gap-3 border-b border-brand-gold-300/70 pb-2 text-sm font-black text-brand-gold-300">{uiText("copy.askAboutVisiting ")}<ArrowRight size={17} className="transition-transform group-hover:translate-x-1" /></a>
+          <p className="mt-6 text-lg leading-8 text-slate-700 dark:text-slate-100">{uiText("copy.aDedicatedPlaceForSafeguardingAndSharingTheHistoryHeritageAndLivi")}</p>
+          <p className="mt-5 leading-7 text-slate-600 dark:text-slate-200">{uiText("copy.informationAboutTheCollectionAndVisitorAccessCanBeConfirmedThroug")}</p>
+          <a href="#monastery-contact" className="group mt-8 inline-flex items-center gap-3 border-b border-brand-gold-700/70 pb-2 text-sm font-black text-brand-gold-700 dark:border-brand-gold-300/70 dark:text-brand-gold-300">{uiText("copy.askAboutVisiting ")}<ArrowRight size={17} className="transition-transform group-hover:translate-x-1" /></a>
         </div>
       </ScrollReveal>
     </div>
@@ -1046,29 +1046,29 @@ const MonasteryDonation = () => {
   };
 
   return (
-    <section id="donate" className="scroll-mt-24 bg-brand-forest-950 py-20 text-white md:py-28">
+    <section id="donate" className="scroll-mt-24 bg-white py-20 text-slate-900 dark:bg-brand-forest-950 dark:text-white md:py-28">
       <ScrollReveal effect="scale" className="mx-auto max-w-[90rem] px-5 lg:px-10">
         <div className="grid gap-10 lg:grid-cols-[.8fr_1.2fr]">
           <div>
-            <p className="text-base font-black uppercase tracking-[0.28em] text-brand-gold-300">{uiText("copy.supportTheMonastery")}</p>
+            <p className="text-base font-black uppercase tracking-[0.28em] text-brand-gold-700 dark:text-brand-gold-300">{uiText("copy.supportTheMonastery")}</p>
             <h2 className="mt-5 font-serif text-4xl leading-tight sm:text-5xl">{uiText("copy.helpPreserveALivingSpiritualHeritage")}</h2>
-            <p className="mt-6 max-w-xl text-lg leading-8 text-brand-forest-50/75">{uiText("copy.donationsHelpTheMonasteryMeetItsNeedsSustainItsCommunityCareForIt")}</p>
+            <p className="mt-6 max-w-xl text-lg leading-8 text-slate-700 dark:text-brand-forest-50/75">{uiText("copy.donationsHelpTheMonasteryMeetItsNeedsSustainItsCommunityCareForIt")}</p>
           </div>
-          <div className="border border-white/20 bg-white/10 p-6 sm:p-9">
+          <div className="border border-slate-200 bg-white dark:border-white/20 dark:bg-white/10 p-6 sm:p-9">
             <div className="flex items-center gap-4">
               <span className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-full bg-white p-1 shadow-lg"><img src={cbeLogo} alt={uiText("copy.commercialBankOfEthiopiaLogo")} className="h-full w-full object-contain" /></span>
               <div>
-                <p className="text-base font-black uppercase tracking-[0.22em] text-brand-forest-200">{uiText("copy.cBEDonationAccount")}</p>
-                <p className="mt-1 font-bold text-white">{uiText(monasteryDonation.bankName)}</p>
+                <p className="text-base font-black uppercase tracking-[0.22em] text-slate-600 dark:text-brand-forest-200">{uiText("copy.cBEDonationAccount")}</p>
+                <p className="mt-1 font-bold text-slate-900 dark:text-white">{uiText(monasteryDonation.bankName)}</p>
               </div>
             </div>
-            <p className="mt-8 text-base font-black uppercase tracking-[0.22em] text-brand-forest-200">{uiText("copy.accountNumber")}</p>
+            <p className="mt-8 text-base font-black uppercase tracking-[0.22em] text-slate-600 dark:text-brand-forest-200">{uiText("copy.accountNumber")}</p>
             <p className="mt-3 break-all font-mono text-3xl font-black tracking-tight sm:text-4xl">{uiText(monasteryDonation.accountNumber)}</p>
-            <button type="button" onClick={copyAccountNumber} className="mt-6 inline-flex items-center gap-2 border border-white/30 px-5 py-3 text-sm font-black transition hover:bg-white hover:text-brand-forest-950">
+            <button type="button" onClick={copyAccountNumber} className="mt-6 inline-flex items-center gap-2 border border-slate-300 dark:border-white/30 px-5 py-3 text-sm font-black transition hover:bg-slate-100 dark:hover:bg-white dark:hover:text-brand-forest-950">
               {copied ? <CheckCircle2 size={18} /> : <Copy size={18} />}
               {uiText(copied ? "copy.accountNumberCopied" : "copy.copyAccountNumber")}
             </button>
-            <p className="mt-7 max-w-xl text-base leading-7 text-slate-200">{uiText("copy.pleaseConfirmTheAccountHolderDetailsWithTheMonasteryThroughItsOff")}</p>
+            <p className="mt-7 max-w-xl text-base leading-7 text-slate-600 dark:text-slate-200">{uiText("copy.pleaseConfirmTheAccountHolderDetailsWithTheMonasteryThroughItsOff")}</p>
           </div>
         </div>
       </ScrollReveal>
@@ -1115,12 +1115,12 @@ const MonasteryContact = () => {
 const DocumentContentBand = ({ title, eyebrow, copy, dark = false }: { title: string; eyebrow: string; copy: string; dark?: boolean }) => {
   useTranslation('public');
   return (
-  <section className={`py-20 md:py-28 ${dark ? 'bg-brand-forest-950 text-white' : 'bg-brand-canvas text-brand-forest-950 dark:bg-brand-forest-900 dark:text-white'}`}>
+  <section className={`py-20 md:py-28 bg-brand-canvas text-brand-forest-950 dark:text-white ${dark ? 'dark:bg-brand-forest-950' : 'dark:bg-brand-forest-900'}`}>
     <div className="mx-auto max-w-7xl px-5 lg:px-8">
       <ScrollReveal effect="wipe">
-        <p className={`text-xs font-black uppercase tracking-[0.28em] ${dark ? 'text-brand-gold-300' : 'text-brand-forest-700 dark:text-brand-gold-300'}`}>{uiText(eyebrow)}</p>
+        <p className="text-xs font-black uppercase tracking-[0.28em] text-brand-gold-700 dark:text-brand-gold-300">{uiText(eyebrow)}</p>
         <h2 className="mt-5 max-w-4xl font-serif text-4xl leading-tight sm:text-5xl">{uiText(title)}</h2>
-        <p className={`mt-6 max-w-4xl whitespace-pre-line text-lg leading-9 ${dark ? 'text-slate-100' : 'text-slate-600 dark:text-slate-300'}`}>{uiText(copy)}</p>
+        <p className={`mt-6 max-w-4xl whitespace-pre-line text-lg leading-9 text-slate-600 ${dark ? 'dark:text-slate-100' : 'dark:text-slate-300'}`}>{uiText(copy)}</p>
       </ScrollReveal>
     </div>
   </section>
@@ -1164,16 +1164,16 @@ const SchoolPage = () => {
   useTranslation('public');
   return (
   <>
-    <section className="relative flex min-h-[42rem] items-end overflow-hidden bg-brand-forest-950 text-white">
+    <section className="relative flex min-h-[42rem] items-end overflow-hidden bg-white text-slate-900 dark:bg-brand-forest-950 dark:text-white">
       <img src={schoolBuilding} alt={uiText("copy.ziqualaAboPrimarySchoolCampus")} className="absolute inset-0 h-full w-full object-cover" />
-      <div className="absolute inset-0 bg-gradient-to-t from-brand-forest-950 via-brand-forest-950/80 to-brand-forest-950/75" />
+      <div className="absolute inset-0 bg-gradient-to-t from-white via-white/95 to-white/80 dark:from-brand-forest-950 dark:via-brand-forest-950/80 dark:to-brand-forest-950/75" />
       <div className="relative mx-auto grid w-full max-w-[90rem] items-end gap-10 px-5 pb-14 lg:grid-cols-[1fr_.65fr] lg:px-10 lg:pb-20">
         <div>
-          <p className="text-base font-black uppercase tracking-[0.28em] text-brand-gold-300">{uiText("copy.theSchoolKG1Grade8TwoCampuses")}</p>
+          <p className="text-base font-black uppercase tracking-[0.28em] text-brand-gold-700 dark:text-brand-gold-300">{uiText("copy.theSchoolKG1Grade8TwoCampuses")}</p>
           <h1 className="mt-6 max-w-5xl font-serif text-5xl font-medium leading-[.96] tracking-[-0.04em] sm:text-6xl md:text-8xl">{uiText("copy.educationRootedInKnowledgeEthicsAndService")}</h1>
           <div className="mt-8"><Link to="/register" className="group inline-flex items-center gap-3 bg-brand-gold-400 px-6 py-4 text-sm font-black text-brand-forest-950 transition-colors hover:bg-brand-gold-300">{uiText("copy.joinOurSchool")}<ArrowRight size={18} className="transition-transform group-hover:translate-x-1" /></Link></div>
         </div>
-        <p className="border-l border-white/35 pl-6 text-lg leading-8 text-slate-100">{uiText("copy.aStudentCentredSchoolServing1534LearnersAcrossKindergartenAndPrim")}</p>
+        <p className="border-l border-slate-300 dark:border-white/35 pl-6 text-lg leading-8 text-slate-700 dark:text-slate-100">{uiText("copy.aStudentCentredSchoolServing1534LearnersAcrossKindergartenAndPrim")}</p>
       </div>
     </section>
 
@@ -1251,7 +1251,7 @@ const MonasteryHero = () => {
   };
 
   return (
-    <section className="relative flex min-h-[680px] items-end overflow-hidden bg-brand-forest-950 text-white">
+    <section className="relative flex min-h-[680px] items-end overflow-hidden bg-white text-slate-900 dark:bg-brand-forest-950 dark:text-white">
       <video
         ref={videoRef}
         src="/videos/monastery-forest-hero.mp4"
@@ -1265,13 +1265,13 @@ const MonasteryHero = () => {
         onPause={() => setIsPaused(true)}
         className="absolute inset-0 h-full w-full object-cover"
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-brand-forest-950 via-brand-forest-950/80 to-brand-forest-950/75" />
+      <div className="absolute inset-0 bg-gradient-to-t from-white via-white/95 to-white/80 dark:from-brand-forest-950 dark:via-brand-forest-950/80 dark:to-brand-forest-950/75" />
 
       <div className="absolute right-5 top-5 z-20 flex gap-2 sm:right-8 sm:top-8">
-        <button type="button" onClick={togglePlayback} aria-label={uiText(isPaused ? "copy.playMonasteryBackgroundVideo" : "copy.pauseMonasteryBackgroundVideo")} aria-pressed={isPaused} className="grid h-11 w-11 place-items-center rounded-full border border-white/35 bg-brand-forest-950/35 text-white backdrop-blur transition hover:bg-white hover:text-brand-forest-950">
+        <button type="button" onClick={togglePlayback} aria-label={uiText(isPaused ? "copy.playMonasteryBackgroundVideo" : "copy.pauseMonasteryBackgroundVideo")} aria-pressed={isPaused} className="grid h-11 w-11 place-items-center rounded-full border border-slate-300 dark:border-white/35 bg-white text-slate-700 dark:bg-brand-forest-950/35 dark:text-white backdrop-blur transition hover:bg-white hover:text-brand-forest-950">
           {isPaused ? <Play size={18} fill="currentColor" /> : <Pause size={18} fill="currentColor" />}
         </button>
-        <button type="button" onClick={toggleSound} aria-label={uiText(isMuted ? "copy.enableMonasteryVideoSound" : "copy.muteMonasteryVideoSound")} aria-pressed={!isMuted} className="grid h-11 w-11 place-items-center rounded-full border border-white/35 bg-brand-forest-950/35 text-white backdrop-blur transition hover:bg-white hover:text-brand-forest-950">
+        <button type="button" onClick={toggleSound} aria-label={uiText(isMuted ? "copy.enableMonasteryVideoSound" : "copy.muteMonasteryVideoSound")} aria-pressed={!isMuted} className="grid h-11 w-11 place-items-center rounded-full border border-slate-300 dark:border-white/35 bg-white text-slate-700 dark:bg-brand-forest-950/35 dark:text-white backdrop-blur transition hover:bg-white hover:text-brand-forest-950">
           {isMuted ? <VolumeX size={19} /> : <Volume2 size={19} />}
         </button>
       </div>
@@ -1285,15 +1285,15 @@ const MonasteryHero = () => {
         <div>
           <div className="flex items-center gap-4">
             <img src={monasteryMark} alt={uiText("copy.ziqualaAboMediaMark")} className="h-20 w-20 rounded-xl bg-white/95 object-contain p-2" />
-            <p className="text-base font-black uppercase tracking-[0.28em] text-brand-gold-300">{uiText("copy.monasteryInformation")}</p>
+            <p className="text-base font-black uppercase tracking-[0.28em] text-brand-gold-700 dark:text-brand-gold-300">{uiText("copy.monasteryInformation")}</p>
           </div>
           <h1 className="mt-7 max-w-5xl text-4xl font-black leading-tight tracking-[-0.045em] md:text-6xl">{uiText(ziqualaIdentity.monasteryNameEn)}</h1>
         </div>
         <div>
-          <p className="text-lg leading-8 text-slate-100">{uiText("copy.aDedicatedSpaceForTheMonasterySHistorySpiritualCommunityIncomeGen")}</p>
+          <p className="text-lg leading-8 text-slate-700 dark:text-slate-100">{uiText("copy.aDedicatedSpaceForTheMonasterySHistorySpiritualCommunityIncomeGen")}</p>
           <div className="mt-7 flex flex-wrap gap-3">
             <a href="#monastery-history" className="inline-flex items-center gap-2 bg-brand-gold-400 px-5 py-3 text-sm font-black text-brand-forest-950">{uiText("copy.readTheHistory ")}<ArrowRight size={17} /></a>
-            <a href="#donate" className="inline-flex items-center gap-2 border border-white/35 px-5 py-3 text-sm font-black text-white">{uiText("copy.supportTheMonastery ")}<HeartHandshake size={17} /></a>
+            <a href="#donate" className="inline-flex items-center gap-2 border border-slate-300 dark:border-white/35 px-5 py-3 text-sm font-black text-slate-900 dark:text-white">{uiText("copy.supportTheMonastery ")}<HeartHandshake size={17} /></a>
           </div>
         </div>
       </motion.div>

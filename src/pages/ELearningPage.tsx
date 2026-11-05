@@ -158,9 +158,9 @@ export const ELearningPage = () => {
   return (
     <>
       <section className="relative overflow-hidden border-b border-brand-gold-200 bg-brand-canvas dark:border-white/10">
-        <div className="absolute right-0 top-0 h-full w-1/2 bg-[radial-gradient(circle_at_top_right,rgba(5,90,64,.15),transparent_62%)]" />
+        <div className="absolute right-0 top-0 hidden h-full w-1/2 dark:block bg-[radial-gradient(circle_at_top_right,rgba(5,90,64,.15),transparent_62%)]" />
         <div className="relative mx-auto max-w-7xl px-5 py-20 lg:px-8 md:py-28">
-          <div className="grid h-16 w-16 place-items-center rounded-xl bg-brand-forest-900 text-white"><Library size={30} /></div>
+          <div className="grid h-16 w-16 place-items-center rounded-xl border border-slate-200 bg-white text-brand-forest-900 dark:border-brand-forest-800 dark:bg-brand-forest-900 dark:text-white"><Library size={30} /></div>
           {canManage && <button onClick={() => setManaging(true)} className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand-forest-800 px-5 py-3 text-sm font-bold text-white"><SlidersHorizontal size={18} />{uiText("copy.manageBooks")}</button>}
           <p className="mt-8 text-xs font-black uppercase tracking-[0.28em] text-brand-gold-700 dark:text-brand-gold-300">{uiText("copy.digitalLearningLibrary")}</p>
           <h1 className="text-brand-heading mt-5 max-w-4xl text-5xl font-black leading-none tracking-[-0.045em] md:text-7xl">{uiText("copy.findTheRightBookFaster")}</h1>
@@ -169,10 +169,10 @@ export const ELearningPage = () => {
       </section>
 
       <section className="mx-auto max-w-7xl px-5 py-14 lg:px-8 md:py-20">
-        <div className="sticky top-24 z-30 rounded-3xl border border-slate-200 bg-brand-surface/95 p-5 shadow-xl shadow-slate-200/30 backdrop-blur-xl dark:border-white/10 dark:shadow-none">
+        <div className="sticky top-24 z-30 rounded-3xl border border-slate-200 bg-brand-surface p-5 shadow-xl shadow-slate-200/30 backdrop-blur-xl dark:border-white/10 dark:shadow-none">
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={21} />
-            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={uiText("copy.searchPartOfATitleAuthorOrSubject")} className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-4 pl-12 pr-4 text-sm font-semibold outline-none focus:border-brand-forest-600 dark:border-slate-700 dark:bg-brand-forest-950" />
+            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={uiText("copy.searchPartOfATitleAuthorOrSubject")} className="w-full rounded-2xl border border-slate-200 bg-white py-4 pl-12 pr-4 text-sm font-semibold outline-none focus:border-brand-forest-600 dark:border-slate-700 dark:bg-brand-forest-950" />
           </div>
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
             <select value={grade} onChange={(event) => { setGrade(event.target.value); setSubject('All Subjects'); }} className="rounded-xl border border-slate-200 bg-brand-surface px-3 py-3 text-sm font-bold dark:border-slate-700">
@@ -201,7 +201,7 @@ export const ELearningPage = () => {
             <p className="text-xs font-black uppercase tracking-[0.2em] text-brand-gold-700 dark:text-brand-gold-300">{uiText("copy.catalogueResults")}</p>
             <h2 className="text-brand-heading mt-2 text-2xl font-black">{uiText('library.resultCount', { count: filteredBooks.length })}</h2>
           </div>
-          <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-4 py-2 text-xs font-bold text-slate-500 dark:bg-brand-forest-800"><Filter size={14} />{uiText(" copy.gradeSubjectBooks")}</div>
+          <div className="inline-flex items-center gap-2 rounded-full bg-white border border-slate-200 px-4 py-2 text-xs font-bold text-slate-500 dark:bg-brand-forest-800"><Filter size={14} />{uiText(" copy.gradeSubjectBooks")}</div>
         </div>
 
         {loading ? (
@@ -213,7 +213,7 @@ export const ELearningPage = () => {
               <button onClick={() => setSelectedBook(book)} className="group w-full text-left">
                 <div className="transition duration-300 group-hover:-translate-y-2"><BookCover book={book} /></div>
                 <div className="mt-4 flex flex-wrap gap-1.5">
-                  <span className="rounded-full bg-brand-forest-100 px-2 py-1 text-[9px] font-black uppercase text-brand-forest-800 dark:bg-brand-forest-900/30 dark:text-brand-forest-300">{uiText(book.grade)}</span>
+                  <span className="rounded-full border border-slate-200 bg-white dark:border-brand-forest-800 px-2 py-1 text-[9px] font-black uppercase text-brand-forest-800 dark:bg-brand-forest-900/30 dark:text-brand-forest-300">{uiText(book.grade)}</span>
                   <span className="rounded-full bg-brand-gold-100 px-2 py-1 text-[9px] font-black uppercase text-brand-gold-800 dark:bg-brand-gold-900/30 dark:text-brand-gold-300">{uiText(book.audience)}</span>
                 </div>
                 <h3 className="text-brand-heading mt-3 line-clamp-2 font-black leading-snug ">{bookText(book, 'title')}</h3>

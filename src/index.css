@@ -8,11 +8,12 @@
   --primary: #075b42;
   --secondary: #d6a31b;
   --accent: var(--secondary);
-  /* Public brand: forest green, gold accents, and warm neutral surfaces. */
-  --brand-canvas: 244 240 231;
+  /* True-white light surfaces; forest green and gold remain brand accents. */
+  --brand-canvas: 255 255 255;
   --brand-surface: 255 255 255;
-  --brand-muted: 235 228 213;
+  --brand-muted: 255 255 255;
   --brand-heading: 7 91 66;
+  --font-academic: 'Times New Roman', Times, 'Abyssinica SIL', 'Nyala', serif;
   --app-radius: 1rem;
   --app-spacing: 1.5rem;
   --app-font-size: 1rem;
@@ -62,9 +63,14 @@
 
 @layer base {
   body {
-    @apply bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-500;
+    @apply bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-500;
+    font-family: var(--font-academic);
     font-size: var(--app-font-size);
     font-weight: var(--app-font-weight);
+    background-image: none;
+  }
+
+  .dark body {
     background-image: radial-gradient(at 0% 0%, rgba(7, 91, 66, 0.05) 0px, transparent 50%),
       radial-gradient(at 100% 100%, rgba(214, 163, 27, 0.05) 0px, transparent 50%);
   }
@@ -147,13 +153,13 @@
   }
 
   .card {
-    @apply bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200/50 dark:border-slate-800/50 transition-all duration-300;
+    @apply bg-white dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200/50 dark:border-slate-800/50 transition-all duration-300;
     border-radius: var(--app-radius);
     box-shadow: var(--app-shadow);
   }
 
   .glass {
-    @apply bg-white/70 dark:bg-slate-900/70 backdrop-blur-md border border-white/20 dark:border-slate-800/20 shadow-xl;
+    @apply bg-white dark:bg-slate-900/70 backdrop-blur-md border border-white/20 dark:border-slate-800/20 shadow-xl;
   }
 
   .progress-bar {
@@ -298,7 +304,7 @@
 /* Match inherited language and explicitly tagged Ethiopic passages, including
    Amharic sections shown while the interface language is English. */
 :lang(am) {
-  font-family: 'Noto Sans Ethiopic', 'Nyala', 'Abyssinica SIL', sans-serif;
+  font-family: var(--font-academic);
   letter-spacing: normal !important;
 }
 
