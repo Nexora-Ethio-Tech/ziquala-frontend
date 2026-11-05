@@ -8,7 +8,8 @@
     "build": "tsc && vite build",
     "start": "npm run build && vite preview --host 0.0.0.0 --port ${PORT:-4173}",
     "preview": "vite preview",
-    "check:localization": "node scripts/check-localization.cjs"
+    "check:localization": "node scripts/check-localization.cjs",
+    "check:public-localization": "node scripts/check-public-localization.cjs"
   },
   "devDependencies": {
     "@types/node": "^20.19.41",

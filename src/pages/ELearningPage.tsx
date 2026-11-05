@@ -1,7 +1,7 @@
 import { BookReader } from '../components/BookReader';
 import { useTranslation } from 'react-i18next';
 import { bookText } from '../utils/localizeBook';
-import { uiText } from "../localization";
+import { publicText as uiText } from "../publicLocalization";
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
@@ -25,7 +25,9 @@ import { eLearningService } from '../services/eLearningService';
 
 const BookManagement = lazy(() => import('./ELearningManagement').then(module => ({ default: module.ELearningManagement })));
 
-const BookCover = ({ book, compact = false }: { book: ELearningBook; compact?: boolean }) => (
+const BookCover = ({ book, compact = false }: { book: ELearningBook; compact?: boolean }) => {
+  useTranslation('public');
+  return (
   <div className={`relative overflow-hidden rounded-xl bg-gradient-to-br ${book.coverClass} text-white shadow-xl ${compact ? 'aspect-[4/5]' : 'aspect-[3/4]'}`}>
     <div className="absolute inset-y-0 left-0 w-3 bg-black/20" />
     <div className="absolute inset-0 bg-[linear-gradient(125deg,rgba(255,255,255,.2),transparent_28%,rgba(0,0,0,.2))]" />
@@ -39,8 +41,10 @@ const BookCover = ({ book, compact = false }: { book: ELearningBook; compact?: b
     </div>
   </div>
 );
+};
 
 export const FeaturedBookGallery = () => {
+  useTranslation('public');
   const [books, setBooks] = useState<ELearningBook[]>([]);
 
   useEffect(() => {
@@ -55,11 +59,11 @@ export const FeaturedBookGallery = () => {
       <div className="mx-auto max-w-7xl px-5 py-20 lg:px-8 md:py-28">
         <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
           <div className="max-w-2xl">
-            <p className="text-xs font-black uppercase tracking-[0.28em] text-brand-gold-700 dark:text-brand-gold-300">{uiText("Digital bookshelf")}</p>
-            <h2 className="text-brand-heading mt-4 text-3xl font-black tracking-tight md:text-5xl">{uiText("Explore books from the eLearning library.")}</h2>
-            <p className="mt-4 leading-7 text-slate-600 dark:text-slate-300">{uiText("Browse by grade and subject, or discover material shared across the whole school.")}</p>
+            <p className="text-xs font-black uppercase tracking-[0.28em] text-brand-gold-700 dark:text-brand-gold-300">{uiText("copy.digitalBookshelf")}</p>
+            <h2 className="text-brand-heading mt-4 text-3xl font-black tracking-tight md:text-5xl">{uiText("copy.exploreBooksFromTheELearningLibrary")}</h2>
+            <p className="mt-4 leading-7 text-slate-600 dark:text-slate-300">{uiText("copy.browseByGradeAndSubjectOrDiscoverMaterialSharedAcrossTheWholeScho")}</p>
           </div>
-          <Link to="/elearning" className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-forest-900 px-5 py-3 text-sm font-black text-white">{uiText("Open full library ")}<BookOpen size={17} />
+          <Link to="/elearning" className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-forest-900 px-5 py-3 text-sm font-black text-white">{uiText("copy.openFullLibrary ")}<BookOpen size={17} />
           </Link>
         </div>
         <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
@@ -146,8 +150,8 @@ export const ELearningPage = () => {
 
   if (canManage && managing) return (
     <div className="px-4 py-6 sm:px-6">
-      <button onClick={() => setManaging(false)} className="mb-5 inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand-forest-800 px-4 py-3 text-sm font-bold text-white"><BookOpen size={18} />{uiText('Back to books')}</button>
-      <Suspense fallback={<p role="status">{uiText('Loading…')}</p>}><BookManagement /></Suspense>
+      <button onClick={() => setManaging(false)} className="mb-5 inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand-forest-800 px-4 py-3 text-sm font-bold text-white"><BookOpen size={18} />{uiText("copy.backToBooks")}</button>
+      <Suspense fallback={<p role="status">{uiText("copy.loading")}</p>}><BookManagement /></Suspense>
     </div>
   );
 
@@ -157,10 +161,10 @@ export const ELearningPage = () => {
         <div className="absolute right-0 top-0 h-full w-1/2 bg-[radial-gradient(circle_at_top_right,rgba(5,90,64,.15),transparent_62%)]" />
         <div className="relative mx-auto max-w-7xl px-5 py-20 lg:px-8 md:py-28">
           <div className="grid h-16 w-16 place-items-center rounded-xl bg-brand-forest-900 text-white"><Library size={30} /></div>
-          {canManage && <button onClick={() => setManaging(true)} className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand-forest-800 px-5 py-3 text-sm font-bold text-white"><SlidersHorizontal size={18} />{uiText('Manage books')}</button>}
-          <p className="mt-8 text-xs font-black uppercase tracking-[0.28em] text-brand-gold-700 dark:text-brand-gold-300">{uiText("Digital learning library")}</p>
-          <h1 className="text-brand-heading mt-5 max-w-4xl text-5xl font-black leading-none tracking-[-0.045em] md:text-7xl">{uiText("Find the right book, faster.")}</h1>
-          <p className="mt-7 max-w-3xl text-lg leading-8 text-slate-600 dark:text-slate-300">{uiText("Search partial book names, then narrow the catalogue by grade, subject, language, or material type. Shared books remain available in their own collection.")}</p>
+          {canManage && <button onClick={() => setManaging(true)} className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand-forest-800 px-5 py-3 text-sm font-bold text-white"><SlidersHorizontal size={18} />{uiText("copy.manageBooks")}</button>}
+          <p className="mt-8 text-xs font-black uppercase tracking-[0.28em] text-brand-gold-700 dark:text-brand-gold-300">{uiText("copy.digitalLearningLibrary")}</p>
+          <h1 className="text-brand-heading mt-5 max-w-4xl text-5xl font-black leading-none tracking-[-0.045em] md:text-7xl">{uiText("copy.findTheRightBookFaster")}</h1>
+          <p className="mt-7 max-w-3xl text-lg leading-8 text-slate-600 dark:text-slate-300">{uiText("copy.searchPartialBookNamesThenNarrowTheCatalogueByGradeSubjectLanguag")}</p>
         </div>
       </section>
 
@@ -168,40 +172,40 @@ export const ELearningPage = () => {
         <div className="sticky top-24 z-30 rounded-3xl border border-slate-200 bg-brand-surface/95 p-5 shadow-xl shadow-slate-200/30 backdrop-blur-xl dark:border-white/10 dark:shadow-none">
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={21} />
-            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={uiText("Search part of a title, author, or subject…")} className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-4 pl-12 pr-4 text-sm font-semibold outline-none focus:border-brand-forest-600 dark:border-slate-700 dark:bg-brand-forest-950" />
+            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={uiText("copy.searchPartOfATitleAuthorOrSubject")} className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-4 pl-12 pr-4 text-sm font-semibold outline-none focus:border-brand-forest-600 dark:border-slate-700 dark:bg-brand-forest-950" />
           </div>
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
             <select value={grade} onChange={(event) => { setGrade(event.target.value); setSubject('All Subjects'); }} className="rounded-xl border border-slate-200 bg-brand-surface px-3 py-3 text-sm font-bold dark:border-slate-700">
-              <option value="All Grades">{uiText("All Grades")}</option>
+              <option value="All Grades">{uiText("copy.allGrades")}</option>
               {eLearningGrades.map((item) => <option key={item} value={item}>{uiText(item)}</option>)}
             </select>
             <select value={subject} onChange={(event) => setSubject(event.target.value)} className="rounded-xl border border-slate-200 bg-brand-surface px-3 py-3 text-sm font-bold dark:border-slate-700">
-              <option value="All Subjects">{uiText("All Subjects")}</option>
+              <option value="All Subjects">{uiText("copy.allSubjects")}</option>
               {subjects.map((item) => <option key={item} value={item}>{uiText(item)}</option>)}
             </select>
             <select value={language} onChange={(event) => setLanguage(event.target.value)} className="rounded-xl border border-slate-200 bg-brand-surface px-3 py-3 text-sm font-bold dark:border-slate-700">
-              <option value="All Languages">{uiText("All Languages")}</option>
+              <option value="All Languages">{uiText("copy.allLanguages")}</option>
               {eLearningLanguages.map((item) => <option key={item} value={item}>{uiText(item)}</option>)}
             </select>
             <select value={materialType} onChange={(event) => setMaterialType(event.target.value)} className="rounded-xl border border-slate-200 bg-brand-surface px-3 py-3 text-sm font-bold dark:border-slate-700">
-              <option value="All Types">{uiText("All Types")}</option>
+              <option value="All Types">{uiText("copy.allTypes")}</option>
               {eLearningMaterialTypes.map((item) => <option key={item} value={item}>{uiText(item)}</option>)}
             </select>
             <button onClick={clearFilters} className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-3 py-3 text-sm font-black text-slate-600 hover:border-rose-300 hover:text-rose-600 dark:border-slate-700">
-              <X size={16} />{uiText(" Clear filters")}</button>
+              <X size={16} />{uiText(" copy.clearFilters")}</button>
           </div>
         </div>
 
         <div className="mt-9 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-brand-gold-700 dark:text-brand-gold-300">{uiText("Catalogue results")}</p>
-            <h2 className="text-brand-heading mt-2 text-2xl font-black">{filteredBooks.length} {uiText(filteredBooks.length === 1 ? 'book' : 'books')}{uiText(" found")}</h2>
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-brand-gold-700 dark:text-brand-gold-300">{uiText("copy.catalogueResults")}</p>
+            <h2 className="text-brand-heading mt-2 text-2xl font-black">{uiText('library.resultCount', { count: filteredBooks.length })}</h2>
           </div>
-          <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-4 py-2 text-xs font-bold text-slate-500 dark:bg-brand-forest-800"><Filter size={14} />{uiText(" Grade → Subject → Books")}</div>
+          <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-4 py-2 text-xs font-bold text-slate-500 dark:bg-brand-forest-800"><Filter size={14} />{uiText(" copy.gradeSubjectBooks")}</div>
         </div>
 
         {loading ? (
-          <div className="mt-8 rounded-3xl border border-dashed border-slate-300 px-6 py-20 text-center text-sm font-bold text-slate-500 dark:border-slate-700">{uiText("Loading books…")}</div>
+          <div className="mt-8 rounded-3xl border border-dashed border-slate-300 px-6 py-20 text-center text-sm font-bold text-slate-500 dark:border-slate-700">{uiText("copy.loadingBooks")}</div>
         ) : filteredBooks.length > 0 ? (
           <div className="mt-8 grid grid-cols-2 gap-x-4 gap-y-9 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {filteredBooks.map((book) => (
@@ -216,8 +220,8 @@ export const ELearningPage = () => {
                 <p className="mt-1 text-xs font-semibold text-slate-500">{uiText(book.subject)}{uiText(" · ")}{uiText(book.language)}</p>
               </button>
               <div className="mt-3 flex flex-wrap gap-2">
-                <button onClick={() => setSelectedBook(book)} className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-brand-forest-800 px-3 text-xs font-bold text-white"><BookOpen size={16} />{uiText('Read online')}</button>
-                {book.allowDownload && getGoogleDriveDownloadUrl(book.driveUrl) && <a href={getGoogleDriveDownloadUrl(book.driveUrl)} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-slate-300 px-3 text-xs font-bold dark:border-slate-700"><Download size={16} />{uiText('Download book')}</a>}
+                <button onClick={() => setSelectedBook(book)} className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-brand-forest-800 px-3 text-xs font-bold text-white"><BookOpen size={16} />{uiText("copy.readOnline")}</button>
+                {book.allowDownload && getGoogleDriveDownloadUrl(book.driveUrl) && <a href={getGoogleDriveDownloadUrl(book.driveUrl)} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-slate-300 px-3 text-xs font-bold dark:border-slate-700"><Download size={16} />{uiText("copy.downloadBook")}</a>}
               </div>
               </article>
             ))}
@@ -225,8 +229,8 @@ export const ELearningPage = () => {
         ) : (
           <div className="mt-8 rounded-3xl border border-dashed border-slate-300 px-6 py-20 text-center dark:border-slate-700">
             <SlidersHorizontal className="mx-auto text-slate-400" size={35} />
-            <p className="mt-4 text-lg font-black">{uiText(books.length === 0 ? "No books added yet" : "No books match these filters")}</p>
-            <button onClick={clearFilters} className="mt-3 text-sm font-black text-brand-forest-700">{uiText("Clear filters and show all books")}</button>
+            <p className="mt-4 text-lg font-black">{uiText(books.length === 0 ? "copy.noBooksAddedYet" : "copy.noBooksMatchTheseFilters")}</p>
+            <button onClick={clearFilters} className="mt-3 text-sm font-black text-brand-forest-700">{uiText("copy.clearFiltersAndShowAllBooks")}</button>
           </div>
         )}
 

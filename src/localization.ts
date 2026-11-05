@@ -6,11 +6,8 @@ import en from './locales/en.json';
 import am from './locales/am.json';
 import om from './locales/om.json';
 
-export type Language = 'en' | 'am' | 'om';
-export const normalizeLanguage = (language: string): Language => {
-  const base = language.toLowerCase().split('-')[0];
-  return base === 'am' ? 'am' : base === 'om' || base === 'or' ? 'om' : 'en';
-};
+import { normalizeLanguage, type Language } from './locales/languages';
+export { normalizeLanguage, type Language } from './locales/languages';
 export const localeTag = () => ({ en: 'en-ET', am: 'am-ET', om: 'om-ET' })[normalizeLanguage(i18n.language)];
 const normalize = (text: string) => text.trim().replace(/\s+/g, ' ');
 type Message = Record<Language, string>;

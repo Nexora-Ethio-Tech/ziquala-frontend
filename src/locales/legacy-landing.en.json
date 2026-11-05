@@ -1,0 +1,224 @@
+{
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "programs": "Programs",
+    "schoolLife": "School Life",
+    "branches": "Branches",
+    "menu": "Menu"
+  },
+  "hero": {
+    "welcome": "Welcome to",
+    "title": "Ziquala Abo",
+    "subtitlePrefix": "Planting seeds of ",
+    "subtitleExcellence": "excellence",
+    "subtitleSuffix": " today.",
+    "scroll": "Scroll"
+  },
+  "founder": {
+    "badge": "Our Foundation",
+    "titleLine1": "Message from",
+    "titleLine2": "the Founders",
+    "quote": "Ziquala Abo School was established in 1998 E.C. (2005/2006 G.C.) with a dream to create a place where children feel seen, supported, and encouraged to discover their full potential. To build the future of our children, we must plant the seeds of excellence today.",
+    "button": "Read more ..",
+    "name": "Ziquala Abo School Founders",
+    "role": "Founder & Owner"
+  },
+  "stats": {
+    "title": "Our Impact",
+    "items": [
+      {
+        "value": "7,600",
+        "label": "Students",
+        "final": "+"
+      },
+      {
+        "value": "362",
+        "label": "Qualified Teachers",
+        "final": "+"
+      },
+      {
+        "value": "18",
+        "label": "Clubs & Activities",
+        "final": "+"
+      },
+      {
+        "value": "4",
+        "label": "School Branches",
+        "final": ""
+      }
+    ],
+    "badge": ""
+  },
+  "programs": {
+    "items": [
+      {
+        "title": "Excellence in Education",
+        "desc": "We nurture young minds from kindergarten through grade 12 with a well-rounded curriculum that balances academics, arts, and sports. Our goal is to help each student reach their full potential and develop a lifelong love for learning.",
+        "img": "grad.jpg"
+      },
+      {
+        "title": "Extracurriculars",
+        "desc": "Beyond the classroom, we offer a wide range of clubs, sports, and activities that help students explore their interests and develop robust leadership and teamwork skills.",
+        "img": "/team.jpg"
+      },
+      {
+        "title": "Learner-Centered",
+        "desc": "Our curriculum is designed to build strong academic foundations while encouraging curiosity and creativity. We focus on core subjects such as Mathematics, English, Science, Amharic, ICT, and Social Studies.",
+        "img": "/school.png"
+      }
+    ],
+    "label": "Program",
+    "desc": "",
+    "title": ""
+  },
+  "studentBook": {
+    "title": "Student Achievements",
+    "subtitle": "Scroll to turn the pages.",
+    "coverTitle": "The Book",
+    "coverSubtitle": "Of Excellence",
+    "coverEdition": "2025 Edition",
+    "legacyTitle": "Our 2025 Legacy",
+    "legacyDesc": "Our students achieved an unprecedented 98% pass rate in the national exams, with 15 students ranking in the top 100 nationwide. This milestone reflects our commitment to academic excellence.",
+    "students": [
+      {
+        "name": "Firdos Musa",
+        "achievement": "Top Scorer - National Exams",
+        "message": "Hard work, patience, and prayer have guided my journey. I thank Ziquala Abo School for giving me the chance to discover my potential and grow into someone who believes in possibilities.",
+        "img": "/school.png"
+      },
+      {
+        "name": "Fuad Abdella",
+        "achievement": "Excellence in Sciences",
+        "message": "Hard work and faith brought me here. I'm proud to represent Ziquala Abo School and thankful for my teachers' constant support throughout these years.",
+        "img": "/school.png"
+      },
+      {
+        "name": "Saron Leulseged",
+        "achievement": "Outstanding Leadership",
+        "message": "I thank my family for believing in me and Ziquala Abo School for shaping that belief into achievement. With their support, I have learned that dreams come true through learning and discipline.",
+        "img": "/school.png"
+      }
+    ],
+    "classOf": "Class of 2025",
+    "endOfVolume": "End of Volume",
+    "futureAwaits": "Your Future Awaits"
+  },
+  "cta": {
+    "badge": "Admissions Open",
+    "titleLine1": "Your Future",
+    "titleLine2": "Starts Here.",
+    "desc": "Build your future with an institution dedicated to shaping leaders, innovators, and creators of tomorrow.",
+    "button": "Apply Now"
+  },
+  "about": {
+    "hero": {
+      "title": "Our Story",
+      "subtitle": "Dedicated to nurturing academic excellence, strong moral character, and fearlessness."
+    },
+    "foundersTitle": "Founders Welcome Message",
+    "directorsTitle": "Welcome Message from the Director",
+    "leaders": {
+      "girma": {
+        "name": "Mr. GIRMA LEMI",
+        "role": "Co-Founder & Owner",
+        "message": "welcome to abdi adama school, a place built from our shared belief that every child deserves an environment where learning feels inspiring, meaningful, and joyful. when we founded abdi adama school, our dream was to create a place where children feel seen, supported, and encouraged to discover their full potential. we wanted a school that goes beyond textbooks — a place where curiosity is welcomed, kindness is practiced, and learning feels alive. seeing our students grow in confidence and character has been our greatest achievement, and we remain committed to nurturing every child with care and purpose.",
+        "img": "/school.png"
+      },
+      "aberash": {
+        "name": "Ms. ABERASH ESHETU",
+        "role": "Co-Founder & Owner",
+        "message": "As one of the founders, I share a deep belief that education has the power to transform lives and shape better communities In our country. We founded this school to offer a strong foundation rooted in values, discipline, and creativity. Our vision is to inspire each student to think boldly, act responsibly, and dream fearlessly. we thank every parent, teacher, and student who has joined us on this journey — together, we continue building a brighter future for our community.",
+        "img": "/school.png"
+      },
+      "yodit": {
+        "name": "Ms. YODIT YOHANNES",
+        "role": "School Director",
+        "message": "It is my pleasure to welcome you to abdi adama school, where every student is guided with care, respect, and high expectations. our mission is to create a safe and supportive learning atmosphere where each child can develop academically, socially, and emotionally. we work closely with families and our dedicated team of teachers to ensure that students receive the best opportunities to explore their potential. thank you for choosing to be part of our school community. together, we look forward to shaping strong minds, positive values, and bright futures.",
+        "img": "/school.png"
+      }
+    },
+    "difference": {
+      "title": "What makes us different",
+      "subtitle": "our culture & our values",
+      "values": {
+        "integrity": {
+          "title": "integrity",
+          "desc": "At Ziquala Abo School we believe in doing what is right — always. our community encourages honesty, responsibility and respect. we help students build strong moral character that guides them for life."
+        },
+        "leadership": {
+          "title": "leadership",
+          "desc": "Every student has the ability to lead. through teamwork, projects and school activities, we help learners build confidence, empathy and the courage to inspire others."
+        },
+        "growth": {
+          "title": "growth & success",
+          "desc": "Success is not only about grades — it is about growth. In Ziquala Abo we teach students to set goals, work hard, learn from challenges, and believe in their own potential."
+        },
+        "learning": {
+          "title": "lifelong learning",
+          "desc": "Learning does not end in the classroom. we encourage curiosity, creativity and exploration — helping students become lifelong learners ready for an ever-changing world."
+        }
+      }
+    },
+    "missionVision": {
+      "title": "mission & vision",
+      "visionTitle": "Vision",
+      "visionDesc": "To provide meaningful, modern and value-based education that prepares students to become confident thinkers, problem-solvers and leaders — ready to contribute to the future of ethiopia and the world.",
+      "missionTitle": "Mission",
+      "missionDesc": "To be recognized as a leading school where academic excellence meets strong character development. we proudly teach with international quality while honoring ethiopian culture, identity and tradition."
+    },
+    "promise": {
+      "title": "Our Promise to Parents",
+      "desc": "At Ziquala Abo school, we understand that you are placing great trust in us when you choose our school for your child. We promise to provide a safe, respectful, and encouraging environment where every student is guided to grow academically, emotionally, socially, and morally. We believe in open communication and partnership with parents, because we know that education is most effective when school and family work together. We are committed to nurturing confidence, curiosity, discipline, and strong values in every student, while ensuring that each child is seen, heard, and supported every step of the way. your child’s success is our shared goal, and we will always work with dedication and integrity to help them reach their full potential."
+    }
+  },
+  "programsPage": {
+    "title": "Academic Programs",
+    "desc": "Our carefully structured academic pathways are designed to nurture potential at every developmental stage.",
+    "kgTitle": "Kindergarten (KG)",
+    "kgDesc": "A warm, creative environment focused on early literacy, sensory exploration, and motor skills.",
+    "primaryTitle": "Primary School (Grades 1-8)",
+    "primaryDesc": "Building strong foundational competence in Mathematics, Sciences, English, Amharic, and Afaan Oromo.",
+    "middleTitle": "Middle School (Grades 7-8)",
+    "middleDesc": "Encouraging critical thinking, scientific curiosity, independent research, and collaborative sports.",
+    "highTitle": "Secondary School (Grades 9-12)",
+    "highDesc": "Pre-university curriculum with advanced STEM courses, test preparation, and career mentorship.",
+    "oromoTitle": "Afaan Oromo Native Medium",
+    "oromoDesc": "A historic pioneer program in Adama. We enable students to master mathematics and science in their native tongue, ensuring cultural connection and cognitive excellence."
+  },
+  "schoolLifePage": {
+    "title": "School Life & Culture",
+    "desc": "An exciting environment beyond academics where students develop character, leadership, and lifelong passions.",
+    "clubsTitle": "Student Clubs",
+    "clubsDesc": "Students participate in various interest-based clubs to build friendships and expand their horizons.",
+    "scienceClubTitle": "Science & ICT Club",
+    "scienceClubDesc": "Unlocking innovation through hands-on coding, computer science labs, and scientific experimentation.",
+    "debateClubTitle": "Debate & Public Speaking",
+    "debateClubDesc": "Nurturing logic, persuasion, and self-confidence to empower the voices of tomorrow's leaders.",
+    "artClubTitle": "Art & Cultural Heritage",
+    "artClubDesc": "Celebrating rich Ethiopian traditions through visual arts, poetry, music, and dramatic performances.",
+    "sportsTitle": "Sports & Athletics",
+    "sportsDesc": "Building physical health and teamwork through competitive Football, Basketball, Volleyball, and Track.",
+    "charityTitle": "Community Responsibility",
+    "charityDesc": "Developing empathy and social responsibility. Our students participate in school-organized initiatives that distribute meals, books, and supplies to families in need within Adama.",
+    "uniformTitle": "Uniform & Pride",
+    "uniformDesc": "Our uniform represents discipline, neatness, and unity. Students wear it proudly as representatives of the Ziquala Abo legacy."
+  },
+  "branchesPage": {
+    "title": "Our Campus Branches",
+    "desc": "Operating four custom facilities across the region to bring high-quality, value-based education closer to you.",
+    "mainTitle": "Main Campus & High School",
+    "mainAddr": "Adama City, Oromia, Ethiopia (Admin Hub)",
+    "mainContact": "+251 (0) 22 111 2233",
+    "primaryTitle": "Primary & Junior Campus",
+    "primaryAddr": "Central Adama, Oromia, Ethiopia (Grades KG-8)",
+    "primaryContact": "+251 (0) 22 111 4455",
+    "cityTitle": "City-Center Branch",
+    "cityAddr": "Bole Area, Adama, Ethiopia (KG-Grade 6)",
+    "cityContact": "+251 (0) 22 111 6677",
+    "townTitle": "Town Border Campus",
+    "townAddr": "Outer Adama Region, Ethiopia (KG-Grade 8)",
+    "townContact": "+251 (0) 22 111 8899",
+    "directorLabel": "Directing Lead"
+  }
+}

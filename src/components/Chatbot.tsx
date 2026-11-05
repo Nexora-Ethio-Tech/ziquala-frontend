@@ -1,4 +1,5 @@
-import { uiText } from "../localization";
+import { publicText as uiText } from "../publicLocalization";
+import { useTranslation } from "react-i18next";
 import { useState, useEffect, useRef } from 'react';
 import { MessageSquare, X, Send, MinusCircle, Maximize2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
@@ -6,11 +7,12 @@ import remarkGfm from 'remark-gfm';
 import {API_BASE_URL} from "../config/api";
 
 export const Chatbot = () => {
+  useTranslation('public');
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([
-    { role: 'assistant', content: 'Hello! I am the Ziquala Abo School Assistant. I can help you with school policies, schedules, and academic reports. How can I assist you today?' }
+    { role: 'assistant', content: "chat.helloIAmTheZiqualaAboSchoolAssistantICanHelpYouWithSchoolPolicies" }
   ]);
   const [isLoading, setIsLoading] = useState(false);
   const [position, setPosition] = useState<{ x: number; y: number } | null>(null);
@@ -100,7 +102,12 @@ export const Chatbot = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ messages: [...messages, userMessage] }),
+        body: JSON.stringify({
+          messages: [...messages, userMessage].map(item => ({
+            ...item,
+            content: item.role === 'assistant' && item.content.startsWith('chat.') ? uiText(item.content) : item.content,
+          })),
+        }),
       });
 
       if (!response.ok) {
@@ -117,7 +124,7 @@ export const Chatbot = () => {
       setMessages(prev => [...prev, { role: "assistant", content: data.content }]);
     } catch (err) {
       console.error("Chat error:", err);
-      setMessages(prev => [...prev, { role: "assistant", content: "**Error:** Could not reach the server. Please try again later." }]);
+      setMessages(prev => [...prev, { role: "assistant", content: "chat.errorCouldNotReachTheServerPleaseTryAgainLater" }]);
     } finally {
       setIsLoading(false);
     }
@@ -127,8 +134,8 @@ export const Chatbot = () => {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        aria-label={uiText("Ask Assistant")}
-        title={uiText("Ask Assistant")}
+        aria-label={uiText("chat.askAssistant")}
+        title={uiText("chat.askAssistant")}
         className="fixed bottom-6 right-6 grid h-14 w-14 place-items-center rounded-full bg-blue-600 text-white shadow-2xl transition-all hover:scale-110 hover:bg-blue-700 z-50"
       >
         <MessageSquare size={24} />
@@ -149,10 +156,10 @@ export const Chatbot = () => {
               <MessageSquare size={20} />
             </div>
             <div>
-              <p className="font-bold text-sm">{uiText("Ziquala Abo School Assistant")}</p>
+              <p className="font-bold text-sm">{uiText("chat.ziqualaAboSchoolAssistant")}</p>
               <div className="flex items-center gap-1">
                 <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
-                <p className="text-[10px] text-blue-100">{uiText("Semantic Search Active")}</p>
+                <p className="text-[10px] text-blue-100">{uiText("chat.semanticSearchActive")}</p>
               </div>
             </div>
           </div>
@@ -162,7 +169,7 @@ export const Chatbot = () => {
               data-drag-handle="true"
               onPointerDown={handlePointerDown}
               className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
-              aria-label={uiText("Drag chatbot")}
+              aria-label={uiText("chat.dragChatbot")}
             >
               <span className="text-xs font-bold">{uiText("⋮⋮")}</span>
             </button>
@@ -212,7 +219,7 @@ export const Chatbot = () => {
               <div className="flex gap-2">
                 <input
                   type="text"
-                  placeholder={uiText("Type your question...")}
+                  placeholder={uiText("chat.typeYourQuestion")}
                   className="flex-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 dark:text-white"
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}

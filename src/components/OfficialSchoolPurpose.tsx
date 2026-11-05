@@ -1,13 +1,13 @@
 import { useTranslation } from 'react-i18next';
 import { normalizeLanguage } from '../localization';
-import statements from '../data/officialSchoolStatement.json';
+import type { SchoolPurpose } from '../publicLocalization';
 
 // Amharic and Afaan Oromoo are the school's supplied text, verbatim.
 // Render directly: translation lookup must not rewrite this official wording.
 export const OfficialSchoolPurpose = () => {
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation('public');
   const language = normalizeLanguage(i18n.language);
-  const statement = statements[language];
+  const statement = t('school.purpose', { returnObjects: true }) as unknown as SchoolPurpose;
   return (
     <section id="school-purpose" lang={language} className="mx-auto max-w-[90rem] scroll-mt-24 px-5 py-20 lg:px-10 md:py-28">
       <h2 className="text-brand-heading max-w-5xl font-serif text-3xl leading-relaxed md:text-4xl">{statement.name}</h2>
