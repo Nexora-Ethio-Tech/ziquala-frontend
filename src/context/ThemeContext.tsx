@@ -1,5 +1,5 @@
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createContext, useContext, useLayoutEffect, useState, type ReactNode } from 'react';
 
 type Theme = 'light' | 'dark';
 
@@ -13,19 +13,22 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const [theme, setTheme] = useState<Theme>(() => {
-    const saved = localStorage.getItem('theme');
-    if (saved === 'light' || saved === 'dark') return saved;
+    try {
+      const saved = localStorage.getItem('theme');
+      if (saved === 'light' || saved === 'dark') return saved;
+    } catch {}
 
-    // Default to dark theme for premium look
     return 'dark';
   });
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const root = window.document.documentElement;
     root.classList.toggle('dark', theme === 'dark');
     root.dataset.theme = theme;
     root.style.colorScheme = theme;
-    localStorage.setItem('theme', theme);
+    try {
+      localStorage.setItem('theme', theme);
+    } catch {}
   }, [theme]);
 
   const toggleTheme = () => {

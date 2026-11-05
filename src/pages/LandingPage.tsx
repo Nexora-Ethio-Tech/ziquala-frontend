@@ -1236,7 +1236,7 @@ const MonasteryHero = () => {
     const video = videoRef.current;
     if (!video) return;
     if (video.paused) {
-      void video.play().then(() => setIsPaused(false));
+      void video.play().then(() => setIsPaused(false)).catch(() => setIsPaused(true));
     } else {
       video.pause();
       setIsPaused(true);
@@ -1255,7 +1255,7 @@ const MonasteryHero = () => {
       <video
         ref={videoRef}
         src="/videos/monastery-forest-hero.mp4"
-        poster="https://drive.google.com/thumbnail?id=1SXwy-EtzKvvq9RkYbB6fIKlGj-tHUGs6&sz=w2560"
+        poster={craterCommunity}
         autoPlay
         loop
         muted={isMuted}
@@ -1265,7 +1265,7 @@ const MonasteryHero = () => {
         onPause={() => setIsPaused(true)}
         className="absolute inset-0 h-full w-full object-cover"
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-white via-white/95 to-white/80 dark:from-brand-forest-950 dark:via-brand-forest-950/80 dark:to-brand-forest-950/75" />
+      <div className="pointer-events-none absolute inset-0 bg-black/40" aria-hidden="true" />
 
       <div className="absolute right-5 top-5 z-20 flex gap-2 sm:right-8 sm:top-8">
         <button type="button" onClick={togglePlayback} aria-label={uiText(isPaused ? "copy.playMonasteryBackgroundVideo" : "copy.pauseMonasteryBackgroundVideo")} aria-pressed={isPaused} className="grid h-11 w-11 place-items-center rounded-full border border-slate-300 dark:border-white/35 bg-white text-slate-700 dark:bg-brand-forest-950/35 dark:text-white backdrop-blur transition hover:bg-white hover:text-brand-forest-950">
@@ -1280,16 +1280,16 @@ const MonasteryHero = () => {
         initial={reduceMotion ? false : { opacity: 0, y: 42 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-        className="relative mx-auto grid w-full max-w-7xl items-end gap-12 px-5 pb-16 lg:grid-cols-[1fr_.65fr] lg:px-8 md:pb-24"
+        className="relative mx-auto grid w-full max-w-7xl items-end gap-8 px-5 pb-16 pt-24 lg:grid-cols-[1fr_.65fr] lg:px-8 md:pb-24"
       >
-        <div>
+        <div className="rounded-xl border border-slate-200 bg-white p-5 dark:border-white/20 dark:bg-slate-950/75 sm:p-7">
           <div className="flex items-center gap-4">
             <img src={monasteryMark} alt={uiText("copy.ziqualaAboMediaMark")} className="h-20 w-20 rounded-xl bg-white/95 object-contain p-2" />
             <p className="text-base font-black uppercase tracking-[0.28em] text-brand-gold-700 dark:text-brand-gold-300">{uiText("copy.monasteryInformation")}</p>
           </div>
           <h1 className="mt-7 max-w-5xl text-4xl font-black leading-tight tracking-[-0.045em] md:text-6xl">{uiText(ziqualaIdentity.monasteryNameEn)}</h1>
         </div>
-        <div>
+        <div className="rounded-xl border border-slate-200 bg-white p-5 dark:border-white/20 dark:bg-slate-950/75 sm:p-7">
           <p className="text-lg leading-8 text-slate-700 dark:text-slate-100">{uiText("copy.aDedicatedSpaceForTheMonasterySHistorySpiritualCommunityIncomeGen")}</p>
           <div className="mt-7 flex flex-wrap gap-3">
             <a href="#monastery-history" className="inline-flex items-center gap-2 bg-brand-gold-400 px-5 py-3 text-sm font-black text-brand-forest-950">{uiText("copy.readTheHistory ")}<ArrowRight size={17} /></a>
