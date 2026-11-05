@@ -3,7 +3,9 @@ import { uiText } from "./localization";
 import { useTranslation } from 'react-i18next';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Layout } from './layout/Layout';
-import { LandingPage } from './pages/LandingPage';
+import { LandingPage, PublicLayout } from './pages/LandingPage';
+import { ContactPage } from './pages/ContactPage';
+import { PublicFooter } from './components/PublicFooter';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { useUser, type UserRole } from './context/UserContext';
@@ -168,6 +170,10 @@ function App() {
       <Suspense fallback={<PageLoader />}>
         <Routes>
           {/* Public Routes */}
+          <Route path="/contact" element={<PublicLayout />}>
+            <Route index element={<ContactPage />} />
+          </Route>
+          <Route path="/contact-us" element={<Navigate to="/contact" replace />} />
           <Route
             path="/login"
             element={user ? <Navigate to={getDashboardRoute(role)} replace /> : <Login />}
@@ -417,6 +423,7 @@ function App() {
           )}
         </Routes>
       </Suspense>
+      <PublicFooter />
       <Chatbot />
     </BrowserRouter>
   );

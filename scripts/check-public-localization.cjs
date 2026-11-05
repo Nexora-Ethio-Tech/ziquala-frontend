@@ -35,6 +35,7 @@ const publicFiles = [
   'src/pages/LandingPage.tsx', 'src/pages/ELearningPage.tsx', 'src/components/BookReader.tsx',
   'src/components/LanguageSelector.tsx', 'src/components/OfficialSchoolPurpose.tsx',
   'src/components/Chatbot.tsx',
+  'src/pages/ContactPage.tsx', 'src/components/PublicFooter.tsx',
   'src/data/ziqualaContent.ts', 'src/pages/LandingPage/context/LanguageContext.tsx',
 ];
 for (const file of publicFiles) {
@@ -43,7 +44,7 @@ for (const file of publicFiles) {
   const ast = ts.createSourceFile(file, source, ts.ScriptTarget.Latest, true);
   function checkPresentation(node) {
     if (ts.isStringLiteralLike(node) && /[A-Za-z\u1200-\u137f]/.test(node.text)) {
-      assert(/^(?:copy|school|monastery|library|footer|chat)\./.test(node.text.trim()), `Hardcoded presentation text in ${file}: ${node.text}`);
+      assert(/^(?:copy|school|monastery|library|footer|chat|contact)\./.test(node.text.trim()), `Hardcoded presentation text in ${file}: ${node.text}`);
     } else if (ts.isConditionalExpression(node)) {
       checkPresentation(node.whenTrue);
       checkPresentation(node.whenFalse);
@@ -53,7 +54,7 @@ for (const file of publicFiles) {
   }
   function visit(node) {
     if (ts.isCallExpression(node) && node.expression.getText(ast) === 'uiText' && node.arguments[0]) checkPresentation(node.arguments[0]);
-    if (ts.isStringLiteralLike(node) && /^(?:copy|school|monastery|library|footer)\./.test(node.text.trim())) {
+    if (ts.isStringLiteralLike(node) && /^(?:copy|school|monastery|library|footer|contact)\./.test(node.text.trim())) {
       const key = node.text.trim();
       assert(flat.en[key] || flat.en[key + '_other'] || Object.keys(flat.en).some(child => child.startsWith(key + '.')), `Missing public key in ${file}: ${key}`);
     }

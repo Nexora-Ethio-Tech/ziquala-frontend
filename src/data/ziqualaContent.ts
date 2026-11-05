@@ -66,6 +66,7 @@ export const publicNavigation = [
     ],
   },
   { label: "copy.eLearning", to: '/elearning', children: [] },
+  { label: "contact.nav", to: '/contact', children: [] },
   { label: "copy.newsEvents_268", to: '/news', children: [] },
 ] as const;
 
@@ -77,10 +78,17 @@ export const socialLinks = [
   { label: "copy.tikTok", href: 'https://www.tiktok.com/@ziquala.abo.media', platform: 'tiktok' },
 ] as const;
 
-export const monasteryContact = {
+export const publicContact = {
   email: 'ziqualaabo@gmail.com',
-  phoneDisplay: '0996 21 53 54',
-  phoneHref: 'tel:+251996215354',
+  phoneDisplay: '+251 11 433 9350',
+  phoneHref: 'tel:+251114339350',
+  schoolAddress: 'contact.schoolAddress',
+  monasteryAddress: 'contact.monasteryAddress',
+  officeHours: 'contact.officeHours',
+} as const;
+
+export const monasteryContact = {
+  ...publicContact,
   telegram: 'https://t.me/gebreabo',
   youtube: 'https://youtube.com/@ziqualaabomedia',
   facebook: 'https://www.facebook.com/profile.php?id=61587078541651',

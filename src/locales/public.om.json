@@ -412,7 +412,7 @@
     "uniform": "Yuunifooramii"
   },
   "footer": {
-    "copyright": "© 2026 Mana Barumsaa Ziquala Abo. Qabiyyeen ummataa naannoo mana barumsaa fi mana amantii gidduutti adda baafamee jira."
+    "copyright": "© 2026 Mana Barumsaa fi Gadama Ziquala Abo. Mirgi hundi seeraan eegameera."
   },
   "monastery": {
     "heritage": "Amantii. Iddoo. Duudhaa.",
@@ -549,5 +549,31 @@
     "semanticSearchActive": "Barbaacha hiikaa hojii irra jira",
     "dragChatbot": "Gargaaraa marii harkisi",
     "typeYourQuestion": "Gaaffii kee barreessi..."
+  },
+  "contact": {
+    "nav": "Nu Quunnamaa",
+    "title": "Nu Quunnamaa",
+    "identity": "Mana Barumsaa fi Gadama Ziquala Abo",
+    "summary": "Barnoonni, amantiin fi tajaajilli mana barumsaa keenya Bishooftuutti argamu hambaa hafuuraa Gadama Tulluu Ziquala waliin walitti hidhu.",
+    "intro": "Waa’ee barnootaa, daawwannaa fi deeggarsa hawaasaa gaafachuuf waajjira mana barumsaa yookaan gadamicha quunnamaa.",
+    "quickLinks": "Geessituuwwan Ariifachiisoo",
+    "details": "Odeeffannoo Quunnamtii",
+    "school": "Mana Barumsaa · Damee Bishooftuu",
+    "monastery": "Gadama · Tulluu Ziquala",
+    "schoolAddress": "Bishooftuu (Debre Zeit), Oromiyaa, Itoophiyaa",
+    "monasteryAddress": "Gadama Tulluu Ziquala Debre Kewakibt (Finfinneedhaan gara kibbaatti kiiloo meetira 84)",
+    "address": "Teessoo",
+    "hours": "Sa’aatii Hojii Waajjira Mana Barumsaa",
+    "officeHours": "Wiixata – Jimaata, ganama sa’aatii 8:00 – galgala sa’aatii 5:00",
+    "inquiry": "Gaaffii Keessan Dhiheessaa",
+    "fullName": "Maqaa Guutuu",
+    "email": "Imeelii",
+    "phone": "Lakkoofsa Bilbilaa",
+    "subject": "Mata Duree",
+    "message": "Ergaa",
+    "send": "Ergaa Ergi",
+    "emailHelp": "Dirreewwan hunda guutuun wixinee qophaa’e appii imeelii keessan keessatti bana. Achitti ilaalaa ergaa. Teessoo armaan oliitiin kallattiinis imeelii nuuf erguu dandeessu.",
+    "draftNotice": "Gaaffiin keessan akka nu ga’uuf wixinee sana appii imeelii keessan keessaa ergaa. Yoo hin banamne, geessituu armaan gadii fayyadamaa yookaan kallattiin imeelii nuuf ergaa.",
+    "openDraft": "Wixinee imeelii bani"
   }
 }

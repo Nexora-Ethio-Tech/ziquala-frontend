@@ -412,7 +412,7 @@
     "uniform": "Uniform"
   },
   "footer": {
-    "copyright": "© 2026 Ziquala Abo School. All rights reserved."
+    "copyright": "© 2026 Ziquala Abo School & Monastery. All rights reserved."
   },
   "monastery": {
     "heritage": "Faith • Sacred Sanctuary • Heritage",
@@ -549,5 +549,31 @@
     "semanticSearchActive": "Semantic Search Active",
     "dragChatbot": "Drag chatbot",
     "typeYourQuestion": "Type your question..."
+  },
+  "contact": {
+    "nav": "Contact",
+    "title": "Contact Us",
+    "identity": "Ziquala Abo School & Monastery",
+    "summary": "Learning, faith, and service connect our school in Bishoftu with the spiritual heritage of Mount Ziquala Monastery.",
+    "intro": "Contact the school office or the monastery for enquiries about education, visits, and community support.",
+    "quickLinks": "Quick Links",
+    "details": "Contact Information",
+    "school": "School · Bishoftu Campus",
+    "monastery": "Monastery · Mount Ziquala",
+    "schoolAddress": "Bishoftu (Debre Zeit), Oromia, Ethiopia",
+    "monasteryAddress": "Mount Ziquala Debre Kewakibt Monastery (84 km south of Addis Ababa)",
+    "address": "Physical Address",
+    "hours": "School Office Hours",
+    "officeHours": "Monday – Friday, 8:00 AM – 5:00 PM",
+    "inquiry": "Quick Inquiry",
+    "fullName": "Full Name",
+    "email": "Email",
+    "phone": "Phone Number",
+    "subject": "Subject",
+    "message": "Message",
+    "send": "Send Message",
+    "emailHelp": "Complete all fields to open a prefilled draft in your email app. Review and send it from there. You can also email us directly using the address above.",
+    "draftNotice": "Send the draft from your email app to complete your inquiry. If it did not open, use the link below or email us directly.",
+    "openDraft": "Open email draft"
   }
 }

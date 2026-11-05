@@ -55,7 +55,6 @@ import {
   schoolStaff,
   ziqualaBranches,
   type SchoolStaffGroup,
-  socialLinks,
   ziqualaIdentity,
 } from '../data/ziqualaContent';
 import { ELearningPage, FeaturedBookGallery } from './ELearningPage';
@@ -161,13 +160,6 @@ const BrandMark = ({ compact = false }: { compact?: boolean }) => {
 );
 };
 
-const socialIcon = (platform: string) => {
-  if (platform === 'youtube') return PlayCircle;
-  if (platform === 'facebook') return MessageCircle;
-  if (platform === 'tiktok') return Music2;
-  return Send;
-};
-
 const PublicHeader = () => {
   useTranslation('public');
   const [menuOpen, setMenuOpen] = useState(false);
@@ -204,7 +196,7 @@ const PublicHeader = () => {
           </Link>
 
           <nav className="hidden items-center gap-7 md:order-last md:flex md:w-full md:justify-center xl:order-none xl:w-auto" aria-label={uiText("copy.quickNavigation")}>
-            {publicNavigation.slice(0, 4).map((item) => (
+            {publicNavigation.filter(item => item.to !== '/news').map((item) => (
               <div key={item.to} className="group relative flex h-12 items-center xl:h-[4.75rem]">
                 <NavLink
                   to={item.to}
@@ -327,45 +319,7 @@ const PublicHeader = () => {
   );
 };
 
-const PublicFooter = () => {
-  useTranslation('public');
-  return (
-  <footer className="border-t border-black/10 bg-brand-muted text-slate-900 dark:border-white/10 dark:text-white">
-    <div className="max-w-7xl mx-auto px-5 lg:px-8 py-14 grid gap-10 lg:grid-cols-[1.2fr_.8fr_1fr]">
-      <div>
-        <BrandMark />
-        <p className="mt-5 max-w-md text-base leading-7 text-slate-600 dark:text-slate-200">{uiText(ziqualaIdentity.fullName)}{uiText("copy.servingChildrenAndFamiliesInBishoftuUnderTheStewardshipOfTheMonas")}</p>
-        <p className="mt-3 text-base font-semibold text-slate-700 dark:text-slate-300">{uiText(ziqualaIdentity.location)}</p>
-      </div>
-      <div>
-        <p className="text-base font-black uppercase tracking-[0.24em] text-brand-gold-700 dark:text-brand-gold-300">{uiText("copy.explore")}</p>
-        <div className="mt-5 grid gap-3 text-sm font-semibold text-slate-700 dark:text-slate-300">
-          <Link to="/school" className="hover:text-brand-forest-800 dark:hover:text-white">{uiText("copy.schoolInformation")}</Link>
-          <Link to="/monastery" className="hover:text-brand-forest-800 dark:hover:text-white">{uiText("copy.monasteryInformation")}</Link>
-          <Link to="/elearning" className="hover:text-brand-forest-800 dark:hover:text-white">{uiText("copy.eLearning")}</Link>
-          <Link to="/news" className="hover:text-brand-forest-800 dark:hover:text-white">{uiText("copy.newsEvents")}</Link>
-        </div>
-      </div>
-      <div>
-        <p className="text-base font-black uppercase tracking-[0.24em] text-brand-gold-700 dark:text-brand-gold-300">{uiText("copy.ziqualaAboMedia")}</p>
-        <div className="mt-5 flex flex-wrap gap-2">
-          {socialLinks.map((social) => {
-            const Icon = socialIcon(social.platform);
-            return (
-              <a key={social.href} href={social.href} target="_blank" rel="noreferrer" aria-label={uiText(social.label)} title={uiText(social.label)} className="grid h-11 w-11 place-items-center rounded-lg bg-black/5 text-slate-700 transition-colors hover:bg-brand-forest-700 hover:text-white dark:bg-white/5 dark:text-slate-300">
-                <Icon size={19} />
-              </a>
-            );
-          })}
-        </div>
-      </div>
-    </div>
-    <div className="border-t border-black/10 px-5 py-5 text-center text-base text-slate-600 dark:border-white/10 dark:text-slate-200">{uiText("footer.copyright")}</div>
-  </footer>
-);
-};
-
-const PublicLayout = () => {
+export const PublicLayout = () => {
   useTranslation('public');
   const location = useLocation();
 
@@ -384,7 +338,6 @@ const PublicLayout = () => {
     <div className="public-site min-h-screen overflow-x-clip text-left bg-brand-canvas text-slate-900 dark:text-slate-100">
       <PublicHeader />
       <main><Outlet /></main>
-      <PublicFooter />
     </div>
   );
 };
@@ -1091,6 +1044,8 @@ const MonasteryContact = () => {
             <p className="text-base font-black uppercase tracking-[0.28em] text-brand-gold-700 dark:text-brand-gold-300">{uiText("copy.contactTheMonastery")}</p>
             <h2 className="text-brand-heading mt-5 font-serif text-4xl sm:text-5xl">{uiText("copy.stayConnected")}</h2>
             <p className="mt-5 max-w-md leading-7 text-slate-600 dark:text-slate-300">{uiText("copy.useTheMonasterySVerifiedChannelsForEnquiriesMediaAndCommunityUpda")}</p>
+            <address className="mt-5 text-base not-italic leading-8">{uiText(monasteryContact.monasteryAddress)}</address>
+            <Link to="/contact" className="mt-4 inline-block font-bold underline underline-offset-4">{uiText("contact.title")}</Link>
           </div>
           <div className="grid border-t border-black/15 dark:border-white/15 sm:grid-cols-2">
             {contactItems.map((item) => (
