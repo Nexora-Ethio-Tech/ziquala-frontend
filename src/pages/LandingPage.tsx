@@ -229,7 +229,7 @@ const PublicHeader = () => {
             <button
               type="button"
               onClick={() => setMenuOpen((open) => !open)}
-              className="ml-1 inline-flex h-11 items-center gap-2 border border-emerald-950/20 px-3 text-xs font-black uppercase tracking-[0.16em] text-emerald-950 transition-colors hover:border-emerald-900 hover:bg-emerald-900 hover:text-white dark:border-white/25 dark:text-white dark:hover:bg-white dark:hover:text-slate-950 sm:px-4"
+              className="ml-1 inline-flex h-11 items-center gap-2 border border-emerald-950/20 px-3 text-xs font-black uppercase tracking-[0.16em] text-emerald-950 transition-colors hover:border-emerald-900 hover:bg-emerald-900 hover:text-white dark:border-white/25 dark:text-white dark:hover:bg-white dark:hover:text-slate-950 sm:px-4 xl:hidden"
               aria-label={uiText(menuOpen ? 'Close navigation menu' : 'Open navigation menu')}
               aria-expanded={menuOpen}
               aria-controls="public-navigation-menu"
