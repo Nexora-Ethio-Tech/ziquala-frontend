@@ -29,8 +29,11 @@ export const BrandMark = ({ compact = false }: { compact?: boolean }) => {
     <div className={`${compact ? 'h-10 w-10' : 'h-9 w-9 sm:h-12 sm:w-12'} shrink-0 overflow-hidden rounded-full border border-brand-forest-950/10 bg-white`}>
       <img width={160} height={159} decoding="async" src={schoolLogo} alt={uiText("")} className="h-full w-full object-cover" />
     </div>
-    <div className="min-w-0">
-      <p className={`${compact ? 'text-sm' : 'text-xs sm:text-base'} break-words [overflow-wrap:anywhere] font-black leading-4 sm:leading-normal tracking-tight text-slate-950 dark:text-white sm:truncate`}>{uiText(ziqualaIdentity.shortName)}</p>
+    <div className="hidden min-w-0 min-[360px]:block">
+      <p className={`${compact ? 'text-sm' : 'text-sm sm:text-base'} truncate font-semibold sm:font-black leading-tight sm:leading-normal tracking-tight text-slate-950 dark:text-white`}>
+        <span className="sm:hidden">{uiText('copy.ziqualaAboShort')}</span>
+        <span className="hidden sm:inline">{uiText(ziqualaIdentity.shortName)}</span>
+      </p>
       <p className="hidden sm:block text-base font-bold uppercase tracking-[0.2em] text-brand-gold-700 dark:text-brand-gold-400 truncate">{uiText("copy.primaryGrade18")}</p>
     </div>
   </div>

@@ -25,6 +25,14 @@ module.exports = async ({ send, evaluate, until, navigate, key, origin }) => {
       })()`);
       assert(layout.scroll <= width + 1 && layout.header <= width + 1, `Overflow at ${width}px ${language}: ${JSON.stringify(layout)}`);
       assert.deepEqual(layout.outside, [], `Header control outside ${width}px ${language}`);
+      if (width < 640) {
+        const brand = await evaluate(`(()=>{const title=document.querySelector('header a[href="/"] p');const style=getComputedStyle(title);return {visible:!!title.getClientRects().length,height:title.getBoundingClientRect().height,lineHeight:parseFloat(style.lineHeight),width:title.clientWidth,scroll:title.scrollWidth,whiteSpace:style.whiteSpace};})()`);
+        if (brand.visible) {
+          assert.equal(brand.whiteSpace, 'nowrap', 'Mobile brand title must stay on one line');
+          assert(brand.height <= brand.lineHeight + 1, `Stacked mobile brand at ${width}px ${language}`);
+          assert(brand.scroll <= brand.width + 1, `Short mobile brand is clipped at ${width}px ${language}`);
+        }
+      }
       if (width < 768) {
         await evaluate("document.querySelector('header button[aria-controls=public-navigation-menu]').click()");
         await until("!!document.querySelector('#public-navigation-menu')", 'mobile menu opens');
@@ -36,9 +44,9 @@ module.exports = async ({ send, evaluate, until, navigate, key, origin }) => {
       }
     }
     console.log(`PASS: header controls contained at ${width}px in English, Amharic, and Afaan Oromoo`);
-    if (width === 320) {
+    if (width <= 360) {
       const screenshot = await send('Page.captureScreenshot', { format: 'png' });
-      fs.writeFileSync(path.join(directory, 'header-320.png'), Buffer.from(screenshot.data, 'base64'));
+      fs.writeFileSync(path.join(directory, `header-${width}.png`), Buffer.from(screenshot.data, 'base64'));
     }
   }
   await switchLanguage('en');
