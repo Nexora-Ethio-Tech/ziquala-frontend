@@ -21,6 +21,8 @@ const visual = process.argv.includes('--visual');
 const reliability = process.argv.includes('--reliability');
 const headerStaff = process.argv.includes('--header-staff');
 const oromoContent = process.argv.includes('--oromo');
+const gradeSearchTest = process.argv.includes('--grade-search') ? require('./check-grade-entry-search.cjs') : null;
+const gradeSearchState = { saved:[] };
 
 (async () => {
   let socket;
@@ -71,6 +73,8 @@ const oromoContent = process.argv.includes('--oromo');
         if (!pathname.startsWith('/api/')) { await send('Fetch.failRequest', { requestId, errorReason: 'BlockedByClient' }); return; }
         if (request.method === 'OPTIONS') { await fulfill(requestId, {}); return; }
         if (request.method !== 'OPTIONS') apiRequests.push(pathname);
+        const gradeFixture = gradeSearchTest?.fixtureFor(request, gradeSearchState);
+        if (gradeFixture) { await fulfill(requestId, gradeFixture); return; }
         if(reliability && pathname.endsWith('/guest/chat')){
           if(reliabilityState.chatMode==='hold'){heldChat.push(requestId);return;}
           await fulfill(requestId,reliabilityState.chatMode==='malformed'?{success:true,data:[]}:reliabilityState.chatMode==='tracking'?{content:'Synthetic assistant reply ![Synthetic illustration](https://tracking.invalid/pixel)'}:{content:'Synthetic assistant reply'});return;
@@ -148,6 +152,12 @@ const oromoContent = process.argv.includes('--oromo');
         fs.writeFileSync(path.join(path.dirname(process.env.LOADING_CHECK_OUTPUT), `step8-${label}.png`), Buffer.from(screenshot.data, 'base64'));
       }
     };
+    if (gradeSearchTest) {
+      await gradeSearchTest.run({send,evaluate,until,navigate,origin,state:gradeSearchState,apiRequests});
+      assert.equal(errors.length, 0, JSON.stringify(errors));
+      console.log('PASS: no browser runtime errors');
+      return;
+    }
     if (oromoContent) {
       await require('./check-oromo-content.cjs')({send,evaluate,until,navigate,origin});
       assert.equal(errors.length, 0, JSON.stringify(errors));

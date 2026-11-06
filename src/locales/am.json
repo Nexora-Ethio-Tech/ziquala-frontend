@@ -1385,6 +1385,9 @@
   },
   "gradeEntry": {
     "gradeEntry": "ውጤት ማስገቢያ",
+    "searchStudents": "ተማሪዎችን ፈልግ",
+    "searchPlaceholder": "ተማሪን በስም ወይም በመታወቂያ ፈልግ...",
+    "noMatchingStudents": "ከፍለጋዎ ጋር የሚዛመድ ተማሪ አልተገኘም።",
     "selectClassAndSubject": "ክፍል እና ትምህርት ይምረጡ",
     "selectClassAndSubjectSub": "ከተመደቡልዎ ክፍሎች ውስጥ አንዱን እና ውጤት ማስገባት የሚፈልጉትን ትምህርት ይምረጡ።",
     "noClassesAssignedToYou": "እስካሁን ለእርስዎ የተመደበ ክፍል የለም።"

@@ -1386,6 +1386,9 @@
   },
   "gradeEntry": {
     "gradeEntry": "Qabxii Galchuu",
+    "searchStudents": "Barattoota barbaadi",
+    "searchPlaceholder": "Barataa maqaa yookaan ID dhaan barbaadi...",
+    "noMatchingStudents": "Barataan barbaacha keetiin wal simu hin argamne.",
     "selectClassAndSubject": "Kutaa fi Gosa Barnootaa Filadhu",
     "selectClassAndSubjectSub": "Kutaalee siif ramadaman keessaa tokkoo fi gosa barnootaa qabxii galchuu barbadaadu filadhu.",
     "noClassesAssignedToYou": "Hanga yoonaa kutaaleen siif ramadaman hin jiran."

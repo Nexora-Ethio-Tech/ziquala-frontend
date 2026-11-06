@@ -2,7 +2,7 @@ import { uiText, uiError } from "../localization";
 import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useCallback } from 'react';
 import { useUser } from '../context/UserContext';
-import { Save, Lock, ArrowLeft, ChevronRight, Users, Loader2, AlertCircle, CheckCircle, X } from 'lucide-react';
+import { Save, Lock, ArrowLeft, ChevronRight, Users, Loader2, AlertCircle, CheckCircle, Search, X } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Breadcrumbs } from '../components/Breadcrumbs';
 import { getMyClasses, getClassStudents, bulkEnterGrades, getCourseGrades, getGradingConfigsForGrade, submitCourseGrades, getGradeSubmissions, TeacherClass, ClassStudent } from '../services/teacherService';
@@ -23,6 +23,10 @@ type GradingMethod = { id: string; label: string; maxWeight: number };
 // In-memory score store: { [studentId]: { [methodId]: score } }
 type ScoreMap = Record<string, Record<string, number | ''>>;
 
+const studentDisplayName = (student: ClassStudent) => (student.firstName || student.lastName)
+  ? `${student.firstName || ''} ${student.lastName || ''}`.trim()
+  : ((student as any).name || 'Student');
+
 export const GradeEntry = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -38,6 +42,7 @@ export const GradeEntry = () => {
   const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
 
   const [students, setStudents] = useState<ClassStudent[]>([]);
+  const [studentSearch, setStudentSearch] = useState('');
   const [loadingStudents, setLoadingStudents] = useState(false);
 
   const [gradingMethods, setGradingMethods] = useState<GradingMethod[]>([]);
@@ -71,6 +76,7 @@ export const GradeEntry = () => {
     setSelectedCourseId(courseId);
     setSelectedSubject(subject);
     setStudents([]);
+    setStudentSearch('');
     setGradingMethods([]);
     setScores({});
     setLockedMethods(new Set());
@@ -418,6 +424,11 @@ export const GradeEntry = () => {
 
   // ── Grade entry table ─────────────────────────────────────────────────────
   const isLoading = loadingStudents || loadingMethods;
+  const searchQuery = studentSearch.trim().replace(/\s+/g, ' ').toLocaleLowerCase();
+  // Filter presentation only; scores, validation, saving and submission use the full roster.
+  const filteredStudents = searchQuery ? students.filter(student => [
+    studentDisplayName(student), student.digitalId, (student as any).digital_id, student.id,
+  ].some(value => String(value ?? '').replace(/\s+/g, ' ').toLocaleLowerCase().includes(searchQuery))) : students;
 
   return (
     <div className="space-y-6">
@@ -545,6 +556,22 @@ export const GradeEntry = () => {
         </div>
       ) : (
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
+          <div className="border-b border-slate-100 p-4 dark:border-slate-800">
+            <label htmlFor="grade-entry-student-search" className="sr-only">{t('gradeEntry.searchStudents')}</label>
+            <div className="relative w-full sm:max-w-md">
+              <Search size={18} aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                id="grade-entry-student-search"
+                type="search"
+                value={studentSearch}
+                onChange={event => setStudentSearch(event.target.value)}
+                placeholder={t('gradeEntry.searchPlaceholder')}
+                aria-controls="grade-entry-student-rows"
+                autoComplete="off"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-3 text-sm text-slate-800 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+              />
+            </div>
+          </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left" style={{ minWidth: `${300 + gradingMethods.length * 140}px` }}>
               <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-800">
@@ -560,18 +587,22 @@ export const GradeEntry = () => {
                   <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right w-28">{uiText("Total")}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              <tbody id="grade-entry-student-rows" className="divide-y divide-slate-100 dark:divide-slate-800">
                 {students.length === 0 ? (
                   <tr>
                     <td colSpan={gradingMethods.length + 3} className="px-6 py-12 text-center text-slate-400 text-sm">{uiText(" No students enrolled in this class. ")}</td>
                   </tr>
+                ) : filteredStudents.length === 0 ? (
+                  <tr>
+                    <td colSpan={gradingMethods.length + 3} className="px-6 py-12 text-center text-slate-400 text-sm"><p role="status">{t('gradeEntry.noMatchingStudents')}</p></td>
+                  </tr>
                 ) : (
-                  students.map((student) => {
+                  filteredStudents.map((student) => {
                     const total = getTotal(student.id);
                     return (
                       <tr key={student.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
                         <td className="px-6 py-4">
-                          <p className="text-sm font-bold text-slate-800 dark:text-white">{((student.firstName || student.lastName) ? `${student.firstName || ''} ${student.lastName || ''}`.trim() : ((student as any).name || 'Student'))}</p>
+                          <p className="text-sm font-bold text-slate-800 dark:text-white">{studentDisplayName(student)}</p>
                         </td>
                         <td className="px-6 py-4">
                           <p className="text-xs font-mono text-slate-500">{student.digitalId || (student as any).digital_id || '—'}</p>

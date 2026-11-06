@@ -1380,6 +1380,9 @@
   },
   "gradeEntry": {
     "gradeEntry": "Grade Entry",
+    "searchStudents": "Search students",
+    "searchPlaceholder": "Search student by name or ID...",
+    "noMatchingStudents": "No students match your search.",
     "selectClassAndSubject": "Select a Class & Subject",
     "selectClassAndSubjectSub": "Choose one of your assigned classes and the subject you want to enter grades for.",
     "noClassesAssignedToYou": "No classes assigned to you yet."
