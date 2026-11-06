@@ -139,6 +139,7 @@ export const VPCommunication = () => {
 
     setLoadingData(true);
     setError(null);
+    setSummaryData(null);
     try {
       const data = await vicePrincipalService.getCommunicationSummary(
         selectedSection.id,
@@ -146,8 +147,8 @@ export const VPCommunication = () => {
       );
       setSummaryData(data);
     } catch (err: any) {
-      const msg = err.response?.data?.message || err.message || 'Failed to fetch communication book summary.';
-      setError(uiText(msg));
+      const msg = err.response?.data?.error?.message || err.response?.data?.message || err.message || 'Failed to fetch communication book summary.';
+      setError(uiError(msg));
       showToast(uiText("Error loading communication book summary."), 'error');
     } finally {
       setLoadingData(false);

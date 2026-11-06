@@ -57,9 +57,9 @@ export const Header = ({ title, onMenuClick }: HeaderProps) => {
 
   return (
     <>
-      <header className="h-16 border-b border-slate-200/50 dark:border-slate-800/50 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md flex items-center justify-between px-4 md:px-8 sticky top-0 z-20 transition-colors duration-300">
+      <header className="h-16 max-w-full border-b border-slate-200/50 dark:border-slate-800/50 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md flex items-center justify-between gap-2 px-3 sm:px-4 md:px-8 sticky top-0 z-20 transition-colors duration-300">
         {/* Left: Menu + Title */}
-        <div className="flex items-center gap-3 md:gap-4 min-w-0 shrink">
+        <div className="flex flex-1 items-center gap-2 md:gap-4 min-w-0">
           <button
             onClick={onMenuClick}
             className="p-2 -ml-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg lg:hidden shrink-0"
@@ -91,7 +91,7 @@ export const Header = ({ title, onMenuClick }: HeaderProps) => {
           </div>
 
           {/* Language */}
-          <LanguageSelector disabled={isExamLockedDown} />
+          <LanguageSelector compact disabled={isExamLockedDown} />
 
           {/* Theme */}
           <button

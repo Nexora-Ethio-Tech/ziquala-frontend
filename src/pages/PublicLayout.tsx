@@ -25,11 +25,11 @@ import schoolLogo from '../assets/school/school-logo.webp';
 export const BrandMark = ({ compact = false }: { compact?: boolean }) => {
   useTranslation('public');
   return (
-  <div className="flex max-w-full items-center gap-2 sm:gap-3 min-w-0">
-    <div className={`${compact ? 'h-10 w-10' : 'h-9 w-9 sm:h-12 sm:w-12'} shrink-0 overflow-hidden rounded-full border border-brand-forest-950/10 bg-white`}>
+  <div className="flex max-w-full flex-nowrap items-center gap-2 sm:gap-3 min-w-0">
+    <div className={`${compact ? 'h-10 w-10' : 'h-8 w-8 sm:h-12 sm:w-12'} shrink-0 overflow-hidden rounded-full border border-brand-forest-950/10 bg-white`}>
       <img width={160} height={159} decoding="async" src={schoolLogo} alt={uiText("")} className="h-full w-full object-cover" />
     </div>
-    <div className="hidden min-w-0 min-[360px]:block">
+    <div className="hidden min-w-0 flex-1 min-[360px]:block">
       <p className={`${compact ? 'text-sm' : 'text-sm sm:text-base'} truncate font-semibold sm:font-black leading-tight sm:leading-normal tracking-tight text-slate-950 dark:text-white`}>
         <span className="sm:hidden">{uiText('copy.ziqualaAboShort')}</span>
         <span className="hidden sm:inline">{uiText(ziqualaIdentity.shortName)}</span>

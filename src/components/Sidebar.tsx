@@ -224,20 +224,20 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
 
   return (
     <aside className={cn(
-      'fixed inset-y-0 left-0 z-30 flex h-screen w-72 flex-col border-r border-slate-200 bg-white text-slate-900 transition-transform duration-300 dark:border-slate-800 dark:bg-slate-950 dark:text-white lg:static lg:translate-x-0',
+      'fixed inset-y-0 left-0 z-30 flex h-screen w-72 max-w-[calc(100vw-1rem)] flex-col border-r border-slate-200 bg-white text-slate-900 transition-transform duration-300 dark:border-slate-800 dark:bg-slate-950 dark:text-white lg:static lg:max-w-none lg:translate-x-0',
       isOpen ? 'translate-x-0' : '-translate-x-full',
     )}>
       <div className="flex items-center justify-between gap-3 px-6 pb-6 pt-8">
-        <div className="flex min-w-0 items-center gap-3">
-          <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-school-primary text-white shadow-lg shadow-school-primary/20">
+        <div className="flex min-w-0 flex-1 flex-nowrap items-center gap-2 sm:gap-3">
+          <div className="grid h-10 w-10 sm:h-14 sm:w-14 shrink-0 place-items-center rounded-2xl bg-school-primary text-white shadow-lg shadow-school-primary/20">
             <BookOpen size={27} />
           </div>
           <div className="min-w-0">
-            <span className="block truncate text-base font-black leading-tight">{uiText(displaySchoolName)}</span>
-            <span className="mt-1 block text-[10px] font-black uppercase tracking-[0.22em] text-school-secondary">{t('sidebar.academicPortal', 'Academic Portal')}</span>
+            <span className="block truncate text-xs sm:text-base font-black leading-tight">{uiText(displaySchoolName)}</span>
+            <span className="mt-1 block truncate text-[10px] font-black uppercase tracking-[0.22em] text-school-secondary">{t('sidebar.academicPortal', 'Academic Portal')}</span>
           </div>
         </div>
-        <button type="button" onClick={onClose} className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 lg:hidden" aria-label={uiText("Close menu")}>
+        <button type="button" onClick={onClose} className="shrink-0 rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 lg:hidden" aria-label={uiText("Close menu")}>
           <X size={20} />
         </button>
       </div>

@@ -23,6 +23,8 @@ const headerStaff = process.argv.includes('--header-staff');
 const oromoContent = process.argv.includes('--oromo');
 const gradeSearchTest = process.argv.includes('--grade-search') ? require('./check-grade-entry-search.cjs') : null;
 const gradeSearchState = { saved:[] };
+const vpCommunicationTest = process.argv.includes('--vp-communication') ? require('./check-vp-communication.cjs') : null;
+const vpCommunicationState = {requests:[]};
 
 (async () => {
   let socket;
@@ -73,6 +75,8 @@ const gradeSearchState = { saved:[] };
         if (!pathname.startsWith('/api/')) { await send('Fetch.failRequest', { requestId, errorReason: 'BlockedByClient' }); return; }
         if (request.method === 'OPTIONS') { await fulfill(requestId, {}); return; }
         if (request.method !== 'OPTIONS') apiRequests.push(pathname);
+        const vpFixture = vpCommunicationTest?.fixtureFor(request,vpCommunicationState);
+        if (vpFixture) { await fulfill(requestId,vpFixture); return; }
         const gradeFixture = gradeSearchTest?.fixtureFor(request, gradeSearchState);
         if (gradeFixture) { await fulfill(requestId, gradeFixture); return; }
         if(reliability && pathname.endsWith('/guest/chat')){
@@ -152,6 +156,12 @@ const gradeSearchState = { saved:[] };
         fs.writeFileSync(path.join(path.dirname(process.env.LOADING_CHECK_OUTPUT), `step8-${label}.png`), Buffer.from(screenshot.data, 'base64'));
       }
     };
+    if (vpCommunicationTest) {
+      await vpCommunicationTest.run({send,evaluate,until,navigate,origin,state:vpCommunicationState});
+      assert.equal(errors.length,0,JSON.stringify(errors));
+      console.log('PASS: no browser runtime errors');
+      return;
+    }
     if (gradeSearchTest) {
       await gradeSearchTest.run({send,evaluate,until,navigate,origin,state:gradeSearchState,apiRequests});
       assert.equal(errors.length, 0, JSON.stringify(errors));
