@@ -56,6 +56,7 @@ export function buildAnnualPlanExportSheets(plan: any): ExcelSheet[] {
   ).map(item => {
     const row: Record<string, string> = {};
     for (const key of new Set([...annualColumns, ...detailedColumns].map(column => column.key))) row[key] = getAnnualItemValue(item, key);
+    if (!row.semester && row.month) row.semester = ['September', 'October', 'November', 'December', 'January'].includes(row.month) ? '1st Semester' : '2nd Semester';
     row.managementAid = [...new Set([getAnnualItemValue(item, 'classroomManagement'), getAnnualItemValue(item, 'instructionalMaterials')].filter(Boolean))].join('\n');
     return row;
   });
