@@ -7,6 +7,9 @@ export interface WebsiteContentItem {
   id: string;
   content_type: WebsiteContentType;
   title: string;
+  /** Optional authored spellings for team posts; names bypass translation. */
+  nameAm?: string;
+  nameEn?: string;
   subtitle: string;
   body: string;
   image_url: string;

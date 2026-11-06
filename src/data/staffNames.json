@@ -1,0 +1,474 @@
+{
+  "school.staff.abrahamKefyalew": {
+    "nameAm": "አብረሃም ከፍያለው",
+    "nameEn": "Abraham Kefyalew",
+    "aliases": [
+      "school.staff.abrahamKefyalew",
+      "Abraham Kefyalew",
+      "Abraham Kefyalew"
+    ]
+  },
+  "copy.fatherGebretsadekHaileJesusYouAreMany": {
+    "nameAm": "አባ ገብረጻድቅ ኃይለኢየሱስ ብዙነህ",
+    "nameEn": "Aba Gebretsadik Haileyesus Bizuneh",
+    "aliases": [
+      "copy.fatherGebretsadekHaileJesusYouAreMany",
+      "Father Gebretsadek Haile Jesus, you are many",
+      "Abbaa Gebretsadek Haile Jesus, isin baay'eedha"
+    ]
+  },
+  "copy.fatherBirhanemresHailemariam": {
+    "nameAm": "አባ ብርሃነመስቀል ኃይለማርያም",
+    "nameEn": "Aba Birhanemeskel Hailemariam",
+    "aliases": [
+      "copy.fatherBirhanemresHailemariam",
+      "Father Birhanemres Hailemariam",
+      "Abbaa Birhaanemres Hayilamaariyaam"
+    ]
+  },
+  "copy.fatherKenfemichaelWoldegiorgisTeklegiorgis": {
+    "nameAm": "አባ ክንፈሚካኤል ወልደጊዮርጊስ ተክለጊዮርጊስ",
+    "nameEn": "Aba Kenfemichael Woldegiorgis Teklegiorgis",
+    "aliases": [
+      "copy.fatherKenfemichaelWoldegiorgisTeklegiorgis",
+      "Father Kenfemichael Woldegiorgis Teklegiorgis",
+      "Abbaa Kenfemichael Woldegiorgis Teklegiorgis"
+    ]
+  },
+  "copy.firehiwotMarkosHailu": {
+    "nameAm": "ፍሬህይወት ማርቆስ ሃይሉ",
+    "nameEn": "Frehiwot Markos Hailu",
+    "aliases": [
+      "copy.firehiwotMarkosHailu",
+      "Firehiwot Markos Hailu",
+      "Firehiwot Maarqoos Haayiluu"
+    ]
+  },
+  "copy.heDonatedTheWheat": {
+    "nameAm": "ስንዱ ለገሠ",
+    "nameEn": "Sindu Legesse",
+    "aliases": [
+      "copy.heDonatedTheWheat",
+      "He donated the wheat",
+      "Qamadii kanas arjoomeera"
+    ]
+  },
+  "copy.shoalemAyaleuYemir": {
+    "nameAm": "ሸዋለም አያሌው ይመር",
+    "nameEn": "Shewalem Ayalew Yimer",
+    "aliases": [
+      "copy.shoalemAyaleuYemir",
+      "Shoalem Ayaleu Yemir",
+      "Shoalem Ayyaaleeyuu Yemir"
+    ]
+  },
+  "copy.holyShoaferahuTilahun": {
+    "nameAm": "ቅድስት ሸዋፈራሁ ጥላሁን",
+    "nameEn": "Kidist Shewaferahu Tilahun",
+    "aliases": [
+      "copy.holyShoaferahuTilahun",
+      "Holy Shoaferahu Tilahun",
+      "Qulqulluu Shoaferahu Tilahun"
+    ]
+  },
+  "copy.edenTekolaAgune": {
+    "nameAm": "ኤደን ተኮላ አጉኔ",
+    "nameEn": "Eden Tekola Agune",
+    "aliases": [
+      "copy.edenTekolaAgune",
+      "Eden Tekola Agune",
+      "Eden Tekola Agune"
+    ]
+  },
+  "copy.abdisaAmenteSunday": {
+    "nameAm": "አብዲሳ አመንቴ ሰንበታ",
+    "nameEn": "Abdisa Amente Senbeta",
+    "aliases": [
+      "copy.abdisaAmenteSunday",
+      "Abdisa Amente Sunday",
+      "Abdisaa Amente Wiixata"
+    ]
+  },
+  "copy.iBoughtTheNameMan": {
+    "nameAm": "ስምኦን ገበየሁ ወንዴ",
+    "nameEn": "Simon Gebeyehu Wende",
+    "aliases": [
+      "copy.iBoughtTheNameMan",
+      "I bought the name, man",
+      "Maqaa kanatu bitadhe dhiiroo"
+    ]
+  },
+  "copy.belayineshSemagnKidane": {
+    "nameAm": "በላይነሽ ሰማኝ ኪዳኔ",
+    "nameEn": "Belaynesh Semagn Kidane",
+    "aliases": [
+      "copy.belayineshSemagnKidane",
+      "Belayinesh Semagn Kidane",
+      "Belaayinesh Semagn Kidanee"
+    ]
+  },
+  "copy.adisDestaKidane": {
+    "nameAm": "አዲስ ደስታ ኪዳኔ",
+    "nameEn": "Addis Desta Kidane",
+    "aliases": [
+      "copy.adisDestaKidane",
+      "Adis Desta Kidane",
+      "Adis Desta Kidanee"
+    ]
+  },
+  "copy.mekonenTesema": {
+    "nameAm": "መኮንን ተሰማ",
+    "nameEn": "Mekonnen Tesema",
+    "aliases": [
+      "copy.mekonenTesema",
+      "Mekonen Tesema",
+      "Mekonen Tesema jedhamtu"
+    ]
+  },
+  "copy.lordSprinkledCompensation": {
+    "nameAm": "ጌታነህ ተረጨ ካሳ",
+    "nameEn": "Getaneh Tereche Kassa",
+    "aliases": [
+      "copy.lordSprinkledCompensation",
+      "Lord, sprinkled compensation",
+      "Gooftaa beenyaa facaase"
+    ]
+  },
+  "copy.crownTimurgaBzani": {
+    "nameAm": "አክሊሉ ቲመርጋ ብዛኒ",
+    "nameEn": "Aklilu Timerga Bizani",
+    "aliases": [
+      "copy.crownTimurgaBzani",
+      "Crown Timurga Bzani",
+      "Gonfoo Timurga Bzani"
+    ]
+  },
+  "copy.theRainWillComeAsItWill": {
+    "nameAm": "ዘነቡ በቀለ እንደሻው",
+    "nameEn": "Zenebu Bekele Endeshaw",
+    "aliases": [
+      "copy.theRainWillComeAsItWill",
+      "The rain will come as it will",
+      "Roobni akkuma fedhetti ni dhufa"
+    ]
+  },
+  "copy.meklitDejeneExpanded": {
+    "nameAm": "መክሊት ደጀኔ አሰፋ",
+    "nameEn": "Meklit Dejene Assefa",
+    "aliases": [
+      "copy.meklitDejeneExpanded",
+      "Meklit Dejene expanded",
+      "Meklit Dejene babal'ate"
+    ]
+  },
+  "copy.religionSolomonDubale": {
+    "nameAm": "ሐይማኖት ሰለሞን ዱባለ",
+    "nameEn": "Haymanot Solomon Dubale",
+    "aliases": [
+      "copy.religionSolomonDubale",
+      "Religion Solomon Dubale",
+      "Amantii Solomoon Dubalee"
+    ]
+  },
+  "copy.yeshiemabetWasAppointed": {
+    "nameAm": "የሺእመቤት ተሾመ",
+    "nameEn": "Yeshiemebet Teshome",
+    "aliases": [
+      "copy.yeshiemabetWasAppointed",
+      "Yeshiemabet was appointed",
+      "Yeshiemabet muudame"
+    ]
+  },
+  "copy.seeYouWinner": {
+    "nameAm": "ስንታየሁ አሸናፊ",
+    "nameEn": "Sintayehu Ashenafi",
+    "aliases": [
+      "copy.seeYouWinner",
+      "See you winner",
+      "Injifataa wal argina"
+    ]
+  },
+  "copy.theSunBloomed": {
+    "nameAm": "ፀሐይ አበበ ተክሉ",
+    "nameEn": "Tsehay Abebe Teklu",
+    "aliases": [
+      "copy.theSunBloomed",
+      "The sun bloomed",
+      "Aduun daraare"
+    ]
+  },
+  "copy.gadisaShuguTufa": {
+    "nameAm": "ጋዲሳ ሹጉ ቱፋ",
+    "nameEn": "Gadisa Shugu Tufa",
+    "aliases": [
+      "copy.gadisaShuguTufa",
+      "Gadisa Shugu Tufa",
+      "Gadisaa Shuguu Tufaa"
+    ]
+  },
+  "copy.theStoryIsAsItIs": {
+    "nameAm": "እስከዳር ታሪኩ እንደኛነው",
+    "nameEn": "Eskedar Tariku Endegnaw",
+    "aliases": [
+      "copy.theStoryIsAsItIs",
+      "The story is as it is",
+      "Seenaan akkuma jirutti jira"
+    ]
+  },
+  "copy.myHopeIsMagdalevit": {
+    "nameAm": "መቅደላዊት ተስፋዬ በየነ",
+    "nameEn": "Mekdelawit Tesfaye Beyene",
+    "aliases": [
+      "copy.myHopeIsMagdalevit",
+      "My hope is Magdalevit",
+      "Abdiin koo Magdalevit dha"
+    ]
+  },
+  "copy.theOfficerSBrotherWoldhana": {
+    "nameAm": "መኮንን ወንድሙ ወልደሐና",
+    "nameEn": "Mekonnen Wendimu Woldehana",
+    "aliases": [
+      "copy.theOfficerSBrotherWoldhana",
+      "Mekonnen Wendimu Woldehana",
+      "Obboleessi qondaala kanaa Woldaanaa"
+    ]
+  },
+  "copy.haileShuanggezawYouAreMany": {
+    "nameAm": "ኃይለ ሸዋንግዛው ብዙነህ",
+    "nameEn": "Haile Shewangizaw Bizuneh",
+    "aliases": [
+      "copy.haileShuanggezawYouAreMany",
+      "Haile Shuanggezaw, you are many",
+      "Haile Shuanggezaw, isin baay'eedha"
+    ]
+  },
+  "copy.teodorosAsefaKebede": {
+    "nameAm": "ቴዎድሮስ አሰፋ ከበደ",
+    "nameEn": "Tewodros Assefa Kebede",
+    "aliases": [
+      "copy.teodorosAsefaKebede",
+      "Teodoros Asefa Kebede",
+      "Tiyoodoroos Asefaa Kebede"
+    ]
+  },
+  "copy.iLoveYou": {
+    "nameAm": "ፍቅር ደሳለኝ ደምሴ",
+    "nameEn": "Fikir Desalegn Demse",
+    "aliases": [
+      "copy.iLoveYou",
+      "I love you",
+      "sin jaalladha"
+    ]
+  },
+  "copy.abaGebreslaseSaidAbate": {
+    "nameAm": "አባ ገብረሥላሴ በላቸው አባተ",
+    "nameEn": "Aba Gebreselassie Belachew Abate",
+    "aliases": [
+      "copy.abaGebreslaseSaidAbate",
+      "Aba Gebreslase said, Abate",
+      "Abaa Gebreslaaseen Abate jedhe"
+    ]
+  },
+  "copy.israelAbayehuTekola": {
+    "nameAm": "እስራኤል አበባየሁ ተኮላ",
+    "nameEn": "Israel Abebayehu Tekola",
+    "aliases": [
+      "copy.israelAbayehuTekola",
+      "Israel Abayehu Tekola",
+      "Israa'el Abayehu Tekola"
+    ]
+  },
+  "copy.sisayDinguIsRenewed": {
+    "nameAm": "ሲሳይ ዲንቁ ታደሰ",
+    "nameEn": "Sisay Dinku Tadesse",
+    "aliases": [
+      "copy.sisayDinguIsRenewed",
+      "Sisay Dingu is renewed",
+      "Sisaay Dinguun haaromfamee jira"
+    ]
+  },
+  "copy.myFlowerHasFallen": {
+    "nameAm": "አበባዬ ካሳሁን ጋረደው",
+    "nameEn": "Abebaye Kassahun Garedew",
+    "aliases": [
+      "copy.myFlowerHasFallen",
+      "My flower has fallen",
+      "Daraaraan koo kufeera"
+    ]
+  },
+  "copy.itSAmazing": {
+    "nameAm": "ሲሳይ ድንቁ",
+    "nameEn": "Sisay Dinku",
+    "aliases": [
+      "copy.itSAmazing",
+      "It's amazing",
+      "Ajaa'iba"
+    ]
+  },
+  "copy.yourGoldenKingBogale": {
+    "nameAm": "ወርቅነሽ ንጉሴ ቦጋለ",
+    "nameEn": "Worknesh Niguse Bogale",
+    "aliases": [
+      "copy.yourGoldenKingBogale",
+      "Your golden king Bogale",
+      "Mootii warqee keessan Bogale"
+    ]
+  },
+  "copy.estherTheRoom": {
+    "nameAm": "አስቴር ክፍሉ ለማ",
+    "nameEn": "Aster Kiflu Lema",
+    "aliases": [
+      "copy.estherTheRoom",
+      "Esther the room",
+      "Asteer kutaa sana"
+    ]
+  },
+  "copy.theSunIsHappyAndRighteous": {
+    "nameAm": "ፀሐይ ተድላ ወልደጻድቅ",
+    "nameEn": "Tsehay Tedla Woldetsadik",
+    "aliases": [
+      "copy.theSunIsHappyAndRighteous",
+      "The sun is happy and righteous",
+      "Aduun gammachuu fi qajeelaa dha"
+    ]
+  },
+  "copy.saintSabureBayi": {
+    "nameAm": "ቅድስት ሳቡሬ ባዪ",
+    "nameEn": "Kidist Sabure Bayi",
+    "aliases": [
+      "copy.saintSabureBayi",
+      "Saint Sabure Bayi",
+      "Qulqulleettii Saburee Baayi"
+    ]
+  },
+  "copy.theCityOfSunSmell": {
+    "nameAm": "ፀሐይ እሸቱ ከተማ",
+    "nameEn": "Tsehay Eshetu Ketema",
+    "aliases": [
+      "copy.theCityOfSunSmell",
+      "The city of sun smell",
+      "Magaalaa aduu urgaa"
+    ]
+  },
+  "copy.freedomIsGlorious": {
+    "nameAm": "ነፃነት ግርማ በየነ",
+    "nameEn": "Netsanet Girma Beyene",
+    "aliases": [
+      "copy.freedomIsGlorious",
+      "Freedom is glorious",
+      "Bilisummaan ulfina qaba"
+    ]
+  },
+  "copy.kindnessIsThePowerMySon": {
+    "nameAm": "ቸርነት ሀይሉ ወልዴ",
+    "nameEn": "Chernet Hailu Wolde",
+    "aliases": [
+      "copy.kindnessIsThePowerMySon",
+      "Kindness is the power, my son",
+      "Gaarummaan humna ilma koo"
+    ]
+  },
+  "copy.arsemaiteLemaAgonafir": {
+    "nameAm": "አርሴማዊት ለማ አጎናፍር",
+    "nameEn": "Arsemawit Lema Agonafir",
+    "aliases": [
+      "copy.arsemaiteLemaAgonafir",
+      "Arsemaite Lema Agonafir",
+      "Arsemaayitii Lema Agonafir"
+    ]
+  },
+  "copy.rachelBiftuCalmDown": {
+    "nameAm": "ራሔል ቢፍቱ ረጋሳ",
+    "nameEn": "Rahel Biftu Regassa",
+    "aliases": [
+      "copy.rachelBiftuCalmDown",
+      "Rachel Biftu calm down",
+      "Raahel Biftuu tasgabbaa'i"
+    ]
+  },
+  "copy.theSonArrivedWhenWeSawEachOther": {
+    "nameAm": "ስንታየሁ ደረሰ ወልዱ",
+    "nameEn": "Sintayehu Derese Woldu",
+    "aliases": [
+      "copy.theSonArrivedWhenWeSawEachOther",
+      "The son arrived when we saw each other",
+      "Ilmi gaafa wal arginu dhufe"
+    ]
+  },
+  "copy.onTheMorningOfTheDayTheyBuriedTheirShadow": {
+    "nameAm": "ማርሸት ጥላሁን ገረሱ",
+    "nameEn": "Marshet Tilahun Geresu",
+    "aliases": [
+      "copy.onTheMorningOfTheDayTheyBuriedTheirShadow",
+      "On the morning of the day, they buried their shadow",
+      "Guyyaa ganama gaaddidduu isaanii awwaalan"
+    ]
+  },
+  "copy.theMorningOfTheTemple": {
+    "nameAm": "መቅደስ ሐረገወይን ንጋቱ",
+    "nameEn": "Mekdes Haregeweyn Nigatu",
+    "aliases": [
+      "copy.theMorningOfTheTemple",
+      "The morning of the temple",
+      "Ganama mana qulqullummaa"
+    ]
+  },
+  "copy.humilityReplacedByDaso": {
+    "nameAm": "ትህትና ተካ በዳሶ",
+    "nameEn": "Tihitina Teka Bedaso",
+    "aliases": [
+      "copy.humilityReplacedByDaso",
+      "Humility replaced by Daso",
+      "Gad of qabuun bakka bu'e Daasoo"
+    ]
+  },
+  "copy.martaMarkosPower": {
+    "nameAm": "ማርታ ማርቆስ ኃይሉ",
+    "nameEn": "Marta Markos Hailu",
+    "aliases": [
+      "copy.martaMarkosPower",
+      "Marta Markos power",
+      "Marta Markos humna"
+    ]
+  },
+  "copy.mrTeshomeYeine": {
+    "nameAm": "አቶ ተሾመ በየነ",
+    "nameEn": "Ato Teshome Beyene",
+    "aliases": [
+      "copy.mrTeshomeYeine",
+      "copy.atoTeshomeBeyene",
+      "Mr. Teshome Yeine",
+      "Obbo Teshome Yeine"
+    ]
+  },
+  "copy.thanksToDrSolomon": {
+    "nameAm": "ዶ/ር ምስጋናው ሰለሞን",
+    "nameEn": "Dr. Misganaw Solomon",
+    "aliases": [
+      "copy.thanksToDrSolomon",
+      "copy.drMisganawSolomon",
+      "Thanks to Dr. Solomon",
+      "Galatoomaa Dr. Solomoon"
+    ]
+  },
+  "copy.mrTadeseTesfaye": {
+    "nameAm": "አቶ ታደሰ ተስፋዬ",
+    "nameEn": "Ato Tadesse Tesfaye",
+    "aliases": [
+      "copy.mrTadeseTesfaye",
+      "copy.atoTadesseTesfaye",
+      "Mr. Tadese Tesfaye",
+      "Obbo Taaddasaa Tesfaayee"
+    ]
+  },
+  "copy.mrYosefTemesgen": {
+    "nameAm": "አቶ ዮሴፍ ተመስገን",
+    "nameEn": "Ato Yosef Temesgen",
+    "aliases": [
+      "copy.mrYosefTemesgen",
+      "copy.atoYosefTemesgen",
+      "Mr. Yosef Temesgen",
+      "Obbo Yooseef Temesgen"
+    ]
+  }
+}

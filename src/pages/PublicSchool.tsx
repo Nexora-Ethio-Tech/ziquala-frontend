@@ -5,7 +5,8 @@ import { useTranslation } from 'react-i18next';
 
 import { localeTag } from "../publicLocalization";
 
-import { publicText as uiText, publicVariants } from "../publicLocalization";
+import { publicText as uiText } from "../publicLocalization";
+import { staffDisplayName, staffNameVariants } from '../utils/staffNames';
 
 import { useEffect, useRef, useState } from 'react';
 
@@ -51,9 +52,9 @@ export const LeadershipAlbum = () => {
   }, []);
 
   const AlbumPage = ({ index, right = false }: { index: number; right?: boolean }) => {
-  useTranslation('public');
+    const { i18n } = useTranslation('public');
     const profile = profiles[index];
-    const displayName = uiText(profile.name);
+    const displayName = staffDisplayName(profile, i18n.resolvedLanguage || i18n.language);
     return (
       <article className={`relative min-w-0 bg-white p-5 text-slate-900 sm:p-7 lg:p-8 ${right ? 'hidden border-l border-brand-gold-900/15 md:block' : ''}`}>
         <div className="absolute inset-0 hidden opacity-35 dark:block [background-image:radial-gradient(#a16207_0.55px,transparent_0.55px)] [background-size:8px_8px]" />
@@ -66,7 +67,7 @@ export const LeadershipAlbum = () => {
             </div>
           </div>
           <div className="mx-auto mt-7 max-w-md text-center">
-            <h3 className="text-xl font-black leading-tight sm:text-2xl">{displayName}</h3>
+            <h3 className="text-xl font-black leading-tight sm:text-2xl" translate="no" lang={i18n.language === 'am' ? 'am' : 'en'}>{displayName}</h3>
           </div>
           <p className={`mt-7 font-serif text-xs italic text-brand-gold-800 ${right ? 'text-right' : 'text-left'}`}>{uiText("copy.page ")}{index + 1}</p>
         </div>
@@ -108,7 +109,7 @@ export const staffGroups: Array<{ id: SchoolStaffGroup; label: string; shortLabe
 ];
 
 export const StaffGallery = () => {
-  useTranslation('public');
+  const { i18n } = useTranslation('public');
   const [activeGroup, setActiveGroup] = useState<string>('office');
   const [liveTeam, setLiveTeam] = useState<WebsiteContentItem[]>([]);
   const sectionRef = useRef<HTMLElement>(null);
@@ -167,7 +168,7 @@ export const StaffGallery = () => {
   };
 
   const fallbackForActive = schoolStaff.filter((m) => m.group === activeGroup);
-  const fallbackTitles = new Set(fallbackForActive.flatMap((m) => publicVariants(m.name).map(name => name.trim().toLowerCase())));
+  const fallbackTitles = new Set(fallbackForActive.flatMap((m) => staffNameVariants(m).map(name => name.trim().toLowerCase())));
 
   const activeCategoryLabel = groupLabelMap[activeGroup] || 'Office & management';
   const liveForActive = liveTeam.filter((m) => {
@@ -175,18 +176,19 @@ export const StaffGallery = () => {
     return cat === activeCategoryLabel || categoryToGroup[cat] === activeGroup;
   });
 
-  const newLiveItems = liveForActive.filter((m) => !fallbackTitles.has(m.title.trim().toLowerCase()));
+  const matchesFallback = (member: WebsiteContentItem) => staffNameVariants(member).some(name => fallbackTitles.has(name.trim().toLowerCase()));
+  const newLiveItems = liveForActive.filter((m) => !matchesFallback(m));
   const overriddenLiveMap = new Map(
     liveForActive
-      .filter((m) => fallbackTitles.has(m.title.trim().toLowerCase()))
-      .map((m) => [m.title.trim().toLowerCase(), m])
+      .filter(matchesFallback)
+      .flatMap((m) => staffNameVariants(m).map(name => [name.trim().toLowerCase(), m] as const))
   );
 
   const initialItems = fallbackForActive.map((m, idx) => {
-    const dbOverride = publicVariants(m.name).map(name => overriddenLiveMap.get(name.trim().toLowerCase())).find(Boolean);
+    const dbOverride = staffNameVariants(m).map(name => overriddenLiveMap.get(name.trim().toLowerCase())).find(Boolean);
     return {
-      id: dbOverride ? dbOverride.id : `fallback-${idx}-${m.name}`,
-      name: dbOverride ? dbOverride.title : m.name,
+      id: dbOverride ? dbOverride.id : `fallback-${idx}-${m.image}`,
+      name: staffDisplayName(dbOverride || m, i18n.resolvedLanguage || i18n.language),
       role: dbOverride ? (dbOverride.subtitle || dbOverride.category) : m.role,
       image: dbOverride && dbOverride.image_url ? dbOverride.image_url : m.image,
       body: dbOverride ? dbOverride.body : '',
@@ -196,7 +198,7 @@ export const StaffGallery = () => {
 
   const newlyAddedItems = newLiveItems.map((m, idx) => ({
     id: m.id,
-    name: m.title,
+    name: staffDisplayName(m, i18n.resolvedLanguage || i18n.language),
     role: m.subtitle || m.category,
     image: m.image_url,
     body: m.body,
@@ -254,13 +256,13 @@ export const StaffGallery = () => {
             >
               <div className="aspect-[4/5] overflow-hidden bg-white dark:bg-brand-forest-800">
                 {member.image ? (
-                  <img src={member.image} alt={uiText("copy.value0Value1", { value0: uiText(member.name), value1: uiText(member.role) })} loading="lazy" decoding="async" className="h-full w-full object-cover object-top transition duration-500 hover:scale-[1.025]" />
+                  <img src={member.image} alt={uiText("copy.value0Value1", { value0: member.name, value1: uiText(member.role) })} loading="lazy" decoding="async" className="h-full w-full object-cover object-top transition duration-500 hover:scale-[1.025]" />
                 ) : (
                   <div className="grid h-full place-items-center bg-brand-surface text-brand-heading"><Users size={42} /></div>
                 )}
               </div>
               <div className="border-t-4 border-brand-gold-500 bg-brand-surface px-4 py-5">
-                <h3 className="text-brand-heading text-base font-black leading-6">{uiText(member.name)}</h3>
+                <h3 className="text-brand-heading text-base font-black leading-6" translate="no" lang={i18n.language === 'am' ? 'am' : 'en'}>{member.name}</h3>
                 <p className="mt-2 text-base font-bold leading-7 text-slate-600 dark:text-slate-200">{uiText(member.role)}</p>
                 {member.body && <p className="mt-3 text-base leading-7 text-slate-600 dark:text-slate-200">{uiText(member.body)}</p>}
               </div>

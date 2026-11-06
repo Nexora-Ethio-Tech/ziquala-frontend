@@ -25,12 +25,12 @@ import schoolLogo from '../assets/school/school-logo.webp';
 export const BrandMark = ({ compact = false }: { compact?: boolean }) => {
   useTranslation('public');
   return (
-  <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+  <div className="flex max-w-full items-center gap-2 sm:gap-3 min-w-0">
     <div className={`${compact ? 'h-10 w-10' : 'h-9 w-9 sm:h-12 sm:w-12'} shrink-0 overflow-hidden rounded-full border border-brand-forest-950/10 bg-white`}>
       <img width={160} height={159} decoding="async" src={schoolLogo} alt={uiText("")} className="h-full w-full object-cover" />
     </div>
     <div className="min-w-0">
-      <p className={`${compact ? 'text-sm' : 'text-xs sm:text-base'} font-black leading-4 sm:leading-normal tracking-tight text-slate-950 dark:text-white sm:truncate`}>{uiText(ziqualaIdentity.shortName)}</p>
+      <p className={`${compact ? 'text-sm' : 'text-xs sm:text-base'} break-words [overflow-wrap:anywhere] font-black leading-4 sm:leading-normal tracking-tight text-slate-950 dark:text-white sm:truncate`}>{uiText(ziqualaIdentity.shortName)}</p>
       <p className="hidden sm:block text-base font-bold uppercase tracking-[0.2em] text-brand-gold-700 dark:text-brand-gold-400 truncate">{uiText("copy.primaryGrade18")}</p>
     </div>
   </div>
@@ -41,9 +41,21 @@ export const PublicHeader = () => {
   useTranslation('public');
   const [menuOpen, setMenuOpen] = useState(false);
   const menuToggleRef = useRef<HTMLButtonElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
+  const [headerHeight, setHeaderHeight] = useState(76);
   const location = useLocation();
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const { theme, toggleTheme } = useTheme();
+
+  useLayoutEffect(() => {
+    const header = headerRef.current;
+    if (!header) return;
+    const updateHeight = () => setHeaderHeight(header.getBoundingClientRect().height);
+    updateHeight();
+    const observer = new ResizeObserver(updateHeight);
+    observer.observe(header);
+    return () => observer.disconnect();
+  }, []);
 
   useLayoutEffect(() => { setMenuOpen(false); setOpenDropdown(null); }, [location.key, location.pathname, location.hash]);
 
@@ -90,15 +102,15 @@ export const PublicHeader = () => {
   return (
     <>
       <a href="#public-main-content" onClick={() => document.getElementById('public-main-content')?.focus()} className="sr-only fixed left-4 top-4 z-[100] rounded-lg bg-white px-5 py-3 font-bold text-slate-950 focus:not-sr-only">{uiText("copy.skipToMainContent")}</a>
-      <header className="sticky top-0 z-50 border-b border-black/10 bg-brand-canvas backdrop-blur-xl dark:border-white/10">
-        <div className="mx-auto flex h-[4.75rem] min-h-[4.75rem] max-w-[90rem] flex-nowrap items-center justify-between gap-4 px-4 sm:px-6 md:h-auto md:flex-wrap md:py-3 lg:px-10 xl:h-[4.75rem] xl:flex-nowrap xl:py-0">
-          <Link to="/" onClick={() => setMenuOpen(false)} aria-label={uiText("copy.ziqualaAboSchoolHome")} className="min-w-0">
+      <header ref={headerRef} className="sticky top-0 z-50 w-full max-w-full border-b border-black/10 bg-brand-canvas backdrop-blur-xl dark:border-white/10">
+        <div className="mx-auto flex min-h-[4.75rem] w-full max-w-[90rem] flex-wrap items-center justify-between gap-x-2 gap-y-2 px-3 py-2 sm:gap-x-4 sm:px-6 md:py-3 lg:px-10 xl:min-h-[4.75rem] xl:py-0">
+          <Link to="/" onClick={() => setMenuOpen(false)} aria-label={uiText("copy.ziqualaAboSchoolHome")} className="min-w-0 max-w-full flex-1 md:flex-none">
             <BrandMark />
           </Link>
 
-          <nav className="hidden items-center gap-7 md:order-last md:flex md:w-full md:justify-center xl:order-none xl:w-auto" aria-label={uiText("copy.quickNavigation")}>
+          <nav className="hidden max-w-full flex-wrap items-center gap-x-7 md:order-last md:flex md:w-full md:justify-center xl:order-none xl:w-auto" aria-label={uiText("copy.quickNavigation")}>
             {publicNavigation.map((item) => (
-              <div key={item.to} className="relative flex h-12 items-center xl:h-[4.75rem]" onMouseEnter={() => { if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) setOpenDropdown(item.to); }} onMouseLeave={event => { if (!event.currentTarget.contains(document.activeElement)) setOpenDropdown(null); }} onFocus={event => { if (event.target.tagName === 'A' && !event.currentTarget.contains(event.relatedTarget)) setOpenDropdown(item.to); }} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setOpenDropdown(null); }} onKeyDown={event => {
+              <div key={item.to} className="relative flex h-12 items-center xl:h-[4.75rem]" onMouseEnter={() => { if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) setOpenDropdown(item.to); }} onMouseLeave={event => { if (!event.currentTarget.contains(document.activeElement)) setOpenDropdown(null); }} onFocus={event => { if (event.target.tagName === 'A' && event.target.matches(':focus-visible') && !event.currentTarget.contains(event.relatedTarget)) setOpenDropdown(item.to); }} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setOpenDropdown(null); }} onKeyDown={event => {
                 if (event.key === 'Escape') { event.preventDefault(); setOpenDropdown(null); event.currentTarget.querySelector('a')?.focus(); }
                 if ((event.key === 'ArrowDown' || event.key === 'ArrowUp') && item.children.length) {
                   event.preventDefault(); setOpenDropdown(item.to);
@@ -109,6 +121,16 @@ export const PublicHeader = () => {
                 <NavLink
                   to={item.to}
                   end={item.to === '/'}
+                  aria-haspopup={item.children.length ? 'true' : undefined}
+                  aria-expanded={item.children.length ? openDropdown === item.to : undefined}
+                  aria-controls={item.children.length ? `public-submenu-${item.to === '/' ? 'home' : item.to.slice(1)}` : undefined}
+                  onClick={event => {
+                    // Coarse pointers can open the submenu with a first tap;
+                    // a second tap follows the parent link as usual.
+                    if (item.children.length && !window.matchMedia('(hover: hover) and (pointer: fine)').matches && openDropdown !== item.to) {
+                      event.preventDefault(); setOpenDropdown(item.to);
+                    }
+                  }}
                   className={({ isActive }) => `relative py-2 text-sm font-bold transition-colors after:absolute after:inset-x-0 after:-bottom-0.5 after:h-px after:origin-left after:transition-transform ${isActive
                     ? 'text-brand-forest-950 after:scale-x-100 after:bg-brand-forest-800 dark:text-white dark:after:bg-brand-gold-400'
                     : 'text-slate-600 after:scale-x-0 after:bg-brand-forest-800 hover:text-brand-forest-900 hover:after:scale-x-100 dark:text-slate-300 dark:hover:text-white'
@@ -117,21 +139,20 @@ export const PublicHeader = () => {
                   {uiText(item.label)}
                 </NavLink>
                 {item.children.length > 0 && (
-                  <><button type="button" aria-label={`${uiText('copy.jumpTo')} ${uiText(item.label)}`} aria-expanded={openDropdown === item.to} aria-controls={`public-submenu-${item.to === '/' ? 'home' : item.to.slice(1)}`} onClick={() => setOpenDropdown(current => current === item.to ? null : item.to)} className="ml-1 grid h-8 w-8 place-items-center rounded text-slate-700 dark:text-slate-200"><span aria-hidden="true">⌄</span></button>
-                  <div id={`public-submenu-${item.to === '/' ? 'home' : item.to.slice(1)}`} data-public-submenu className={`absolute left-1/2 top-full w-64 -translate-x-1/2 border-t-4 border-brand-gold-400 bg-white dark:bg-brand-forest-950 p-3 shadow-2xl ${openDropdown === item.to ? 'visible' : 'invisible'}`}>
+                  <div id={`public-submenu-${item.to === '/' ? 'home' : item.to.slice(1)}`} data-public-submenu className={`absolute left-1/2 top-full z-10 w-64 -translate-x-1/2 border-t-4 border-brand-gold-400 bg-white dark:bg-brand-forest-950 p-3 shadow-2xl ${openDropdown === item.to ? 'visible' : 'invisible'}`}>
                     <p className="px-3 pb-2 pt-1 text-base font-black uppercase tracking-[0.24em] text-brand-forest-700 dark:text-brand-forest-300">{uiText("copy.jumpTo")}</p>
                     {item.children.map((child) => (
                       <Link key={child.hash} to={`${item.to}${child.hash}`} className="flex items-center justify-between border-t border-slate-200 dark:border-white/10 px-3 py-3 text-sm font-bold text-slate-900 dark:text-white transition hover:bg-slate-100 hover:text-brand-gold-700 dark:hover:bg-white/10 dark:hover:text-brand-gold-300">
                         {uiText(child.label)}<ArrowRight size={14} />
                       </Link>
                     ))}
-                  </div></>
+                  </div>
                 )}
               </div>
             ))}
           </nav>
 
-          <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+          <div className="ml-auto flex min-w-0 max-w-full flex-wrap items-center justify-end gap-1 sm:gap-2">
             <LanguageSelector compact />
             <button
               type="button"
@@ -169,7 +190,8 @@ export const PublicHeader = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -12 }}
             transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed inset-x-0 bottom-0 top-[4.75rem] z-40 overflow-y-auto bg-white text-slate-900 dark:bg-brand-forest-950 dark:text-white md:hidden"
+            style={{ top: headerHeight }}
+            className="fixed inset-x-0 bottom-0 z-40 overflow-y-auto bg-white text-slate-900 dark:bg-brand-forest-950 dark:text-white md:hidden"
           >
             <div className="mx-auto grid min-h-full max-w-[90rem] gap-12 px-5 py-10 sm:px-8 sm:py-14 lg:grid-cols-[.8fr_1.2fr] lg:gap-20 lg:px-10">
               <div className="flex flex-col">

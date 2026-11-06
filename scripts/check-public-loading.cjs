@@ -19,6 +19,7 @@ const navigation = process.argv.includes('--navigation');
 const functionality = process.argv.includes('--functionality');
 const visual = process.argv.includes('--visual');
 const reliability = process.argv.includes('--reliability');
+const headerStaff = process.argv.includes('--header-staff');
 
 (async () => {
   let socket;
@@ -94,6 +95,17 @@ const reliability = process.argv.includes('--reliability');
         if (pathname.endsWith('/auth/refresh-token') || (pathname.endsWith('/auth/me') && authMode === 'expired')) { await fulfill(requestId, { success: false, error: { message: 'Fixture expired session' } }, 401); return; }
         if (pathname.endsWith('/system-settings') && settingsMode === 'error') { await fulfill(requestId, { success: false, error: { message: 'Fixture settings unavailable' } }, 503); return; }
         let data = [];
+        if (headerStaff && pathname.endsWith('/website-content/public') && new URL(request.url).searchParams.get('type') === 'team') {
+          const names = require('../src/data/staffNames.json');
+          const flower = names['copy.myFlowerHasFallen'];
+          const base = { content_type:'team', subtitle:'copy.schoolPrincipal', body:'Fixture staff record', image_url:'', category:'Office & management', status:'published', display_order:1 };
+          await fulfill(requestId, { success:true, data:[
+            {...base,id:'staff-office',title:names['school.staff.abrahamKefyalew'].nameAm},
+            {...base,id:'staff-flower',title:flower.nameAm,category:'Kindergarten team'},
+            {...base,id:'staff-phonetic',title:flower.nameAm.split(' ')[0],category:'Kindergarten team'},
+            {...base,id:'staff-authored',title:'Fixture authored name',nameAm:flower.nameAm.split(' ')[0],nameEn:'Abebaye Tesfaye',category:'Kindergarten team'}
+          ] }); return;
+        }
         if (pathname.endsWith('/system-settings')) data = { registration_open: settingsMode === 'closed' ? 'false' : 'true', grade_submission_open: 'true' };
         else if (pathname.endsWith('/branches')) data = [{ id: 'review-branch', name: 'Review Branch', location: 'Review location', address: 'Review address' }];
         else if (pathname.endsWith('/elearning/books')) data = accessibility ? [book,{...book,id:'review-unavailable',title:'Unavailable review book',driveUrl:'',coverClass:'from-white to-slate-100'}] : [book];
@@ -135,6 +147,12 @@ const reliability = process.argv.includes('--reliability');
         fs.writeFileSync(path.join(path.dirname(process.env.LOADING_CHECK_OUTPUT), `step8-${label}.png`), Buffer.from(screenshot.data, 'base64'));
       }
     };
+    if (headerStaff) {
+      await require('./check-header-staff.cjs')({send,evaluate,until,navigate,key,origin});
+      assert.equal(errors.length, 0, JSON.stringify(errors));
+      console.log('PASS: no browser runtime errors');
+      return;
+    }
     if(reliability){
       const reliabilityResults=await require('./check-public-reliability.cjs')({send,evaluate,until,navigate,origin,state:reliabilityState,heldChat,apiRequests});
       if(process.env.LOADING_CHECK_OUTPUT)fs.writeFileSync(process.env.LOADING_CHECK_OUTPUT,JSON.stringify({reliabilityResults,errors,securityViolations},null,2));
@@ -210,7 +228,7 @@ const reliability = process.argv.includes('--reliability');
         await evaluate("document.querySelector('header nav a[href=\"/school\"]').focus()");
         await key('ArrowDown'); await until("document.activeElement.matches('#public-submenu-school a')", 'desktop arrow enters sections');
         await key('Escape');
-        assert(await evaluate("document.activeElement.matches('header nav a[href=\"/school\"]') && document.querySelector('button[aria-controls=public-submenu-school]').getAttribute('aria-expanded')==='false'"));
+        assert(await evaluate("document.activeElement.matches('header nav a[href=\"/school\"]') && document.querySelector('header nav a[aria-controls=public-submenu-school]').getAttribute('aria-expanded')==='false'"));
       }
       await clickNavigation('/school',width);
       await evaluate('scrollTo(0,1400)'); await new Promise(resolve=>setTimeout(resolve,150));
