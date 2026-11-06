@@ -13,13 +13,15 @@
         root.classList.toggle('dark', theme === 'dark');
         root.dataset.theme = theme;
         root.style.colorScheme = theme;
+        let language = 'en';
+        try { language = localStorage.getItem('ziquala_language') || localStorage.getItem('ziquala_lang') || 'en'; } catch {}
+        root.dataset.lang = language === 'am' ? 'am' : language === 'om' || language === 'or' ? 'om' : 'en';
+        root.lang = root.dataset.lang;
       })();
     </script>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Abyssinica+SIL&display=swap" rel="stylesheet" />
+    <!-- Use the local academic serif stack: no font download or late font swap. -->
     <meta name="description" content="Ziquala Abo School — academic excellence, spiritual wisdom, and responsible citizenship." />
     <meta name="theme-color" content="#075b42" />
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />

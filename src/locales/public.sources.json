@@ -1319,5 +1319,19 @@
   "Kindergarten Teacher": "copy.kGTeacher_387",
   "Kindergarten Principal": "copy.kGPrincipal",
   "Kindergarten Assistant Teacher": "copy.kGAssistantTeacher_394",
-  "Kindergarten Caregiver": "copy.kGTutor"
+  "Kindergarten Caregiver": "copy.kGTutor",
+  "Loading page...": "runtime.message0",
+  "Verifying session...": "runtime.message1",
+  "Something went wrong": "runtime.message2",
+  "The request could not be completed. Please try again.": "runtime.message3",
+  "Refresh Page": "runtime.message4",
+  "Please complete this field.": "runtime.message5",
+  "Please enter a valid email address.": "runtime.message6",
+  "Please enter a valid web address.": "runtime.message7",
+  "Please enter a valid number.": "runtime.message8",
+  "Please enter at least {{value0}} characters.": "runtime.message9",
+  "Please enter no more than {{value0}} characters.": "runtime.message10",
+  "Please enter a value of at least {{value0}}.": "runtime.message11",
+  "Please enter a value no greater than {{value0}}.": "runtime.message12",
+  "Please enter a valid value for this field.": "runtime.message13"
 }

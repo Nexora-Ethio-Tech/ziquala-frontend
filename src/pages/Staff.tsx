@@ -11,6 +11,8 @@ import { branchService } from '../services/branchService';
 import { registerUser } from '../services/schoolAdminService';
 import { useStore } from '../context/useStore';
 import PhoneInput from '../components/PhoneInput';
+import { StaffProfileEditor } from '../components/StaffProfileEditor';
+import { StaffProfileModal } from '../components/StaffProfileModal';
 import { EthiopianDatePicker } from '../components/EthiopianDatePicker';
 
 export const Staff = () => {
@@ -63,10 +65,8 @@ export const Staff = () => {
   const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({ show: false, message: '', type: 'success' });
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingStaff, setEditingStaff] = useState<any | null>(null);
-  const [editFormData, setEditFormData] = useState({ name: '', email: '', status: 'Active' });
   const [resettingPassword, setResettingPassword] = useState(false);
   const [generatedPassword, setGeneratedPassword] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
   const [viewingStaff, setViewingStaff] = useState<any | null>(null);
   const [loadingStaffDetails, setLoadingStaffDetails] = useState(false);
@@ -279,40 +279,8 @@ export const Staff = () => {
 
   const openEditModal = (staff: any) => {
     setEditingStaff(staff);
-    setEditFormData({
-      name: staff.name || '',
-      email: staff.email || '',
-      status: staff.status || 'Active'
-    });
     setGeneratedPassword(null);
     setShowEditModal(true);
-  };
-
-  const handleEdit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingStaff) return;
-    setSubmitting(true);
-    try {
-      const cleanEditName = editFormData.name.trim().split(/\s+/).filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
-      await userService.updateUser(editingStaff.id, {
-        name: cleanEditName,
-        email: editFormData.email.trim().toLowerCase()
-      });
-      if (editFormData.status !== editingStaff.status) {
-        await userService.updateUserStatus(editingStaff.id, editFormData.status as any);
-      }
-      setShowEditModal(false);
-      setEditingStaff(null);
-      const branchList = await fetchBranches();
-      fetchUsers(branchList);
-      setToast({ show: true, message: 'User updated successfully', type: 'success' });
-      setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
-    } catch (err: any) {
-      console.error('❌ Error updating user:', err);
-      setErrorModal({ show: true, message: err.response?.data?.error?.message || 'Failed to update user' });
-    } finally {
-      setSubmitting(false);
-    }
   };
 
   const handleResetPassword = async () => {
@@ -998,7 +966,7 @@ export const Staff = () => {
       {/* Edit Modal */}
       {showEditModal && editingStaff && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 w-full max-w-md">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-blue-100 text-blue-600 rounded-lg"><Edit2 size={20} /></div>
@@ -1012,43 +980,12 @@ export const Staff = () => {
                 aria-label={uiText("Close edit modal")}
               ><X size={20} /></button>
             </div>
-            <form onSubmit={handleEdit} className="p-6 space-y-4">
-              <div>
-                <label htmlFor="edit-name" className="text-xs font-bold text-slate-500 uppercase">{uiText("Full Name")}</label>
-                <input
-                  id="edit-name"
-                  type="text"
-                  required
-                  value={editFormData.name}
-                  onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
-                  onBlur={(e) => setEditFormData({ ...editFormData, name: editFormData.name.trim().split(/\s+/).filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ') })}
-                  className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label htmlFor="edit-email" className="text-xs font-bold text-slate-500 uppercase">{uiText("Email Address")}</label>
-                <input
-                  id="edit-email"
-                  type="email"
-                  required
-                  value={editFormData.email}
-                  onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })}
-                  className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label htmlFor="edit-status" className="text-xs font-bold text-slate-500 uppercase">{uiText("Account Status")}</label>
-                <select
-                  id="edit-status"
-                  value={editFormData.status}
-                  onChange={(e) => setEditFormData({ ...editFormData, status: e.target.value })}
-                  className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold text-slate-800 dark:text-slate-100 outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="Active">{uiText("Active / Approved")}</option>
-                  <option value="Revoked">{uiText("Revoked")}</option>
-                  <option value="Pending">{uiText("Pending")}</option>
-                </select>
-              </div>
+            <div className="p-6 space-y-4">
+              <StaffProfileEditor key={editingStaff.userId || editingStaff.id} staff={editingStaff} startEditing onSaved={user => {
+                  setEditingStaff((current: any) => ({ ...current, ...user, staffProfile: user.staff_profile }));
+                  staffPaging.updateRows(rows => rows.map(row => row.id === user.id ? { ...row, ...user } : row));
+                  void fetchUsers();
+              }} />
               <div className="flex flex-col gap-3 border-t border-b border-slate-100 dark:border-slate-800 py-4 my-2">
                 <div className="flex items-center justify-between gap-4">
                   <div>
@@ -1071,297 +1008,22 @@ export const Staff = () => {
                   </div>
                 )}
               </div>
-              <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => setShowEditModal(false)}
-                  className="flex-1 px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg font-bold text-sm text-slate-500 hover:bg-slate-50"
-                  disabled={submitting}>{uiText(" Cancel ")}</button>
-                <button type="submit"
-                  className="flex-1 bg-blue-600 text-white font-bold py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-blue-700 disabled:opacity-50"
-                  disabled={submitting}>
-                  {submitting ? <Loader2 className="animate-spin" size={18} /> : <Check size={18} />}
-                  <span>{(submitting ? uiText('Saving...') : uiText('Save Changes'))}</span>
-                </button>
               </div>
-            </form>
           </div>
         </div>
       )}
 
-      {/* View User Registration Details Modal */}
-      {showViewModal && viewingStaff && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-800 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            
-            {/* Header */}
-            <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center sticky top-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm z-10">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-indigo-100 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 rounded-xl">
-                  <Eye size={22} />
-                </div>
-                <div>
-                  <h3 className="font-extrabold text-slate-900 dark:text-slate-100 text-lg">
-                    {uiText("Registration Details")}
-                  </h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                    {uiText("Complete information submitted during system registration")}
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowViewModal(false)}
-                className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                title={uiText("Close")}
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            {/* Content */}
-            <div className="p-6 space-y-6">
-              {loadingStaffDetails ? (
-                <div className="flex items-center justify-center py-12 text-slate-400 gap-2">
-                  <Loader2 className="animate-spin" size={24} />
-                  <span className="text-sm font-semibold">{uiText("Loading registration data...")}</span>
-                </div>
-              ) : (
-                <>
-                  {/* Top Banner Card */}
-                  <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-800/80 dark:to-indigo-950/40 rounded-xl border border-blue-100 dark:border-slate-700/60 flex flex-wrap items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-full bg-blue-600 text-white font-black text-lg flex items-center justify-center shadow-md">
-                        {viewingStaff.name ? viewingStaff.name.charAt(0).toUpperCase() : 'U'}
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-slate-900 dark:text-white text-base">{viewingStaff.name}</h4>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="px-2.5 py-0.5 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded-full text-xs font-bold capitalize">
-                            {uiText(viewingStaff.role)}
-                          </span>
-                          <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                            viewingStaff.status === 'Active' || viewingStaff.status === 'Approved'
-                              ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'
-                              : 'bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300'
-                          }`}>
-                            {uiText(viewingStaff.status)}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">{uiText("Digital ID")}</span>
-                      <span className="text-sm font-mono font-bold text-indigo-600 dark:text-indigo-400">{viewingStaff.digitalId || 'N/A'}</span>
-                    </div>
-                  </div>
-
-                  {/* Basic Info Section */}
-                  <div>
-                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                      <User size={14} className="text-blue-500" />
-                      {uiText("Account & System Information")}
-                    </h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
-                      <div>
-                        <span className="text-xs text-slate-400 font-medium block">{uiText("Full Name")}</span>
-                        <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">{viewingStaff.name || 'N/A'}</span>
-                      </div>
-                      <div>
-                        <span className="text-xs text-slate-400 font-medium block">{uiText("Email Address")}</span>
-                        <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">{viewingStaff.email || 'N/A'}</span>
-                      </div>
-                      <div>
-                        <span className="text-xs text-slate-400 font-medium block">{uiText("Role")}</span>
-                        <span className="text-sm font-semibold text-slate-800 dark:text-slate-100 capitalize">{uiText(viewingStaff.role) || 'N/A'}</span>
-                      </div>
-                      <div>
-                        <span className="text-xs text-slate-400 font-medium block">{uiText("Branch / Organization")}</span>
-                        <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">{viewingStaff.branchName || 'N/A'}</span>
-                      </div>
-                      <div>
-                        <span className="text-xs text-slate-400 font-medium block">{uiText("Registration Date")}</span>
-                        <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">
-                          {viewingStaff.createdAt
-                            ? new Date(viewingStaff.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
-                            : viewingStaff.staffProfile?.registeredAt
-                            ? new Date(viewingStaff.staffProfile.registeredAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
-                            : 'N/A'}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-xs text-slate-400 font-medium block">{uiText("Account Status")}</span>
-                        <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">{uiText(viewingStaff.status) || 'N/A'}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Profile & Personal Details Section - hidden for Academic Manager and Storekeeper */}
-                  {!['academic-manager', 'storekeeper'].includes(viewingStaff.role) && (
-                    <>
-                      <div>
-                        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                          <Briefcase size={14} className="text-indigo-500" />
-                          {uiText("Personal & Professional Profile")}
-                        </h4>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
-                          <div>
-                            <span className="text-xs text-slate-400 font-medium block">{uiText("Phone Number")}</span>
-                            <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">
-                              {viewingStaff.staffProfile?.phoneNumber || viewingStaff.phoneNumber || 'N/A'}
-                            </span>
-                          </div>
-                          <div>
-                            <span className="text-xs text-slate-400 font-medium block">{uiText("Date of Birth")}</span>
-                            <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">
-                              {viewingStaff.staffProfile?.dob || viewingStaff.dob || 'N/A'}
-                            </span>
-                          </div>
-                          <div>
-                            <span className="text-xs text-slate-400 font-medium block">{uiText("Education Level")}</span>
-                            <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">
-                              {viewingStaff.staffProfile?.educationLevel || viewingStaff.educationLevel || 'N/A'}
-                            </span>
-                          </div>
-                          <div>
-                            <span className="text-xs text-slate-400 font-medium block">{uiText("Specialty / Position")}</span>
-                            <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">
-                              {viewingStaff.staffProfile?.specialty || viewingStaff.specialty || 'N/A'}
-                            </span>
-                          </div>
-                          <div>
-                            <span className="text-xs text-slate-400 font-medium block">{uiText("Previous Organization")}</span>
-                            <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">
-                              {viewingStaff.staffProfile?.previousSchool || viewingStaff.previousSchool || 'N/A'}
-                            </span>
-                          </div>
-                          <div>
-                            <span className="text-xs text-slate-400 font-medium block">{uiText("Experience (Years)")}</span>
-                            <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">
-                              {viewingStaff.staffProfile?.experienceYears || viewingStaff.experienceYears || 'N/A'}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Emergency Contact Section */}
-                      <div>
-                        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                          <Phone size={14} className="text-emerald-500" />
-                          {uiText("Emergency Contact")}
-                        </h4>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
-                          <div>
-                            <span className="text-xs text-slate-400 font-medium block">{uiText("Emergency Contact Name")}</span>
-                            <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">
-                              {viewingStaff.staffProfile?.emergencyContactName || viewingStaff.emergencyContactName || 'N/A'}
-                            </span>
-                          </div>
-                          <div>
-                            <span className="text-xs text-slate-400 font-medium block">{uiText("Emergency Contact Phone")}</span>
-                            <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">
-                              {viewingStaff.staffProfile?.emergencyContactPhone || viewingStaff.emergencyContactPhone || 'N/A'}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Attached Document Section */}
-                      <div>
-                        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                          <FileText size={14} className="text-amber-500" />
-                          {uiText("Attached Document")}
-                        </h4>
-                        <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                          <div className="flex items-center gap-3 min-w-0">
-                            <div className="p-2.5 bg-amber-100 dark:bg-amber-950/50 text-amber-600 rounded-lg shrink-0">
-                              <FileText size={20} />
-                            </div>
-                            <div className="min-w-0">
-                              <span className="text-sm font-semibold text-slate-800 dark:text-slate-100 block truncate max-w-xs sm:max-w-md">
-                                {viewingStaff.documentFileName || viewingStaff.document_file_name || uiText("No document uploaded")}
-                              </span>
-                              <span className="text-xs text-slate-400 font-medium">
-                                {(viewingStaff.documentFileName || viewingStaff.document_file_name)
-                                  ? uiText("Document attached during registration")
-                                  : uiText("Optional staff file was not provided")}
-                              </span>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-2 shrink-0">
-                            {(viewingStaff.documentFileName || viewingStaff.document_file_name) && (
-                              <button
-                                type="button"
-                                onClick={handleViewDocument}
-                                disabled={viewingDoc}
-                                className="px-3.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:hover:bg-blue-900/50 dark:text-blue-300 border border-blue-200 dark:border-blue-800 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors shadow-sm disabled:opacity-50"
-                                title={uiText("View / Open Document")}
-                              >
-                                {viewingDoc ? <Loader2 size={16} className="animate-spin" /> : <Eye size={16} />}
-                                <span>{uiText("View")}</span>
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </>
-                  )}
-                </>
-              )}
-            </div>
-
-            {/* Footer */}
-            <div className="p-6 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                {!['academic-manager', 'storekeeper'].includes(viewingStaff.role) && (
-                  <>
-                    {(viewingStaff.documentFileName || viewingStaff.document_file_name) && (
-                      <button
-                        type="button"
-                        onClick={handleDownloadDocument}
-                        disabled={downloadingDoc}
-                        className="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-bold flex items-center gap-2 transition-colors shadow-sm disabled:opacity-50"
-                        title={uiText("Download Document")}
-                      >
-                        {downloadingDoc ? <Loader2 size={15} className="animate-spin" /> : <Download size={15} />}
-                        <span>{downloadingDoc ? uiText("Downloading...") : uiText("Download Document")}</span>
-                      </button>
-                    )}
-
-                    <label
-                      className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold flex items-center gap-2 cursor-pointer transition-colors shadow-sm"
-                      title={uiText("Reupload / Edit Document")}
-                    >
-                      {uploadingDoc ? <Loader2 size={15} className="animate-spin" /> : <Upload size={15} />}
-                      <span>
-                        {uploadingDoc
-                          ? uiText("Uploading...")
-                          : (viewingStaff.documentFileName || viewingStaff.document_file_name)
-                          ? uiText("Reupload / Edit Document")
-                          : uiText("Upload Document")}
-                      </span>
-                      <input
-                        type="file"
-                        accept=".pdf,.png,.jpg,.jpeg"
-                        onChange={handleDocumentFileChange}
-                        disabled={uploadingDoc}
-                        className="hidden"
-                      />
-                    </label>
-                  </>
-                )}
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setShowViewModal(false)}
-                className="px-6 py-2.5 bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-slate-700 text-white font-bold rounded-xl text-sm transition-colors"
-              >
-                {uiText("Close")}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <StaffProfileModal
+        open={showViewModal && !loadingStaffDetails}
+        title={uiText('Registration Details')}
+        staff={viewingStaff}
+        onClose={() => setShowViewModal(false)}
+        onSaved={user => {
+          setViewingStaff((current: any) => ({ ...current, ...user, staffProfile: user.staff_profile }));
+          staffPaging.updateRows(rows => rows.map(row => row.id === user.id ? { ...row, ...user } : row));
+          void fetchUsers();
+        }}
+      />
     </div>
   );
 };

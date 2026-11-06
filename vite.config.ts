@@ -37,8 +37,11 @@ export default defineConfig(({ mode }) => {
         build: {
             outDir: 'dist',
             assetsDir: 'assets',
+            // Keep the small shared logo independently cacheable after compression.
+            assetsInlineLimit: filePath => filePath.endsWith('school-logo.webp') ? false : undefined,
             // Generate source maps for debugging
             sourcemap: false,
+            manifest: true,
             // Optimize chunk size
             chunkSizeWarningLimit: 1000,
             rollupOptions: {

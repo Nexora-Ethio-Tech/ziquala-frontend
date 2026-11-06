@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { normalizeLanguage } from '../localization';
+import { normalizeLanguage } from '../locales/languages';
 import type { SchoolPurpose } from '../publicLocalization';
 
 // Amharic and Afaan Oromoo are the school's supplied text, verbatim.

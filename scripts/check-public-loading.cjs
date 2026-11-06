@@ -262,7 +262,7 @@ const reliability = process.argv.includes('--reliability');
       const firstRequest = apiRequests.length;
       await send('Emulation.setDeviceMetricsOverride', { width, height: 900, deviceScaleFactor: 1, mobile: width === 390 });
       await send('Page.navigate', { url: origin + '/' });
-      await until("!!document.querySelector('h1')", 'homepage');
+      await until("!!document.querySelector('#home-books')", 'mounted homepage');
       await new Promise(r => setTimeout(r, 600));
       assert(!apiRequests.slice(firstRequest).some(p => /system-settings|branches|elearning\/books/.test(p)), 'Homepage fetched settings, branches, or books before needed');
       const initialApiRequests = apiRequests.slice(firstRequest);

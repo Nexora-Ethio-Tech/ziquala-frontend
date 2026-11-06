@@ -1,7 +1,7 @@
 # BEGIN Ziquala security headers
 <IfModule mod_headers.c>
     Header onsuccess unset Content-Security-Policy
-    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'sha256-xjSg6ojfaVHOwm5D4WZzrHVHDkXkLSDPHlySN1kJEYg='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://api.ziquala.com; media-src 'self' blob: https:; frame-src 'self' blob: https://drive.google.com https://www.youtube.com https://www.youtube-nocookie.com; object-src 'self' blob:; worker-src 'self' blob:; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'sha256-NzhjxA4KzLW6UxDb39Dff+dqlhq6szv9X9PHnNEnFpc='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://api.ziquala.com; media-src 'self' blob: https:; frame-src 'self' blob: https://drive.google.com https://www.youtube.com https://www.youtube-nocookie.com; object-src 'self' blob:; worker-src 'self' blob:; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"
     Header onsuccess unset Content-Security-Policy-Report-Only
     Header always set Content-Security-Policy-Report-Only "require-trusted-types-for 'script'"
     Header onsuccess unset Strict-Transport-Security
@@ -65,7 +65,9 @@ RewriteRule ^(about|programs|school-life)/?$ /school [R=301,L]
 RewriteRule ^(school|monastery|elearning|news|contact|portal|login|register)/?$ $1.html [L]
 
 # Crawl files must be served directly, or return 404 if absent, never the SPA.
-RewriteRule ^(robots\.txt|sitemap\.xml)$ - [L]
+RewriteRule ^(robots\.txt|sitemap\.xml|llms\.txt)$ - [L]
+
+RewriteRule ^\.well-known(?:/|$) - [L]
 
 # Do NOT rewrite actual files or directories
 RewriteCond %{REQUEST_FILENAME} !-f

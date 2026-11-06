@@ -1,5 +1,6 @@
 {
   "copy": {
+    "19281933": "1928-1933tti bara 1933tti",
     "clearChat": "Mariin haa haqamu",
     "chatPrivacyNotice": "Ergaawwan tajaajila gargaaraa alaa keessatti qoratamuu danda’u. Odeeffannoo icciitii hin qoodin. Marii haquun marii fuula kanaa qofa haqa.",
     "admissionPrivacyNotice": "Odeeffannoon iyyata keetii fi galmeen bu’aa filannoodhaan itti dabaltu gamaaggama galmeetiif gara mana barumsaa ergamu. Odeeffannoo iyyataaf barbaachisu qofa dabali.",
@@ -9,7 +10,6 @@
     "admissionCampusUnavailable": "Iyyata interneetiitiif mooraaleen hin jiran. Mee mana barumsaa qunnami.",
     "motherNameRequired": "Maqaan guutuun haadhaa barbaachisa.",
     "skipToMainContent": "Gara qabiyyee ijoo darbi",
-    "19281933": "1928-1933tti bara 1933tti",
     "primaryGrade18": "Sadarkaa tokkoffaa · Kutaa 1–8",
     "ziqualaAboSchoolHome": "Mana Barumsaa Ziquala Abo mana",
     "quickNavigation": "Saffisaan navigeeshinii",
@@ -596,5 +596,21 @@
     "rateLimit": "Yeroo baay’ee yaaltaniittu. Maaloo daqiiqaa 15 eegaa irra deebi’aa yaalaa yookaan waajjira keenyaaf bilbilaa.",
     "networkError": "Walqunnamtiin waan citeef yookaan yeroon eegumsaa waan dhumeef ergaan keessan gahuu isaa mirkaneessuu hin dandeenye. Ergaan keessan asuma jira. Irra deebitanii yaaluu dura walqunnamtii keessan mirkaneessaa yookaan bilbilaan yookaan imeeliin nu quunnamaa.",
     "deliveryError": "Ergaan keessan ergamuu hin dandeenye. Maaloo yeroo biraa yaalaa yookaan lakkoofsa bilbilaa fi teessoo imeelii armaan oliitiin nu quunnamaa."
+  },
+  "runtime": {
+    "message0": "Fuulli fe'amaa jira...",
+    "message1": "Seensa mirkaneessaa jira...",
+    "message2": "Rakkoon uumameera",
+    "message3": "Gaaffii xumuruun hin danda'amne. Maaloo irra deebi'ii yaali.",
+    "message4": "Fuula irra deebi'ii bani",
+    "message5": "Maaloo dirree kana guuti.",
+    "message6": "Maaloo teessoo imeelii sirrii galchi.",
+    "message7": "Maaloo teessoo marsariitii sirrii galchi.",
+    "message8": "Maaloo lakkoofsa sirrii galchi.",
+    "message9": "Maaloo yoo xiqqaate arfiilee {{value0}} galchi.",
+    "message10": "Maaloo arfiilee {{value0}} hin caalle galchi.",
+    "message11": "Maaloo gatii yoo xiqqaate {{value0}} ta'e galchi.",
+    "message12": "Maaloo gatii {{value0}} hin caalle galchi.",
+    "message13": "Maaloo dirree kanaaf gatii sirrii galchi."
   }
 }

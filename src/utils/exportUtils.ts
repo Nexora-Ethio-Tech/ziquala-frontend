@@ -49,6 +49,8 @@ export type ExcelReport = {
   filters: string;
   groups: ExcelReportGroup[];
   freezeColumns?: number;
+  maxRowHeight?: number;
+  lineHeight?: number;
 };
 
 export type ExcelSheet = {
@@ -296,8 +298,8 @@ const buildReportWorksheet = (sheet: ExcelSheet, styles: ReturnType<typeof creat
       const ref = `${columnName(columnIndex)}${rowNumber}`;
       const target = column.hyperlink ? safeHyperlink(value) : undefined;
       if (target) links.push({ ref, target });
-      const lineCount = String(value).split(/\r?\n/).reduce((count, line) => count + Math.max(1, Math.ceil(line.length / (column.width - 2))), 0);
-      height = Math.max(height, Math.min(108, lineCount * 15 + 10));
+      const lineCount = String(value).split(/\r?\n/).reduce((count, line) => count + Math.max(1, Math.ceil(line.replace(/[\u1200-\u137f\u2d80-\u2ddf\uab00-\uab2f]/g, 'xx').length / (column.width - 2))), 0);
+      height = Math.max(height, Math.min(report.maxRowHeight ?? 108, lineCount * (report.lineHeight ?? 15) + 10));
       return toCellXml(ref, value, (target ? column.styles.link : column.styles.body)[rowIndex % 2]);
     }).join('');
     rows.push(`<row r="${rowNumber}" ht="${height}" customHeight="1">${cells}</row>`);

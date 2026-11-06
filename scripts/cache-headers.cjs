@@ -48,6 +48,21 @@ function previewCachePlugin() {
     name: 'ziquala-preview-cache',
     configurePreviewServer(server) {
       server.middlewares.use((req, res, next) => {
+        // Match Apache's discovery-file exclusion: missing resources are 404s,
+        // never successful HTML responses from the SPA history fallback.
+        const discoveryPath = new URL(req.originalUrl || req.url || '/', 'http://preview.local').pathname;
+        if (discoveryPath === '/llms.txt' || discoveryPath.startsWith('/.well-known/')) {
+          let file;
+          try {
+            file = path.resolve(root, 'dist', `.${decodeURIComponent(discoveryPath)}`);
+            if (!file.startsWith(path.join(root, 'dist') + path.sep) || !fs.statSync(file).isFile()) file = null;
+          } catch { file = null; }
+          res.setHeader('Cache-Control', file ? 'no-cache' : 'no-store');
+          res.setHeader('Content-Type', file && file.endsWith('.json') ? 'application/json; charset=utf-8' : 'text/plain; charset=utf-8');
+          res.statusCode = file ? 200 : 404;
+          res.end(req.method === 'HEAD' ? undefined : file ? fs.readFileSync(file) : 'Not found');
+          return;
+        }
         // Connect temporarily strips mounted prefixes while serving HEAD/304 responses.
         const requestUrl = req.originalUrl || req.url || '/';
         const original = res.writeHead;

@@ -1,0 +1,12 @@
+{
+  "version": "1.0",
+  "name": "Ziquala Abo School",
+  "description": "Public school and monastery information and published learning materials.",
+  "resources": [
+    { "name": "School", "url": "https://ziquala.com/school", "description": "School purpose, leadership, staff, and campuses.", "mimeType": "text/html" },
+    { "name": "Monastery", "url": "https://ziquala.com/monastery", "description": "History, heritage, and community projects.", "mimeType": "text/html" },
+    { "name": "E-learning", "url": "https://ziquala.com/elearning", "description": "Published learning materials.", "mimeType": "text/html" },
+    { "name": "News", "url": "https://ziquala.com/news", "description": "Published announcements and events.", "mimeType": "text/html" },
+    { "name": "Contact", "url": "https://ziquala.com/contact", "description": "Contact information and enquiry form.", "mimeType": "text/html" }
+  ]
+}

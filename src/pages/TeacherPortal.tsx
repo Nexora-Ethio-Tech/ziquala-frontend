@@ -1,3 +1,4 @@
+import { getAnnualItemValue } from '../utils/annualPlanExport';
 import { uiText } from "../localization";
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -92,21 +93,7 @@ const matchGrade = (hodGrades: any[], courseGrade: any): boolean => {
   });
 };
 
-export const getAnnualItemValue = (item: any, key: string): string => {
-  if (!item) return '';
-  if (key === 'date') return item.date || item.weekDate || '';
-  if (key === 'pageRef') return item.pageRef || item.pageReference || '';
-  if (key === 'topicContent') return item.topicContent || item.topic_content || item.mainContent || (item.subContent ? `${item.mainContent || ''} ${item.subContent}` : '');
-  if (key === 'noOfSessions') return item.noOfSessions || item.no_of_sessions || item.noOfPeriods || '';
-  if (key === 'learningOutcome') return item.learningOutcome || item.learning_outcome || item.competence || '';
-  if (key === 'significanceSubject') return item.significanceSubject || item.significance_subject || '';
-  if (key === 'priorCompetency') return item.priorCompetency || item.prior_competency || '';
-  if (key === 'instructionalMaterials') return item.instructionalMaterials || item.instructional_materials || item.teachingAid || '';
-  if (key === 'teachingMethodology') return item.teachingMethodology || item.teaching_methodology || item.teachingMethod || '';
-  if (key === 'classroomManagement') return item.classroomManagement || item.classroom_management || '';
-  if (key === 'evaluation') return item.evaluation || item.remark || '';
-  return item[key] != null ? String(item[key]) : '';
-};
+export { getAnnualItemValue } from '../utils/annualPlanExport';
 
 const SEMESTER_1_MONTHS = ['September','October','November','December','January'];
 const SEMESTER_2_MONTHS = ['February','March','April','May','June'];

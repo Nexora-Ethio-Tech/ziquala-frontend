@@ -33,6 +33,9 @@ for (const [source, key] of Object.entries(sources)) assert(flat.en[key], `Unres
 
 const publicFiles = [
   'src/pages/LandingPage.tsx', 'src/pages/ELearningPage.tsx', 'src/components/BookReader.tsx',
+  'src/pages/PublicLayout.tsx', 'src/pages/PublicSections.tsx', 'src/pages/PublicHome.tsx',
+  'src/pages/PublicSchool.tsx', 'src/pages/PublicMonastery.tsx', 'src/pages/PublicOther.tsx',
+  'src/pages/PublicHeroes.tsx',
   'src/components/LanguageSelector.tsx', 'src/components/OfficialSchoolPurpose.tsx',
   'src/components/Chatbot.tsx', 'src/components/BookCover.tsx', 'src/components/FeaturedBookGallery.tsx',
   'src/pages/ContactPage.tsx', 'src/components/PublicFooter.tsx',
@@ -122,7 +125,7 @@ async function checkState(saved) {
   const translated = {};
   vm.runInNewContext(transpile('src/publicLocalization.ts'), {
     exports: translated,
-    require: id => id === './i18n' ? engine : id === './localization' ? old : json('src/' + id.replace(/^\.\//, '')),
+    require: id => id === './i18n' ? engine : id === './locales/languages' ? languageModule : json('src/' + id.replace(/^\.\//, '')),
   });
   const { publicText, publicVariants } = translated;
   assert.equal(publicText('monastery.development.oil.title'), 'የዘይት ፋብሪካ');

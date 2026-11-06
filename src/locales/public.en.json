@@ -1,5 +1,6 @@
 {
   "copy": {
+    "19281933": "1928–1933",
     "clearChat": "Clear chat",
     "chatPrivacyNotice": "Messages may be processed by an external assistant service. Avoid sensitive data. Clear chat removes this page’s conversation only.",
     "admissionPrivacyNotice": "Your application details and optional transcript are sent to the school for admission review. Include only information needed for the application.",
@@ -9,7 +10,6 @@
     "admissionCampusUnavailable": "No campuses are available for online applications. Please contact the school.",
     "motherNameRequired": "Mother's full name is required.",
     "skipToMainContent": "Skip to main content",
-    "19281933": "1928–1933",
     "primaryGrade18": "Primary · Grade 1–8",
     "ziqualaAboSchoolHome": "Ziquala Abo School home",
     "quickNavigation": "Quick navigation",
@@ -596,5 +596,21 @@
     "rateLimit": "Too many attempts. Please wait 15 minutes before trying again, or call our office.",
     "networkError": "We could not confirm your submission because the connection failed or timed out. Your message is still here. Please check your connection before retrying, or contact us by phone or email.",
     "deliveryError": "Your message could not be sent. Please try again later, or contact us using the phone number or email address above."
+  },
+  "runtime": {
+    "message0": "Loading page...",
+    "message1": "Verifying session...",
+    "message2": "Something went wrong",
+    "message3": "The request could not be completed. Please try again.",
+    "message4": "Refresh Page",
+    "message5": "Please complete this field.",
+    "message6": "Please enter a valid email address.",
+    "message7": "Please enter a valid web address.",
+    "message8": "Please enter a valid number.",
+    "message9": "Please enter at least {{value0}} characters.",
+    "message10": "Please enter no more than {{value0}} characters.",
+    "message11": "Please enter a value of at least {{value0}}.",
+    "message12": "Please enter a value no greater than {{value0}}.",
+    "message13": "Please enter a valid value for this field."
   }
 }

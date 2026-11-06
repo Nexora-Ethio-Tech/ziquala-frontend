@@ -39,7 +39,8 @@ assert.equal(locations.length, new Set(locations).size);
 const { stripBlock } = require('./security-headers.cjs');
 assert.equal(stripBlock(read('.htaccess')), stripBlock(fs.readFileSync(path.join(root, 'public/.htaccess'), 'utf8')));
 assert(read('.htaccess').includes('$1.html [L]'), 'Route HTML rewrite missing');
-assert(read('.htaccess').includes('(robots\\.txt|sitemap\\.xml)$ - [L]'), 'Crawl-file fallback exclusion missing');
+assert(read('.htaccess').includes('(robots\\.txt|sitemap\\.xml|llms\\.txt)$ - [L]'), 'Crawl-file fallback exclusion missing');
+assert(read('.htaccess').includes('^\\.well-known(?:/|$) - [L]'), 'Discovery-file fallback exclusion missing');
 console.log(`PASS built SEO: ${titles.size} unique titles, canonical and social tags, translated copy, robots.txt, ${locations.length} sitemap URLs`);
 
 const server = spawn(process.execPath, ['node_modules/vite/bin/vite.js', 'preview', '--host', '127.0.0.1', '--port', '5190', '--strictPort'], { cwd: root, windowsHide: true, stdio: 'ignore' });

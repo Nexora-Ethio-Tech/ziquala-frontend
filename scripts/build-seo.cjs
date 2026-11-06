@@ -8,10 +8,20 @@ const english = require('../src/locales/public.en.json');
 const readKey = key => key.split('.').reduce((value, part) => value?.[part], english);
 const escape = text => text.replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
 const dist = path.join(root, 'dist');
+const renderHero = require('./render-public-hero.cjs');
 const template = fs.readFileSync(path.join(dist, 'index.html'), 'utf8')
   .replace(/\s*<meta\s+(?:name="(?:description|robots)"|property="og:[^"]+")[^>]*>/gi, '')
   .replace(/\s*<link\s+rel="canonical"[^>]*>/gi, '');
 const brand = readKey(config.brandKey);
+// Public heroes are available to the HTML parser before any route JS executes.
+// React replaces this static shell when it mounts; the image URL stays identical.
+const imageDir = path.join(dist, 'assets/images');
+const heroFile = fs.readdirSync(imageDir).find(name => /^school-building-[\w-]+\.webp$/.test(name));
+if (!heroFile) throw Error('Missing optimized school hero');
+const heroUrl = `/assets/images/${heroFile}`;
+const logoFile = fs.readdirSync(imageDir).find(name => /^school-logo-[\w-]+\.webp$/.test(name));
+if (!logoFile) throw Error('Missing school logo');
+if (fs.statSync(path.join(imageDir, heroFile)).size >= 150000) throw Error('School hero must be below 150 KB');
 for (const [pathname, page] of Object.entries(config.pages)) {
   const label = readKey(page.titleKey), description = readKey(page.descriptionKey);
   if (typeof label !== 'string' || typeof description !== 'string') throw Error(`Missing SEO copy for ${pathname}`);
@@ -28,9 +38,11 @@ for (const [pathname, page] of Object.entries(config.pages)) {
     '<meta property="og:locale" content="en_ET" />',
     `<meta property="og:url" content="${canonical}" />`,
   ].join('\n    ');
+  const hasHero = pathname === '/' || pathname === '/school';
   const html = template.replace(/<title>[\s\S]*?<\/title>/, `<title>${escape(title)}</title>`)
     .replace(/\s*<meta\s+name="description"[^>]*>/i, '')
-    .replace('</head>', `    ${tags}\n  </head>`);
+    .replace('</head>', `    ${tags}${hasHero ? `\n    <link rel="preload" as="image" href="${heroUrl}" fetchpriority="high" />` : ''}\n  </head>`)
+    .replace('<div id="root"></div>', `<div id="root">${hasHero ? renderHero(pathname, heroUrl, `/assets/images/${logoFile}`) : ''}</div>`);
   fs.writeFileSync(path.join(dist, pathname === '/' ? 'index.html' : `${pathname.slice(1)}.html`), html);
 }
 const urls = Object.entries(config.pages).filter(([, page]) => page.indexable).map(([pathname]) =>

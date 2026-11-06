@@ -1,0 +1,19 @@
+# Ziquala Abo School
+
+> Public information about Ziquala Abo School in Bishoftu, Ethiopia, and Ziquala Abo Monastery.
+
+## Public pages
+
+- [Home](https://ziquala.com/): School and monastery overview.
+- [School](https://ziquala.com/school): School purpose, leadership, staff, and campuses.
+- [Monastery](https://ziquala.com/monastery): History, heritage, and community projects.
+- [E-learning](https://ziquala.com/elearning): Published learning materials.
+- [News](https://ziquala.com/news): Published announcements and events.
+- [Contact](https://ziquala.com/contact): Contact information and enquiry form.
+
+## Discovery
+
+- [Sitemap](https://ziquala.com/sitemap.xml): Indexable public pages.
+- [Resource catalog](https://ziquala.com/.well-known/ai-catalog.json): Public resource links in JSON.
+
+Student records, staff records, examinations, and administrative operations require an authorized account and are not public resources.

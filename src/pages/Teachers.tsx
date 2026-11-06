@@ -1,3 +1,4 @@
+import { getAnnualItemValue, buildAnnualPlanExportSheets } from '../utils/annualPlanExport';
 import { usePagedList, useDebouncedValue } from '../hooks/usePagedList';
 import { ListPagination } from '../components/ListPagination';
 import { getAllListRows } from '../services/pagedList';
@@ -8,10 +9,11 @@ import PhoneInput from '../components/PhoneInput';
 import React, { useState, useEffect, useMemo, useCallback, useRef, Fragment } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
-import { registerUser, getBranchTeachers, approveTeacher, revokeTeacher, deleteTeacher, promoteTeacher, updateUser, resetUserPIN, removeTeacherPromotion, replaceUserDocument } from '../services/schoolAdminService';
+import { registerUser, getBranchTeachers, approveTeacher, revokeTeacher, deleteTeacher, promoteTeacher, resetUserPIN, removeTeacherPromotion, replaceUserDocument } from '../services/schoolAdminService';
 import api from '../services/api';
 import classService from '../services/classService';
 import { StaffProfileModal } from '../components/StaffProfileModal';
+import { StaffProfileEditor } from '../components/StaffProfileEditor';
 import subjectService, { CourseWithGrade } from '../services/subjectService';
 import { getVPTeachers, getLeaderboard, rateTeacher, resetLeaderboard, getVPAnnualPlans, reviewVPAnnualPlan, getWeeklyPlans, getVPAnnualPlanById, getVPWeeklyPlanById } from '../services/vicePrincipalService';
 import { getBranchLabRequisitions, reviewLabRequisition } from '../services/teacherService';
@@ -51,21 +53,7 @@ const matchesEducationLevel = (teacherLevel: string, filterValue: string) => {
   return normTeacher === normFilter;
 };
 
-const getAnnualItemValue = (item: any, key: string): string => {
-  if (!item) return '';
-  if (key === 'date') return item.date || item.weekDate || '';
-  if (key === 'pageRef') return item.pageRef || item.pageReference || '';
-  if (key === 'topicContent') return item.topicContent || item.topic_content || item.mainContent || (item.subContent ? `${item.mainContent || ''} ${item.subContent}` : '');
-  if (key === 'noOfSessions') return item.noOfSessions || item.no_of_sessions || item.noOfPeriods || '';
-  if (key === 'learningOutcome') return item.learningOutcome || item.learning_outcome || item.competence || '';
-  if (key === 'significanceSubject') return item.significanceSubject || item.significance_subject || '';
-  if (key === 'priorCompetency') return item.priorCompetency || item.prior_competency || '';
-  if (key === 'instructionalMaterials') return item.instructionalMaterials || item.instructional_materials || item.teachingAid || '';
-  if (key === 'teachingMethodology') return item.teachingMethodology || item.teaching_methodology || item.teachingMethod || '';
-  if (key === 'classroomManagement') return item.classroomManagement || item.classroom_management || '';
-  if (key === 'evaluation') return item.evaluation || item.remark || '';
-  return item[key] != null ? String(item[key]) : '';
-};
+
 
 const SEMESTER_1_MONTHS = ['September','October','November','December','January'];
 
@@ -441,10 +429,8 @@ export const Teachers = () => {
   const [processing, setProcessing] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingStaff, setEditingStaff] = useState<any | null>(null);
-  const [editFormData, setEditFormData] = useState({ name: '', email: '' });
   const [resettingPassword, setResettingPassword] = useState(false);
   const [generatedPassword, setGeneratedPassword] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
 
@@ -736,33 +722,8 @@ export const Teachers = () => {
 
   const openEditModal = (teacher: any) => {
     setEditingStaff(teacher);
-    setEditFormData({
-      name: teacher.name || '',
-      email: teacher.email || ''
-    });
     setGeneratedPassword(null);
     setShowEditModal(true);
-  };
-
-  const handleEdit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingStaff) return;
-    setSubmitting(true);
-    try {
-      const cleanEditName = editFormData.name.trim().split(/\s+/).filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
-      await updateUser(editingStaff.userId, {
-        name: cleanEditName,
-        email: editFormData.email.trim().toLowerCase()
-      });
-      alert(uiText('Teacher details updated successfully!'));
-      setShowEditModal(false);
-      setEditingStaff(null);
-      fetchTeachers();
-    } catch (err: any) {
-      alert(uiError(err.response?.data?.error?.message || 'Failed to update teacher'));
-    } finally {
-      setSubmitting(false);
-    }
   };
 
   const handleResetPassword = async () => {
@@ -2436,45 +2397,13 @@ export const Teachers = () => {
                   type="button"
                   onClick={() => {
                     const teacherName = selectedAnnualPlan.teacher_name || selectedAnnualPlan.teacherName || 'Assigned Teacher';
-                    const subject = selectedAnnualPlan.subject || '—';
-                    const grade = selectedAnnualPlan.grade || '—';
-                    const academicYear = selectedAnnualPlan.academic_year || '2018 E.C.';
-                    const periodsWeek = selectedAnnualPlan.periods_week || selectedAnnualPlan.periodsPerWeek || 4;
-                    const workingDays = selectedAnnualPlan.working_days_year || 180;
-                    const periodsYear = selectedAnnualPlan.periods_year || 160;
-                    const durationPeriod = selectedAnnualPlan.duration_period || '45 minutes';
-
-                    const items = Array.isArray(selectedAnnualPlan.items) ? selectedAnnualPlan.items : [];
-
-                    const matrix: any[][] = [
-                      ['ZIQUALA ABO 1ST PRIMARY SCHOOL ANNUAL LESSON PLAN FORM'],
-                      [`Teacher Name: ${teacherName}`, `Subject: ${subject}`, `Grade: ${grade}`, `Academic Year: ${academicYear}`],
-                      [`Periods / Week: ${periodsWeek}`, `Working Days / Year: ${workingDays}`, `Periods / Year: ${periodsYear}`, `Duration / Period: ${durationPeriod}`],
-                      [],
-                      ['MONTH', 'WEEK', '# PERIODS', 'UNIT', 'MAIN CONTENT', 'SUB CONTENT', 'COMPETENCE', 'METHOD', 'AID', 'EVALUATION', 'REMARK']
-                    ];
-
-                    if (items.length > 0) {
-                      items.forEach((item: any, idx: number) => {
-                        matrix.push([
-                          item.month || '—',
-                          item.week || `Week ${(idx % 4) + 1}`,
-                          item.periods || item.periods_week || '—',
-                          item.unit || item.chapter_unit || '—',
-                          item.topic || item.topic_title || item.mainContent || '—',
-                          item.subTopic || item.subContent || '—',
-                          item.competence || '—',
-                          item.method || item.teaching_method || '—',
-                          item.aids || item.teaching_aids || '—',
-                          item.evaluation || '—',
-                          item.assessment || item.remark || '—'
-                        ]);
-                      });
-                    } else {
-                      matrix.push(['—', '—', '—', '—', '—', '—', '—', '—', '—', '—', '—']);
+                    const grade = selectedAnnualPlan.grade || '';
+                    const sheets = buildAnnualPlanExportSheets(selectedAnnualPlan);
+                    if (!sheets[0].rows?.length) {
+                      alert(uiText('No completed annual-plan entries are available to export.'));
+                      return;
                     }
-
-                    exportToExcel([{ name: 'Annual Lesson Plan', matrix }], `Annual_Plan_${teacherName.replace(/\s+/g, '_')}_${grade.replace(/\s+/g, '_')}`);
+                    exportToExcel(sheets, `Annual_Plan_${teacherName.replace(/\s+/g, '_')}_${grade.replace(/\s+/g, '_')}`);
                   }}
                   className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 shadow-md"
                 >
@@ -3335,6 +3264,13 @@ export const Teachers = () => {
         title={uiText("Teacher Staff Details")}
         staff={selectedStaff}
         onClose={() => setSelectedStaff(null)}
+        onSaved={user => {
+          setSelectedStaff((current: any) => current && current.userId === user.id
+            ? { ...current, ...user, id: current.id, staffProfile: { ...current.staffProfile, ...user.staff_profile } } : current);
+          teacherPaging.updateRows(rows => rows.map(row => row.user_id === user.id
+            ? { ...row, ...user, id: row.id, staffProfile: user.staff_profile } : row));
+          void fetchTeachers();
+        }}
         onRefresh={async () => {
           const freshList = await fetchTeachers();
           if (freshList) {
@@ -3958,7 +3894,7 @@ export const Teachers = () => {
       {/* Edit Modal */}
       {showEditModal && editingStaff && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 w-full max-w-md">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-blue-100 text-blue-600 rounded-lg"><Edit2 size={20} /></div>
@@ -3972,30 +3908,12 @@ export const Teachers = () => {
                 aria-label={uiText("Close edit modal")}
               ><X size={20} /></button>
             </div>
-            <form onSubmit={handleEdit} className="p-6 space-y-4">
-              <div>
-                <label htmlFor="edit-name" className="text-xs font-bold text-slate-500 uppercase">{uiText("Full Name")}</label>
-                <input
-                  id="edit-name"
-                  type="text"
-                  required
-                  value={editFormData.name}
-                  onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
-                  onBlur={(e) => { const c = e.target.value.trim().split(/\s+/).filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' '); setEditFormData({ ...editFormData, name: c }); }}
-                  className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label htmlFor="edit-email" className="text-xs font-bold text-slate-500 uppercase">{uiText("Email Address")}</label>
-                <input
-                  id="edit-email"
-                  type="email"
-                  required
-                  value={editFormData.email}
-                  onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })}
-                  className="w-full mt-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
+            <div className="p-6 space-y-4">
+              <StaffProfileEditor key={editingStaff.userId || editingStaff.id} staff={editingStaff} startEditing onSaved={user => {
+                  setEditingStaff((current: any) => ({ ...current, ...user, id: current.id, staffProfile: { ...current.staffProfile, ...user.staff_profile } }));
+                  teacherPaging.updateRows(rows => rows.map(row => row.user_id === user.id ? { ...row, ...user, id: row.id } : row));
+                  void fetchTeachers();
+              }} />
               <div className="flex flex-col gap-3 border-t border-b border-slate-100 dark:border-slate-800 py-4 my-2">
                 <div className="flex items-center justify-between gap-4">
                   <div>
@@ -4018,18 +3936,7 @@ export const Teachers = () => {
                   </div>
                 )}
               </div>
-              <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => setShowEditModal(false)}
-                  className="flex-1 px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg font-bold text-sm text-slate-500 hover:bg-slate-50"
-                  disabled={submitting}>{uiText(" Cancel ")}</button>
-                <button type="submit"
-                  className="flex-1 bg-blue-600 text-white font-bold py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-blue-700 disabled:opacity-50"
-                  disabled={submitting}>
-                  {submitting ? <Loader2 className="animate-spin" size={18} /> : <Check size={18} />}
-                  <span>{(submitting ? uiText('Saving...') : uiText('Save Changes'))}</span>
-                </button>
               </div>
-            </form>
           </div>
         </div>
       )}

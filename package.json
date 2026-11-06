@@ -11,6 +11,7 @@
     "check:localization": "node scripts/check-localization.cjs",
     "check:public-localization": "node scripts/check-public-localization.cjs",
     "check:public-loading": "node scripts/check-public-loading.cjs",
+    "check:public-performance": "node scripts/check-public-performance.cjs",
     "check:seo": "node scripts/check-seo.cjs",
     "check:security": "node scripts/check-security.cjs",
     "check:cache": "node scripts/check-cache.cjs",

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { uiText } from '../localization';
+import { publicText as uiText } from '../publicLocalization';
 
 type Field = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 const isField = (target: EventTarget | null): target is Field => target instanceof HTMLInputElement || target instanceof HTMLSelectElement || target instanceof HTMLTextAreaElement;

@@ -1,5 +1,5 @@
 import { LocalizedValidation } from './components/LocalizedValidation';
-import { uiText } from "./localization";
+import { publicText as uiText } from "./publicLocalization";
 import { useTranslation } from 'react-i18next';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { LandingPage, PublicLayout } from './pages/LandingPage';
@@ -14,6 +14,7 @@ import { isPublicContentPath } from './utils/publicRoutes';
 import { PageMetadata } from './components/PageMetadata';
 import { PublicAliasRedirect } from './components/PublicAliasRedirect';
 import { lazyWithRetry } from './utils/lazyWithRetry';
+import { PublicHeroFallback } from './components/PublicHeroFallback';
 
 const StaffCategoryPlaceholder = () => {
   const { t } = useTranslation();
@@ -75,7 +76,7 @@ const ChatbotManagement = lazyWithRetry(() => import('./pages/ChatbotManagement'
 const ELearningLibrary = lazyWithRetry(() => import('./pages/ELearningPage').then((m) => ({ default: m.ELearningPage })));
 const AcademicGradeManagement = lazy(() => import('./pages/AcademicGradeManagement').then((m) => ({ default: m.AcademicGradeManagement })));
 const StorekeeperPortal = lazy(() => import('./pages/StorekeeperPortal').then((m) => ({ default: m.StorekeeperPortal })));
-const PageLoader = () => (
+const PageLoader = () => /^\/(?:school\/?|)$/.test(window.location.pathname) ? <PublicHeroFallback /> : (
   <div className="min-h-[40vh] flex items-center justify-center">
     <div className="text-sm font-bold text-slate-500">{uiText("Loading page...")}</div>
   </div>

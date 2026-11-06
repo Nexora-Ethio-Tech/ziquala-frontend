@@ -1,6 +1,6 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
-import { uiText } from '../localization';
+import { publicText as uiText } from '../publicLocalization';
 import { publicText } from '../publicLocalization';
 
 interface Props {
