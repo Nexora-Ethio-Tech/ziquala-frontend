@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { clearListCache } from './listCache';
 import { API_BASE_URL } from '../config/api';
+import { isPublicContentPath } from '../utils/publicRoutes';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -28,6 +29,7 @@ api.interceptors.response.use(
   },
   async (error) => {
     const originalRequest = error.config;
+    if (!originalRequest) return Promise.reject(error);
 
     // If 401 and not already retried, try refresh token
     // But skip this entirely for auth endpoints — a 401 from /auth/login means wrong credentials,
@@ -43,7 +45,7 @@ api.interceptors.response.use(
         const refreshToken = localStorage.getItem('ziquala_refresh_token');
         const response = await axios.post(`${API_BASE_URL}/auth/refresh-token`, {
           refreshToken,
-        });
+        }, { timeout: 10000 });
 
         const { accessToken } = response.data.data;
         localStorage.setItem('ziquala_token', accessToken);
@@ -55,7 +57,7 @@ api.interceptors.response.use(
         localStorage.removeItem('ziquala_token');
         localStorage.removeItem('ziquala_refresh_token');
         localStorage.removeItem('ziquala_user');
-        window.location.href = '/login';
+        if (!isPublicContentPath(window.location.pathname)) window.location.href = '/login';
         return Promise.reject(refreshError);
       }
     }

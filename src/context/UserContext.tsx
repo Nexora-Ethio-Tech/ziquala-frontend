@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef, type ReactNode } from 'react';
 
 export type UserRole = 'super-admin' | 'academic-manager' | 'school-admin' | 'vice-principal' | 'teacher' | 'student' | 'parent' | 'librarian' | 'storekeeper';
 export type SessionRole = UserRole;
@@ -57,6 +57,7 @@ interface UserContextType {
   branches: Branch[];
   gradesLocked: boolean;
   setGradesLocked: (locked: boolean) => void;
+  reloadPublicSettings: () => Promise<void>;
   registrationOpen: boolean;
   setRegistrationOpen: (open: boolean) => void;
   gradeSubmissionOpen: boolean;
@@ -102,7 +103,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   // Do NOT trust localStorage on initial load. Start with null.
   // The verifyToken effect will restore the user ONLY if the token is valid.
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true); // Block rendering until verified
+  const [loading, setLoading] = useState(() => Boolean(localStorage.getItem('ziquala_token') || (demoModeEnabled && localStorage.getItem('ziquala_demo_user'))));
   const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
   const [branches, setBranches] = useState<Branch[]>([]); // Populated from API only
   // VP dual-role: persisted mode preference
@@ -186,9 +187,10 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   });
 
   // ─── Load public system settings (branding, global flags) ────────────────
-  useEffect(() => {
-    const loadPublicSettings = async () => {
-      try {
+  const publicSettingsRequest = useRef<Promise<void> | null>(null);
+  const reloadPublicSettings = useCallback(() => {
+    if (publicSettingsRequest.current) return publicSettingsRequest.current;
+    const request = (async () => {
         const { default: settingsService } = await import('../services/settingsService');
         const settings = await settingsService.getPublicSystemSettings();
         if (settings.school_name_oromic) {
@@ -214,37 +216,31 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         if (settings.grade_submission_open !== undefined) {
           setGradeSubmissionOpen(settings.grade_submission_open !== 'false');
         }
-      } catch {
-        // Keep local defaults if API unavailable
-      }
-    };
-    loadPublicSettings();
+    })();
+    publicSettingsRequest.current = request;
+    const clear = () => { if (publicSettingsRequest.current === request) publicSettingsRequest.current = null; };
+    void request.then(clear, clear);
+    return request;
   }, []);
+
+  // Public pages use authored content. Portal branding loads after verification.
+  useEffect(() => {
+    if (loading || !user) return;
+    void reloadPublicSettings().catch(() => { /* Keep display defaults; registration handles failures separately. */ });
+  }, [loading, user?.id, reloadPublicSettings]);
 
   // ─── Fetch Real Branches ───────────────────────────────────────────────────
   useEffect(() => {
+    if (loading || !user) {
+      setBranches([]);
+      setSelectedBranch(null);
+      return;
+    }
+    let active = true;
     const fetchBranches = async () => {
       try {
         const { default: api } = await import('../services/api');
         let apiBranches: Branch[] = [];
-
-        if (!user) {
-          try {
-            const res = await api.get('/guest/branches');
-            const data = res.data.data || res.data;
-            if (Array.isArray(data) && data.length > 0) {
-              apiBranches = data.map((b: any) => ({
-                id: b.id,
-                name: b.name,
-                location: b.address || b.location || 'N/A'
-              }));
-              setBranches(apiBranches);
-            }
-          } catch {
-            // Keep default branches
-          }
-          return;
-        }
 
         if (user.role === 'super-admin') {
           const res = await api.get('/super-admin/branches');
@@ -267,7 +263,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
           }
         } else {
           try {
-            const res = await api.get('/guest/branches');
+            const { branchService } = await import('../services/branchService');
+            const response = await branchService.getAllBranchesGuest();
+            const res = { data: response };
             const data = res.data.data || res.data;
             if (Array.isArray(data) && data.length > 0) {
               apiBranches = data.map((b: any) => ({
@@ -287,7 +285,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
           }
         }
 
-        if (apiBranches.length > 0) {
+        if (active && apiBranches.length > 0) {
           setBranches(apiBranches);
           const userBranchId = (user as any).branchId;
           const userBranchName = (user as any).branchName;
@@ -300,22 +298,23 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
           if (matched) {
             setSelectedBranch(matched);
             if ((user as any).branchName === 'My Branch' || !(user as any).branchName) {
-              setUser(prev => prev ? { ...prev, branchName: matched.name } as any : null);
+              setUser(prev => prev?.id === user.id ? { ...prev, branchName: matched.name } : prev);
             }
           }
         }
       } catch (err) {
-        console.error('Failed to fetch branches:', err);
+        if (import.meta.env.DEV) { console.error('Failed to fetch branches:', err); }
       }
     };
     fetchBranches();
-  }, [user]);
+    return () => { active = false; };
+  }, [loading, user?.id, user?.role, user?.branchId]);
 
   // ─── Token Verification on Load ────────────────────────────────────────────
   useEffect(() => {
     const verifyToken = async () => {
       const token = localStorage.getItem('ziquala_token');
-      console.log('[VerifyToken] Token exists:', !!token);
+      if (import.meta.env.DEV) { console.log('[VerifyToken] Token exists:', !!token); }
 
       if (!token) {
         if (demoModeEnabled) {
@@ -340,13 +339,13 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       try {
         // Use axios api instance instead of fetch to leverage interceptors
         const { default: api } = await import('../services/api');
-        console.log('[VerifyToken] Calling /auth/me...');
+        if (import.meta.env.DEV) { console.log('[VerifyToken] Calling /auth/me...'); }
         const res = await api.get('/auth/me');
 
         if (res.data.success) {
           const rawUser = res.data.data;
           const normalizedRole = normalizeUserRole(rawUser.role) || (rawUser.role as SessionRole);
-          console.log('[VerifyToken] Got user from /auth/me:', { role: rawUser.role, normalizedRole, email: rawUser.email });
+          if (import.meta.env.DEV) { console.log('[VerifyToken] Got user from /auth/me:', { role: rawUser.role, normalizedRole, email: rawUser.email }); }
 
           const user = {
             id: rawUser.id,
@@ -359,26 +358,26 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             status: rawUser.status,
             staffProfile: rawUser.staff_profile || rawUser.staffProfile,
           };
-          console.log('[VerifyToken] Setting user with role:', user.role);
+          if (import.meta.env.DEV) { console.log('[VerifyToken] Setting user with role:', user.role); }
           setUser(user);
           localStorage.setItem('ziquala_user', JSON.stringify(user));
         } else {
-          console.warn('[VerifyToken] /auth/me returned success: false', res.data);
+          if (import.meta.env.DEV) { console.warn('[VerifyToken] /auth/me returned success: false', res.data); }
           localStorage.removeItem('ziquala_user');
           localStorage.removeItem('ziquala_token');
           localStorage.removeItem('ziquala_refresh_token');
           setUser(null);
         }
       } catch (err) {
-        console.error('[VerifyToken] Error:', err instanceof Error ? err.message : err,
-          err instanceof Error && (err as any).response?.data ? (err as any).response.data : '');
+        if (import.meta.env.DEV) { console.error('[VerifyToken] Error:', err instanceof Error ? err.message : err,
+          err instanceof Error && (err as any).response?.data ? (err as any).response.data : ''); }
         // Token expired or invalid — force logout
         localStorage.removeItem('ziquala_user');
         localStorage.removeItem('ziquala_token');
         localStorage.removeItem('ziquala_refresh_token');
         setUser(null);
       } finally {
-        console.log('[VerifyToken] Done, setting loading: false');
+        if (import.meta.env.DEV) { console.log('[VerifyToken] Done, setting loading: false'); }
         setLoading(false);
       }
     };
@@ -487,7 +486,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       if (res.data.success) {
         const rawUser = res.data.data.user;
         const normalizedRole = normalizeUserRole(rawUser.role) || (rawUser.role as SessionRole);
-        console.log('[Login] Backend returned user:', { role: rawUser.role, normalizedRole, email: rawUser.email });
+        if (import.meta.env.DEV) { console.log('[Login] Backend returned user:', { role: rawUser.role, normalizedRole, email: rawUser.email }); }
 
         const user = {
           id: rawUser.id,
@@ -506,16 +505,16 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         localStorage.setItem('ziquala_refresh_token', res.data.data.refreshToken);
         localStorage.setItem('ziquala_user', JSON.stringify(user));
 
-        console.log('[Login] Tokens stored, setting user state...');
+        if (import.meta.env.DEV) { console.log('[Login] Tokens stored, setting user state...'); }
         setUser(user);
 
         const redirectUrl = getDashboardRoute(user.role);
-        console.log('[Login] Redirecting to:', redirectUrl, 'User role:', user.role);
+        if (import.meta.env.DEV) { console.log('[Login] Redirecting to:', redirectUrl, 'User role:', user.role); }
         return { success: true, redirect: redirectUrl };
       }
       return { success: false, error: res.data.error?.message || 'Invalid credentials' };
     } catch (err: any) {
-      console.error('Login error:', err);
+      if (import.meta.env.DEV) { console.error('Login error:', err); }
       return {
         success: false,
         error: err.response?.data?.error?.message || err.response?.data?.message || err.message || 'Unable to connect to server'
@@ -525,14 +524,14 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = async () => {
     try {
-      console.log("START");
+      if (import.meta.env.DEV) { console.log("START"); }
       const token = localStorage.getItem('ziquala_token');
       if (token) {
         const { default: api } = await import('../services/api');
         await api.post('/auth/logout');
       }
     } catch (err) {
-      console.error('Logout error:', err);
+      if (import.meta.env.DEV) { console.error('Logout error:', err); }
     } finally {
       setUser(null);
       setSelectedBranch(null);
@@ -547,7 +546,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const switchRole = async (_newRole: UserRole): Promise<string | null> => {
     // Note: Backend doesn't support role switching yet
     // This is a placeholder for future implementation
-    console.warn('Role switching not implemented in backend');
+    if (import.meta.env.DEV) { console.warn('Role switching not implemented in backend'); }
     return null;
   };
 
@@ -561,6 +560,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       branches,
       gradesLocked,
       setGradesLocked,
+      reloadPublicSettings,
       registrationOpen,
       setRegistrationOpen,
       gradeSubmissionOpen,

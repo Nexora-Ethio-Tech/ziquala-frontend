@@ -28,7 +28,8 @@ const unwrap = (response: any): WebsiteContentItem[] => response.data?.data || [
 
 export const websiteContentService = {
   async getPublic(type?: WebsiteContentType): Promise<WebsiteContentItem[]> {
-    const response = await api.get('/website-content/public', { params: type ? { type } : undefined });
+    const response = await api.get('/website-content/public', { params: type ? { type } : undefined, timeout: 15000 });
+    if (response.data?.success !== true || !Array.isArray(response.data.data)) throw new Error('Public content unavailable');
     return unwrap(response);
   },
 

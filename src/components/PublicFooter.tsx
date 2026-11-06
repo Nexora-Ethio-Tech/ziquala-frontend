@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { Clock3, Mail, MapPin, Phone } from 'lucide-react';
 import { publicContact, publicNavigation, socialLinks } from '../data/ziqualaContent';
-import schoolLogo from '../assets/school/school-logo.jpg';
+import schoolLogo from '../assets/school/school-logo.webp';
 
 export const PublicFooter = () => {
   const { t } = useTranslation('public');
@@ -11,7 +11,7 @@ export const PublicFooter = () => {
       <div className="mx-auto grid max-w-7xl gap-10 px-5 py-14 lg:grid-cols-[1fr_.65fr_1.3fr] lg:px-8">
         <div>
           <Link to="/" className="flex items-center gap-3">
-            <img src={schoolLogo} alt="" className="h-12 w-12 shrink-0 rounded-full border border-slate-200 object-cover" />
+            <img width={160} height={159} decoding="async" src={schoolLogo} alt="" className="h-12 w-12 shrink-0 rounded-full border border-slate-200 object-cover" />
             <span className="text-xl font-bold">{t('contact.identity')}</span>
           </Link>
           <p className="mt-5 text-base leading-8 text-slate-600 dark:text-slate-200">{t('contact.summary')}</p>

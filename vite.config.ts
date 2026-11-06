@@ -2,9 +2,13 @@ import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { createRequire } from 'node:module';
+import fs from 'node:fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const { getHeaders, writeBuildHeaders } = createRequire(import.meta.url)('./scripts/security-headers.cjs');
+const { previewCachePlugin } = createRequire(import.meta.url)('./scripts/cache-headers.cjs');
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -23,7 +27,11 @@ export default defineConfig(({ mode }) => {
         : undefined;
 
     return {
-        plugins: [react()],
+        plugins: [react(), {
+            name: 'ziquala-security-headers',
+            apply: 'build',
+            closeBundle() { writeBuildHeaders(env.VITE_API_URL); }
+        }, previewCachePlugin()],
 
         // Build configuration
         build: {
@@ -38,10 +46,11 @@ export default defineConfig(({ mode }) => {
                     // Manual chunk splitting for better caching
                     manualChunks(id) {
                         if (id.includes('node_modules')) {
-                            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) {
+                            const modulePath = id.replace(/\\/g, '/');
+                            if (/\/node_modules\/(react|react-dom|react-router|react-router-dom|scheduler)\//.test(modulePath)) {
                                 return 'react-vendor';
                             }
-                            if (id.includes('framer-motion') || id.includes('lucide-react')) {
+                            if (id.includes('lucide-react')) {
                                 return 'ui-vendor';
                             }
                             if (id.includes('zustand')) {
@@ -56,7 +65,7 @@ export default defineConfig(({ mode }) => {
                     assetFileNames: (assetInfo) => {
                         const info = assetInfo.name?.split('.') || [];
                         const ext = info[info.length - 1];
-                        if (/png|jpe?g|svg|gif|tiff|bmp|ico/i.test(ext)) {
+                        if (/png|jpe?g|webp|avif|svg|gif|tiff|bmp|ico/i.test(ext)) {
                             return `assets/images/[name]-[hash][extname]`;
                         } else if (/woff|woff2|eot|ttf|otf/i.test(ext)) {
                             return `assets/fonts/[name]-[hash][extname]`;
@@ -78,6 +87,10 @@ export default defineConfig(({ mode }) => {
 
         // Preview server configuration
         preview: {
+            // Exercise exactly the headers emitted for this build, including its API origin.
+            headers: fs.existsSync(path.join(__dirname, 'dist/security-headers.json'))
+                ? JSON.parse(fs.readFileSync(path.join(__dirname, 'dist/security-headers.json'), 'utf8'))
+                : getHeaders(env.VITE_API_URL),
             port: 4173,
             host: true,
             strictPort: false

@@ -1,3 +1,24 @@
+# BEGIN Ziquala security headers
+<IfModule mod_headers.c>
+    Header onsuccess unset Content-Security-Policy
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'sha256-xjSg6ojfaVHOwm5D4WZzrHVHDkXkLSDPHlySN1kJEYg='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://api.ziquala.com; media-src 'self' blob: https:; frame-src 'self' blob: https://drive.google.com https://www.youtube.com https://www.youtube-nocookie.com; object-src 'self' blob:; worker-src 'self' blob:; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"
+    Header onsuccess unset Content-Security-Policy-Report-Only
+    Header always set Content-Security-Policy-Report-Only "require-trusted-types-for 'script'"
+    Header onsuccess unset Strict-Transport-Security
+    Header always set Strict-Transport-Security "max-age=31536000"
+    Header onsuccess unset Cross-Origin-Opener-Policy
+    Header always set Cross-Origin-Opener-Policy "same-origin"
+    Header onsuccess unset X-Frame-Options
+    Header always set X-Frame-Options "DENY"
+    Header onsuccess unset X-Content-Type-Options
+    Header always set X-Content-Type-Options "nosniff"
+    Header onsuccess unset Referrer-Policy
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header onsuccess unset Permissions-Policy
+    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+</IfModule>
+# END Ziquala security headers
+
 DirectoryIndex index.html
 
 # ── MIME Types (critical for JS module scripts) ──────────────────────────────
@@ -11,26 +32,40 @@ DirectoryIndex index.html
     AddType font/woff2                      .woff2
 </IfModule>
 
-# ── Prevent caching of index.html so SPA updates take effect immediately ─────
+# BEGIN Ziquala cache policy
+# Disable inherited MIME-wide expiry rules; fixed-name files must revalidate.
+<IfModule mod_expires.c>
+    ExpiresActive Off
+</IfModule>
+<IfModule mod_headers.c>
+    Header onsuccess unset Cache-Control
+    Header always set Cache-Control "no-cache"
+    Header onsuccess unset Expires
+    Header always unset Expires
+    Header onsuccess unset Pragma
+    Header always unset Pragma
+    # Only successful, existing, content-hashed build assets are immutable.
+    Header always set Cache-Control "public, max-age=31536000, immutable" "expr=%{REQUEST_URI} =~ m#^/assets/(?:[^/]+/)*[^/]+-[A-Za-z0-9_-]{8}\.(?:js|mjs|css|png|jpe?g|webp|avif|svg|gif|ico|woff2?|ttf|otf|eot|wasm|mp4|webm|ogg|mp3)$#i && -f %{REQUEST_FILENAME} && %{REQUEST_STATUS} =~ m#^(200|206|304)$#"
+    Header always set Cache-Control "private, no-store" "expr=%{REQUEST_URI} =~ m#^/api(?:/|$)#"
+    Header always set Cache-Control "no-store" "expr=%{REQUEST_STATUS} >= 400"
+</IfModule>
 <FilesMatch "\.(html|htm)$">
     <IfModule mod_headers.c>
-        Header set Cache-Control "no-cache, no-store, must-revalidate"
-        Header set Pragma "no-cache"
-        Header set Expires "0"
+        Header always set Cache-Control "no-cache, no-store, must-revalidate"
     </IfModule>
 </FilesMatch>
-
-# ── Caching for static assets ────────────────────────────────────────────────
-<IfModule mod_expires.c>
-    ExpiresActive On
-    ExpiresByType application/javascript    "access plus 1 year"
-    ExpiresByType text/css                  "access plus 1 year"
-    ExpiresByType image/svg+xml             "access plus 1 year"
-    ExpiresByType font/woff2                "access plus 1 year"
-</IfModule>
+# END Ziquala cache policy
 
 # ── SPA Rewrite (exclude real files AND the assets folder) ───────────────────
 RewriteEngine On
+
+# Preserve canonical public URLs and serve their generated metadata before React.
+RewriteRule ^contact-us/?$ /contact [R=301,L]
+RewriteRule ^(about|programs|school-life)/?$ /school [R=301,L]
+RewriteRule ^(school|monastery|elearning|news|contact|portal|login|register)/?$ $1.html [L]
+
+# Crawl files must be served directly, or return 404 if absent, never the SPA.
+RewriteRule ^(robots\.txt|sitemap\.xml)$ - [L]
 
 # Do NOT rewrite actual files or directories
 RewriteCond %{REQUEST_FILENAME} !-f

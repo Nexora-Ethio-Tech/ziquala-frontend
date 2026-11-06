@@ -1,4 +1,5 @@
 import { uiError, uiText } from "../localization";
+import { publicText } from '../publicLocalization';
 
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -203,11 +204,17 @@ function validateRegistrationStep(step: number, formData: any): ValidationErrors
     if (!formData.gender) {
       errors.gender = 'Gender is required';
     }
+    if (!formData.address || !formData.address.trim()) {
+      errors.address = 'Address is required';
+    }
   } else if (step === 2) {
     const fatherNameVal = formData.fatherName || formData.parentName;
     if (!fatherNameVal || !fatherNameVal.trim()) {
       errors.fatherName = "Father's Full Name is required";
 
+    }
+    if (!formData.motherName || !formData.motherName.trim()) {
+      errors.motherName = publicText('copy.motherNameRequired');
     }
     const fatherPhoneVal = formData.fatherPhone || formData.phone;
     if (!fatherPhoneVal || !fatherPhoneVal.trim()) {
@@ -218,9 +225,6 @@ function validateRegistrationStep(step: number, formData: any): ValidationErrors
       if (!phoneValidation.isValid) {
         errors.phone = phoneValidation.error || 'Invalid phone number';
       }
-    }
-    if (!formData.address || !formData.address.trim()) {
-      errors.address = 'Address is required';
     }
   } else if (step === 3) {
     if (!formData.grade || !formData.grade.trim()) {
@@ -242,6 +246,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
   const { role, user, selectedBranch, branches, registrationOpen, setRegistrationOpen } = useUser();
   const isAcademicAdmin = role === 'super-admin' || role === 'academic-manager' || role === 'school-admin';
   const formRef = useRef<HTMLFormElement>(null);
+  const registrationInFlight = useRef(false);
   // Track if showing the active application error (NOT permanently blocking all submissions)
   const [activeApplicationError, setActiveApplicationError] = useState<string | null>(null);
 
@@ -271,8 +276,11 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
   const [selectedAppForGrade, setSelectedAppForGrade] = useState<string | null>(null);
   const [selectedGrade, setSelectedGrade] = useState<string | null>(null);
   const [branchesList, setBranchesList] = useState<{ id: string; name: string }[]>(() =>
-    ziqualaBranches.map(({ id, name }) => ({ id, name })),
+    isAdminView ? ziqualaBranches.map(({ id, name }) => ({ id, name })) : [],
   );
+  const [branchLoadError, setBranchLoadError] = useState(false);
+  const [branchesLoading, setBranchesLoading] = useState(true);
+  const [branchAttempt, setBranchAttempt] = useState(0);
   const [selectedBranchName, setSelectedBranchName] = useState('');
   const [expandedAppIds, setExpandedAppIds] = useState<Record<string, boolean>>({});
   const [credentialsModal, setCredentialsModal] = useState<{
@@ -305,19 +313,24 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
   useEffect(() => {
     let isMounted = true;
     const loadBranches = async () => {
+      setBranchLoadError(false);
+      setBranchesLoading(true);
       try {
         const res = await branchService.getAllBranchesGuest();
         const list = Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []);
-        if (isMounted && list.length > 0) {
+        if (isMounted) {
           setBranchesList(list.map((b: any) => ({ id: b.id, name: b.name })));
         }
       } catch (err) {
-        console.error('Failed to load branches in registration form:', err);
+        if (isMounted) setBranchLoadError(true);
+        if (import.meta.env.DEV) { console.error('Failed to load branches in registration form:', err); }
+      } finally {
+        if (isMounted) setBranchesLoading(false);
       }
     };
     loadBranches();
     return () => { isMounted = false; };
-  }, []);
+  }, [branchAttempt]);
 
   // Sync branches from context when available
   useEffect(() => {
@@ -334,7 +347,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
       setSuccessMessage(uiText("Registration is now {{value0}}.", { value0: uiText(newValue ? 'open' : 'closed') }));
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err: any) {
-      console.error('Failed to toggle registration:', err);
+      if (import.meta.env.DEV) { console.error('Failed to toggle registration:', err); }
       setSubmitError(err.response?.data?.message || 'Failed to update registration status.');
       setTimeout(() => setSubmitError(null), 5000);
     }
@@ -372,10 +385,10 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
         const mapped = applications.map(mapApiApplicationToPendingApp);
         setPendingApps(mapped);
       } else {
-        console.warn('Unexpected pending applications response:', res);
+        if (import.meta.env.DEV) { console.warn('Unexpected pending applications response:', res); }
       }
     } catch (err: any) {
-      console.error('Failed to fetch pending applications:', err);
+      if (import.meta.env.DEV) { console.error('Failed to fetch pending applications:', err); }
       setAppsError(err?.response?.data?.error?.message || err?.response?.data?.message || err?.message || 'Failed to fetch pending applications');
     } finally {
       setLoadingApps(false);
@@ -403,7 +416,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
         objectUrl = URL.createObjectURL(blob);
         setTranscriptUrl(objectUrl);
       } catch (err: any) {
-        console.error('Transcript fetch error', err);
+        if (import.meta.env.DEV) { console.error('Transcript fetch error', err); }
         const status = err.response?.status;
         const serverMessage = err.response?.data?.message || err.response?.data?.error || err.message;
         setTranscriptError(status ? `Failed to load transcript (${status})` : serverMessage || 'Failed to load transcript');
@@ -519,8 +532,9 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
       return;
     }
 
-    if (isSubmitting) return; // Guard against double-submission
+    if (registrationInFlight.current) return;
 
+    setSubmitError(null);
     setValidationErrors({});
     setActiveApplicationError(null);
 
@@ -529,6 +543,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
       return;
     }
 
+    registrationInFlight.current = true;
     setIsSubmitting(true);
 
     try {
@@ -689,7 +704,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
         setTimeout(() => setSuccessMessage(null), 3000);
       }
     } catch (error: any) {
-      console.error(error);
+      if (import.meta.env.DEV) { console.error(error); }
       const errorMessage = error.response?.data?.error?.message || error.response?.data?.message || error.message || 'Failed to submit application';
       const errorObj = error.response?.data?.errors || {};
       const errorCode = error.response?.data?.error?.code;
@@ -705,9 +720,9 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
 
       // Auto-jump to the step containing the error so the user can actually see it
       if (errorObj) {
-        if (errorObj.name || errorObj.digital_id || errorObj.dob || errorObj.gender) {
+        if (errorObj.name || errorObj.digital_id || errorObj.dob || errorObj.gender || errorObj.address) {
           setRegistrationStep(1);
-        } else if (errorObj.parentName || errorObj.parentPhone || errorObj.phone || errorObj.address) {
+        } else if (errorObj.parentName || errorObj.parentPhone || errorObj.phone || errorObj.fatherName || errorObj.fatherPhone || errorObj.motherName) {
           setRegistrationStep(2);
         } else if (errorObj.previousSchool || errorObj.grade || errorObj.branchName) {
           setRegistrationStep(3);
@@ -722,6 +737,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
         setTimeout(() => setSubmitError(null), 5000);
       }
     } finally {
+      registrationInFlight.current = false;
       setIsSubmitting(false);
     }
   };
@@ -741,7 +757,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
       if (app) showPhoneNotice(app.phone, 'Application not accepted — contact family by phone');
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err: any) {
-      console.error(err);
+      if (import.meta.env.DEV) { console.error(err); }
       setSubmitError(err.response?.data?.error?.message || err.message);
       setTimeout(() => setSubmitError(null), 5000);
     }
@@ -754,7 +770,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
       setSuccessMessage(uiText("Applicant moved to Pass After Exam queue."));
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err: any) {
-      console.error(err);
+      if (import.meta.env.DEV) { console.error(err); }
       setSubmitError(err.response?.data?.error?.message || err.message);
       setTimeout(() => setSubmitError(null), 5000);
     }
@@ -799,7 +815,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
       setSelectedGrade(null);
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err: any) {
-      console.error(err);
+      if (import.meta.env.DEV) { console.error(err); }
       setSubmitError(err.response?.data?.error?.message || err.message);
       setTimeout(() => setSubmitError(null), 5000);
     }
@@ -862,7 +878,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
       }
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err: any) {
-      console.error(err);
+      if (import.meta.env.DEV) { console.error(err); }
       setSubmitError(err.response?.data?.error?.message || err.response?.data?.message || err.message || 'Failed to complete enrollment');
       setTimeout(() => setSubmitError(null), 5000);
     } finally {
@@ -883,7 +899,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
         setTimeout(() => setSuccessMessage(null), 3000);
       }
     } catch (err: any) {
-      console.error(err);
+      if (import.meta.env.DEV) { console.error(err); }
       setSubmitError(err.response?.data?.error?.message || err.message);
       setTimeout(() => setSubmitError(null), 5000);
     }
@@ -925,6 +941,9 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
           <span className="font-bold text-sm">{uiError(submitError)}</span>
         </div>
       ))}
+      {Object.keys(validationErrors).length > 0 && <div role="alert" className="rounded-xl border border-rose-300 bg-rose-50 p-5 text-rose-800 dark:border-rose-700 dark:bg-rose-950 dark:text-rose-200">
+        <ul className="list-disc pl-5">{Object.entries(validationErrors).map(([field, message]) => <li key={field}>{uiText(message)}</li>)}</ul>
+      </div>}
 
       {isAdminView && (
         <div className="flex flex-col sm:flex-row gap-2 p-1.5 bg-slate-100 dark:bg-slate-800/50 rounded-2xl w-fit border border-slate-200 dark:border-slate-800">
@@ -1524,6 +1543,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                     <label className="text-base font-bold text-slate-600 dark:text-slate-200 uppercase flex items-center gap-1">{uiText("Last Grade Completed ")}<span className="text-rose-700 dark:text-rose-300">{uiText("*")}</span></label>
                     <select
                       name="grade"
+                      aria-label={uiText('Last Grade Completed')}
                       required
                       onChange={(e) => {
                         if (e.target.value.trim()) {
@@ -1611,6 +1631,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                     return (
                       <select
                         name="branchName"
+                        aria-label={uiText('Branch')}
                         required
                         value={selectedBranchName}
                         onChange={(e) => {
@@ -1640,6 +1661,12 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                       <AlertTriangle size={12} /> {uiText(validationErrors.branchName)}
                     </p>
                   ))}
+                  {!isAdminView && branchLoadError && <div role="alert" className="mt-3 text-slate-600 dark:text-slate-200">
+                    <p>{uiText('The request could not be completed. Please try again.')}</p>
+                    <button type="button" onClick={() => setBranchAttempt(value => value + 1)} className="min-h-11 font-bold underline">{t('library.retry', { ns: 'public' })}</button>
+                  </div>}
+                  {!isAdminView && branchesLoading && <p role="status">{uiText('Loading...')}</p>}
+                  {!isAdminView && !branchesLoading && !branchLoadError && branchesList.length === 0 && <p role="status" className="mt-3 text-slate-600 dark:text-slate-200">{t('copy.admissionCampusUnavailable', { ns: 'public' })} <a href="/contact" className="font-bold underline">{t('contact.title', { ns: 'public' })}</a></p>}
                 </div>
               </div>
 
@@ -1659,7 +1686,7 @@ export const StudentRegistration = ({ isAdminView = true, onCreated }: StudentRe
                 ) : (
                   <button
                     type="submit"
-                    disabled={isSubmitting || !!activeApplicationError}
+                    disabled={isSubmitting || !!activeApplicationError || (!isAdminView && branchesList.length === 0)}
                     className="w-full sm:w-auto bg-brand-forest-700 hover:bg-brand-forest-800 text-white px-10 py-3 rounded-xl font-bold transition-all shadow-lg disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     {uiText(isSubmitting ? (

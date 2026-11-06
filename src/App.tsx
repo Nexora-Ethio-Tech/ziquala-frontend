@@ -2,18 +2,18 @@ import { LocalizedValidation } from './components/LocalizedValidation';
 import { uiText } from "./localization";
 import { useTranslation } from 'react-i18next';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { Layout } from './layout/Layout';
 import { LandingPage, PublicLayout } from './pages/LandingPage';
-import { ContactPage } from './pages/ContactPage';
 import { PublicFooter } from './components/PublicFooter';
-import { Login } from './pages/Login';
-import { Register } from './pages/Register';
 import { useUser, type UserRole } from './context/UserContext';
 import { Suspense, lazy, type ReactNode } from 'react';
 import ScrollToTop from './components/ScrollToTop';
 import { Chatbot } from './components/Chatbot';
 
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { isPublicContentPath } from './utils/publicRoutes';
+import { PageMetadata } from './components/PageMetadata';
+import { PublicAliasRedirect } from './components/PublicAliasRedirect';
+import { lazyWithRetry } from './utils/lazyWithRetry';
 
 const StaffCategoryPlaceholder = () => {
   const { t } = useTranslation();
@@ -25,25 +25,10 @@ const StaffCategoryPlaceholder = () => {
 };
 //import LandingPage from './pages/LandingPage/LandingPage';
 
-// Helper to automatically retry dynamic import failures caused by deployment chunk hash changes
-const lazyWithRetry = (componentImport: () => Promise<any>) =>
-  lazy(async () => {
-    const pageHasBeenRefreshed = JSON.parse(
-      window.sessionStorage.getItem('page_has_been_refreshed') || 'false'
-    );
-    try {
-      const component = await componentImport();
-      window.sessionStorage.setItem('page_has_been_refreshed', 'false');
-      return component;
-    } catch (error) {
-      if (!pageHasBeenRefreshed) {
-        window.sessionStorage.setItem('page_has_been_refreshed', 'true');
-        window.location.reload();
-        return new Promise(() => {});
-      }
-      throw error;
-    }
-  });
+const Layout = lazyWithRetry(() => import('./layout/Layout').then(m => ({ default: m.Layout })));
+const Login = lazyWithRetry(() => import('./pages/Login').then(m => ({ default: m.Login })));
+const Register = lazyWithRetry(() => import('./pages/Register').then(m => ({ default: m.Register })));
+const ContactPage = lazyWithRetry(() => import('./pages/ContactPage').then(m => ({ default: m.ContactPage })));
 
 const Dashboard = lazyWithRetry(() => import('./pages/Dashboard').then((m) => ({ default: m.Dashboard })));
 const Students = lazyWithRetry(() => import('./pages/Students').then((m) => ({ default: m.Students })));
@@ -87,7 +72,7 @@ const VPCommunication = lazyWithRetry(() => import('./pages/VPCommunication').th
 const LibrarianStaff = lazyWithRetry(() => import('./pages/LibrarianStaff').then((m) => ({ default: m.LibrarianStaff })));
 const StudentSchedulePage = lazyWithRetry(() => import('./pages/StudentSchedule'));
 const ChatbotManagement = lazyWithRetry(() => import('./pages/ChatbotManagement'));
-const ELearningLibrary = lazy(() => import('./pages/ELearningPage').then((m) => ({ default: m.ELearningPage })));
+const ELearningLibrary = lazyWithRetry(() => import('./pages/ELearningPage').then((m) => ({ default: m.ELearningPage })));
 const AcademicGradeManagement = lazy(() => import('./pages/AcademicGradeManagement').then((m) => ({ default: m.AcademicGradeManagement })));
 const StorekeeperPortal = lazy(() => import('./pages/StorekeeperPortal').then((m) => ({ default: m.StorekeeperPortal })));
 const PageLoader = () => (
@@ -145,14 +130,13 @@ const ProtectedRoute = ({
   return children;
 };
 
-function App() {
+function AppContent() {
   useTranslation();
   const { user, role, loading, activeVPMode, isVPTeacher } = useUser();
+  const location = useLocation();
 
-  // ─── Block ALL rendering until token verification completes ────────────────
-  // Without this, ProtectedRoute would see user=null briefly and redirect to /login
-  // even for legitimate users refreshing the page.
-  if (loading) {
+  // Protected and account routes wait for verified identity; public content does not.
+  if (loading && !isPublicContentPath(location.pathname)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white dark:bg-slate-950">
         <div className="flex flex-col items-center gap-4">
@@ -164,16 +148,15 @@ function App() {
   }
 
   return (
-    <BrowserRouter>
+    <>
       <LocalizedValidation />
-      <ScrollToTop />
       <Suspense fallback={<PageLoader />}>
         <Routes>
           {/* Public Routes */}
           <Route path="/contact" element={<PublicLayout />}>
             <Route index element={<ContactPage />} />
           </Route>
-          <Route path="/contact-us" element={<Navigate to="/contact" replace />} />
+          <Route path="/contact-us" element={<PublicAliasRedirect to="/contact" />} />
           <Route
             path="/login"
             element={user ? <Navigate to={getDashboardRoute(role)} replace /> : <Login />}
@@ -183,7 +166,7 @@ function App() {
             element={user ? <Navigate to={getDashboardRoute(role)} replace /> : <Register />}
           />
 
-          {!user ? (
+          {!user || isPublicContentPath(location.pathname) ? (
             <>
               <Route path="/*" element={<LandingPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
@@ -425,8 +408,10 @@ function App() {
       </Suspense>
       <PublicFooter />
       <Chatbot />
-    </BrowserRouter>
+    </>
   );
 }
 
-export default App;
+export default function App() {
+  return <BrowserRouter><PageMetadata /><ScrollToTop /><AppContent /></BrowserRouter>;
+}

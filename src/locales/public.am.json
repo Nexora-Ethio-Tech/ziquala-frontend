@@ -1,5 +1,14 @@
 {
   "copy": {
+    "clearChat": "ውይይቱን አጽዳ",
+    "chatPrivacyNotice": "መልእክቶች በውጭ አጋዥ አገልግሎት ሊሠሩ ይችላሉ። ሚስጥራዊ መረጃ አያጋሩ። ውይይትን ማጽዳት በዚህ ገጽ ላይ ያለውን ውይይት ብቻ ያስወግዳል።",
+    "admissionPrivacyNotice": "የማመልከቻ መረጃዎና በምርጫ ያያያዙት የውጤት መዝገብ ለቅበላ ግምገማ ወደ ትምህርት ቤቱ ይላካሉ። ለማመልከቻው አስፈላጊ የሆነውን መረጃ ብቻ ያካትቱ።",
+    "contactPrivacyNotice": "ሠራተኞች ምላሽ እንዲሰጡ የመገናኛ መረጃዎና መልእክትዎ ወደ ትምህርት ቤቱ ኢሜይል ይላካሉ። የይለፍ ቃሎችን ወይም ሚስጥራዊ የተማሪ መዝገቦችን አያካትቱ።",
+    "admissionSubmissionHelp": "ማመልከቻ ለማስገባት መረጃዎን ያቅርቡ። ትምህርት ቤቱ ማመልከቻውን ገምግሞ ያነጋግርዎታል።",
+    "clipboardUnavailable": "በቀጥታ መቅዳት አልተቻለም። ከላይ ያለውን የሂሳብ ቁጥር መርጠው በእጅ ይቅዱ።",
+    "admissionCampusUnavailable": "ለመስመር ላይ ማመልከቻ የሚገኙ ቅርንጫፎች የሉም። እባክዎ ትምህርት ቤቱን ያነጋግሩ።",
+    "motherNameRequired": "የእናት ሙሉ ስም ያስፈልጋል።",
+    "skipToMainContent": "ወደ ዋናው ይዘት ይሂዱ",
     "19281933": "1928–1933 ዓ.ም",
     "primaryGrade18": "የመጀመሪያ ደረጃ · ከ1-8ኛ ክፍል",
     "ziqualaAboSchoolHome": "ዝቋላ አቦ ትምህርት ቤት ቤት",
@@ -79,7 +88,7 @@
     "aPublicSpaceForExtracurricularActivitiesCeremoniesSchoolEventsClu": "ከመደበኛ ትምህርት ውጭ የሚካሄዱ እንቅስቃሴዎች፣ ሥነ-ሥርዓቶች፣ የትምህርት ቤት ዝግጅቶች፣ ክበቦች፣ የተማሪዎች ስኬቶችና የማኅበረሰብ ዜናዎች የሚቀርቡበት ገጽ።",
     "communityActivitiesAndEvents": "የማኅበረሰብ እንቅስቃሴዎችና ዝግጅቶች",
     "uniformIdentityAndSchoolPride": "የደንብ ልብስ፣ ማንነትና በትምህርት ቤት መኩራት",
-    "theSuperAdminCanPublishStudentPhotosAndShortExplanationsHereToSho": "የዝቋላ የደንብ ልብስ ንጽሕናን፣ ሥነ-ሥርዓትን፣ አንድነትንና የማኅበረሰቡ አባል መሆንን እንዴት እንደሚያንጸባርቅ የሚያሳዩ የተማሪዎች ፎቶዎችና አጫጭር ማብራሪያዎች እዚህ ይቀርባሉ።",
+    "theSuperAdminCanPublishStudentPhotosAndShortExplanationsHereToSho": "ትምህርት ቤቱ ሲያትም የደንብ ልብስ ታሪኮች እዚህ ይታያሉ።",
     "studentVoice": "የተማሪዎች ድምፅ",
     "studentsCanExplainTheUniquenessOfTheirUniformWhatEachPartRepresen": "ተማሪዎች የደንብ ልብሳቸውን ልዩነት፣ እያንዳንዱ ክፍሉ የሚወክለውን ትርጉምና ከትምህርት ቤቱ ማንነት ጋር ያለውን ግንኙነት ያብራራሉ።",
     "uniformStories": "የደንብ ልብሳችን ታሪኮች",
@@ -538,10 +547,16 @@
     "change": "ቋንቋ ይቀይሩ"
   },
   "library": {
+    "dismiss": "ማሰሱን ይቀጥሉ",
+    "bookUnavailable": "ይህ መጽሐፍ አይገኝም። ሌሎች መጻሕፍትን በቤተ መጻሕፍቱ ይፈልጉ።",
+    "retry": "እንደገና ይሞክሩ",
+    "loadError": "ቤተ መጻሕፍቱን መጫን አልተቻለም። እባክዎ እንደገና ይሞክሩ።",
     "resultCount_one": "{{count}} መጽሐፍ ተገኝቷል",
     "resultCount_other": "{{count}} መጻሕፍት ተገኝተዋል"
   },
   "chat": {
+    "minimize": "ውይይቱን ያሳንሱ",
+    "restore": "ውይይቱን ይመልሱ",
     "helloIAmTheZiqualaAboSchoolAssistantICanHelpYouWithSchoolPolicies": "ሀሎ! እኔ የዝቋላ አቦ ትምህርት ቤት ረዳት ነኝ። በትምህርት ቤት ፖሊሲዎች፣ መርሃ ግብሮች እና የአካዳሚክ ሪፖርቶች ልረዳህ እችላለሁ። ዛሬ እንዴት ልረዳህ እችላለሁ?",
     "errorCouldNotReachTheServerPleaseTryAgainLater": "**ስህተት:** አገልጋዩን ማግኘት አልተቻለም። እባክዎ ቆይተው እንደገና ይሞክሩ።",
     "askAssistant": "ረዳቱን ይጠይቁ",

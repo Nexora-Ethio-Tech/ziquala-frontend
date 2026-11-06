@@ -226,7 +226,7 @@ export const createPendingApplication = async (data: any) => {
     });
     return response.data;
   } catch (error: any) {
-    console.error('Error submitting application:', error.response?.data || error.message);
+    if (import.meta.env.DEV) { console.error('Error submitting application:', error.response?.data || error.message); }
     throw error;
   }
 };
@@ -288,10 +288,11 @@ export const updateStudentAdmissionRecord = async (
 export const createPublicPendingApplication = async (data: any) => {
   // Public landing-page application submission without auth token
   try {
-    const response = await axios.post(`${API_BASE_URL}/school-admin/public/applications`, data);
+    const response = await axios.post(`${API_BASE_URL}/school-admin/public/applications`, data, { timeout: 30000 });
+    if (response.data?.success !== true) throw new Error('Failed to submit application');
     return response.data;
   } catch (error: any) {
-    console.error('Error submitting public application:', error.response?.data || error.message);
+    if (import.meta.env.DEV) { console.error('Error submitting public application:', error.response?.data || error.message); }
     throw error;
   }
 };

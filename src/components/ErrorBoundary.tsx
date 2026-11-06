@@ -1,6 +1,7 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
-import { uiError, uiText } from '../localization';
+import { uiText } from '../localization';
+import { publicText } from '../publicLocalization';
 
 interface Props {
   children: ReactNode;
@@ -13,6 +14,7 @@ interface State {
 }
 
 export class ErrorBoundary extends Component<Props, State> {
+  private fallbackRef = React.createRef<HTMLDivElement>();
   public state: State = {
     hasError: false,
     error: null,
@@ -23,7 +25,8 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error("Uncaught error caught by ErrorBoundary:", error, errorInfo);
+    if (import.meta.env.DEV) console.error("Uncaught error caught by ErrorBoundary:", error, errorInfo);
+    this.fallbackRef.current?.focus();
   }
 
   public handleReset = () => {
@@ -37,14 +40,14 @@ export class ErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <div className="p-6 m-4 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-3xl text-center space-y-4 shadow-xl max-w-xl mx-auto my-12">
+        <div ref={this.fallbackRef} role="alert" tabIndex={-1} className="p-6 m-4 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-3xl text-center space-y-4 shadow-xl max-w-xl mx-auto my-12">
           <div className="w-12 h-12 bg-rose-100 dark:bg-rose-900/50 text-rose-600 rounded-2xl flex items-center justify-center mx-auto">
             <AlertTriangle size={24} />
           </div>
           <div>
             <h3 className="text-lg font-black text-rose-900 dark:text-rose-200">{uiText('Something went wrong')}</h3>
             <p className="text-xs text-rose-600 dark:text-rose-400 mt-1">
-              {uiError(this.state.error?.message || 'An unexpected rendering error occurred.')}
+              {uiText('The request could not be completed. Please try again.')}
             </p>
           </div>
           <button
@@ -57,6 +60,7 @@ export class ErrorBoundary extends Component<Props, State> {
             <RefreshCw size={14} />
             {uiText('Refresh Page')}
           </button>
+          <a href="/" className="ml-3 inline-flex min-h-11 items-center px-4 text-sm font-bold underline">{publicText('copy.home')}</a>
         </div>
       );
     }

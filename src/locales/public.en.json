@@ -1,5 +1,14 @@
 {
   "copy": {
+    "clearChat": "Clear chat",
+    "chatPrivacyNotice": "Messages may be processed by an external assistant service. Avoid sensitive data. Clear chat removes this page’s conversation only.",
+    "admissionPrivacyNotice": "Your application details and optional transcript are sent to the school for admission review. Include only information needed for the application.",
+    "contactPrivacyNotice": "Your contact details and message are sent to the school inbox so staff can respond. Do not include passwords or sensitive student records.",
+    "admissionSubmissionHelp": "Provide your details to submit an application. The school will review it and contact you.",
+    "clipboardUnavailable": "Copying is unavailable. Select the account number above and copy it manually.",
+    "admissionCampusUnavailable": "No campuses are available for online applications. Please contact the school.",
+    "motherNameRequired": "Mother's full name is required.",
+    "skipToMainContent": "Skip to main content",
     "19281933": "1928–1933",
     "primaryGrade18": "Primary · Grade 1–8",
     "ziqualaAboSchoolHome": "Ziquala Abo School home",
@@ -79,7 +88,7 @@
     "aPublicSpaceForExtracurricularActivitiesCeremoniesSchoolEventsClu": "A public space for extracurricular activities, ceremonies, school events, clubs, student achievements, and wider community updates.",
     "communityActivitiesAndEvents": "Community activities and events",
     "uniformIdentityAndSchoolPride": "Uniform, identity, and school pride",
-    "theSuperAdminCanPublishStudentPhotosAndShortExplanationsHereToSho": "The Super Admin can publish student photos and short explanations here to show how the Ziquala uniform represents neatness, discipline, unity, and belonging.",
+    "theSuperAdminCanPublishStudentPhotosAndShortExplanationsHereToSho": "Uniform stories will appear here when published by the school.",
     "studentVoice": "Student voice",
     "studentsCanExplainTheUniquenessOfTheirUniformWhatEachPartRepresen": "Students can explain the uniqueness of their uniform, what each part represents, and how it connects them to school identity.",
     "uniformStories": "Uniform stories",
@@ -538,10 +547,16 @@
     "change": "Change language"
   },
   "library": {
+    "dismiss": "Continue browsing",
+    "bookUnavailable": "This book is unavailable. Browse the library for other books.",
+    "retry": "Try again",
+    "loadError": "The library could not be loaded. Please try again.",
     "resultCount_one": "{{count}} book found",
     "resultCount_other": "{{count}} books found"
   },
   "chat": {
+    "minimize": "Minimize chat",
+    "restore": "Restore chat",
     "helloIAmTheZiqualaAboSchoolAssistantICanHelpYouWithSchoolPolicies": "Hello! I am the Ziquala Abo School Assistant. I can help you with school policies, schedules, and academic reports. How can I assist you today?",
     "errorCouldNotReachTheServerPleaseTryAgainLater": "**Error:** Could not reach the server. Please try again later.",
     "askAssistant": "Ask Assistant",

@@ -192,10 +192,6 @@ export const buildStudentPrintHtml = (sheet: ExcelSheet): string => {
     </div>
     ${tables}
   </main>
-  <script>
-    document.getElementById('print-preview').addEventListener('click', function () { window.print(); });
-    document.getElementById('close-preview').addEventListener('click', function () { window.close(); });
-  </script>
 </body>
 </html>`;
 };
@@ -206,4 +202,7 @@ export const renderStudentPrintPreview = (previewWindow: Window, sheet: ExcelShe
   previewWindow.document.open();
   previewWindow.document.write(html);
   previewWindow.document.close();
+  // about:blank inherits the portal CSP; bind from the trusted application module.
+  previewWindow.document.getElementById('print-preview')?.addEventListener('click', () => previewWindow.print());
+  previewWindow.document.getElementById('close-preview')?.addEventListener('click', () => previewWindow.close());
 };

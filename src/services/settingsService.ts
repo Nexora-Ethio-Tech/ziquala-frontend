@@ -52,7 +52,8 @@ export interface SmtpSettings {
 
 const settingsService = {
   getPublicSystemSettings: async (): Promise<SystemSettings> => {
-    const response = await api.get('/public/system-settings');
+    const response = await api.get('/public/system-settings', { timeout: 10000 });
+    if (response.data?.success !== true || !response.data.data || typeof response.data.data !== 'object' || Array.isArray(response.data.data)) throw new Error('Public settings unavailable');
     return response.data.data;
   },
 

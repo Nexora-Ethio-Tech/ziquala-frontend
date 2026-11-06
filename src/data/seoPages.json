@@ -1,0 +1,21 @@
+{
+  "origin": "https://ziquala.com",
+  "brandKey": "copy.ziqualaAboSchool",
+  "pages": {
+    "/": { "titleKey": "copy.bishoftuKGGrade8", "descriptionKey": "contact.summary", "indexable": true },
+    "/school": { "titleKey": "copy.school", "descriptionKey": "copy.exploreLearningStudentLifeLeadershipSchoolNewsAndTheGrade18Academ", "indexable": true },
+    "/monastery": { "titleKey": "monastery.overview.title", "descriptionKey": "copy.enterADedicatedSpaceForHistorySacredLifeCommunityProjectsAndTheMo", "indexable": true },
+    "/elearning": { "titleKey": "copy.eLearning", "descriptionKey": "copy.browseByGradeAndSubjectOrDiscoverMaterialSharedAcrossTheWholeScho", "indexable": true },
+    "/news": { "titleKey": "copy.newsEvents", "descriptionKey": "copy.aDedicatedPublicSpaceForSchoolAnnouncementsCeremoniesAcademicDate", "indexable": true },
+    "/contact": { "titleKey": "contact.title", "descriptionKey": "contact.intro", "indexable": true },
+    "/portal": { "titleKey": "copy.portalScope", "descriptionKey": "copy.theZiqualaSystemFocusesStrictlyOnAcademicAndAdministrativeManagem", "indexable": false },
+    "/login": { "titleKey": "copy.portalLogin", "descriptionKey": "copy.theZiqualaSystemFocusesStrictlyOnAcademicAndAdministrativeManagem", "indexable": false },
+    "/register": { "titleKey": "copy.joinOurSchool", "descriptionKey": "contact.intro", "indexable": false }
+  },
+  "aliases": {
+    "/about": "/school",
+    "/programs": "/school",
+    "/school-life": "/school",
+    "/contact-us": "/contact"
+  }
+}

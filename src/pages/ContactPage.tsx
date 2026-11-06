@@ -57,6 +57,7 @@ export const ContactPage = () => {
       <div className="mt-10 rounded-2xl border border-slate-200 bg-white p-6 dark:border-white/15 dark:bg-brand-forest-950 sm:p-8">
         <h2 className="text-2xl font-bold text-brand-heading">{t('contact.inquiry')}</h2>
         <p id="inquiry-help" className="mt-3 max-w-3xl text-base leading-8 text-slate-600 dark:text-slate-200">{t('contact.emailHelp')}</p>
+        <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600 dark:text-slate-200">{t('copy.contactPrivacyNotice')}</p>
         {status === 'success' ? (
           <div ref={noticeRef} tabIndex={-1} role="status" className="mt-6 rounded-xl border border-emerald-600 bg-emerald-50 p-6 text-emerald-950 dark:border-emerald-400 dark:bg-emerald-950 dark:text-emerald-100">
             <CheckCircle2 size={32} aria-hidden="true" />

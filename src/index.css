@@ -4,6 +4,17 @@
 @tailwind components;
 @tailwind utilities;
 
+body[data-public-menu-open="true"] :is([data-school-chat], [data-school-chat-launcher]) {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+:where(.public-site a, .public-site button, .public-site input, .public-site select, .public-site textarea, .public-site [tabindex], dialog a, dialog button, [data-school-chat] button, [data-school-chat] [tabindex]):focus-visible {
+  outline: 3px solid #d6a31b;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 5px #022c22;
+}
+
 :root {
   --primary: #075b42;
   --secondary: #d6a31b;

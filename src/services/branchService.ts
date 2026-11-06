@@ -1,4 +1,5 @@
 import api from './api';
+import { cachedList } from './listCache';
 
 export interface Branch {
   id: string;
@@ -36,8 +37,10 @@ export const branchService = {
   },
 
   getAllBranchesGuest: async () => {
-    const response = await api.get('/guest/branches');
-    return response.data;
+    return cachedList('guest-branches', async () => {
+      const response = await api.get('/guest/branches', { timeout: 10000 });
+      return response.data;
+    });
   },
 
   // Get branch by ID

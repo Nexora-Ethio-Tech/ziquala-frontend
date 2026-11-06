@@ -34,7 +34,7 @@ for (const [source, key] of Object.entries(sources)) assert(flat.en[key], `Unres
 const publicFiles = [
   'src/pages/LandingPage.tsx', 'src/pages/ELearningPage.tsx', 'src/components/BookReader.tsx',
   'src/components/LanguageSelector.tsx', 'src/components/OfficialSchoolPurpose.tsx',
-  'src/components/Chatbot.tsx',
+  'src/components/Chatbot.tsx', 'src/components/BookCover.tsx', 'src/components/FeaturedBookGallery.tsx',
   'src/pages/ContactPage.tsx', 'src/components/PublicFooter.tsx',
   'src/data/ziqualaContent.ts', 'src/pages/LandingPage/context/LanguageContext.tsx',
 ];
@@ -109,6 +109,16 @@ async function checkState(saved) {
     exports: old,
     require: id => id === './i18n' ? engine : id === './locales/languages' ? languageModule : json('src/locales/' + path.basename(id)),
   });
+  // A cached match must still use the current language and current substitutions.
+  const template = 'Please enter at least {{value0}} characters.';
+  for (const language of ['am', 'om', 'en', 'am']) {
+    await engine.changeLanguage(language);
+    const expected = language === 'en' ? template : json(`src/locales/copy.${language}.json`)[template];
+    for (const value0 of [3, 7]) assert.equal(old.uiText(template, { value0 }), expected.replace('{{value0}}', String(value0)));
+    assert.equal(old.uiText('staff-authored-123'), 'staff-authored-123');
+  }
+  for (let index = 0; index < 1100; index++) old.uiText(`authored-cache-review-${index}`);
+  assert.equal(old.uiText(template, { value0: 9 }), json('src/locales/copy.am.json')[template].replace('{{value0}}', '9'));
   const translated = {};
   vm.runInNewContext(transpile('src/publicLocalization.ts'), {
     exports: translated,

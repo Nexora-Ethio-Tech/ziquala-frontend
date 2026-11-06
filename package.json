@@ -5,11 +5,20 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "tsc && vite build && node scripts/build-seo.cjs",
     "start": "npm run build && vite preview --host 0.0.0.0 --port ${PORT:-4173}",
     "preview": "vite preview",
     "check:localization": "node scripts/check-localization.cjs",
-    "check:public-localization": "node scripts/check-public-localization.cjs"
+    "check:public-localization": "node scripts/check-public-localization.cjs",
+    "check:public-loading": "node scripts/check-public-loading.cjs",
+    "check:seo": "node scripts/check-seo.cjs",
+    "check:security": "node scripts/check-security.cjs",
+    "check:cache": "node scripts/check-cache.cjs",
+    "check:accessibility": "node scripts/check-public-loading.cjs --accessibility",
+    "check:navigation": "node scripts/check-public-loading.cjs --navigation",
+    "check:functionality": "node scripts/check-public-loading.cjs --functionality",
+    "check:visual": "node scripts/check-public-loading.cjs --visual",
+    "check:reliability": "node scripts/check-public-loading.cjs --reliability"
   },
   "devDependencies": {
     "@types/node": "^20.19.41",
@@ -17,6 +26,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^4.7.0",
     "autoprefixer": "^10.4.27",
+    "axe-core": "4.11.1",
     "postcss": "^8.5.9",
     "tailwindcss": "^3.4.19",
     "typescript": "^6.0.2",

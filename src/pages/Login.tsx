@@ -1,4 +1,5 @@
 import { LanguageSelector } from '../components/LanguageSelector';
+import { useTranslation } from 'react-i18next';
 import { uiError, uiText } from "../localization";
 
 import { useState, useEffect } from 'react';
@@ -8,6 +9,7 @@ import { LogIn, Fingerprint, Lock, AlertCircle, Key, CheckCircle, Send, ArrowRig
 import { ShootingStars } from '../components/Effects';
 
 export const Login = () => {
+  useTranslation();
   const { login, user } = useUser();
   const navigate = useNavigate();
 
@@ -30,7 +32,7 @@ export const Login = () => {
   // ─── Navigate once user state is actually set ────────────────
   useEffect(() => {
     if (user && pendingRedirect) {
-      console.log('[Login] User state is set, navigating to:', pendingRedirect);
+      if (import.meta.env.DEV) { console.log('[Login] User state is set, navigating to:', pendingRedirect); }
       navigate(pendingRedirect);
       setPendingRedirect(null);
     }
@@ -54,7 +56,7 @@ export const Login = () => {
     try {
       const result = await login({ digitalIdOrEmail: fan, password: '', otp });
       if (result.success) {
-        console.log('[Login OTP] Setting pending redirect to:', result.redirect);
+        if (import.meta.env.DEV) { console.log('[Login OTP] Setting pending redirect to:', result.redirect); }
         setPendingRedirect(result.redirect || '/');
       }
       else setError(uiError(result.error || 'Invalid OTP. Please try again.'));
@@ -68,7 +70,7 @@ export const Login = () => {
     try {
       const result = await login({ digitalIdOrEmail, password, otp: '' });
       if (result.success) {
-        console.log('[Login Password] Setting pending redirect to:', result.redirect);
+        if (import.meta.env.DEV) { console.log('[Login Password] Setting pending redirect to:', result.redirect); }
         setPendingRedirect(result.redirect || '/');
       }
       else setError(uiError(result.error || 'Invalid credentials.'));
@@ -132,11 +134,11 @@ export const Login = () => {
           {loginMode === 'password' && (
             <form onSubmit={handlePasswordSubmit} className="space-y-5">
               <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">{uiText("Digital ID / Email")}</label>
+                <label htmlFor="login-identity" className="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">{uiText("Digital ID / Email")}</label>
                 <div className="relative">
                   <Fingerprint className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
                   <input
-                    type="text" required value={digitalIdOrEmail}
+                    id="login-identity" name="username" autoComplete="username" type="text" required value={digitalIdOrEmail}
                     onChange={e => setDigitalIdOrEmail(e.target.value)}
                     placeholder={uiText("e.g. SA-1001 or email@school.com")}
                     className="w-full pl-12 pr-4 py-4 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-2xl focus:border-school-primary focus:ring-4 focus:ring-school-primary/10 transition-all outline-none"
@@ -144,11 +146,11 @@ export const Login = () => {
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">{uiText("Password")}</label>
+                <label htmlFor="login-password" className="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">{uiText("Password")}</label>
                 <div className="relative">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
                   <input
-                    type={showPassword ? "text" : "password"} required value={password}
+                    id="login-password" name="password" autoComplete="current-password" type={showPassword ? "text" : "password"} required value={password}
                     onChange={e => setPassword(e.target.value)}
                     placeholder={uiText("••••••••")}
                     className="w-full pl-12 pr-12 py-4 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-2xl focus:border-school-primary focus:ring-4 focus:ring-school-primary/10 transition-all outline-none"
@@ -156,8 +158,10 @@ export const Login = () => {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
-                    tabIndex={-1}
+                    aria-label={uiText(showPassword ? 'Hide password' : 'Show password')}
+                    aria-pressed={showPassword}
+                    aria-controls="login-password"
+                    className="absolute right-2 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center text-slate-600 dark:text-slate-300 transition-colors"
                   >
                     {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                   </button>
@@ -243,7 +247,7 @@ export const Login = () => {
           {/* Footer link */}
           <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800 text-center">
             <p className="text-slate-500 dark:text-slate-400 text-sm">{uiText("New student?")}{uiText(" ")}
-              <Link to="/register" className="text-school-primary font-bold hover:underline">{uiText("Apply for Admission")}</Link>
+              <Link to="/register" className="text-school-primary dark:text-emerald-300 font-bold hover:underline">{uiText("Apply for Admission")}</Link>
             </p>
           </div>
           {import.meta.env.DEV && (
@@ -268,7 +272,7 @@ export const Login = () => {
         </div>
 
         <div className="mt-6 text-center">
-          <Link to="/" className="text-slate-400 hover:text-school-primary text-sm font-medium transition-colors">{uiText("← Back to Homepage")}</Link>
+          <Link to="/" className="text-slate-600 dark:text-slate-300 hover:text-school-primary dark:hover:text-emerald-300 text-sm font-medium transition-colors">{uiText("← Back to Homepage")}</Link>
         </div>
       </div>
     </div>

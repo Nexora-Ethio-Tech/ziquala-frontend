@@ -45,7 +45,19 @@ for (const [source, translation] of Object.entries(amCopy)) {
 }
 templates.sort((a, b) => b.specificity - a.specificity);
 
+type LookupResult = { message: Message; values?: Record<string, string> } | undefined;
+// Catalogues are fixed; cache matching independently of the selected language.
+// Bound the cache because callers can also pass staff-authored or user text.
+const lookupCache = new Map<string, LookupResult>();
 function lookup(text: string): { message: Message; values?: Record<string, string> } | undefined {
+  if (lookupCache.has(text)) return lookupCache.get(text);
+  const result = matchMessage(text);
+  if (lookupCache.size >= 1024) lookupCache.delete(lookupCache.keys().next().value!);
+  lookupCache.set(text, result);
+  return result;
+}
+
+function matchMessage(text: string): LookupResult {
   const message = messages.get(text) || caseFolded.get(text.toLowerCase());
   if (message) return { message };
   for (const template of templates) {

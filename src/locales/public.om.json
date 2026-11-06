@@ -1,5 +1,14 @@
 {
   "copy": {
+    "clearChat": "Mariin haa haqamu",
+    "chatPrivacyNotice": "Ergaawwan tajaajila gargaaraa alaa keessatti qoratamuu danda’u. Odeeffannoo icciitii hin qoodin. Marii haquun marii fuula kanaa qofa haqa.",
+    "admissionPrivacyNotice": "Odeeffannoon iyyata keetii fi galmeen bu’aa filannoodhaan itti dabaltu gamaaggama galmeetiif gara mana barumsaa ergamu. Odeeffannoo iyyataaf barbaachisu qofa dabali.",
+    "contactPrivacyNotice": "Hojjettoonni deebii kennuuf odeeffannoon qunnamtii fi ergaan kee gara imeelii mana barumsaa ergamu. Jechoota icciitii ykn galmeewwan barattootaa icciitii ta’an hin dabaliin.",
+    "admissionSubmissionHelp": "Iyyata galchuuf odeeffannoo kee kenni. Manni barumsaa iyyata kee ilaalee si qunnama.",
+    "clipboardUnavailable": "Garagalchuun hin danda’amne. Lakkoofsa herregaa armaan olii filadhuutii harkaan garagalchi.",
+    "admissionCampusUnavailable": "Iyyata interneetiitiif mooraaleen hin jiran. Mee mana barumsaa qunnami.",
+    "motherNameRequired": "Maqaan guutuun haadhaa barbaachisa.",
+    "skipToMainContent": "Gara qabiyyee ijoo darbi",
     "19281933": "1928-1933tti bara 1933tti",
     "primaryGrade18": "Sadarkaa tokkoffaa · Kutaa 1–8",
     "ziqualaAboSchoolHome": "Mana Barumsaa Ziquala Abo mana",
@@ -79,7 +88,7 @@
     "aPublicSpaceForExtracurricularActivitiesCeremoniesSchoolEventsClu": "A public space for extracurricular activities, ceremonies, school events, clubs, student achievements, and wider community updates.",
     "communityActivitiesAndEvents": "Community activities and events",
     "uniformIdentityAndSchoolPride": "Uniform, identity, and school pride",
-    "theSuperAdminCanPublishStudentPhotosAndShortExplanationsHereToSho": "The Super Admin can publish student photos and short explanations here to show how the Ziquala uniform represents neatness, discipline, unity, and belonging.",
+    "theSuperAdminCanPublishStudentPhotosAndShortExplanationsHereToSho": "Seenaawwan uffata dambii yeroo manni barumsaa maxxansu asitti mul’atu.",
     "studentVoice": "Student voice",
     "studentsCanExplainTheUniquenessOfTheirUniformWhatEachPartRepresen": "Students can explain the uniqueness of their uniform, what each part represents, and how it connects them to school identity.",
     "uniformStories": "Uniform stories",
@@ -538,10 +547,16 @@
     "change": "Afaan jijjiiri"
   },
   "library": {
+    "dismiss": "Sakatta’uu itti fufi",
+    "bookUnavailable": "Kitaabni kun hin jiru. Kitaabota biroo mana kitaabaa keessaa barbaadi.",
+    "retry": "Irra deebi’ii yaali",
+    "loadError": "Mana kitaabaa fe’uun hin danda’amne. Mee irra deebi’ii yaali.",
     "resultCount_one": "{{count}} book found",
     "resultCount_other": "{{count}} books found"
   },
   "chat": {
+    "minimize": "Marii xiqqeessi",
+    "restore": "Marii deebisi",
     "helloIAmTheZiqualaAboSchoolAssistantICanHelpYouWithSchoolPolicies": "Akkam! Ani Gargaaraa Mana Barumsaa Ziquala Abo ti. Imaammata mana barumsaa, sagantaa fi gabaasa barnootaa irratti si gargaaruu nan danda’a. Har'a akkamittan isin gargaaruu danda'a?",
     "errorCouldNotReachTheServerPleaseTryAgainLater": "**Dogongorri:** Sarvarii bira gahuu hin dandeenye. Mee booda irra deebi'ii yaalaa.",
     "askAssistant": "Gargaaraa gaafadhu",
