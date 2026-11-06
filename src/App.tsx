@@ -406,7 +406,9 @@ function AppContent() {
           )}
         </Routes>
       </Suspense>
-      <PublicFooter />
+      {isPublicContentPath(location.pathname) && !/^\/portal(?:\/|$)/.test(location.pathname) && (
+        <PublicFooter />
+      )}
       <Chatbot />
     </>
   );
