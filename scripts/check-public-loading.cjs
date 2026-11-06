@@ -20,6 +20,7 @@ const functionality = process.argv.includes('--functionality');
 const visual = process.argv.includes('--visual');
 const reliability = process.argv.includes('--reliability');
 const headerStaff = process.argv.includes('--header-staff');
+const oromoContent = process.argv.includes('--oromo');
 
 (async () => {
   let socket;
@@ -147,6 +148,12 @@ const headerStaff = process.argv.includes('--header-staff');
         fs.writeFileSync(path.join(path.dirname(process.env.LOADING_CHECK_OUTPUT), `step8-${label}.png`), Buffer.from(screenshot.data, 'base64'));
       }
     };
+    if (oromoContent) {
+      await require('./check-oromo-content.cjs')({send,evaluate,until,navigate,origin});
+      assert.equal(errors.length, 0, JSON.stringify(errors));
+      console.log('PASS: no browser runtime errors');
+      return;
+    }
     if (headerStaff) {
       await require('./check-header-staff.cjs')({send,evaluate,until,navigate,key,origin});
       assert.equal(errors.length, 0, JSON.stringify(errors));

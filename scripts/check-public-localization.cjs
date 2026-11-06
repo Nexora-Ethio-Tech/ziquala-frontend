@@ -31,6 +31,38 @@ for (const [key, text] of Object.entries(flat.am)) {
 const sources = json('src/locales/public.sources.json');
 for (const [source, key] of Object.entries(sources)) assert(flat.en[key], `Unresolved source alias: ${source}`);
 
+assert.equal(flat.en['school.abbotMessage.title'], 'Message of the Venerable Monastery Head');
+assert.equal(flat.am['school.abbotMessage.title'], 'የክቡር አበምኔቱ መልዕክት');
+const requiredOromo = {
+  'school.abbotMessage.title': 'Ergaa Kabajamoo Bulchaa Kawalichaa',
+  'school.vision.eyebrow': 'Mul’ata',
+  'school.mission.eyebrow': 'Ergama',
+  'school.values.eyebrow': 'Duudhaalee Ijoo',
+  'school.socialResponsibility.eyebrow': 'Gaafatamummaa Hawaasummaa',
+  'monastery.celebrations.eyebrow': 'Kabajamoota Waggaa',
+  'copy.communityActivitiesAndEvents': 'Hojiiwwan Hawaasaa fi Taateewwan',
+  'copy.activities': 'Hojiiwwan',
+  'copy.studentVoice': 'Sagalee Barattootaa',
+  'copy.uniformStory': 'Seenaa Yuunifoormii',
+};
+for (const [key, expected] of Object.entries(requiredOromo)) assert.equal(flat.om[key], expected, `Requested Afaan Oromoo wording: ${key}`);
+// Catalog parity alone does not detect English placeholders copied into Oromo.
+const monasteryKeys = new Set(Object.keys(flat.en).filter(key => key.startsWith('monastery.')));
+const addMonasteryKeys = source => {
+  for (const match of source.matchAll(/\b(?:copy|monastery)\.[A-Za-z0-9_.]+/g)) if (flat.en[match[0]]) monasteryKeys.add(match[0]);
+};
+addMonasteryKeys(read('src/pages/PublicMonastery.tsx'));
+const monasteryData = ts.createSourceFile('ziqualaContent.ts', read('src/data/ziqualaContent.ts'), ts.ScriptTarget.Latest, true);
+function collectMonasteryData(node) {
+  if (ts.isVariableDeclaration(node) && /^monastery/.test(node.name.getText(monasteryData)) && node.initializer) addMonasteryKeys(node.initializer.getText(monasteryData));
+  ts.forEachChild(node, collectMonasteryData);
+}
+collectMonasteryData(monasteryData);
+for (const key of new Set([...monasteryKeys, ...Object.keys(flat.en).filter(key => /^school\.(vision|mission|values|abbotMessage|socialResponsibility)\./.test(key))])) {
+  // Brand names retain their official spellings across languages.
+  if (!['copy.youTube', 'copy.facebook', 'copy.dashenBank'].includes(key)) assert.notEqual(flat.om[key], flat.en[key], `English fallback in Afaan Oromoo: ${key}`);
+}
+
 const publicFiles = [
   'src/pages/LandingPage.tsx', 'src/pages/ELearningPage.tsx', 'src/components/BookReader.tsx',
   'src/pages/PublicLayout.tsx', 'src/pages/PublicSections.tsx', 'src/pages/PublicHome.tsx',
