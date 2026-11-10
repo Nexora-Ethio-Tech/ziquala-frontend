@@ -6,6 +6,7 @@ import { useUser } from '../context/UserContext';
 import { useNavigate } from 'react-router-dom';
 import { Breadcrumbs } from '../components/Breadcrumbs';
 import attendanceService from '../services/attendanceService';
+import { getMyClasses, getClassStudents, markAttendance as teacherMarkAttendance } from '../services/teacherService';
 import { getTodayEthiopianDate, parseEthiopianDateString, formatEthiopianLabel } from '../utils/ethiopianCalendar';
 import { EthiopianDatePicker } from '../components/EthiopianDatePicker';
 import { getAttendanceTimes, saveAttendanceTimes, AttendanceTimeWindows } from '../services/schoolAdminService';
@@ -62,12 +63,17 @@ export const Attendance = () => {
   const navigate = useNavigate();
   const { role } = useUser();
   const isAdmin = role === 'school-admin' || role === 'super-admin' || role === 'vice-principal';
+  const isTeacher = role === 'teacher';
   const isVP = role === 'vice-principal';
   const [selectedGrade, setSelectedGrade] = useState('');
   const [selectedDate, setSelectedDate] = useState(getTodayEthiopianDate());
   const [attendance, setAttendance] = useState<Record<string, 'present' | 'absent'>>({});
   const [students, setStudents] = useState<any[]>([]);
-  const [attendanceMode, setAttendanceMode] = useState<AttendanceMode>('staff');
+  // Teachers default to student mode; admins/staff default to staff mode
+  const [attendanceMode, setAttendanceMode] = useState<AttendanceMode>(role === 'teacher' ? 'student' : 'staff');
+  // Teacher-specific: list of assigned classes to populate the dropdown
+  const [teacherClasses, setTeacherClasses] = useState<any[]>([]);
+  const [teacherClassesLoading, setTeacherClassesLoading] = useState(false);
   const [staffFilter, setStaffFilter] = useState<'all' | 'present' | 'absent' | 'pending'>('all');
   const [staffAttendance, setStaffAttendance] = useState<StaffAttendanceRecord[]>([]);
   const [loading, setLoading] = useState(false);
@@ -155,7 +161,24 @@ export const Attendance = () => {
     }
   };
 
-  // Fetch students for selected grade
+  // ── Teacher: load assigned classes when in student mode ─────────────────────
+  useEffect(() => {
+    if (!isTeacher || attendanceMode !== 'student') return;
+    setTeacherClassesLoading(true);
+    getMyClasses('attendance')
+      .then((data) => {
+        const list = Array.isArray(data) ? data : [];
+        setTeacherClasses(list);
+        // Auto-select the first class if only one is assigned
+        if (list.length === 1) {
+          setSelectedGrade(list[0].id);
+        }
+      })
+      .catch(() => setTeacherClasses([]))
+      .finally(() => setTeacherClassesLoading(false));
+  }, [isTeacher, attendanceMode]);
+
+  // Fetch students for selected grade/class
   useEffect(() => {
     if (attendanceMode !== 'student') {
       setStudents([]);
@@ -171,25 +194,42 @@ export const Attendance = () => {
           setAttendance({});
           return;
         }
-        const [grade, section = ''] = selectedGrade.split('|||');
-        const data = await attendanceService.getStudentAttendanceRoster(grade, section, selectedDate);
-        setStudents(data || []);
-        // Initialize attendance state
+
+        let data: any[];
+
+        if (isTeacher) {
+          // Teacher path: use teacher-scoped endpoint GET /teacher/students/:classId
+          const raw = await getClassStudents(selectedGrade);
+          data = Array.isArray(raw) ? raw : [];
+          // Normalise field names coming from teacher endpoint
+          data = data.map((s: any) => ({
+            ...s,
+            id: s.studentId || s.student_id || s.id,
+            name: s.studentName || s.student_name || s.name || `${s.firstName || ''} ${s.lastName || ''}`.trim(),
+            status: s.status || 'present',
+          }));
+        } else {
+          // Admin path: use school-admin roster endpoint
+          const [grade, section = ''] = selectedGrade.split('|||');
+          data = await attendanceService.getStudentAttendanceRoster(grade, section, selectedDate);
+          data = data || [];
+        }
+
+        setStudents(data);
+        // Initialise attendance toggles
         const initialAttendance: Record<string, 'present' | 'absent'> = {};
-        data?.forEach((s: any) => {
+        data.forEach((s: any) => {
           initialAttendance[s.id] = s.status === 'absent' ? 'absent' : 'present';
         });
         setAttendance(initialAttendance);
 
-        // Fetch attendance history for each student (for 30-day stats)
-        if (isAdmin && data && data.length > 0) {
+        // Fetch 30-day history for admin view only
+        if (isAdmin && data.length > 0) {
           const historyMap: Record<string, any> = {};
           for (const student of data) {
             try {
               const history = await attendanceService.getStudentAttendanceHistory(student.id, 30);
-              if (history) {
-                historyMap[student.id] = history;
-              }
+              if (history) historyMap[student.id] = history;
             } catch (err) {
               console.error(`Failed to fetch attendance history for student ${student.id}:`, err);
             }
@@ -204,7 +244,7 @@ export const Attendance = () => {
       }
     };
     fetchStudents();
-  }, [selectedGrade, selectedDate, attendanceMode, isAdmin]);
+  }, [selectedGrade, selectedDate, attendanceMode, isAdmin, isTeacher]);
 
   // Fetch staff attendance from backend (biometric & manually logged ZKTeco devices)
   useEffect(() => {
@@ -1010,9 +1050,14 @@ export const Attendance = () => {
                 try {
                   const records = Object.entries(attendance).map(([studentId, status]) => ({
                     studentId,
-                    status
+                    status: status as 'present' | 'absent'
                   }));
-                  await attendanceService.saveStudentAttendance(selectedDate, records);
+                  if (isTeacher) {
+                    // Use teacher-scoped POST /teacher/attendance
+                    await teacherMarkAttendance({ date: selectedDate, attendanceRecords: records });
+                  } else {
+                    await attendanceService.saveStudentAttendance(selectedDate, records);
+                  }
                   alert(uiText("Attendance saved successfully!"));
                 } catch (error: any) {
                   alert(uiError('Failed to save attendance: ' + (error?.response?.data?.error?.message || error.message || 'Unknown error')));
@@ -1035,12 +1080,27 @@ export const Attendance = () => {
                   id="gradeSection"
                   value={selectedGrade}
                   onChange={(e) => setSelectedGrade(e.target.value)}
-                  className="appearance-none pl-4 pr-10 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500 transition-all w-40"
+                  disabled={isTeacher && teacherClassesLoading}
+                  className="appearance-none pl-4 pr-10 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500 transition-all w-48 disabled:opacity-60"
                 >
-                  <option value="">{uiText("-- ")}{t("attendance.selectGradeOption", "Select Grade")}{uiText(" --")}</option>
-                  {gradeStats.map((grade, idx) => (
-                    <option key={grade.id ? `grade-opt-${grade.id}-${idx}` : `grade-opt-${idx}`} value={`${grade.gradeValue}|||${grade.sectionValue}`}>{uiText(grade.grade)}</option>
-                  ))}
+                  <option value="">
+                    {isTeacher && teacherClassesLoading
+                      ? uiText('Loading classes...')
+                      : `${uiText('-- ')}${t('attendance.selectGradeOption', 'Select Class')}${uiText(' --')}`}
+                  </option>
+                  {isTeacher
+                    ? teacherClasses.map((cls: any, idx: number) => (
+                        <option key={cls.id ? `tcls-${cls.id}-${idx}` : `tcls-${idx}`} value={cls.id}>
+                          {uiText(cls.name || cls.class_name || `Class ${idx + 1}`)}
+                          {cls.subject ? ` — ${cls.subject}` : ''}
+                        </option>
+                      ))
+                    : gradeStats.map((grade, idx) => (
+                        <option key={grade.id ? `grade-opt-${grade.id}-${idx}` : `grade-opt-${idx}`} value={`${grade.gradeValue}|||${grade.sectionValue}`}>
+                          {uiText(grade.grade)}
+                        </option>
+                      ))
+                  }
                 </select>
                 <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
               </div>
@@ -1147,7 +1207,20 @@ export const Attendance = () => {
         </div>
       )}
 
-      {!isVP && attendanceMode === 'student' && (
+      {!isVP && attendanceMode === 'student' && isTeacher && !selectedGrade && (
+        <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 p-10 text-center">
+          <Users size={40} className="mx-auto text-slate-300 dark:text-slate-600 mb-3" />
+          <p className="text-sm font-bold text-slate-500 dark:text-slate-400">
+            {teacherClassesLoading
+              ? uiText('Loading your assigned classes...')
+              : teacherClasses.length === 0
+                ? uiText('No classes assigned to you yet. Contact your administrator.')
+                : uiText('Select a class above to load the student list.')}
+          </p>
+        </div>
+      )}
+
+      {!isVP && attendanceMode === 'student' && (!isTeacher || !!selectedGrade) && (
         <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden transition-colors duration-300">
           <div className="overflow-x-auto">
             {isAdmin ? (
