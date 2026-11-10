@@ -151,8 +151,15 @@ export const EthiopianDatePicker: React.FC<EthiopianDatePickerProps> = ({
       </div>
 
       {isOpen && (
-        <div className="absolute left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0 mt-2 z-50 w-72 p-4 bg-white/90 dark:bg-slate-950/95 backdrop-blur-md border border-slate-200/60 dark:border-slate-850 rounded-3xl shadow-2xl animate-in fade-in slide-in-from-top-2">
-          {/* Header row */}
+        <>
+          {/* Mobile backdrop overlay */}
+          <div
+            className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-40 sm:hidden"
+            onClick={() => setIsOpen(false)}
+          />
+
+          <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 sm:absolute sm:left-0 sm:top-full sm:translate-x-0 sm:translate-y-0 mt-0 sm:mt-2 z-50 w-[min(18.5rem,calc(100vw-1.5rem))] sm:w-72 p-3.5 sm:p-4 bg-white/95 dark:bg-slate-950/95 backdrop-blur-md border border-slate-200/80 dark:border-slate-800 rounded-3xl shadow-2xl animate-in fade-in zoom-in-95 sm:zoom-in-100 sm:slide-in-from-top-2">
+            {/* Header row */}
           <div className="flex items-center justify-between mb-4">
             <button
               type="button"
@@ -242,6 +249,7 @@ export const EthiopianDatePicker: React.FC<EthiopianDatePickerProps> = ({
             >{uiText("Today")}</button>
           </div>
         </div>
+      </>
       )}
     </div>
   );
