@@ -42,7 +42,7 @@ export const HomePage = () => {
             <Link to="/school" className="group relative min-h-[34rem] overflow-hidden border border-slate-200 bg-white text-slate-900 dark:border-brand-forest-800 dark:bg-brand-forest-950 dark:text-white">
               <img width={1280} height={719} loading="lazy" decoding="async" src={studentAssembly} alt={uiText("copy.ziqualaAboStudentsGatheredInTheSchoolCourtyard")} className="absolute inset-0 h-full w-full object-cover transition duration-700 ease-out group-hover:scale-[1.035]" />
               <div className="absolute inset-0 hidden dark:block bg-gradient-to-t from-brand-forest-950 via-brand-forest-950/80 to-brand-forest-950/75" />
-              <div className="absolute inset-x-0 bottom-0 bg-white p-7 dark:bg-transparent sm:p-10">
+              <div className="absolute inset-x-0 bottom-0 border-t border-white/20 bg-white/85 dark:bg-zinc-900/85 backdrop-blur-md shadow-xl p-7 sm:p-10">
                 <p className="text-base font-black uppercase tracking-[0.25em] text-brand-gold-700 dark:text-brand-gold-300">{uiText("copy.schoolExperience")}</p>
                 <div className="mt-3 flex items-end justify-between gap-8">
                   <div>
@@ -57,7 +57,7 @@ export const HomePage = () => {
             <Link to="/monastery" className="group relative min-h-[34rem] overflow-hidden border border-slate-200 bg-white text-slate-900 dark:border-brand-forest-800 dark:bg-brand-forest-950 dark:text-white">
               <img width={820} height={1024} loading="lazy" decoding="async" srcSet={`${ziqualaAerialSmall} 640w, ${ziqualaAerial} 820w`} sizes="(min-width: 1024px) 45vw, 100vw" src={ziqualaAerial} alt={uiText("copy.aerialViewOfZiqualaCraterLakeAndMonastery")} className="absolute inset-0 h-full w-full object-cover transition duration-700 ease-out group-hover:scale-[1.035]" />
               <div className="absolute inset-0 hidden dark:block bg-gradient-to-t from-brand-forest-950 via-brand-forest-950/80 to-brand-forest-950/75" />
-              <div className="absolute inset-x-0 bottom-0 bg-white p-7 dark:bg-transparent sm:p-10">
+              <div className="absolute inset-x-0 bottom-0 border-t border-white/20 bg-white/85 dark:bg-zinc-900/85 backdrop-blur-md shadow-xl p-7 sm:p-10">
                 <p className="text-base font-black uppercase tracking-[0.25em] text-brand-gold-700 dark:text-brand-gold-300">{uiText("copy.monasteryExperience")}</p>
                 <h3 className="mt-3 font-serif text-5xl font-medium sm:text-6xl">{uiText("monastery.heritage")}</h3>
                 <p className="mt-4 max-w-lg leading-7 text-slate-700 dark:text-slate-100">{uiText("copy.enterADedicatedSpaceForHistorySacredLifeCommunityProjectsAndTheMo")}</p>

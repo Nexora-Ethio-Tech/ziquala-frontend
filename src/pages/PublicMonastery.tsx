@@ -278,7 +278,7 @@ export const MonasteryDonation = () => {
             <h2 className="mt-5 font-serif text-4xl leading-tight sm:text-5xl">{uiText("copy.helpPreserveALivingSpiritualHeritage")}</h2>
             <p className="mt-6 max-w-xl text-lg leading-8 text-slate-700 dark:text-brand-forest-50/75">{uiText("copy.donationsHelpTheMonasteryMeetItsNeedsSustainItsCommunityCareForIt")}</p>
           </div>
-          <div className="border border-slate-200 bg-white dark:border-white/20 dark:bg-white/10 p-6 sm:p-9">
+          <div className="rounded-2xl border border-white/40 dark:border-white/20 bg-white/85 dark:bg-zinc-900/85 backdrop-blur-md shadow-xl p-6 sm:p-9">
             <div className="flex items-center gap-4">
               <span className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-full bg-white p-1 shadow-lg"><img src={cbeLogo} alt={uiText("copy.commercialBankOfEthiopiaLogo")} className="h-full w-full object-contain" /></span>
               <div>
@@ -419,18 +419,18 @@ export const MonasteryHero = () => {
         transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
         className="relative mx-auto grid w-full max-w-7xl items-end gap-8 px-5 pb-16 pt-24 lg:grid-cols-[1fr_.65fr] lg:px-8 md:pb-24"
       >
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-2xl sm:p-8 text-slate-900">
+        <div className="rounded-2xl border border-white/40 dark:border-white/20 bg-white/85 dark:bg-zinc-900/85 p-6 shadow-xl backdrop-blur-md sm:p-8 text-slate-900 dark:text-white">
           <div className="flex items-center gap-4">
-            <img src={monasteryMark} alt={uiText("copy.ziqualaAboMediaMark")} className="h-20 w-20 rounded-xl bg-slate-50 object-contain p-2" />
-            <p className="text-base font-black uppercase tracking-[0.28em] text-brand-gold-800">{uiText("copy.monasteryInformation")}</p>
+            <img src={monasteryMark} alt={uiText("copy.ziqualaAboMediaMark")} className="h-20 w-20 rounded-xl bg-white/95 object-contain p-2 shadow-sm" />
+            <p className="text-base font-black uppercase tracking-[0.28em] text-brand-gold-700 dark:text-brand-gold-300">{uiText("copy.monasteryInformation")}</p>
           </div>
-          <h1 className="mt-7 max-w-5xl font-serif text-4xl font-medium leading-tight tracking-[-0.045em] md:text-6xl text-brand-forest-950">{uiText(ziqualaIdentity.monasteryNameEn)}</h1>
+          <h1 className="mt-7 max-w-5xl font-serif text-4xl font-medium leading-tight tracking-[-0.045em] md:text-6xl text-brand-forest-950 dark:text-white">{uiText(ziqualaIdentity.monasteryNameEn)}</h1>
         </div>
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-2xl sm:p-8 text-slate-900">
-          <p className="text-lg leading-8 text-slate-700">{uiText("copy.aDedicatedSpaceForTheMonasterySHistorySpiritualCommunityIncomeGen")}</p>
+        <div className="rounded-2xl border border-white/40 dark:border-white/20 bg-white/85 dark:bg-zinc-900/85 p-6 shadow-xl backdrop-blur-md sm:p-8 text-slate-900 dark:text-white">
+          <p className="text-lg leading-8 text-slate-700 dark:text-slate-100">{uiText("copy.aDedicatedSpaceForTheMonasterySHistorySpiritualCommunityIncomeGen")}</p>
           <div className="mt-7 flex flex-wrap gap-3">
             <a href="#monastery-history" className="inline-flex items-center gap-2 bg-brand-gold-400 px-5 py-3 text-sm font-black text-brand-forest-950 hover:bg-brand-gold-300 transition-colors">{uiText("copy.readTheHistory ")}<ArrowRight size={17} /></a>
-            <a href="#donate" className="inline-flex items-center gap-2 border border-slate-300 hover:border-brand-forest-900 px-5 py-3 text-sm font-black text-slate-900 transition-colors">{uiText("copy.supportTheMonastery ")}<HeartHandshake size={17} /></a>
+            <a href="#donate" className="inline-flex items-center gap-2 border border-slate-300 dark:border-white/35 px-5 py-3 text-sm font-black text-slate-900 dark:text-white transition-colors hover:border-brand-gold-400 hover:text-brand-gold-400">{uiText("copy.supportTheMonastery ")}<HeartHandshake size={17} /></a>
           </div>
         </div>
       </m.div>
